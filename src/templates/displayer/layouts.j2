@@ -1,0 +1,77 @@
+{% import 'displayer/items.j2' as disp_item %}
+
+{% macro display_layout(layout = [])%}
+    {% if layout["type"] == "VERT" %}
+        {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"]) }}
+    {% elif layout["type"] == "HORIZ" %}
+        {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"]) }}
+    {% elif layout["type"] == "TABLE" %}
+        {{ display_table_layout(layout["header"], layout["lines"]) }}
+    {% elif layout["type"] == "SPACER" %}
+        <div><p style="margin-bottom:1cm;"></p></div>
+          
+    {% endif %}
+{% endmacro %}
+
+{% macro display_horizontal_layout(columns=[], containers = [], align = []) %}
+    TOCODE
+{% endmacro %}
+
+{% macro display_vertical_layout(columns=[], containers = [], align = []) %}
+    <div class="row m-1 align-items-center">
+    {# For each columns #}
+    {% for col in columns %}
+        <div class="col-{{col}} text-{{align[loop.index0]}}">
+        
+        {# Display all the items in the containers one another #}
+        {% for element in containers[loop.index0] %}
+                {% if element["object"] == "item" %}
+                    {{ disp_item.display_item(element) }}
+                {% elif element["object"] == "layout" %}
+                    {{ display_layout(element)}}
+                {% else %}
+                    NOT SUPPORTED
+                {% endif %}
+        {% endfor %}
+
+        </div>
+    {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro display_table_layout(header=[], lines = []) %}
+    
+    <div class="row m-1">
+    <table class="table table-striped mb-0">
+        <thead>
+            <tr>
+                {% for head in header %}
+                    <th>{{ head }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+        {% if lines %}
+            {% for line in lines %}
+                <tr>
+                {% for item in line %}
+                    <td>
+                        {% for element in item %}
+                            {% if element["object"] == "item" %}
+                                {{ disp_item.display_item(element) }}
+                            {% elif element["object"] == "layout" %}
+                                {{ display_layout(element)}}
+                            {% else %}
+                                NOT SUPPORTED
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                {% endfor %}
+                </tr>
+            {% endfor %}
+        {% endif %}
+        </tbody>
+
+        </table>
+    </div>
+{% endmacro %}

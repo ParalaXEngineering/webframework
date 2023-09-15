@@ -1,0 +1,139 @@
+{% macro select(name, options, selected="", generic=false) %}
+    {% if options %}
+    <select class="form-control" name="{{ name }}" id="{{ name }}">
+        {% if options is integer %}
+            {% for n in range(0, options + 1) %}
+                <option {% if n == selected %} selected {% endif %}>{{ n }}</option>
+            {% endfor %}
+        {% else %}
+        {% if generic%}
+            <option>Veillez sélectionner</option>
+        {% endif %}
+        {% for option in options %}
+            <option {% if option == selected %} selected {% endif %}>{{ option }}</option>
+        {% endfor %}
+        {% endif %}
+    </select>
+    {% else %}
+    <select class="form-control" name="{{ name }}" id="{{ name }}"></select>
+    {% endif %}
+{% endmacro %}
+
+{% macro select_js(name, js, options, selected="") %}
+    {% if options %}
+    <select class="form-control" name="{{ name }}" id="{{ name }}" onchange="{{ js }}">
+        {% if options is integer %}
+            {% for n in range(0, options + 1) %}
+                <option {% if n == selected %} selected {% endif %}>{{ n }}</option>
+            {% endfor %}
+        {% else %}
+        {% for option in options %}
+            <option {% if option == selected %} selected {% endif %}>{{ option }}</option>
+        {% endfor %}
+        {% endif %}
+    </select>
+    {% endif %}
+{% endmacro %}
+
+{% macro multichoices(name, options, selected=[]) %}
+    {% if options %}
+        {% for option in options %}
+            <div>
+                <input type="checkbox" name="{{ name  }}_{{ option }}", id="{{ option }}" {% if option in selected %}checked{% endif %}> <label for="{{ option }}">{{ option }}</label>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endmacro %}
+
+{% macro check(name, default=None) %}
+    <div>
+        <input class="form-check-input" type="checkbox" name="{{ name }}" id="{{ name }}" value="1" {% if default %}checked{% endif %}>
+    </div>
+{% endmacro %}
+
+{% macro slider(name, default=None, min=0, max=100) %}
+    <input type="range" class="form-range col-sm-2" min="{{ min }}" max="{{ max }}" id="{{ name }}" name="{{ name }}" value="{{ default }}">
+{% endmacro %}
+
+{% macro input(name, default=None) %}
+    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+{% endmacro %}
+
+{% macro file(name) %}
+    <input type="file" name="{{ name }}" id="{{ name }}"  class="form-control">
+{% endmacro %}
+
+{% macro date(name, default=None) %}
+    <input type="date" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+{% endmacro %}
+
+{% macro input_js(name, js, default=None) %}
+    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control" onchange="{{ js }}">
+{% endmacro %}
+
+{% macro path(name, path_variable, default=None) %}
+    <div class="row" id="{{ name }}_div">
+        <select class="form-control path-select" id="{{ name }}_level0" source="{{ path_variable }}" class="path" onchange="path_add_level('{{ name }}', '{{path_variable}}', 0)">
+            <option>Veillez sélectionner</option>
+        </select>
+        <input class="path_result" type="hidden" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control"> 
+    
+    </div>
+{% endmacro %}
+
+{% macro hidden(name, value) %}
+    <input type="hidden" name="{{ name }}" id="{{ name }}" value="{{ value }}">
+{% endmacro %}
+
+{% macro number(name, default=None) %}
+    <input type="number" step=".01" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% else %} value="0" {% endif %} class="form-control">
+{% endmacro %}
+
+{% macro files_level(name, level, levelNb, class) %}
+	{% if level %}
+		{% for current in level %}
+			
+				{% if level[current] is not string %}
+					<tr>
+						<td style="padding-left:{{5+20*levelNb}}px"><i class="mdi mdi-folder" style="margin-right:10px"></i><b>{{ current }}</b></td>
+						<td></td>
+					</tr>
+					
+					{{ files_level(name, level[current], levelNb + 1, class)}}
+				{% else %}
+					<tr>
+						<td style="padding-left:{{5+20*levelNb}}px">{{ current }}</td>
+						<td style="width:50px"><div class="form-check"><div class="custom-control custom-checkbox"><input type="checkbox" class="from-check-glow form-check-input form-check-{{class}}" name="{{ level[current] }}" value="{{class}}"></div></div></td>
+					</tr>
+				{% endif %}
+		{% endfor %}
+	{% endif %}
+{% endmacro %}
+
+{% macro files(name, title, files, class, icon, hidden=None) %}
+        <h5 class="p-2 text-primary">{{ title }}</h5>
+        {% if hidden %}
+        <button class="btn btn-primary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collape{{name}}" aria-expanded="false" aria-controls="collape{{name}}">
+            Show file explorer
+        </button>
+
+        <div class="collapse" id="collape{{name}}">
+        {% endif %}
+
+        
+            <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                        <th>File</th>
+                        <th><i class="mdi mdi-{{icon}}"</i></th>
+                </tr>
+            </thead>
+                <tbody>
+                {{ files_level(name, files, 0, class) }}
+                </tbody>
+            </table>
+        {% if hidden %}
+        </div>
+        {% endif %}
+    
+{% endmacro %}

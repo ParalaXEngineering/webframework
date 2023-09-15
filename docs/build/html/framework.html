@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Framework &mdash; ParalaX Web 1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Site handler" href="sitehandler.html" />
+    <link rel="prev" title="Welcome to ParalaX Web’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> ParalaX Web
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Base content:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Framework</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-structure">File structure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sitehandler.html">Site handler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework_classes.html">List of classes of the framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="oufnis_hw.html">OuFNis HW</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ParalaX Web</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Framework</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/framework.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="framework">
+<h1>Framework<a class="headerlink" href="#framework" title="Permalink to this heading"></a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading"></a></h2>
+<p>The base framework consists mainly of:</p>
+<ul class="simple">
+<li><p>A webengine, based on flask and jinja templates, generating html code from user functions.</p></li>
+<li><p>A scheduler <a class="reference internal" href="framework_classes.html#scheduler.Scheduler" title="scheduler.Scheduler"><code class="xref py py-meth docutils literal notranslate"><span class="pre">scheduler.Scheduler()</span></code></a> , which will run every now and then to provide communication with the user’s webclient; through socketio. This scheduler is responsible for refreshing some portions of the website, such as the buttons, the modals, etc.</p></li>
+<li><p>A thread manager <a class="reference internal" href="framework_classes.html#threaded_manager.Threaded_manager" title="threaded_manager.Threaded_manager"><code class="xref py py-meth docutils literal notranslate"><span class="pre">threaded_manager.Threaded_manager()</span></code></a> , which register and maintain in memory a set of thread. It is responsible for registering and deleting them.</p></li>
+<li><p>A set of thread actions <a class="reference internal" href="framework_classes.html#threaded_action.Threaded_action" title="threaded_action.Threaded_action"><code class="xref py py-meth docutils literal notranslate"><span class="pre">threaded_action.Threaded_action()</span></code></a> , which, once registered in the thread manager, offers a basic framework to do asynchronous work while the user still can use the website. The user can define as many thread as he wants, which can do a variety of work. From nowon, the term <strong>module</strong> will be used.</p></li>
+<li><p>A site conf <a class="reference internal" href="framework_classes.html#site_conf.Site_conf" title="site_conf.Site_conf"><code class="xref py py-meth docutils literal notranslate"><span class="pre">site_conf.Site_conf()</span></code></a> which provides the basic site information. It should be overwritten by the child class</p></li>
+</ul>
+<p>In addition, the framework provides different functionalities:</p>
+<ul class="simple">
+<li><p>An updater, that can check on a FTP server the presence of updates and apply them.</p></li>
+<li><p>An access manager <a class="reference internal" href="framework_classes.html#access_manager.Access_manager" title="access_manager.Access_manager"><code class="xref py py-meth docutils literal notranslate"><span class="pre">access_manager.Access_manager()</span></code></a> in order to support login of different users and authorizations. This access manager shall not be access directly by a site handler: everything is configured through the settings of the application</p></li>
+<li><p>A set of helper functions <a class="reference internal" href="framework_classes.html#module-utilities" title="utilities"><code class="xref py py-func docutils literal notranslate"><span class="pre">utilities()</span></code></a> . They range from easily listing serial ports to helper function to display stuff in the web engine.</p></li>
+</ul>
+<p>Finally, the framework will auto-generate some pages that are always present in a website:</p>
+<ul class="simple">
+<li><p>An optional login page</p></li>
+<li><p>A mendatory setting page.</p></li>
+</ul>
+<p>In addition to the framework, each website can have other items:
+* A ressource folder, where files usefull for the website can be stored (for instance, binary files for different tools)
+* A package folder, which is a compressed version of a base ressource folder, for easy sharing. The framework provide different helpers to generate those packages and manage them
+* A download folder, for user inputs
+* A docs folder, containing this documentation</p>
+</section>
+<section id="file-structure">
+<h2>File structure<a class="headerlink" href="#file-structure" title="Permalink to this heading"></a></h2>
+<p>The ParalaX’s Web basic file structure is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>| ParalaX&#39;s Web
+| ├── docs (documentation sources)
+| ├── packages
+| │   ├── website1
+| │   ├── website2
+| ├── ressources
+| ├── packages
+| │   ├── website1
+| │   ├── website2
+| ├── src (python sources)
+| │   ├── framework (framework python sources)
+| │   ├── website1 (First site handler)
+| │   ├── website2 (second site handler)
+| │   ├── ... (Any amount of site handlers)
+| │   ├── ... (Any amount of site handlers)
+| │   ├── templates (Jinja templates)
+| │   ├── main.py (Access point)
+| ├── webengine (website ressources)
+| │   ├── assets (css, js of the javascript)
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to ParalaX Web’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="sitehandler.html" class="btn btn-neutral float-right" title="Site handler" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, ParalaX Engineering.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

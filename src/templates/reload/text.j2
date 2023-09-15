@@ -1,0 +1,3 @@
+{% import 'common/inputs.j2' as common_input %}
+
+<input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">

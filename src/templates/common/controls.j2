@@ -1,0 +1,41 @@
+{% macro add(target, options=[]) %}
+    <a href="{{ url_for(target)}}?{{ options | join('&amp;') }}"><i class="mdi mdi-hospital-box text-primary"></i></a>
+{% endmacro %}
+
+{% macro edit(target, options="") %}
+    <a href="{{ url_for(target)}}?{{ options | join('&amp;') }}"><i class="mdi mdi-pencil-box text-warning" ></i></a>
+{% endmacro %}
+
+{% macro delete(target, options="") %}
+    <a href="{{ url_for(target)}}?{{ options | join('&amp;') }}"><i class="mdi mdi-close-box text-danger" ></i></a>
+{% endmacro %}
+
+{% macro display(target, options="") %}
+    <a href="{{ url_for(target)}}?{{ options | join('&amp;') }}"><i class="mdi mdi-play-box text-primary" ></i></a>
+{% endmacro %}
+
+{% macro update(target, options="") %}
+    <a href="{{ url_for(target)}}?{{ options | join('&amp;') }}"><i class="mdi mdi-arrow-up-bold-box" ></i></a>
+{% endmacro %}
+
+{% macro pages(target, pages=1, options=[]) %}
+    {% for n in range(pages | int) | reverse%}
+        <a href="{{ url_for(target) }}?{{ options | join('&amp;') }};offset={{ n + 1 }}">{{ n + 1 }}</a>
+    {% endfor%}
+{% endmacro %}
+
+{% macro bool_icon(item) %}
+    {% if item %}
+        <i class="mdi mdi-checkbox-marked-circle text-success"></i>
+    {% else %}
+        <i class="mdi mdi-close-circle text-danger"></i>
+    {% endif %}
+{% endmacro %}
+
+{% macro url_ext(target) %}
+    {% if "pdf" in target %}
+        <a href="{{ target }}"><i class="mdi mdi-file-pdf-box text-danger"></i></a>
+    {% else %}
+        <a href="{{ target }}"><i class="mdi mdi-earth text-primary"></i></a>
+    {% endif %}
+{% endmacro %}

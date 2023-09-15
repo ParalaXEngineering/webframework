@@ -1,0 +1,18 @@
+{% import 'common/inputs.j2' as common_input %}
+
+{% if options %}
+<select class="form-control" name="{{ name }}" id="{{ name }}">
+    {% if options is integer %}
+        {% for n in range(0, options + 1) %}
+            <option {% if n == selected %} selected {% endif %}>{{ n }}</option>
+        {% endfor %}
+    {% else %}
+    {% if generic%}
+        <option>Veillez sélectionner</option>
+    {% endif %}
+    {% for option in options %}
+        <option {% if option == selected %} selected {% endif %}>{{ option }}</option>
+    {% endfor %}
+    {% endif %}
+</select>
+{% endif %}

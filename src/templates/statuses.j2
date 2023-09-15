@@ -1,0 +1,48 @@
+{% if content is iterable %}
+    {% for item in content %}
+        {% if item is not string and item is iterable %}
+            {% for subitem in item %}
+            <div class="row">
+                <div class="col-3">
+                    <h6 class="text-primary">{{subitem}}</h6>
+                </div>
+                <div class="col-9">
+                    {{item[subitem]}}
+                </div>
+            </div>
+            {% endfor %}
+        {% elif content[item] is string %}
+                <div class="row">
+                <div class="col-3">
+                    <h6 class="text-primary">{{item}}</h6>
+                </div>
+                <div class="col-9">
+                    {{content[item]}}
+                </div>
+                </div>
+        {% else %}
+        {# A dictionnary with either a value, or an other iterable inside #}
+        <div class="row mb-2">
+            <div class="col-3">
+                <h6 class="text-primary">{{item}}</h6>
+            </div>
+            <div class="col-9">
+                {% if content[item] is iterable %}
+                    {% for subitem in content[item] %}
+                        <div class="row">
+                        <div class="col-3">
+                            {{subitem}}: 
+                        </div>
+                        <div class="col-9">
+                            {{ content[item][subitem] }}
+                        </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                {{ content[item] }}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}

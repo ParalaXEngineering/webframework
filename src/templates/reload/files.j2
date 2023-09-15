@@ -1,0 +1,28 @@
+{% import 'common/inputs.j2' as common_input %}
+
+<div id="{{file_id}}">
+<h5 class="p-2 text-primary">{{ title }}</h5>
+{% if hidden %}
+<button class="btn btn-primary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collape{{name}}" aria-expanded="false" aria-controls="collape{{name}}">
+    Show file explorer
+</button>
+
+<div class="collapse" id="collape{{name}}">
+{% endif %}
+
+
+    <table class="table table-striped mb-0">
+    <thead>
+        <tr>
+                <th>File</th>
+                <th><i class="mdi mdi-{{icon}}"</i></th>
+        </tr>
+    </thead>
+        <tbody>
+        {{ common_input.files_level(name, files, 0, class) }}
+        </tbody>
+    </table>
+{% if hidden %}
+</div>
+{% endif %}
+</div>

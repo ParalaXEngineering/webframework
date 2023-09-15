@@ -1,0 +1,571 @@
+{% import 'common/inputs.j2' as common_input %}
+{% import 'common/controls.j2' as common_controls %}
+{% set path_count = namespace(value=0) %}
+
+{% macro display_item(item) %}
+    {% if "itemId" in item %}
+    <span id="{{item["itemId"]}}">
+    {% else %}
+    <span>
+    {% endif %}
+
+    {% if item["type"] == "TEXT" %}
+        {{text(item["text"])}}
+    {% elif item["type"] == "PLACEHOLDER" %}
+        {{placeholder(item["id"])}}
+    {% elif item["type"] == "BUTTON" %}
+        {{button(item["id"], item["text"], item["disabled"])}}
+    {% elif item["type"] == "DOWNLOAD" %}
+        {{download(item["id"], item["text"], item["data"])}}
+    {% elif item["type"] == "ICONLINK" %}
+        {{iconlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
+    {% elif item["type"] == "IMAGE" %}
+        {{image(item["id"], item["value"], item["data"])}}
+    {% elif item["type"] == "INBOX" %}
+        {{inbox(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INDATE" %}
+        {{indate(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INNUM" %}
+        {{innum(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INTEXT" %}
+        {{intext(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INMULTITEXT" %}
+        {{inmultitext(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INTEXTICON" %}
+        {{inttexticon(item["id"], item["value"])}}
+    {% elif item["type"] == "INHIDDEN" %}
+        {{inhidden(item["id"], item["value"])}}
+    {% elif item["type"] == "INFILE" %}
+        {{infile(item["id"], item["text"])}}
+    {% elif item["type"] == "SELECT" %}
+        {{inselect(item["id"], item["data"], item["value"], item["text"])}}
+    {% elif item["type"] == "INLISTTEXT" %}
+        {{inlisttext(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INLISTSELECT" %}
+        {{inlistselect(item["id"], item["data"], item["value"], item["text"])}}
+    {% elif item["type"] == "INTEXTSELECT" %}
+        {{intextselect(item["id"], item["data"], item["value"], item["text"])}}
+    {% elif item["type"] == "INSELECTTEXT" %}
+        {{inselecttext(item["id"], item["data"], item["value"], item["text"])}}
+    {% elif item["type"] == "INDUALSELECTTEXT" %}
+        {{indualselecttext(item["id"], item["data"], item["value"], item["text"])}}
+    {% elif item["type"] == "INDUALTEXTSELECT" %}
+        {{indualtextselect(item["id"], item["data"], item["value"], item["text"])}}
+    {% elif item["type"] == "INTEXTTEXT" %}
+        {{intexttext(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INMULTISELECT" %}
+        {{inmultiselect(item["id"], item["data"], item["value"], item["text"])}}
+    {% elif item["type"] == "INMAPPING" %}
+        {{inmapping(item["id"], item["data"], item["value"], item["text"])}}
+    {% elif item["type"] == "ALERT" %}
+        {{alert(item["text"], item["style"])}}
+    {% elif item["type"] == "BADGE" %}
+        {{badge(item["text"], item["style"])}}
+    {% elif item["type"] == "INFILEEXPLORER"%}
+        {{infileexplorer(item["id"], item["text"], item["explorer_titles"], item["explorer_files"], item["explorer_classes"], item["explorer_icons"], item["explorer_hiddens"])}}
+    {% elif item["type"] == "GRAPH" %}
+        {{graph(item["id"], item["text"], item["graph_x"], item["graph_y"], item["graph_type"])}}
+    {% elif item["type"] == "PATH" %}
+        {{graph(item["id"], item["value"], item["data"], item["possibles"])}}
+    {% endif %}
+
+    </span>
+{% endmacro %}
+
+
+{% macro path_internal(id, value, path, possibles,  default=None) %}
+<script type=text/javascript>
+    {% autoescape false %}
+        var path_{{path_count.value}} = {{ possibles }};
+    {% endautoescape %}
+
+</script>
+{{ common_input.hidden(id + " Ref", value) }}
+{{ common_input.path_internal(id + " Path", "path_" + path_count.value|string, path) }}
+{% set path_count.value = path_count.value + 1 %}
+{% endmacro %}
+
+{% macro path_internal(id, path_variable, default=None) %}
+    <div class="row" id="{{ id }}_div">
+        <select class="form-control path-select" id="{{ id }}_level0" source="{{ path_variable }}" class="path" onchange="path_add_level('{{ id }}', '{{path_variable}}', 0)">
+            <option>Veillez sélectionner</option>
+        </select>
+        <input class="path_result" type="hidden" name="{{ id }}" id="{{ id }}" {% if default %} value="{{ default }}" {% endif %} class="form-control"> 
+    
+    </div>
+{% endmacro %}
+
+{% macro badge(text, style) %}
+    {% if style != "none" %}
+        <div class="badge bg-{{style}}">{{text}}</div>
+    {% else %}
+        <div>{{text}}</div>
+    {% endif %}
+{% endmacro %}
+
+{% macro alert(text, style) %}
+    {% if style != "none" %}
+        <div class="alert alert-{{style}}">{{text}}</div>
+    {% else %}
+        <div>{{text}}</div>
+    {% endif %}
+{% endmacro %}
+
+{% macro graph(id, text, graphx, graphy, data_type) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+    
+    <div id="{{ id }}"></div>
+    <script type="text/javascript">
+    {% set first_serie = namespace(value=0) %}
+    var {{ id }}_Options = {
+        chart: {
+            type: "line",
+            height: 350
+        },
+        series: [
+                {% for serie in  graphy %}
+                            {% if first_serie.value != 0 %}
+                                ,
+                            {% endif %}
+                            {% set first_serie.value = first_serie.value + 1 %}
+                        {
+                            name: "{{ serie }}",
+                            data: [
+                                {% for i in range(0, graphx | length - 1)%}
+                                    [{{graphx[i]}}, {{graphy[serie][i]}} ],
+                                {% endfor %}
+                                    [{{graphx[-1]}}, {{graphy[serie][-1]}} ]
+                            ]
+                        }
+
+                
+                {% endfor %}
+        ],
+        {% if data_type == "date" %}
+        xaxis: {
+            type: 'datetime',
+            format: 'dd/MM hh:mm:ss',
+            labels: {
+                datetimeUTC: false
+            }
+        },
+        {% elif data_type == "number" %}
+        xaxis: {
+            type: 'numeric',
+            tickAmount: 20
+        },
+        {% endif %}
+        
+        tooltip: {
+            enabled: true,
+            followCursor: true,
+            x: {
+                format: 'dd/MM hh:mm:ss'
+            }
+        },  
+    };
+    var {{ id }} = new ApexCharts(document.querySelector("#{{ id }}"), {{ id }}_Options);
+    {{ id }}.render();
+    </script>
+{% endmacro %}
+
+{% macro text(text) %}
+    {{text}}
+{% endmacro %}
+
+{% macro placeholder(id) %}
+    <div id="{{id}}"> </div>
+{% endmacro %}
+
+{% macro button(id, text, disabled = false) %}
+    <button name="{{ id }}" id="{{ id }}" type="submit" class="btn btn-primary {%if disabled %} disabled {%endif%}">
+        {{text}}
+    </button>
+{% endmacro %}
+
+{% macro image(id, src, height) %}
+    <img src="{{src}}" height="{{height}}">
+{% endmacro %}
+
+{% macro download(id, text, link) %}
+    <a class="btn btn-primary" href="{{url_for(link)}}"}>{{text}}</a>
+{% endmacro %}
+
+{% macro iconlink(id, text, link, icon, style, parameters) %}
+    <a href="{{url_for(link)}}?{{parameters | join('&')}}">
+        <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+        {{text}}
+    </a>
+{% endmacro %}
+
+{% macro inbox(id, value, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% if value %}
+        {{ common_input.check(id, value)}}
+    {% else %}
+        {{ common_input.check(id, history[id] if history is defined else None)}}
+    {% endif %}
+{% endmacro %}
+
+{% macro indate(id, value, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% if value %}
+        {{ common_input.date(id, value)}}
+    {% else %}
+        {{ common_input.date(id, history[id] if history is defined else None)}}
+    {% endif %}
+{% endmacro %}
+
+{% macro infileexplorer(id, text, title, files, class, icon, hidden) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% for i in range(0,files | length) %}
+        <div id="{{id | replace(" ", "_") | replace(".", "_")}}_files{{i}}">
+        {{ common_input.files(id | replace(" ", "_") | replace(".", "_"), title[i], files[i], class[i], icon[i], hidden[i] ) }}
+        </div>
+    {% endfor %}
+    
+{% endmacro %}
+
+{% macro innum(id, value, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% if value %}
+        {{ common_input.number(id, value)}}
+    {% else %}
+        {{ common_input.number(id, history[id] if history is defined else None)}}
+    {% endif %}
+{% endmacro %}
+
+{% macro inselect(id, data, value, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% if value %}
+        {{ common_input.select(id, data, value)}}
+    {% else %}
+        {{ common_input.select(id, data, history[id] if history is defined else None)}}
+    {% endif %}
+{% endmacro %}
+
+{% macro inlistselect(id, data, values, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% set displayed = namespace(value=0) %}
+    <div class="row align-items-center">
+    <div id="{{id}}.div" class="col-sm-11">
+    {% for subitem in values %}
+            <div class="row" id="{{id + ".div" + loop.index0 | string }}">
+                <div class="col-sm-12">{{common_input.select(id + ".list" + loop.index0 | string, data, values[loop.index0]) }} </div>
+            </div>
+            {% set displayed.value = displayed.value + 1 %}
+    {% endfor %}
+    {% if displayed.value == 0 %}
+        <div class="row" id="{{id}}.div">
+            <div class="col-sm-6">{{common_input.input(id + ".div0") }} </div>
+        </div>
+    {% endif %}
+    </div>
+    <div class="col-sm-1">
+        <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+    </div>
+    </div>
+{% endmacro %}
+
+{% macro inlisttext(id, values, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% set displayed = namespace(value=0) %}
+    <div class="row align-items-center">
+    <div id="{{id}}.div" class="col-sm-11">
+    {% for subitem in values %}
+            <div class="row" id="{{id + ".div" + loop.index0 | string }}">
+                <div class="col-sm-12">{{common_input.input(id + ".list" + loop.index0 | string, values[loop.index0]) }} </div>
+            </div>
+            {% set displayed.value = displayed.value + 1 %}
+    {% endfor %}
+    {% if displayed.value == 0 %}
+        <div class="row" id="{{id}}.div">
+            <div class="col-sm-6">{{common_input.input(id + ".div0") }} </div>
+        </div>
+    {% endif %}
+    </div>
+    <div class="col-sm-1">
+        <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+    </div>
+    </div>
+{% endmacro %}
+
+{% macro indualtextselect(id, data, values, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% set displayed = namespace(value=0) %}
+    <div class="row align-items-center">
+    <div id="{{id}}.div" class="col-sm-11">
+    {% for subitem in values %}
+            <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
+                    <div class="col-sm-3">{{common_input.input(id + ".mapAright" + loop.index0 | string, values[loop.index0][0]) }} </div>
+                    <div class="col-sm-3">{{common_input.select(id + ".mapAleft" + loop.index0 | string, data, values[loop.index0][1]) }} </div>
+
+                    <div class="col-sm-3">{{common_input.input(id + ".mapBright" + loop.index0 | string, values[loop.index0][2]) }} </div>
+                    <div class="col-sm-3">{{common_input.select(id + ".mapBleft" + loop.index0 | string, data, values[loop.index0][3]) }} </div>
+            </div>
+            {% set displayed.value = displayed.value + 1 %}
+    {% endfor %}
+    {% if displayed.value == 0 %}
+        <div class="row" id="{{id}}.maprow0">
+                <div class="col-sm-3">{{common_input.input(id + ".mapAright0") }} </div>
+                <div class="col-sm-3">{{common_input.select(id + ".mapAleft0", data) }} </div>
+
+                <div class="col-sm-3">{{common_input.input(id + ".mapBright0") }} </div>
+                <div class="col-sm-3">{{common_input.select(id + ".mapBleft0", data) }} </div>
+        </div>
+    {% endif %}
+    </div>
+    <div class="col-sm-1">
+        <a href="#" onclick="setting_add_dual_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+    </div>
+    </div>
+{% endmacro %}
+
+{% macro intextselect(id, data, values, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% set displayed = namespace(value=0) %}
+    <div class="row align-items-center">
+    <div id="{{id}}.div" class="col-sm-11">
+    {% for subitem in values %}
+            <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
+                    <div class="col-sm-6">{{common_input.input(id + ".mapright" + loop.index0 | string, values[loop.index0][1]) }} </div>
+                    <div class="col-sm-6">{{common_input.select(id + ".mapleft" + loop.index0 | string, data, values[loop.index0][0]) }} </div>
+            </div>
+            {% set displayed.value = displayed.value + 1 %}
+    {% endfor %}
+    {% if displayed.value == 0 %}
+        <div class="row" id="{{id}}.maprow0">
+                <div class="col-sm-6">{{common_input.input(id + ".mapright0") }} </div>
+                <div class="col-sm-6">{{common_input.select(id + ".mapleft0", data) }} </div>
+        </div>
+    {% endif %}
+    </div>
+    <div class="col-sm-1">
+        <a href="#" onclick="setting_add_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+    </div>
+    </div>
+{% endmacro %}
+
+{% macro inselecttext(id, data, values, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% set displayed = namespace(value=0) %}
+    <div class="row align-items-center">
+    <div id="{{id}}.div" class="col-sm-11">
+    {% for subitem in values %}
+            <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
+                    <div class="col-sm-6">{{common_input.select(id + ".mapleft" + loop.index0 | string, data, values[loop.index0][0]) }} </div>
+                    <div class="col-sm-6">{{common_input.input(id + ".mapright" + loop.index0 | string, values[loop.index0][1]) }} </div>
+            </div>
+            {% set displayed.value = displayed.value + 1 %}
+    {% endfor %}
+    {% if displayed.value == 0 %}
+        <div class="row" id="{{id}}.maprow0">
+                <div class="col-sm-6">{{common_input.select(id + ".mapleft0", data) }} </div>
+                <div class="col-sm-6">{{common_input.input(id + ".mapright0") }} </div>
+        </div>
+    {% endif %}
+    </div>
+    <div class="col-sm-1">
+        <a href="#" onclick="setting_add_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+    </div>
+    </div>
+{% endmacro %}
+
+{% macro indualselecttext(id, data, values, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% set displayed = namespace(value=0) %}
+    <div class="row align-items-center">
+    <div id="{{id}}.div" class="col-sm-11">
+    {% for subitem in values %}
+            <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
+                    <div class="col-sm-3">{{common_input.select(id + ".mapAleft" + loop.index0 | string, data, values[loop.index0][1]) }} </div>
+                    <div class="col-sm-3">{{common_input.input(id + ".mapAright" + loop.index0 | string, values[loop.index0][0]) }} </div>
+
+                    <div class="col-sm-3">{{common_input.select(id + ".mapBleft" + loop.index0 | string, data, values[loop.index0][3]) }} </div>
+                    <div class="col-sm-3">{{common_input.input(id + ".mapBright" + loop.index0 | string, values[loop.index0][2]) }} </div>
+
+            </div>
+            {% set displayed.value = displayed.value + 1 %}
+    {% endfor %}
+    {% if displayed.value == 0 %}
+        <div class="row" id="{{id}}.maprow0">
+                <div class="col-sm-3">{{common_input.select(id + ".mapAleft0", data) }} </div>
+                <div class="col-sm-3">{{common_input.input(id + ".mapAright0") }} </div>
+
+                <div class="col-sm-3">{{common_input.select(id + ".mapBleft0", data) }} </div>
+                <div class="col-sm-3">{{common_input.input(id + ".mapBright0") }} </div>
+        </div>
+    {% endif %}
+    </div>
+    <div class="col-sm-1">
+        <a href="#" onclick="setting_add_dual_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+    </div>
+    </div>
+{% endmacro %}
+
+{% macro intexttext(id, values, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% set displayed = namespace(value=0) %}
+    <div class="row align-items-center">
+    <div id="{{id}}.div" class="col-sm-11">
+    {% for subitem in values %}
+            <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
+                <div class="col-sm-6">{{common_input.input(id + ".mapleft" + loop.index0 | string, values[loop.index0][0]) }} </div>
+                <div class="col-sm-6">{{common_input.input(id + ".mapright" + loop.index0 | string, values[loop.index0][1]) }} </div>
+            </div>
+            {% set displayed.value = displayed.value + 1 %}
+    {% endfor %}
+    {% if displayed.value == 0 %}
+        <div class="row" id="{{id}}.maprow0">
+            <div class="col-sm-6">{{common_input.input(id + ".mapleft0") }} </div>
+            <div class="col-sm-6">{{common_input.input(id + ".mapright0") }} </div>
+        </div>
+    {% endif %}
+    </div>
+    <div class="col-sm-1">
+        <a href="#" onclick="setting_add_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+    </div>
+    </div>
+{% endmacro %}
+
+{% macro intextselect(id, data, value, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% if value %}
+        {{ common_input.textselect(id, data, value)}}
+    {% else %}
+        {{ common_input.textselect(id, data, history[id] if history is defined else None)}}
+    {% endif %}
+{% endmacro %}
+
+{% macro inmultiselect(id, data, value, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    <div id="{{id}}.div">
+    {% for list_item in value %}
+        {{ common_input.select_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "')", data, list_item)}}
+    {% endfor %}
+    {{ common_input.hidden(id, value | join(',')) }}
+    </div>
+    <a href="#a" onclick="setting_add_list('{{ id }}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i>Add entry</a>
+
+{% endmacro %}
+
+{% macro inmapping(id, data, value, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    <div class="col-sm-10" id="{{id}}.div">
+    {% for col in value %}
+        <div class="form-group row">
+            <div class="col-sm-4">{{ col }}: </div>
+                <div class="col-sm-6" id="{{id + "." + col}}.div">
+                    {% for list_item in value[col] %}
+                        {% if data %}
+                            {{ common_input.select_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "." + col + "')", data, list_item)}}
+                        {% else %}
+                            {{ common_input.input_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "." + col + "')", list_item)}}
+                        {% endif %}
+                    {% endfor %}
+                    {{ common_input.hidden(id + "." + col, value[col] | join(',')) }}
+                </div>
+                <div div class="col-sm-2">
+                    <a href="#a" onclick="setting_add_list('{{ id + "." + col}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i>Map</a>
+                </div>
+        </div>
+    {% endfor%}
+{% endmacro %}
+
+{% macro intext(id, value, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% if value %}
+        {{ common_input.input(id, value)}}
+    {% else %}
+        {{ common_input.input(id, history[id] if history is defined else None)}}
+    {% endif %}
+{% endmacro %}
+
+{% macro inmultitext(id, value, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    <div id="{{id}}.div">
+    {% for list_item in value %}
+        {{ common_input.input_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "')", list_item)}}
+    {% endfor %}
+    {{ common_input.hidden(id, value | join(',')) }}
+    </div>
+    <a href="#a" onclick="setting_add_list('{{ id }}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i>Add entry</a>
+
+{% endmacro %}
+
+{% macro inttexticon(id, value) %}
+    {% for cat in value %}
+        <div class="form-group row">
+            <div class="col-sm-3">{{cat}}:</div>
+            <div class="col-sm-4">{{ common_input.input(id + "." + cat + ".alias" , value[cat]["alias"])}}</div>
+            <div class="col-sm-4">{{ common_input.input_js(id + "." + cat + ".icon" , "settings_update_icon('" + id + "." + cat + ".icon')", value[cat]["icon"])}}</div>
+            <div class="col-sm-1" id="{{id + ".icondiv"}}"><i class="mdi {{value[cat]["icon"]}}" ></i></div>
+        </div>
+    {% endfor %}
+    TODO: propose to add an icon
+{% endmacro %}
+
+{% macro inhidden(id, value) %}
+    {{ common_input.hidden(id, value)}}
+{% endmacro %}
+
+{% macro infile(id, file) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {{ common_input.file(id)}}
+{% endmacro %}

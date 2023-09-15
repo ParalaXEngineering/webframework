@@ -1,0 +1,18 @@
+{% import 'common/inputs.j2' as common_input %}
+
+{% set displayed = namespace(value=0) %}
+<div id="{{item["id"] + "." + current["id"]}}.div">
+{% for subitem in current["value"] %}
+        <div class="row" id="{{item["id"] + "." + current["id"] + ".maprow" + loop.index0 | string }}">
+            <div class="col-sm-6">{{common_input.select(item["id"] + "." + current["id"] + ".mapleft" + loop.index0 | string, current["select"], current["value"][loop.index0][0]) }} </div>
+            <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".mapright" + loop.index0 | string, current["value"][loop.index0][1]) }} </div>
+        </div>
+        {% set displayed.value = displayed.value + 1 %}
+{% endfor %}
+{% if displayed.value == 0 %}
+    <div class="row" id="{{item["id"] + "." + current["id"]}}.maprow0">
+        <div class="col-sm-6">{{common_input.select(item["id"] + "." + current["id"] + ".mapleft0", current["select"]) }} </div>
+        <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".mapright0") }} </div>
+    </div>
+{% endif %}
+</div>

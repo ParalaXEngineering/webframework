@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Framework classes &mdash; ParalaX Web 1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="OuFNis HW" href="oufnis_hw.html" />
+    <link rel="prev" title="Site handler" href="sitehandler.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> ParalaX Web
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Base content:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sitehandler.html">Site handler</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Framework classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#private">Private</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#access_manager.Access_manager"><code class="docutils literal notranslate"><span class="pre">Access_manager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#access_manager.Access_manager.authorize_group"><code class="docutils literal notranslate"><span class="pre">Access_manager.authorize_group()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#access_manager.Access_manager.authorize_module"><code class="docutils literal notranslate"><span class="pre">Access_manager.authorize_module()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#access_manager.Access_manager.get_login"><code class="docutils literal notranslate"><span class="pre">Access_manager.get_login()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#access_manager.Access_manager.get_user"><code class="docutils literal notranslate"><span class="pre">Access_manager.get_user()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#access_manager.Access_manager.load_authorizations"><code class="docutils literal notranslate"><span class="pre">Access_manager.load_authorizations()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#access_manager.Access_manager.set_user"><code class="docutils literal notranslate"><span class="pre">Access_manager.set_user()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#access_manager.Access_manager.use_login"><code class="docutils literal notranslate"><span class="pre">Access_manager.use_login()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#public-base">Public base</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#site_conf.Site_conf"><code class="docutils literal notranslate"><span class="pre">Site_conf</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.add_javascript"><code class="docutils literal notranslate"><span class="pre">Site_conf.add_javascript()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.add_sidebar_page"><code class="docutils literal notranslate"><span class="pre">Site_conf.add_sidebar_page()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.add_sidebar_section"><code class="docutils literal notranslate"><span class="pre">Site_conf.add_sidebar_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.add_sidebar_submenu"><code class="docutils literal notranslate"><span class="pre">Site_conf.add_sidebar_submenu()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.add_sidebar_title"><code class="docutils literal notranslate"><span class="pre">Site_conf.add_sidebar_title()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.add_topbar_button"><code class="docutils literal notranslate"><span class="pre">Site_conf.add_topbar_button()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.add_topbar_modal"><code class="docutils literal notranslate"><span class="pre">Site_conf.add_topbar_modal()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.add_topbar_thread_info"><code class="docutils literal notranslate"><span class="pre">Site_conf.add_topbar_thread_info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.app_details"><code class="docutils literal notranslate"><span class="pre">Site_conf.app_details()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.context_processor"><code class="docutils literal notranslate"><span class="pre">Site_conf.context_processor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.create_distribuate"><code class="docutils literal notranslate"><span class="pre">Site_conf.create_distribuate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.m_app"><code class="docutils literal notranslate"><span class="pre">Site_conf.m_app</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.m_javascripts"><code class="docutils literal notranslate"><span class="pre">Site_conf.m_javascripts</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.m_sidebar"><code class="docutils literal notranslate"><span class="pre">Site_conf.m_sidebar</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.m_topbar"><code class="docutils literal notranslate"><span class="pre">Site_conf.m_topbar</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.p_updates_ftp"><code class="docutils literal notranslate"><span class="pre">Site_conf.p_updates_ftp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.socketio_event"><code class="docutils literal notranslate"><span class="pre">Site_conf.socketio_event()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.update_topbar_button"><code class="docutils literal notranslate"><span class="pre">Site_conf.update_topbar_button()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.update_topbar_modal"><code class="docutils literal notranslate"><span class="pre">Site_conf.update_topbar_modal()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#site_conf.Site_conf.use_login"><code class="docutils literal notranslate"><span class="pre">Site_conf.use_login()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#threaded_manager.Threaded_manager"><code class="docutils literal notranslate"><span class="pre">Threaded_manager</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_manager.Threaded_manager.add_thread"><code class="docutils literal notranslate"><span class="pre">Threaded_manager.add_thread()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_manager.Threaded_manager.del_thread"><code class="docutils literal notranslate"><span class="pre">Threaded_manager.del_thread()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_manager.Threaded_manager.get_names"><code class="docutils literal notranslate"><span class="pre">Threaded_manager.get_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_manager.Threaded_manager.get_thread"><code class="docutils literal notranslate"><span class="pre">Threaded_manager.get_thread()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_manager.Threaded_manager.m_running_threads"><code class="docutils literal notranslate"><span class="pre">Threaded_manager.m_running_threads</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#threaded_action.Threaded_action"><code class="docutils literal notranslate"><span class="pre">Threaded_action</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.action"><code class="docutils literal notranslate"><span class="pre">Threaded_action.action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.change_name"><code class="docutils literal notranslate"><span class="pre">Threaded_action.change_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.delete"><code class="docutils literal notranslate"><span class="pre">Threaded_action.delete()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.get_name"><code class="docutils literal notranslate"><span class="pre">Threaded_action.get_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.m_default_name"><code class="docutils literal notranslate"><span class="pre">Threaded_action.m_default_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.m_name"><code class="docutils literal notranslate"><span class="pre">Threaded_action.m_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.m_scheduler"><code class="docutils literal notranslate"><span class="pre">Threaded_action.m_scheduler</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.m_type"><code class="docutils literal notranslate"><span class="pre">Threaded_action.m_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.process_close"><code class="docutils literal notranslate"><span class="pre">Threaded_action.process_close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.process_delete_results"><code class="docutils literal notranslate"><span class="pre">Threaded_action.process_delete_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.process_exec"><code class="docutils literal notranslate"><span class="pre">Threaded_action.process_exec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.process_format_results"><code class="docutils literal notranslate"><span class="pre">Threaded_action.process_format_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.process_read_results"><code class="docutils literal notranslate"><span class="pre">Threaded_action.process_read_results()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.process_read_stderr"><code class="docutils literal notranslate"><span class="pre">Threaded_action.process_read_stderr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.process_read_stdout"><code class="docutils literal notranslate"><span class="pre">Threaded_action.process_read_stdout()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.process_wait"><code class="docutils literal notranslate"><span class="pre">Threaded_action.process_wait()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.start"><code class="docutils literal notranslate"><span class="pre">Threaded_action.start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.thread_process"><code class="docutils literal notranslate"><span class="pre">Threaded_action.thread_process()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threaded_action.Threaded_action.wait_finished"><code class="docutils literal notranslate"><span class="pre">Threaded_action.wait_finished()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#action.Action"><code class="docutils literal notranslate"><span class="pre">Action</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#action.Action.get_name"><code class="docutils literal notranslate"><span class="pre">Action.get_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#action.Action.m_default_name"><code class="docutils literal notranslate"><span class="pre">Action.m_default_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#action.Action.m_type"><code class="docutils literal notranslate"><span class="pre">Action.m_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#action.Action.start"><code class="docutils literal notranslate"><span class="pre">Action.start()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#scheduler.Scheduler"><code class="docutils literal notranslate"><span class="pre">Scheduler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.disable_button"><code class="docutils literal notranslate"><span class="pre">Scheduler.disable_button()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.emit_button"><code class="docutils literal notranslate"><span class="pre">Scheduler.emit_button()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.emit_content"><code class="docutils literal notranslate"><span class="pre">Scheduler.emit_content()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.emit_modal"><code class="docutils literal notranslate"><span class="pre">Scheduler.emit_modal()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.emit_popup"><code class="docutils literal notranslate"><span class="pre">Scheduler.emit_popup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.emit_reload"><code class="docutils literal notranslate"><span class="pre">Scheduler.emit_reload()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.emit_result"><code class="docutils literal notranslate"><span class="pre">Scheduler.emit_result()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.emit_status"><code class="docutils literal notranslate"><span class="pre">Scheduler.emit_status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.enable_button"><code class="docutils literal notranslate"><span class="pre">Scheduler.enable_button()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.m_button_disable"><code class="docutils literal notranslate"><span class="pre">Scheduler.m_button_disable</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.m_button_enable"><code class="docutils literal notranslate"><span class="pre">Scheduler.m_button_enable</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.m_buttons"><code class="docutils literal notranslate"><span class="pre">Scheduler.m_buttons</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.m_contents"><code class="docutils literal notranslate"><span class="pre">Scheduler.m_contents</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.m_modals"><code class="docutils literal notranslate"><span class="pre">Scheduler.m_modals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.m_popups"><code class="docutils literal notranslate"><span class="pre">Scheduler.m_popups</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.m_reload"><code class="docutils literal notranslate"><span class="pre">Scheduler.m_reload</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.m_results"><code class="docutils literal notranslate"><span class="pre">Scheduler.m_results</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.m_status"><code class="docutils literal notranslate"><span class="pre">Scheduler.m_status</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.m_user_connected"><code class="docutils literal notranslate"><span class="pre">Scheduler.m_user_connected</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.socket_obj"><code class="docutils literal notranslate"><span class="pre">Scheduler.socket_obj</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.start"><code class="docutils literal notranslate"><span class="pre">Scheduler.start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.user_after"><code class="docutils literal notranslate"><span class="pre">Scheduler.user_after()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scheduler.Scheduler.user_before"><code class="docutils literal notranslate"><span class="pre">Scheduler.user_before()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-utilities">Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_dir_list"><code class="docutils literal notranslate"><span class="pre">util_dir_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_dir_structure"><code class="docutils literal notranslate"><span class="pre">util_dir_structure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_find_files"><code class="docutils literal notranslate"><span class="pre">util_find_files()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_list_serial"><code class="docutils literal notranslate"><span class="pre">util_list_serial()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_post_to_json"><code class="docutils literal notranslate"><span class="pre">util_post_to_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_post_unmap"><code class="docutils literal notranslate"><span class="pre">util_post_unmap()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_read_parameters"><code class="docutils literal notranslate"><span class="pre">util_read_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_array"><code class="docutils literal notranslate"><span class="pre">util_view_add_array()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_header_button"><code class="docutils literal notranslate"><span class="pre">util_view_add_header_button()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_header_pages"><code class="docutils literal notranslate"><span class="pre">util_view_add_header_pages()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_info_download"><code class="docutils literal notranslate"><span class="pre">util_view_add_info_download()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_info_graph"><code class="docutils literal notranslate"><span class="pre">util_view_add_info_graph()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_info_text"><code class="docutils literal notranslate"><span class="pre">util_view_add_info_text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_input_file"><code class="docutils literal notranslate"><span class="pre">util_view_add_input_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_input_file_manager"><code class="docutils literal notranslate"><span class="pre">util_view_add_input_file_manager()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_input_hidden"><code class="docutils literal notranslate"><span class="pre">util_view_add_input_hidden()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_input_number"><code class="docutils literal notranslate"><span class="pre">util_view_add_input_number()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_input_select"><code class="docutils literal notranslate"><span class="pre">util_view_add_input_select()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_input_simple"><code class="docutils literal notranslate"><span class="pre">util_view_add_input_simple()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_input_text"><code class="docutils literal notranslate"><span class="pre">util_view_add_input_text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_multi_input"><code class="docutils literal notranslate"><span class="pre">util_view_add_multi_input()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_add_text_highlight"><code class="docutils literal notranslate"><span class="pre">util_view_add_text_highlight()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_disable"><code class="docutils literal notranslate"><span class="pre">util_view_disable()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_init"><code class="docutils literal notranslate"><span class="pre">util_view_init()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_reload_input_file_manager"><code class="docutils literal notranslate"><span class="pre">util_view_reload_input_file_manager()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_reload_multi_input"><code class="docutils literal notranslate"><span class="pre">util_view_reload_multi_input()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_view_reload_text"><code class="docutils literal notranslate"><span class="pre">util_view_reload_text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utilities.util_write_parameters"><code class="docutils literal notranslate"><span class="pre">util_write_parameters()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-common">Pages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#common.download"><code class="docutils literal notranslate"><span class="pre">download()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#common.login"><code class="docutils literal notranslate"><span class="pre">login()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#settings.config_apply"><code class="docutils literal notranslate"><span class="pre">config_apply()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#settings.config_edit"><code class="docutils literal notranslate"><span class="pre">config_edit()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#updater.UPDATER_exec"><code class="docutils literal notranslate"><span class="pre">UPDATER_exec</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_exec.action"><code class="docutils literal notranslate"><span class="pre">UPDATER_exec.action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_exec.m_action"><code class="docutils literal notranslate"><span class="pre">UPDATER_exec.m_action</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_exec.m_default_name"><code class="docutils literal notranslate"><span class="pre">UPDATER_exec.m_default_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_exec.m_package"><code class="docutils literal notranslate"><span class="pre">UPDATER_exec.m_package</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_exec.set_action"><code class="docutils literal notranslate"><span class="pre">UPDATER_exec.set_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_exec.set_package"><code class="docutils literal notranslate"><span class="pre">UPDATER_exec.set_package()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#updater.UPDATER_maker"><code class="docutils literal notranslate"><span class="pre">UPDATER_maker</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_maker.action"><code class="docutils literal notranslate"><span class="pre">UPDATER_maker.action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_maker.m_action"><code class="docutils literal notranslate"><span class="pre">UPDATER_maker.m_action</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_maker.m_default_name"><code class="docutils literal notranslate"><span class="pre">UPDATER_maker.m_default_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_maker.m_package"><code class="docutils literal notranslate"><span class="pre">UPDATER_maker.m_package</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_maker.set_action"><code class="docutils literal notranslate"><span class="pre">UPDATER_maker.set_action()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#updater.UPDATER_maker.set_type"><code class="docutils literal notranslate"><span class="pre">UPDATER_maker.set_type()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#updater.update"><code class="docutils literal notranslate"><span class="pre">update()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="oufnis_hw.html">OuFNis HW</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ParalaX Web</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Framework classes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/framework_classes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="framework-classes">
+<h1>Framework classes<a class="headerlink" href="#framework-classes" title="Permalink to this heading"></a></h1>
+<section id="private">
+<h2>Private<a class="headerlink" href="#private" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="access_manager.Access_manager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">access_manager.</span></span><span class="sig-name descname"><span class="pre">Access_manager</span></span><a class="headerlink" href="#access_manager.Access_manager" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class that handle user management. It provide easy method to get the current user and its auhtorization on a given page or module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Warning</dt>
+<dd class="field-odd"><p>It is supposed that there is a correctly configured “config.json” pertinent to the application</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="access_manager.Access_manager.authorize_group">
+<span class="sig-name descname"><span class="pre">authorize_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">allowed_groups</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#access_manager.Access_manager.authorize_group" title="Permalink to this definition"></a></dt>
+<dd><p>Indicate if the current user is in an authorized group</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>allowed_groups</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of groups, defaults to None</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the current user is in the list, or if login is disabled, false otherwise</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="access_manager.Access_manager.authorize_module">
+<span class="sig-name descname"><span class="pre">authorize_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#access_manager.Access_manager.authorize_module" title="Permalink to this definition"></a></dt>
+<dd><p>Indicate if the current user has access to the given module</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>module</strong> (<em>str</em>) – The module to check</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the current user is authorized to access the group</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="access_manager.Access_manager.get_login">
+<span class="sig-name descname"><span class="pre">get_login</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#access_manager.Access_manager.get_login" title="Permalink to this definition"></a></dt>
+<dd><p>Return the information as to if a user is logged</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if a user is logged</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="access_manager.Access_manager.get_user">
+<span class="sig-name descname"><span class="pre">get_user</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#access_manager.Access_manager.get_user" title="Permalink to this definition"></a></dt>
+<dd><p>Return the currently logged user, if any</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The currently logged user</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="access_manager.Access_manager.load_authorizations">
+<span class="sig-name descname"><span class="pre">load_authorizations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#access_manager.Access_manager.load_authorizations" title="Permalink to this definition"></a></dt>
+<dd><p>Load the authorization file into the manager</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="access_manager.Access_manager.set_user">
+<span class="sig-name descname"><span class="pre">set_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#access_manager.Access_manager.set_user" title="Permalink to this definition"></a></dt>
+<dd><p>Set the current user</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>user</strong> (<em>str</em>) – The user to set</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – The password of the user</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="access_manager.Access_manager.use_login">
+<span class="sig-name descname"><span class="pre">use_login</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">login</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#access_manager.Access_manager.use_login" title="Permalink to this definition"></a></dt>
+<dd><p>Activate the login capabilities of the website</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>login</strong> (<em>bool</em>) – True to activate the login capabilities, False otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="public-base">
+<h2>Public base<a class="headerlink" href="#public-base" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="site_conf.Site_conf">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">site_conf.</span></span><span class="sig-name descname"><span class="pre">Site_conf</span></span><a class="headerlink" href="#site_conf.Site_conf" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Provides a set of function to configure the website</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.add_javascript">
+<span class="sig-name descname"><span class="pre">add_javascript</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">script</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.add_javascript" title="Permalink to this definition"></a></dt>
+<dd><p>Add a new script to load on the page</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>script</strong> (<em>str</em>) – A string with the path to the string, from assets/js</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.add_sidebar_page">
+<span class="sig-name descname"><span class="pre">add_sidebar_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.add_sidebar_page" title="Permalink to this definition"></a></dt>
+<dd><p>Add a page to the sidebar</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the page</p></li>
+<li><p><strong>icon</strong> (<em>str</em>) – The page icon, from the mdi icon pack.</p></li>
+<li><p><strong>url</strong> (<em>str</em>) – The url of the page</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.add_sidebar_section">
+<span class="sig-name descname"><span class="pre">add_sidebar_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.add_sidebar_section" title="Permalink to this definition"></a></dt>
+<dd><p>Add a section to the sidebar. Sections are not clickable and are meant to host a submenu</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section</strong> (<em>str</em>) – The section</p></li>
+<li><p><strong>icon</strong> (<em>str</em>) – The section icon, from the mdi icon pack.</p></li>
+<li><p><strong>endpoint</strong> (<em>str</em>) – The endpoint address of the section.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.add_sidebar_submenu">
+<span class="sig-name descname"><span class="pre">add_sidebar_submenu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">endpoint</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.add_sidebar_submenu" title="Permalink to this definition"></a></dt>
+<dd><p>Add a submenu to the sidebar. It uses the url in order to extract the section. The url must be in the form endpoint.page</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the submenu</p></li>
+<li><p><strong>url</strong> (<em>str</em>) – The url of the submenu</p></li>
+<li><p><strong>parameter</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional parameters for the page, that is the part of the GET url (e.g: topic=help), defaults to None</p></li>
+<li><p><strong>endpoint</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional endpoint override, instead of using the one in the url., defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.add_sidebar_title">
+<span class="sig-name descname"><span class="pre">add_sidebar_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.add_sidebar_title" title="Permalink to this definition"></a></dt>
+<dd><p>Add a sidebar title, which can logically seperate several parts of the sidebar</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>title</strong> (<em>str</em>) – The title to add</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.add_topbar_button">
+<span class="sig-name descname"><span class="pre">add_topbar_button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.add_topbar_button" title="Permalink to this definition"></a></dt>
+<dd><p>Add a new button to the topbar</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>str</em>) – The id (of the div) of the button</p></li>
+<li><p><strong>icon</strong> (<em>str</em>) – The icon, from the mdi library</p></li>
+<li><p><strong>text</strong> (<em>str</em>) – The text of the button</p></li>
+<li><p><strong>area</strong> (<em>str</em>) – The area of the topbar where the button lives (left, center or right)</p></li>
+<li><p><strong>link</strong> (<em>str</em><em>, </em><em>optional</em>) – Optional link where the button will point, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.add_topbar_modal">
+<span class="sig-name descname"><span class="pre">add_topbar_modal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modal_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modal_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modal_footer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.add_topbar_modal" title="Permalink to this definition"></a></dt>
+<dd><p>Add a new button to the topbar that will display a modal information.</p>
+<p>Modal text content can be modified later on with the scheduler, or with the <em>update_topbar_modal</em> function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>str</em>) – The id (of the div) of the button</p></li>
+<li><p><strong>icon</strong> (<em>str</em>) – The icon, from the mdi library</p></li>
+<li><p><strong>text</strong> (<em>str</em>) – The text of the button</p></li>
+<li><p><strong>area</strong> (<em>str</em>) – The area of the topbar where the button lives (left, center or right)</p></li>
+<li><p><strong>modal_text</strong> (<em>str</em>) – The content of the modal</p></li>
+<li><p><strong>modal_title</strong> (<em>str</em>) – _description_</p></li>
+<li><p><strong>modal_footer</strong> (<em>str</em>) – The title of the modal</p></li>
+<li><p><strong>color</strong> (<em>str</em>) – The footer of the modal</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.add_topbar_thread_info">
+<span class="sig-name descname"><span class="pre">add_topbar_thread_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.add_topbar_thread_info" title="Permalink to this definition"></a></dt>
+<dd><p>Add a zone where the thread are displayed. It can be skinned with an icon</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>icon</strong> (<em>str</em>) – The skin icon, mdi format</p></li>
+<li><p><strong>area</strong> (<em>str</em>) – The zone (center, left, right) where the status lives in the topbar</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.app_details">
+<span class="sig-name descname"><span class="pre">app_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.app_details" title="Permalink to this definition"></a></dt>
+<dd><p>Set the application details</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the application</p></li>
+<li><p><strong>version</strong> (<em>str</em>) – The version of the application</p></li>
+<li><p><strong>icon</strong> (<em>str</em>) – The icon of the application, in mdi format</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.context_processor">
+<span class="sig-name descname"><span class="pre">context_processor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.context_processor" title="Permalink to this definition"></a></dt>
+<dd><p>Function that is called before rendering any page, should be overwritten by the child object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.create_distribuate">
+<span class="sig-name descname"><span class="pre">create_distribuate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.create_distribuate" title="Permalink to this definition"></a></dt>
+<dd><p>Function to create the distribuable package on this plateform, should be overwritten by the child object</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="site_conf.Site_conf.m_app">
+<span class="sig-name descname"><span class="pre">m_app</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'icon':</span> <span class="pre">'home',</span> <span class="pre">'name':</span> <span class="pre">'Default',</span> <span class="pre">'version':</span> <span class="pre">'0'}</span></em><a class="headerlink" href="#site_conf.Site_conf.m_app" title="Permalink to this definition"></a></dt>
+<dd><p>App information</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="site_conf.Site_conf.m_javascripts">
+<span class="sig-name descname"><span class="pre">m_javascripts</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#site_conf.Site_conf.m_javascripts" title="Permalink to this definition"></a></dt>
+<dd><p>Custom javascripts</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="site_conf.Site_conf.m_sidebar">
+<span class="sig-name descname"><span class="pre">m_sidebar</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#site_conf.Site_conf.m_sidebar" title="Permalink to this definition"></a></dt>
+<dd><p>Sidebar content</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="site_conf.Site_conf.m_topbar">
+<span class="sig-name descname"><span class="pre">m_topbar</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'center':</span> <span class="pre">[],</span> <span class="pre">'display':</span> <span class="pre">False,</span> <span class="pre">'left':</span> <span class="pre">[],</span> <span class="pre">'login':</span> <span class="pre">False,</span> <span class="pre">'right':</span> <span class="pre">[]}</span></em><a class="headerlink" href="#site_conf.Site_conf.m_topbar" title="Permalink to this definition"></a></dt>
+<dd><p>Topbar content</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="site_conf.Site_conf.p_updates_ftp">
+<span class="sig-name descname"><span class="pre">p_updates_ftp</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#site_conf.Site_conf.p_updates_ftp" title="Permalink to this definition"></a></dt>
+<dd><p>Variable to indicate that this site support ftp updates</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.socketio_event">
+<span class="sig-name descname"><span class="pre">socketio_event</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.socketio_event" title="Permalink to this definition"></a></dt>
+<dd><p>Function called to respond to event, should be overwritten by the child object</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.update_topbar_button">
+<span class="sig-name descname"><span class="pre">update_topbar_button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'secondary'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.update_topbar_button" title="Permalink to this definition"></a></dt>
+<dd><p>Update a new button to the topbar, works also for modals</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>str</em>) – The id (of the div) of the button</p></li>
+<li><p><strong>icon</strong> (<em>str</em>) – The icon, from the mdi library</p></li>
+<li><p><strong>text</strong> (<em>str</em>) – The text of the button</p></li>
+<li><p><strong>area</strong> (<em>str</em>) – The area of the topbar where the button lives (left, center or right)</p></li>
+<li><p><strong>color</strong> (<em>str</em><em>, </em><em>optional</em>) – The color of the button, defaults to “secondary”</p></li>
+<li><p><strong>link</strong> (<em>str</em><em>, </em><em>optional</em>) – Optionnal link, href on the button, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.update_topbar_modal">
+<span class="sig-name descname"><span class="pre">update_topbar_modal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.update_topbar_modal" title="Permalink to this definition"></a></dt>
+<dd><p>Update the content text of a modal</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>str</em>) – The id (of the div) of the button</p></li>
+<li><p><strong>text</strong> (<em>str</em>) – The text of the button</p></li>
+<li><p><strong>area</strong> (<em>str</em>) – The area of the topbar where the button lives (left, center or right)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="site_conf.Site_conf.use_login">
+<span class="sig-name descname"><span class="pre">use_login</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#site_conf.Site_conf.use_login" title="Permalink to this definition"></a></dt>
+<dd><p>Indicate that this website uses login</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="threaded_manager.Threaded_manager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">threaded_manager.</span></span><span class="sig-name descname"><span class="pre">Threaded_manager</span></span><a class="headerlink" href="#threaded_manager.Threaded_manager" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Manage the different threads of the framework</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_manager.Threaded_manager.add_thread">
+<span class="sig-name descname"><span class="pre">add_thread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Thread</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#threaded_manager.Threaded_manager.add_thread" title="Permalink to this definition"></a></dt>
+<dd><p>Add a new thread to the pool</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>thread</strong> (<em>threading.Thread</em>) – The thread to add</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_manager.Threaded_manager.del_thread">
+<span class="sig-name descname"><span class="pre">del_thread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thread</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Thread</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#threaded_manager.Threaded_manager.del_thread" title="Permalink to this definition"></a></dt>
+<dd><p>Delete a thread from the pool</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>thread</strong> (<em>_type_</em>) – The thread to delete</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_manager.Threaded_manager.get_names">
+<span class="sig-name descname"><span class="pre">get_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#threaded_manager.Threaded_manager.get_names" title="Permalink to this definition"></a></dt>
+<dd><p>Return the list of all the threads, by name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A list of thread’s names</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_manager.Threaded_manager.get_thread">
+<span class="sig-name descname"><span class="pre">get_thread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Thread</span></span></span><a class="headerlink" href="#threaded_manager.Threaded_manager.get_thread" title="Permalink to this definition"></a></dt>
+<dd><p>Return a thread by it’s name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name of the desired thread</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The thread object, or None if the name is not found</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>threading.Thread</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="threaded_manager.Threaded_manager.m_running_threads">
+<span class="sig-name descname"><span class="pre">m_running_threads</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#threaded_manager.Threaded_manager.m_running_threads" title="Permalink to this definition"></a></dt>
+<dd><p>List of the currently running threads</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">threaded_action.</span></span><span class="sig-name descname"><span class="pre">Threaded_action</span></span><a class="headerlink" href="#threaded_action.Threaded_action" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class to execute long term action. It registeres itself on the thread manager and handle the creation and destruction of the python thread.</p>
+<p>Moreover, it provides a set of helper function to communication with the host (Windows, Linux or Macos) in order to call, for instance, scripts or programs.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.action">
+<span class="sig-name descname"><span class="pre">action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.action" title="Permalink to this definition"></a></dt>
+<dd><p>Main function of this thread</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.change_name">
+<span class="sig-name descname"><span class="pre">change_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.change_name" title="Permalink to this definition"></a></dt>
+<dd><p>Change the name of the instance of the module</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The new name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.delete">
+<span class="sig-name descname"><span class="pre">delete</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.delete" title="Permalink to this definition"></a></dt>
+<dd><p>Delete the thread and unregister it from the thread manager</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.get_name">
+<span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#threaded_action.Threaded_action.get_name" title="Permalink to this definition"></a></dt>
+<dd><p>Return the name of the instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The name of the instance</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.m_default_name">
+<span class="sig-name descname"><span class="pre">m_default_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Default</span> <span class="pre">name'</span></em><a class="headerlink" href="#threaded_action.Threaded_action.m_default_name" title="Permalink to this definition"></a></dt>
+<dd><p>The name of the module</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.m_name">
+<span class="sig-name descname"><span class="pre">m_name</span></span><a class="headerlink" href="#threaded_action.Threaded_action.m_name" title="Permalink to this definition"></a></dt>
+<dd><p>Constructor</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.m_scheduler">
+<span class="sig-name descname"><span class="pre">m_scheduler</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#threaded_action.Threaded_action.m_scheduler" title="Permalink to this definition"></a></dt>
+<dd><p>Link to the sceduler object</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.m_type">
+<span class="sig-name descname"><span class="pre">m_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'threaded_action'</span></em><a class="headerlink" href="#threaded_action.Threaded_action.m_type" title="Permalink to this definition"></a></dt>
+<dd><p>The type of the module</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.process_close">
+<span class="sig-name descname"><span class="pre">process_close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.process_close" title="Permalink to this definition"></a></dt>
+<dd><p>Kill and close the local process</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.process_delete_results">
+<span class="sig-name descname"><span class="pre">process_delete_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.process_delete_results" title="Permalink to this definition"></a></dt>
+<dd><p>Delete the results of the process</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.process_exec">
+<span class="sig-name descname"><span class="pre">process_exec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">command</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shell</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.process_exec" title="Permalink to this definition"></a></dt>
+<dd><p>Execute a local process command.  This function is not blocking, and will return immediately, even if the command is not over. Use command_wait() to detect the end of the command.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>command</strong> (<em>list</em>) – The command to execute</p></li>
+<li><p><strong>source_folder</strong> (<em>str</em>) – The relative path of execution</p></li>
+<li><p><strong>shell</strong> (<em>bool</em><em>, </em><em>optional</em>) – The shell argument of subprocess, defaults to True</p></li>
+<li><p><strong>inputs</strong> (<em>_type_</em><em>, </em><em>optional</em>) – a list with detection of a specific string and how to react, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.process_format_results">
+<span class="sig-name descname"><span class="pre">process_format_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#threaded_action.Threaded_action.process_format_results" title="Permalink to this definition"></a></dt>
+<dd><p>Format the results of the process, and reset them.
+By default, the formating does nothing and just send the raw data.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>list: The result of the last executed (or executing) process</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.process_read_results">
+<span class="sig-name descname"><span class="pre">process_read_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.process_read_results" title="Permalink to this definition"></a></dt>
+<dd><p>Read the raw results of the last executed (executing) process, and delete them</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.process_read_stderr">
+<span class="sig-name descname"><span class="pre">process_read_stderr</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.process_read_stderr" title="Permalink to this definition"></a></dt>
+<dd><p>Read thread for the error output of the currently executing local process</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.process_read_stdout">
+<span class="sig-name descname"><span class="pre">process_read_stdout</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.process_read_stdout" title="Permalink to this definition"></a></dt>
+<dd><p>Read thread for the standard output of the currently executing local process</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.process_wait">
+<span class="sig-name descname"><span class="pre">process_wait</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.process_wait" title="Permalink to this definition"></a></dt>
+<dd><p>Wait for the currently executing local process to finish</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.start" title="Permalink to this definition"></a></dt>
+<dd><p>Thread start</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.thread_process">
+<span class="sig-name descname"><span class="pre">thread_process</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.thread_process" title="Permalink to this definition"></a></dt>
+<dd><p>Thread function</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="threaded_action.Threaded_action.wait_finished">
+<span class="sig-name descname"><span class="pre">wait_finished</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#threaded_action.Threaded_action.wait_finished" title="Permalink to this definition"></a></dt>
+<dd><p>Thread finish</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="action.Action">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">action.</span></span><span class="sig-name descname"><span class="pre">Action</span></span><a class="headerlink" href="#action.Action" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class to execute immediate action. This module is a simplified version of the thraded_action, which provides the minimum in order to successfully integrate with web display engine</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="action.Action.get_name">
+<span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#action.Action.get_name" title="Permalink to this definition"></a></dt>
+<dd><p>Return the name of the instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The name of the instance</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="action.Action.m_default_name">
+<span class="sig-name descname"><span class="pre">m_default_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Default'</span></em><a class="headerlink" href="#action.Action.m_default_name" title="Permalink to this definition"></a></dt>
+<dd><p>Name of the action</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="action.Action.m_type">
+<span class="sig-name descname"><span class="pre">m_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Action'</span></em><a class="headerlink" href="#action.Action.m_type" title="Permalink to this definition"></a></dt>
+<dd><p>The type of the module</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="action.Action.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#action.Action.start" title="Permalink to this definition"></a></dt>
+<dd><p>Main function</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scheduler.Scheduler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scheduler.</span></span><span class="sig-name descname"><span class="pre">Scheduler</span></span><a class="headerlink" href="#scheduler.Scheduler" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Basic scheduler class, which has the responsability to handle periodic tasks. 
+This is the base class, which generate the messages to the website and handle the special buttons, if any.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.disable_button">
+<span class="sig-name descname"><span class="pre">disable_button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.disable_button" title="Permalink to this definition"></a></dt>
+<dd><p>Disable a button by its id</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>id</strong> (<em>str</em>) – The id of the button</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.emit_button">
+<span class="sig-name descname"><span class="pre">emit_button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'primary'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.emit_button" title="Permalink to this definition"></a></dt>
+<dd><p>Change the content of a topbar button</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>str</em>) – The id of the button to</p></li>
+<li><p><strong>icon</strong> (<em>str</em>) – The icon of the button to change, from the mdi icons</p></li>
+<li><p><strong>text</strong> (<em>str</em>) – The new text</p></li>
+<li><p><strong>style</strong> (<em>str</em><em>, </em><em>optional</em>) – The bootstrap style of the button. Defaults to “primary”., defaults to “primary”</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.emit_content">
+<span class="sig-name descname"><span class="pre">emit_content</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.emit_content" title="Permalink to this definition"></a></dt>
+<dd><p>Emit the content that can be dinamicaly showed in the page without user reload</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>category</strong> (<em>str</em>) – The category of the content</p></li>
+<li><p><strong>content</strong> (<em>dict</em>) – The content itself</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.emit_modal">
+<span class="sig-name descname"><span class="pre">emit_modal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.emit_modal" title="Permalink to this definition"></a></dt>
+<dd><p>Change the content of a topbar modal</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>str</em>) – The id of the button to</p></li>
+<li><p><strong>content</strong> (<em>str</em>) – The new text</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.emit_popup">
+<span class="sig-name descname"><span class="pre">emit_popup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">logLevel</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.emit_popup" title="Permalink to this definition"></a></dt>
+<dd><p>“Emit a a popup that will be displayed to the user</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>level</strong> (<em>logLevel</em>) – The log level of the popup (succes, info, warning or error)</p></li>
+<li><p><strong>string</strong> (<em>str</em>) – The content of the popup. Some html can be present in it.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.emit_reload">
+<span class="sig-name descname"><span class="pre">emit_reload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.emit_reload" title="Permalink to this definition"></a></dt>
+<dd><p>Send some information about a formulaire that needs to be refreshed on the page</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>content</strong> (<em>str</em>) – The content of the formulaire, in the form of a list of {id: “…”, content: “…”}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.emit_result">
+<span class="sig-name descname"><span class="pre">emit_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.emit_result" title="Permalink to this definition"></a></dt>
+<dd><p>Add a result information in the bottom of the “Action progress”. The category is any category supported by bootstrap (success, danger, etc…)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>category</strong> (<em>str</em>) – A category from bootstrap</p></li>
+<li><p><strong>content</strong> (<em>_type_</em>) – The content to display. HTML is supported</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.emit_status">
+<span class="sig-name descname"><span class="pre">emit_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supplement</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.emit_status" title="Permalink to this definition"></a></dt>
+<dd><p>Queue a message status to be sent to the web client</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>category</strong> (<em>str</em>) – The category that indicate where the status will be published in the main page</p></li>
+<li><p><strong>string</strong> (<em>str</em>) – The information string to display to the user</p></li>
+<li><p><strong>status</strong> (<em>int</em><em>, </em><em>optional</em>) – The status, a number between 0 and 100% that indicate the progress. At 100% the task is considered as successfull. The status 101% can be used to indicate an error, defaults to 0</p></li>
+<li><p><strong>supplement</strong> (<em>str</em><em>, </em><em>optional</em>) – A supplement status that can be used to add information on the main case, defaults to “”</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.enable_button">
+<span class="sig-name descname"><span class="pre">enable_button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.enable_button" title="Permalink to this definition"></a></dt>
+<dd><p>Enable a button by its id</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>id</strong> (<em>str</em>) – The id of the button</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.m_button_disable">
+<span class="sig-name descname"><span class="pre">m_button_disable</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#scheduler.Scheduler.m_button_disable" title="Permalink to this definition"></a></dt>
+<dd><p>List of the buttons that will be disabled</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.m_button_enable">
+<span class="sig-name descname"><span class="pre">m_button_enable</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#scheduler.Scheduler.m_button_enable" title="Permalink to this definition"></a></dt>
+<dd><p>List of the buttons that will be enabled</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.m_buttons">
+<span class="sig-name descname"><span class="pre">m_buttons</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#scheduler.Scheduler.m_buttons" title="Permalink to this definition"></a></dt>
+<dd><p>List of the buttons information (for instance, in topbar) that has not been sent to the website yet</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.m_contents">
+<span class="sig-name descname"><span class="pre">m_contents</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#scheduler.Scheduler.m_contents" title="Permalink to this definition"></a></dt>
+<dd><p>To remove</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.m_modals">
+<span class="sig-name descname"><span class="pre">m_modals</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#scheduler.Scheduler.m_modals" title="Permalink to this definition"></a></dt>
+<dd><p>List of the modals dialogs that has not been sent to the website yet</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.m_popups">
+<span class="sig-name descname"><span class="pre">m_popups</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#scheduler.Scheduler.m_popups" title="Permalink to this definition"></a></dt>
+<dd><p>List of the popups that has not been sent to the website yet</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.m_reload">
+<span class="sig-name descname"><span class="pre">m_reload</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#scheduler.Scheduler.m_reload" title="Permalink to this definition"></a></dt>
+<dd><p>List of the reload information. A reload information concerns any item on the website that can be dinamicaly reloaded.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.m_results">
+<span class="sig-name descname"><span class="pre">m_results</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#scheduler.Scheduler.m_results" title="Permalink to this definition"></a></dt>
+<dd><p>List of the results (from the task actions field in the webengine) that has not been sent to the website yet</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.m_status">
+<span class="sig-name descname"><span class="pre">m_status</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#scheduler.Scheduler.m_status" title="Permalink to this definition"></a></dt>
+<dd><p>List of the status information that has not been sent to the website yet</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.m_user_connected">
+<span class="sig-name descname"><span class="pre">m_user_connected</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#scheduler.Scheduler.m_user_connected" title="Permalink to this definition"></a></dt>
+<dd><p>Indicate if a user is connected. If not, the scheduler is halted</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scheduler.Scheduler.socket_obj">
+<span class="sig-name descname"><span class="pre">socket_obj</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#scheduler.Scheduler.socket_obj" title="Permalink to this definition"></a></dt>
+<dd><p>Main object to the client socketio instance</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.start">
+<span class="sig-name descname"><span class="pre">start</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.start" title="Permalink to this definition"></a></dt>
+<dd><p>Start the scheduler</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.user_after">
+<span class="sig-name descname"><span class="pre">user_after</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.user_after" title="Permalink to this definition"></a></dt>
+<dd><p>Function to be overwritten by specific website, ut is executed at the end of a scheduler cycle</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scheduler.Scheduler.user_before">
+<span class="sig-name descname"><span class="pre">user_before</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scheduler.Scheduler.user_before" title="Permalink to this definition"></a></dt>
+<dd><p>Function to be overwritten by specific website, ut is executed at the begning of a scheduler cycle</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-utilities">
+<span id="utilities"></span><h2>Utilities<a class="headerlink" href="#module-utilities" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_dir_list">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_dir_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inclusion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modifier</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#utilities.util_dir_list" title="Permalink to this definition"></a></dt>
+<dd><p>Scan a directory, without it’s children and return a list of the file that have the inclusion information given by the user</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> (<em>str</em>) – The root folder</p></li>
+<li><p><strong>inclusion</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of inclusion, that is part of the file name or extension that must be present in the files listed, defaults to None</p></li>
+<li><p><strong>modifier</strong> (<em>str</em><em>, </em><em>optional</em>) – A function that change the name (parsing for instance), defaults to None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of the corresponding files</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_dir_structure">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_dir_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inclusion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modifier</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utilities.util_dir_structure" title="Permalink to this definition"></a></dt>
+<dd><p>Create the directory structure (all the directories and subfiles) recursively from a root folder</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> (<em>str</em>) – The root folder</p></li>
+<li><p><strong>inclusion</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of inclusion, that is part of the file name or extension that must be present in the files listed, defaults to None</p></li>
+<li><p><strong>modifier</strong> (<em>_type_</em><em>, </em><em>optional</em>) – A function that change the name (parsing for instance), defaults to None</p></li>
+<li><p><strong>clean</strong> (<em>bool</em><em>, </em><em>optional</em>) – Clean all empty folder from the results, defaults to True</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionnary with the file structure in the form:</p>
+</dd>
+</dl>
+<p>code-block:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="nb">dir</span><span class="p">:</span> 
+    <span class="p">{</span> <span class="nb">dir</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">},</span> <span class="n">file</span><span class="p">,</span> <span class="n">file</span><span class="p">},</span> <span class="n">file</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_find_files">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_find_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inclusion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#utilities.util_find_files" title="Permalink to this definition"></a></dt>
+<dd><p>Find all the files in a directory structure that fit the inclusion description, and return a list of the files with respect to the root path</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>root</strong> (<em>str</em>) – The root folder</p></li>
+<li><p><strong>inclusion</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of inclusion, that is part of the file name or extension that must be present in the files listed, defaults to None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of the found files</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_list_serial">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_list_serial</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#utilities.util_list_serial" title="Permalink to this definition"></a></dt>
+<dd><p>Return the list of the serial ports on the machine</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>EnvironmentError</strong> – Unsupported platform</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The serial ports on the machine</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_post_to_json">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_post_to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utilities.util_post_to_json" title="Permalink to this definition"></a></dt>
+<dd><p>Transform an html datastructure into a easy to manipulate json.
+The html datastructure should be in the following form:
+{
+level0a.level1a = a
+level0a.level1b = b
+level0b.levelx = x
+}
+for the following result:
+{
+level0a = {
+level1a = a
+level1b = b
+};
+level0b = {
+levelx = x
+}
+}</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – The html post data</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A json representation of the data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_post_unmap">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_post_unmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utilities.util_post_unmap" title="Permalink to this definition"></a></dt>
+<dd><p>Parse the mapping fields in order to transform them in a more user friendly structure.
+As a result, a simple map will transform from:
+{“mapright0”: “val0”, “mapleft0”: “val1”, …}
+to
+{“val0”: “val1”}</p>
+<p>and a dualmap will transform from:
+{“mapAright0”: “val0”, “mapAleft0”: “val1”, “mapBright0”: “val2”, “mapBleft0”: “val3”}
+to
+[{“val0”: “val1”, “val2”: “val3”}]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – The json data to parse</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A dictionnary with the mapping correctly transformed</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_read_parameters">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_read_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utilities.util_read_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Read the parameters of the application</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The parameters of the application</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_array">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">display_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_array" title="Permalink to this definition"></a></dt>
+<dd><p>Add an array to the given view</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – The message for the user</p></li>
+<li><p><strong>header</strong> (<em>list</em>) – The header of the array</p></li>
+<li><p><strong>data</strong> – The available data in the array. The array is represented by a dictionnary in the form:</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;col0_name&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;id to recover the data&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span><span class="s2">&quot;int, text, date, colored or hidden&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span><span class="s2">&quot;pre-set value, facultative&quot;</span><span class="p">}]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>:param If no id is provided, then the field will be display only (that is, not a form)
+:param If type == colored, an additional field named “limits” must be present: [“type”, x, y] where type is “less” or “more” and x, y, the 2 limits for the badge display
+:type data: dict
+:param button: A button for the form, defaults to None
+:type button: str, optional
+:param submenu: The submenu of the form, defaults to None
+:type submenu: _type_, optional
+:param display_only: If set to True, the table will take the whole width of the page. Otherwise, the message will be showed on the left of the table, defaults to False
+:type display_only: bool, optional</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_header_button">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_header_button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_header_button" title="Permalink to this definition"></a></dt>
+<dd><p>Add an array to the given view</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>button_type</strong> (<em>str</em>) – The type of button to add on the header. Can be “add”, “modify”</p></li>
+<li><p><strong>link</strong> (<em>str</em>) – The link where the button points to.</p></li>
+<li><p><strong>options</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of options that will be used to generate the link</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_header_pages">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_header_pages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_header_pages" title="Permalink to this definition"></a></dt>
+<dd><p>Add a page link option on the header</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>pages</strong> (<em>int</em>) – The number of pages to display</p></li>
+<li><p><strong>link</strong> (<em>str</em>) – The link where the button points to.</p></li>
+<li><p><strong>options</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of options that will be used to generate the link</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_info_download">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_info_download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_info_download" title="Permalink to this definition"></a></dt>
+<dd><p>Add a number input an a view module that can be passed in the base_content template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – The message for the user</p></li>
+<li><p><strong>file</strong> (<em>str</em>) – The name of the file to download</p></li>
+<li><p><strong>submenu</strong> (<em>_type_</em><em>, </em><em>optional</em>) – A subemenu for the form, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_info_graph">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_info_graph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_axises</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'date'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_info_graph" title="Permalink to this definition"></a></dt>
+<dd><p>Add a graphic</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – A message that fit with the graph</p></li>
+<li><p><strong>x_axis</strong> (<em>list</em>) – A x axis serie</p></li>
+<li><p><strong>y_axises</strong> (<em>list</em>) – A list of y axis serie</p></li>
+<li><p><strong>submenu</strong> (<em>str</em><em>, </em><em>optional</em>) – A submenu for the form, defaults to None</p></li>
+<li><p><strong>data_type</strong> (<em>str</em><em>, </em><em>optional</em>) – The datatype, see the js library, defaults to “date”</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_info_text">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_info_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_info_text" title="Permalink to this definition"></a></dt>
+<dd><p>Add a simple text</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>text</strong> (<em>str</em>) – A message that fit with the graph</p></li>
+<li><p><strong>submenu</strong> (<em>_type_</em><em>, </em><em>optional</em>) – A submenu for the form, defaults to None</p></li>
+<li><p><strong>id</strong> (<em>_type_</em><em>, </em><em>optional</em>) – The id of the text, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_input_file">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_input_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_input_file" title="Permalink to this definition"></a></dt>
+<dd><p>Add a file input an a view module that can be passed in the base_content template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – The message for the user</p></li>
+<li><p><strong>button</strong> (<em>str</em><em>, </em><em>optional</em>) – A button for the form, defaults to None</p></li>
+<li><p><strong>submenu</strong> (<em>_type_</em><em>, </em><em>optional</em>) – A submenu for the fomr, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_input_file_manager">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_input_file_manager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hiddens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_input_file_manager" title="Permalink to this definition"></a></dt>
+<dd><p>Add a file manager to delete files from the target and add the to it. It is possible to add several file managers by using lists for arguments files, titles and icons</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – The message for the user</p></li>
+<li><p><strong>button</strong> (<em>str</em><em>, </em><em>optional</em>) – A button for the forms, defaults to None</p></li>
+<li><p><strong>files</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of file already present, defaults to []</p></li>
+<li><p><strong>title</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of the titles of the file explorers, defaults to []</p></li>
+<li><p><strong>icons</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of the icons (the mdi project names) of the file explorers, defaults to []</p></li>
+<li><p><strong>classes</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of the classes (the bootsrap classes such as danger, success or primary) used in the file explorers, defaults to []</p></li>
+<li><p><strong>hiddens</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of true / false to indicate if a file explorer has a button to collapse the content, defaults to []</p></li>
+<li><p><strong>submenu</strong> (<em>_type_</em><em>, </em><em>optional</em>) – A submenu for the form, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_input_hidden">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_input_hidden</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_input_hidden" title="Permalink to this definition"></a></dt>
+<dd><p>Add a simple hidden field</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – The content of the field</p></li>
+<li><p><strong>button</strong> (<em>str</em><em>, </em><em>optional</em>) – A button for the fomr, defaults to None</p></li>
+<li><p><strong>submenu</strong> (<em>_type_</em><em>, </em><em>optional</em>) – A submenu for the form, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_input_number">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_input_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_input_number" title="Permalink to this definition"></a></dt>
+<dd><p>Add a number input an a view module that can be passed in the base_content template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – The message for the user</p></li>
+<li><p><strong>button</strong> (<em>str</em><em>, </em><em>optional</em>) – A button for the form, defaults to None</p></li>
+<li><p><strong>submenu</strong> (<em>_type_</em><em>, </em><em>optional</em>) – A submenu for the form, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_input_select">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_input_select</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_input_select" title="Permalink to this definition"></a></dt>
+<dd><p>Add a select input an a view module that can be passed in the base_content template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – The message for the user</p></li>
+<li><p><strong>data</strong> (<em>list</em>) – The available data in the select</p></li>
+<li><p><strong>button</strong> (<em>str</em><em>, </em><em>optional</em>) – A button for the form, defaults to None</p></li>
+<li><p><strong>submenu</strong> (<em>_type_</em><em>, </em><em>optional</em>) – The submenu of the form, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_input_simple">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_input_simple</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_input_simple" title="Permalink to this definition"></a></dt>
+<dd><p>Add a simple button with no input</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – The message for the user</p></li>
+<li><p><strong>button</strong> (<em>str</em><em>, </em><em>optional</em>) – A button for the form, defaults to None</p></li>
+<li><p><strong>submenu</strong> (<em>_type_</em><em>, </em><em>optional</em>) – The submenu of the form, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_input_text">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_input_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_input_text" title="Permalink to this definition"></a></dt>
+<dd><p>Add a text input an a view module that can be passed in the base_content template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>message</strong> (<em>str</em>) – The message for the user</p></li>
+<li><p><strong>button</strong> (<em>str</em><em>, </em><em>optional</em>) – A button for the form, defaults to None</p></li>
+<li><p><strong>submenu</strong> (<em>_type_</em><em>, </em><em>optional</em>) – A submenu for the form, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_multi_input">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_multi_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">button_disabled</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_multi_input" title="Permalink to this definition"></a></dt>
+<dd><p>Add a multi-input, that is a set of several input types that are under on single button. Supported inputs are
+- number
+- text
+- select
+- TODO: update</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>inputs</strong> (<em>dict</em>) – A list of dictionnary representing the inputs in the form</p></li>
+<li><p><strong>[</strong><strong>{id</strong> – id, type: “text, number, select”, value: “”, label: “”}]</p></li>
+<li><p><strong>button</strong> (<em>str</em><em>, </em><em>optional</em>) – A button for the form, defaults to None</p></li>
+<li><p><strong>submenu</strong> (<em>str</em><em>, </em><em>optional</em>) – A submenu for the form, defaults to None</p></li>
+<li><p><strong>button_disabled</strong> (<em>bool</em><em>, </em><em>optional</em>) – Set the button in disabled state</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_add_text_highlight">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_add_text_highlight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warning</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">success</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submenu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_add_text_highlight" title="Permalink to this definition"></a></dt>
+<dd><p>Add a warning or an info (or both) to a view module that can be passed in the base_content template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+<li><p><strong>info</strong> (<em>str</em><em>, </em><em>optional</em>) – An info text to display. defaults to None</p></li>
+<li><p><strong>warning</strong> (<em>str</em><em>, </em><em>optional</em>) – A warning text to display, defaults to None</p></li>
+<li><p><strong>error</strong> (<em>str</em><em>, </em><em>optional</em>) – An error text to display, defaults to None</p></li>
+<li><p><strong>success</strong> (<em>str</em><em>, </em><em>optional</em>) – A success text to display (green, wide), defaults to None</p></li>
+<li><p><strong>submenu</strong> (<em>str</em><em>, </em><em>optional</em>) – A submenu for the form, defaults to None</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_disable">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_disable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_view_disable" title="Permalink to this definition"></a></dt>
+<dd><p>Disable all inputs related to a module</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>modules</strong> (<em>dict</em>) – The view module in which the new select will be added</p></li>
+<li><p><strong>module</strong> (<em>str</em>) – The module name to which the select choice will be added</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_init">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utilities.util_view_init" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize a view module that can be passed in the base_content template</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>modules</strong> (<em>list</em>) – A list of the modules to add</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A correctly initialized view module with no input</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_reload_input_file_manager">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_reload_input_file_manager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">icons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hiddens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utilities.util_view_reload_input_file_manager" title="Permalink to this definition"></a></dt>
+<dd><p>Create the content necessary to reload a given input file manager</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>files</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of the files that should be already in the file manager, defaults to []</p></li>
+<li><p><strong>title</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of the titles of the file explorers, defaults to []</p></li>
+<li><p><strong>icons</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of the icons (the mdi project names) of the file explorers, defaults to []</p></li>
+<li><p><strong>classes</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of the classes (the bootsrap classes such as danger, success or primary) used in the file explorers, defaults to []</p></li>
+<li><p><strong>hiddens</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of true / false to indicate if a file explorer has a button to collapse the content, defaults to []</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The rendered html code to display</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_reload_multi_input">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_reload_multi_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utilities.util_view_reload_multi_input" title="Permalink to this definition"></a></dt>
+<dd><p>Reload a multi-user input with new data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>str</em>) – The id of the form</p></li>
+<li><p><strong>inputs</strong> (<em>dict</em>) – a list of dictionnary representing the inputs in the form</p></li>
+<li><p><strong>[</strong><strong>{id</strong> – id, type: “text, number, select”, value: “”, label: “”}]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The rendered form to be displayed</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_view_reload_text">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_view_reload_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#utilities.util_view_reload_text" title="Permalink to this definition"></a></dt>
+<dd><p>Reload a multi-user input with new data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>str</em>) – The id of the div text</p></li>
+<li><p><strong>input</strong> (<em>str</em>) – The new text to display</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The object that can be passed for rendering</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="utilities.util_write_parameters">
+<span class="sig-prename descclassname"><span class="pre">utilities.</span></span><span class="sig-name descname"><span class="pre">util_write_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#utilities.util_write_parameters" title="Permalink to this definition"></a></dt>
+<dd><p>Write the parameters of the application</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>dict</em>) – The new parameters to write</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-common">
+<span id="pages"></span><h2>Pages<a class="headerlink" href="#module-common" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="common.download">
+<span class="sig-prename descclassname"><span class="pre">common.</span></span><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#common.download" title="Permalink to this definition"></a></dt>
+<dd><p>Page that handle a download request by serving the file through flask</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="common.login">
+<span class="sig-prename descclassname"><span class="pre">common.</span></span><span class="sig-name descname"><span class="pre">login</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#common.login" title="Permalink to this definition"></a></dt>
+<dd><p>Login page</p>
+</dd></dl>
+
+<span class="target" id="module-settings"></span><dl class="py function">
+<dt class="sig sig-object py" id="settings.config_apply">
+<span class="sig-prename descclassname"><span class="pre">settings.</span></span><span class="sig-name descname"><span class="pre">config_apply</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#settings.config_apply" title="Permalink to this definition"></a></dt>
+<dd><p>Standard page apply the new configuration</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="settings.config_edit">
+<span class="sig-prename descclassname"><span class="pre">settings.</span></span><span class="sig-name descname"><span class="pre">config_edit</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#settings.config_edit" title="Permalink to this definition"></a></dt>
+<dd><p>Standard page to edit the config file</p>
+</dd></dl>
+
+<span class="target" id="module-updater"></span><dl class="py class">
+<dt class="sig sig-object py" id="updater.UPDATER_exec">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">updater.</span></span><span class="sig-name descname"><span class="pre">UPDATER_exec</span></span><a class="headerlink" href="#updater.UPDATER_exec" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Threaded_action</span></code></p>
+<p>Module to handle updated and apply them</p>
+<p>Update package can be downlaoded from FTP servers, provided that the correct credentials are given in the settings</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="updater.UPDATER_exec.action">
+<span class="sig-name descname"><span class="pre">action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#updater.UPDATER_exec.action" title="Permalink to this definition"></a></dt>
+<dd><p>Execute the module</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="updater.UPDATER_exec.m_action">
+<span class="sig-name descname"><span class="pre">m_action</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#updater.UPDATER_exec.m_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="updater.UPDATER_exec.m_default_name">
+<span class="sig-name descname"><span class="pre">m_default_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Website</span> <span class="pre">engine</span> <span class="pre">update</span> <span class="pre">update'</span></em><a class="headerlink" href="#updater.UPDATER_exec.m_default_name" title="Permalink to this definition"></a></dt>
+<dd><p>The name of the module</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="updater.UPDATER_exec.m_package">
+<span class="sig-name descname"><span class="pre">m_package</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#updater.UPDATER_exec.m_package" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="updater.UPDATER_exec.set_action">
+<span class="sig-name descname"><span class="pre">set_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#updater.UPDATER_exec.set_action" title="Permalink to this definition"></a></dt>
+<dd><p>Set the action to perform</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>str</em>) – <p>Can be the following values:</p>
+<ul class="simple">
+<li><p>create (to create a new package)</p></li>
+<li><p>upload (to upload a previously created package to the FTP server)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="updater.UPDATER_exec.set_package">
+<span class="sig-name descname"><span class="pre">set_package</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#updater.UPDATER_exec.set_package" title="Permalink to this definition"></a></dt>
+<dd><p>Set the target file for update</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>package</strong> (<em>str</em>) – The target file for update</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="updater.UPDATER_maker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">updater.</span></span><span class="sig-name descname"><span class="pre">UPDATER_maker</span></span><a class="headerlink" href="#updater.UPDATER_maker" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Threaded_action</span></code></p>
+<p>Module to create and upload the update packages.</p>
+<p>Update package can be uploaded to FTP servers, provided that the correct credentials are given in the settings</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="updater.UPDATER_maker.action">
+<span class="sig-name descname"><span class="pre">action</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#updater.UPDATER_maker.action" title="Permalink to this definition"></a></dt>
+<dd><p>Execute the module</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="updater.UPDATER_maker.m_action">
+<span class="sig-name descname"><span class="pre">m_action</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#updater.UPDATER_maker.m_action" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="updater.UPDATER_maker.m_default_name">
+<span class="sig-name descname"><span class="pre">m_default_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Website</span> <span class="pre">engine</span> <span class="pre">update</span> <span class="pre">creation'</span></em><a class="headerlink" href="#updater.UPDATER_maker.m_default_name" title="Permalink to this definition"></a></dt>
+<dd><p>The name of the module</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="updater.UPDATER_maker.m_package">
+<span class="sig-name descname"><span class="pre">m_package</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#updater.UPDATER_maker.m_package" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="updater.UPDATER_maker.set_action">
+<span class="sig-name descname"><span class="pre">set_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#updater.UPDATER_maker.set_action" title="Permalink to this definition"></a></dt>
+<dd><p>Set the action to perform</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>action</strong> (<em>str</em>) – <p>Can be the following values:</p>
+<ul class="simple">
+<li><p>create (to create a new package)</p></li>
+<li><p>upload (to upload a previously created package to the FTP server)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="updater.UPDATER_maker.set_type">
+<span class="sig-name descname"><span class="pre">set_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#updater.UPDATER_maker.set_type" title="Permalink to this definition"></a></dt>
+<dd><p>Set the type of package to handle</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>type</strong> (<em>str</em>) – <p>Can be the following values:</p>
+<ul class="simple">
+<li><p>source (Only the python files)</p></li>
+<li><p>distribution (PyInstaller distribution. Must be supported by the site_conf, see <code class="xref py py-meth docutils literal notranslate"><span class="pre">Site_conf.create_distribuate()</span></code>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="updater.update">
+<span class="sig-prename descclassname"><span class="pre">updater.</span></span><span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#updater.update" title="Permalink to this definition"></a></dt>
+<dd><p>Update page to handle update package creation (if credential authorize it) or update package download and application</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="sitehandler.html" class="btn btn-neutral float-left" title="Site handler" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="oufnis_hw.html" class="btn btn-neutral float-right" title="OuFNis HW" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, ParalaX Engineering.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

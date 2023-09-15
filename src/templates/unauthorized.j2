@@ -1,0 +1,12 @@
+{% extends 'base.j2' %}
+
+{% block title %}
+{% endblock %}
+
+{% block content %}
+    <div class="text-center">
+        <img src="{{ url_for('static', filename= 'images/status/unauthorized.svg')}}" width="500vw">
+        <h1 class="error-title">Unauthorized</h1>
+        <p class="fs-5 text-gray-600">You are not authorized to see this page</p>
+    </div>
+{% endblock %}

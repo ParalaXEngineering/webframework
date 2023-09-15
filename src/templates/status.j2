@@ -1,0 +1,21 @@
+{% extends 'base.j2' %}
+
+{% block title %}
+Status
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="card-title text-primary">Log file</div>
+            <div class="card-body">
+                <form action="{{ url_for('singles.status') }}" method="POST">
+                <button type="submit" class="btn btn-primary">Clear</button>
+                </form>
+            </div>
+        {% for line in log | reverse%}
+            {{ line}}
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
