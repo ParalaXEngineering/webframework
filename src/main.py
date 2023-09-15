@@ -44,9 +44,9 @@ else:
     app_path = os.path.dirname(os.path.abspath(__file__))
 
 # Automatically import all pages
-for item in os.listdir(os.path.join(app_path, sys.argv[1], "pages")):
+for item in os.listdir(os.path.join(app_path, "sites", sys.argv[1], "pages")):
     if ".py" in item:
-        module = importlib.import_module(sys.argv[1] + ".pages." + item[0:-3])
+        module = importlib.import_module("sites." + sys.argv[1] + ".pages." + item[0:-3])
         app.register_blueprint(module.bp)
 
 # Some pages are present in all websites
@@ -61,8 +61,8 @@ app.register_blueprint(updater.bp)
 access_manager.auth_object = access_manager.Access_manager()
 
 # Start scheduler
-if os.path.isfile(os.path.join(app_path, sys.argv[1], "scheduler.py")):
-    scheduler_obj = importlib.import_module(sys.argv[1] + ".scheduler").Scheduler()
+if os.path.isfile(os.path.join(app_path, "sites", sys.argv[1], "scheduler.py")):
+    scheduler_obj = importlib.import_module("sites." + sys.argv[1] + ".scheduler").Scheduler()
 else:
     scheduler_obj = scheduler.Scheduler()
 
@@ -76,7 +76,7 @@ scheduler.scheduler_obj = scheduler_obj
 threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
 
 # Import site_conf
-site_conf.site_conf_obj = importlib.import_module(sys.argv[1] + ".site_conf").Site_conf()
+site_conf.site_conf_obj = importlib.import_module("sites." + sys.argv[1] + ".site_conf").Site_conf()
 site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj
 
 

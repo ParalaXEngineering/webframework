@@ -213,7 +213,7 @@ def util_read_parameters() -> dict:
     :return: The parameters of the application
     :rtype: dict
     """
-    f = open(sys.argv[1] + '/config.json')
+    f = open("sites/" + sys.argv[1] + '/config.json')
     config_data = json.load(f)
     f.close()
     return config_data
@@ -225,7 +225,7 @@ def util_write_parameters(data: dict):
     :param data: The new parameters to write
     :type data: dict
     """
-    f = open(sys.argv[1] + '/config.json', "w")
+    f = open("sites/" + sys.argv[1] + '/config.json', "w")
     json.dump(data, f)
     f.close()
 

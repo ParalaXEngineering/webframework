@@ -9,7 +9,6 @@ bp = Blueprint('default', __name__, url_prefix='/default')
 
 @bp.route('/hello', methods=['GET', 'POST'])
 def hello():
-
     disp = displayer.Displayer()
     disp.add_generic("Default page")
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], "Title here", [displayer.BSalign.C]))

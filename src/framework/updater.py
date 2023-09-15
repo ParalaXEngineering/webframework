@@ -103,7 +103,7 @@ class UPDATER_maker(threaded_action.Threaded_action):
                 extra += "_" + platform.system()
 
             # Recover the site information
-            site_conf_obj = importlib.import_module(sys.argv[1] + ".site_conf").Site_conf()
+            site_conf_obj = importlib.import_module("sites." + sys.argv[1] + ".site_conf").Site_conf()
             config = utilities.util_read_parameters()
 
             session = ftplib.FTP(config["updates"]["address"]["value"], config["updates"]["user"]["value"], config["updates"]["password"]["value"])

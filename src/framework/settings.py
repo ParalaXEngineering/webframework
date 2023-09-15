@@ -35,9 +35,9 @@ def config_edit():
     # Load all the modules by names
     modules = []
     
-    for item in os.listdir(os.path.join(app_path, sys.argv[1], "modules")):
+    for item in os.listdir(os.path.join(app_path, "sites", sys.argv[1], "modules")):
         if ".py" in item:
-            module = importlib.import_module(sys.argv[1] + ".modules." + item[0:-3])
+            module = importlib.import_module("sites." + sys.argv[1] + ".modules." + item[0:-3])
             module_class = getattr(module, item[0:-3])
             modules.append(module_class.m_default_name)
 
