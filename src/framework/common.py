@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, session, send_file
 
-from framework import utilities
-from framework import access_manager
+from submodules.framework.src.framework import utilities
+from submodules.framework.src.framework import access_manager
 
 import os
 import sys

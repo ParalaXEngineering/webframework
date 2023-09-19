@@ -1,7 +1,7 @@
-from framework import utilities
+from submodules.framework.src.framework import utilities
 import threading
-from framework import scheduler
-from framework import displayer
+from submodules.framework.src.framework import scheduler
+from submodules.framework.src.framework import displayer
 
 class Workflow:
 

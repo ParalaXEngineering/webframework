@@ -65,15 +65,15 @@
         {{infileexplorer(item["id"], item["text"], item["explorer_titles"], item["explorer_files"], item["explorer_classes"], item["explorer_icons"], item["explorer_hiddens"])}}
     {% elif item["type"] == "GRAPH" %}
         {{graph(item["id"], item["text"], item["graph_x"], item["graph_y"], item["graph_type"])}}
-    {% elif item["type"] == "PATH" %}
-        {{graph(item["id"], item["value"], item["data"], item["possibles"])}}
+    {% elif item["type"] == "INPATH" %}
+        {{path(item["id"], item["value"], item["data"], item["possibles"])}}
     {% endif %}
 
     </span>
 {% endmacro %}
 
 
-{% macro path_internal(id, value, path, possibles,  default=None) %}
+{% macro path(id, value, path, possibles,  default=None) %}
 <script type=text/javascript>
     {% autoescape false %}
         var path_{{path_count.value}} = {{ possibles }};
@@ -81,7 +81,7 @@
 
 </script>
 {{ common_input.hidden(id + " Ref", value) }}
-{{ common_input.path_internal(id + " Path", "path_" + path_count.value|string, path) }}
+{{ common_input.path(id + " Path", "path_" + path_count.value|string, path) }}
 {% set path_count.value = path_count.value + 1 %}
 {% endmacro %}
 
@@ -194,10 +194,15 @@
 {% endmacro %}
 
 {% macro iconlink(id, text, link, icon, style, parameters) %}
+    {% if link %}
     <a href="{{url_for(link)}}?{{parameters | join('&')}}">
         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
         {{text}}
     </a>
+    {% else %}
+    <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+    {{text}}
+    {% endif %}
 {% endmacro %}
 
 {% macro inbox(id, value, text) %}

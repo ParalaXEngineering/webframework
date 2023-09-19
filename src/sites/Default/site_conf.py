@@ -1,5 +1,5 @@
-from framework import site_conf
-from framework import utilities
+from submodules.framework.src.framework import site_conf
+from submodules.framework.src.framework import utilities
 
 import threading
 import os

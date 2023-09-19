@@ -1,5 +1,5 @@
 from html.parser import HTMLParser
-from framework import displayer
+from submodules.framework.src.framework import displayer
 import json
 import os
 import sys
@@ -10,7 +10,7 @@ import jinja2
 
 
 
-from framework import access_manager
+from submodules.framework.src.framework import access_manager
 
 def util_list_serial() -> list:
     """Return the list of the serial ports on the machine
@@ -60,37 +60,40 @@ def util_post_unmap(data: dict) -> dict:
     """
     # Take care of the mappings
     for module in data:
+        if type(data[module]) is str:
+                continue
         for item in data[module]:
-            if item is list or item is dict:
-                for subitem in data[module][item]:
+            for cat in data[module][item]:
+                if type(data[module][item][cat]) is list or type(data[module][item][cat]) is dict:
+                    
                     # We need enough levels
-                    if type(data[module][item]) is not dict:
+                    if type(data[module][item][cat]) is not dict:
                         continue
 
                     # Simple map
-                    if "mapleft0" in data[module][item][subitem]:
+                    if "mapleft0" in data[module][item][cat]:
                         i = 0
                         map_to_find = "mapleft" + str(i)
                         new_map = {}
-                        while(map_to_find in data[module][item][subitem]):
-                            new_map[data[module][item][subitem]["mapleft" + str(i)]] = data[module][item][subitem]["mapright" + str(i)]
+                        while(map_to_find in data[module][item][cat]):
+                            new_map[data[module][item][cat]["mapleft" + str(i)]] = data[module][item][cat]["mapright" + str(i)]
                             i += 1
                             map_to_find = "mapleft" + str(i)
-                        data[module][item][subitem] = new_map
+                        data[module][item][cat] = new_map
                     
                     # Dual map
-                    if "mapAleft0" in data[module][item][subitem]:
+                    if "mapAleft0" in data[module][item][cat]:
                         i = 0
                         map_to_find = "mapAleft" + str(i)
                         new_map = []
-                        while(map_to_find in data[module][item][subitem]):
-                            new_map.append( {data[module][item][subitem]["mapAleft" + str(i)] : data[module][item][subitem]["mapAright" + str(i)],
-                                                data[module][item][subitem]["mapBleft" + str(i)] : data[module][item][subitem]["mapBright" + str(i)]})
+                        while(map_to_find in data[module][item][cat]):
+                            new_map.append( {data[module][item][cat]["mapAleft" + str(i)] : data[module][item][cat]["mapAright" + str(i)],
+                                                data[module][item][cat]["mapBleft" + str(i)] : data[module][item][cat]["mapBright" + str(i)]})
                             i += 1
                             map_to_find = "mapAleft" + str(i)
 
-                        data[module][item][subitem] = new_map     
-    
+                        data[module][item][cat] = new_map     
+
     return data
 
 def util_post_to_json(data: dict) -> dict:
@@ -213,7 +216,7 @@ def util_read_parameters() -> dict:
     :return: The parameters of the application
     :rtype: dict
     """
-    f = open("sites/" + sys.argv[1] + '/config.json')
+    f = open('website/config.json')
     config_data = json.load(f)
     f.close()
     return config_data
@@ -225,7 +228,7 @@ def util_write_parameters(data: dict):
     :param data: The new parameters to write
     :type data: dict
     """
-    f = open("sites/" + sys.argv[1] + '/config.json', "w")
+    f = open('website/config.json', "w")
     json.dump(data, f)
     f.close()
 

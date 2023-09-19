@@ -2,14 +2,14 @@ from ctypes import util
 from os import path
 from flask import Blueprint, render_template, request, session
 
-from framework import utilities
-from framework import access_manager
-from framework import site_conf
-from framework import displayer
+from submodules.framework.src.framework import utilities
+from submodules.framework.src.framework import access_manager
+from submodules.framework.src.framework import site_conf
+from submodules.framework.src.framework import displayer
 
 import json
 
-from framework import threaded_action
+from submodules.framework.src.framework import threaded_action
 
 from scp import SCPClient
 import os

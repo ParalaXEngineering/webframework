@@ -2,8 +2,8 @@ from flask import Blueprint, render_template, request, session
 
 import copy
 
-from framework import utilities
-from framework import displayer
+from submodules.framework.src.framework import utilities
+from submodules.framework.src.framework import displayer
 
 bp = Blueprint('default', __name__, url_prefix='/default')
 

@@ -35,6 +35,8 @@ class DisplayerItems(Enum):
     DOWNLOAD = "DOWNLOAD"
     ICONLINK = "ICONLINK"
     PLACEHOLDER = "PLACEHOLDER"
+    INPATH = "INPATH"
+
     
 class BSstyle(Enum):
     PRIMARY = "primary"
@@ -145,7 +147,7 @@ class DisplayerItem():
         if hasattr(self, "m_data"):
             item["data"] = self.m_data
         if hasattr(self, "m_possibles"):
-            item["data"] = self.m_possibles
+            item["possibles"] = self.m_possibles
         if hasattr(self, "m_id"):
             if parent_id:
                 item["id"] = parent_id + "." + self.m_id
@@ -233,11 +235,17 @@ class DisplayerItemHidden(DisplayerItem):
 class DisplayerItemIconLink(DisplayerItem):
     """Specialized display item to display a link icon
     """
-    def __init__(self, id: str, text: str, icon: str, link: str, parameters: str = None, color: BSstyle = BSstyle.PRIMARY) -> None:
+    def __init__(self, id: str, text: str, icon: str, link: str, parameters: list = None, color: BSstyle = BSstyle.PRIMARY) -> None:
         """Initialize with the text content
 
         :param text: The text content
         :type text: str
+        :param icon: The icon name of the mdi icons. Do not prefix with mdi-
+        :type icon: str
+        :param link: the link (in the flask terms) to point to. Can be set to empty to only have an icon
+        :type link: str
+        :param parameters: a list of text line with the parameters after the link, that is after a "?". Those will be passed with a GET method
+        :type parameters: list
         """
         super().__init__(DisplayerItems.ICONLINK)
         self.m_text = text
@@ -447,7 +455,7 @@ class DisplayerItemInputPath(DisplayerItem):
     For the moment, this is only supported in AltiumHelper, we need to do something more generic. The path_variable consist of the type of path, symbol or footprint
     """
     def __init__(self, id: str, text: str = None, value : str = None, path : str = "", possibles : list = []) -> None:
-        super().__init__(DisplayerItems.SELECT)
+        super().__init__(DisplayerItems.INPATH)
         self.m_text = text
         self.m_value = value
         self.m_id = id

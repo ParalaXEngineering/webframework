@@ -1,5 +1,5 @@
 
-from framework import utilities
+from submodules.framework.src.framework import utilities
 
 import json
 import sys
@@ -28,7 +28,7 @@ class Access_manager:
     def load_authorizations(self) :
         """Load the authorization file into the manager
         """
-        f = open("sites/" + sys.argv[1] + '/config.json', 'r')
+        f = open('website/config.json', 'r')
         data = json.load(f)
         if "access" in data:
             self.m_users = data["access"]["users"]["value"]
