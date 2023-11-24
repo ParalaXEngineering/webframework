@@ -57,16 +57,29 @@ class DisplayerLayout():
     g_next_layout = 0
 
     """Generic class to store information about a layout"""
-    def __init__(self, layoutType: Layouts, columns: list = [], subtitle = None, alignment: BSalign = None) -> None:
+    def __init__(self, layoutType: Layouts, columns: list = [], subtitle = None, alignment: BSalign = None, spacing: int = 0) -> None:
         """Constructor
 
         :param layoutType: The layout type 
         :type layoutType: Layouts
+        :param columns: Size of the columns (int), one item for one size. The sum should not be more than 12, defaults to []
+        :type columns: list, optional
+        :param subtitle: An optional subtitle for the layout, defaults to None
+        :type subtitle: _type_, optional
+        :param alignment: A table of the same length as the columns, with the alignment, defaults to None
+        :type alignment: BSalign, optional
+        :param spacing: A spacing as defined by bootstratp, that is from 0 to 5, defaults to 0
+        :type spacing: int, optional
         """
         self.m_type=layoutType.value
         self.m_column = columns
         self.m_subtitle = subtitle
         self.m_alignement = alignment
+
+        if spacing <= 5:
+            self.m_spacing = spacing
+        else:
+            spacing = 5
 
     def display(self, container: list) -> int:
         """Add this item to a container view. Should be reimplemented by the child
@@ -107,6 +120,7 @@ class DisplayerLayout():
                 current_layout["columns"] = self.m_column
                 current_layout["containers"] = containers
             current_layout["align"] = alignments
+            current_layout["spacing"] = self.m_spacing
 
         container.append(current_layout)
 
@@ -148,6 +162,8 @@ class DisplayerItem():
             item["data"] = self.m_data
         if hasattr(self, "m_possibles"):
             item["possibles"] = self.m_possibles
+        if hasattr(self, "m_path"):
+            item["path"] = self.m_path
         if hasattr(self, "m_id"):
             if parent_id:
                 item["id"] = parent_id + "." + self.m_id
@@ -323,17 +339,20 @@ class DisplayerItemDownload(DisplayerItem):
 class DisplayerItemImage(DisplayerItem):
     """Specialized display item to display an image
     """
-    def __init__(self, height: str, link) -> None:
+    def __init__(self, height: str, link: str, path: str = None) -> None:
         """Initialize with the text content
 
         :param height: The height of the image
         :type height: int
         :param link: The link to the image
         :type link: str
+        :param link: The base static path, as defined optionnaly in the blueprint
+        :type link: str
         """
         super().__init__(DisplayerItems.IMAGE)
         self.m_data = height
         self.m_value = link
+        self.m_path = path
 
         return
     

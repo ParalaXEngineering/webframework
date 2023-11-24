@@ -2,9 +2,9 @@
 
 {% macro display_layout(layout = [])%}
     {% if layout["type"] == "VERT" %}
-        {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"]) }}
+        {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
     {% elif layout["type"] == "HORIZ" %}
-        {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"]) }}
+        {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
     {% elif layout["type"] == "TABLE" %}
         {{ display_table_layout(layout["header"], layout["lines"]) }}
     {% elif layout["type"] == "SPACER" %}
@@ -13,12 +13,12 @@
     {% endif %}
 {% endmacro %}
 
-{% macro display_horizontal_layout(columns=[], containers = [], align = []) %}
+{% macro display_horizontal_layout(columns=[], containers = [], align = [], spacing = 0) %}
     TOCODE
 {% endmacro %}
 
-{% macro display_vertical_layout(columns=[], containers = [], align = []) %}
-    <div class="row m-1 align-items-center">
+{% macro display_vertical_layout(columns=[], containers = [], align = [], spacing = 0) %}
+    <div class="row py-{{spacing}} align-items-center">
     {# For each columns #}
     {% for col in columns %}
         <div class="col-{{col}} text-{{align[loop.index0]}}">
@@ -26,9 +26,13 @@
         {# Display all the items in the containers one another #}
         {% for element in containers[loop.index0] %}
                 {% if element["object"] == "item" %}
+                <div class="row">
                     {{ disp_item.display_item(element) }}
+                </div>
                 {% elif element["object"] == "layout" %}
+                <div class="row">
                     {{ display_layout(element)}}
+                </div>
                 {% else %}
                     NOT SUPPORTED
                 {% endif %}

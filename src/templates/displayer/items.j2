@@ -20,7 +20,7 @@
     {% elif item["type"] == "ICONLINK" %}
         {{iconlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
     {% elif item["type"] == "IMAGE" %}
-        {{image(item["id"], item["value"], item["data"])}}
+        {{image(item["id"], item["value"], item["path"], item["data"])}}
     {% elif item["type"] == "INBOX" %}
         {{inbox(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INDATE" %}
@@ -185,8 +185,12 @@
     </button>
 {% endmacro %}
 
-{% macro image(id, src, height) %}
-    <img src="{{src}}" height="{{height}}">
+{% macro image(id, src, path, height) %}
+    {% if path %}
+        <img src="{{url_for(path, filename=src)}}" height="{{height}}px">
+    {% else %}
+        <img src="{{src}}" height="{{height}}px">
+    {% endif %}
 {% endmacro %}
 
 {% macro download(id, text, link) %}
@@ -194,7 +198,12 @@
 {% endmacro %}
 
 {% macro iconlink(id, text, link, icon, style, parameters) %}
-    {% if link %}
+    {% if link and "http" in link%}
+    <a href="{{link}}">
+        <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+        {{text}}
+    </a>
+    {% elif link %}
     <a href="{{url_for(link)}}?{{parameters | join('&')}}">
         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
         {{text}}
