@@ -48,7 +48,7 @@ class Access_manager:
                     data["access"]["users_groups"]["value"][user] = ["admin"]
             f.close()
             
-            f = open("sites." + sys.argv[1] + '/config.json', 'w')
+            f = open('website/config.json', 'w')
             json.dump(data, f)
         
         f.close()
