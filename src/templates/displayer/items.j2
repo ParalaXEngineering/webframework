@@ -20,7 +20,7 @@
     {% elif item["type"] == "ICONLINK" %}
         {{iconlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
     {% elif item["type"] == "IMAGE" %}
-        {{image(item["id"], item["value"], item["path"], item["data"])}}
+        {{image(item["id"], item["value"], item["data"], item["path"])}}
     {% elif item["type"] == "INBOX" %}
         {{inbox(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INDATE" %}
@@ -185,11 +185,12 @@
     </button>
 {% endmacro %}
 
-{% macro image(id, src, path, height) %}
-    {% if path %}
-        <img src="{{url_for(path, filename=src)}}" height="{{height}}px">
+{% macro image(id, src, height, path) %}
+    {{ path }}
+    {%if path %}
+    <img src="{{url_for(path)}}/{{src}}" height="{{height}}">
     {% else %}
-        <img src="{{src}}" height="{{height}}px">
+    <img src="{{src}}" height="{{height}}">
     {% endif %}
 {% endmacro %}
 
@@ -198,16 +199,18 @@
 {% endmacro %}
 
 {% macro iconlink(id, text, link, icon, style, parameters) %}
-    {% if link and "http" in link%}
-    <a href="{{link}}">
+    {% if link %}
+        {% if "http" in link%}
+        <a href="{{link}}">
         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
         {{text}}
     </a>
-    {% elif link %}
+        {% else %}
     <a href="{{url_for(link)}}?{{parameters | join('&')}}">
         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
         {{text}}
     </a>
+        {% endif %}
     {% else %}
     <i class="mdi mdi-{{icon}} text-{{style}}"></i>
     {{text}}
