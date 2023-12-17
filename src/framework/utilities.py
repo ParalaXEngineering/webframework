@@ -5,6 +5,7 @@ import os
 import sys
 import glob
 import serial
+import math
 from jinja2 import Environment, FileSystemLoader
 import jinja2
 
@@ -200,11 +201,6 @@ def util_post_to_json(data: dict) -> dict:
                     current = current[item_split[0]]
                 else:
                     current = [data[item]]
-                    # print(current)
-                    # if len(current) == 0:
-                    #     current = [data[item]]
-                    # else:
-                    #     current.append(data[item])
             item_split.pop(0)  
 
     return formated
@@ -472,7 +468,12 @@ def utils_keep_number(number:str) -> float:
             number_string += s
 
     try:
-        return float(number_string)
+        if not number:
+            return 0
+        if number[0] == '-':
+            return -float(number_string)
+        else:
+            return float(number_string)
     except:
         return math.nan
         
@@ -487,6 +488,7 @@ def utils_format_unit(cpnt:dict) -> dict:
     """
     unit_order = ['f', 'p', 'n', 'µ', 'm', "default", 'K', 'M', 'G']
 
+    print(cpnt)
     for item in cpnt:
         unit = item.split('[')[1][:-1]
         value = cpnt[item]
@@ -528,6 +530,9 @@ def utils_format_unit(cpnt:dict) -> dict:
             if current_unwanted in value:
                 value = value.replace(current_unwanted, "")
 
+        print("Hello")
+        print(value)
+
         # Set the unit
         new_unit = expected_units["default"]
         for eu in expected_units:
@@ -537,9 +542,15 @@ def utils_format_unit(cpnt:dict) -> dict:
 
         # We have the number and unit, see if we can change the unit
         value_float = utils_keep_number(value)
+        print(value_float)
         if math.isnan(value_float):
             continue
         unit_index = unit_order.index(new_unit)
+
+        negative = False
+        if value_float < 0:
+            negative = True
+            value_float = -value_float
 
         if value_float < 1:
             value_float = value_float * 1000
@@ -552,6 +563,9 @@ def utils_format_unit(cpnt:dict) -> dict:
             value_float = int(value_float)
 
         value_float = round(value_float, 2)
+
+        if negative:
+            value_float = -value_float
         
         cpnt[item] = str(value_float) + new_unit
 

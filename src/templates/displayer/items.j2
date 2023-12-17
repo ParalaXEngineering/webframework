@@ -186,8 +186,7 @@
 {% endmacro %}
 
 {% macro image(id, src, height, path) %}
-    {{ path }}
-    {%if path %}
+    {% if path %}
     <img src="{{url_for(path)}}/{{src}}" height="{{height}}">
     {% else %}
     <img src="{{src}}" height="{{height}}">
