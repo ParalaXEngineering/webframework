@@ -76,32 +76,38 @@ def help():
 def parse_log_file(log_file):
     log_entries = []
 
-    log_pattern = r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) \| (\w+) +\| (\w+\.\w+) +\| (\w+) +\| (\d+) +\| (.+)"
-
+    log_pattern = r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) \| (\w+) +\| (\w+\.\w+) +\| (\w+) +\| (\d+) +\| (.*)"
+    
     with open(log_file, "r") as file:
         lines = file.readlines()
 
+    full_line = ""
     for line in reversed(lines):
-        match = re.match(log_pattern, line)
-        if match:
-            timestamp_str, level, file, function, line_num, message = match.groups()
+        full_line = line + full_line
+        if "|" not in line:
+            continue
+        else:
+            match = re.match(log_pattern, full_line, re.DOTALL)
+            if match:
+                timestamp_str, level, file, function, line_num, message = match.groups()
 
-            timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S,%f")
+                timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S,%f")
 
-            entry = {
-                "time": timestamp,
-                "level": level,
-                "file": file,
-                "function": function,
-                "line": int(line_num),
-                "message": message.strip(),
-            }
+                entry = {
+                    "time": timestamp,
+                    "level": level,
+                    "file": file,
+                    "function": function,
+                    "line": int(line_num),
+                    "message": message.strip(),
+                }
 
-            if entry["message"] == "Scheduler started":
+                if entry["message"] == "Scheduler started":
+                    log_entries.append(entry)
+                    break
+
                 log_entries.append(entry)
-                break
-
-            log_entries.append(entry)
+                full_line = ""
 
     log_entries.reverse()
 
@@ -117,6 +123,7 @@ def logs():
     log_files = ["website.log", "root.log"]
     for log_file in log_files:
         log_entries = parse_log_file(log_file)
+        print(log_entries)
 
         disp.add_master_layout(
             displayer.DisplayerLayout(
@@ -165,7 +172,7 @@ def logs():
             )
             disp.add_display_item(displayer.DisplayerItemText(log["line"]), 4, line=i)
             disp.add_display_item(
-                displayer.DisplayerItemText(log["message"]), 5, line=i
+                displayer.DisplayerItemText(log["message"].replace("\n", "<br>")), 5, line=i
             )
 
             i += 1

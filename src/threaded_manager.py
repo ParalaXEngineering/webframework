@@ -1,4 +1,5 @@
 import threading
+import logging
 
 thread_manager_obj = None
 
@@ -8,6 +9,11 @@ class Threaded_manager:
 
     m_running_threads = []
     """List of the currently running threads"""
+
+    def __init__(self):
+        logging.config.fileConfig("submodules/framework/log_config.ini")
+        self.m_logger = logging.getLogger("website")
+        self.m_logger.info("Scheduler started")
 
     def add_thread(self, thread: threading.Thread):
         """Add a new thread to the pool
