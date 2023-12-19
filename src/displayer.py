@@ -1,10 +1,12 @@
 from enum import Enum
 
+
 class Layouts(Enum):
     VERTICAL = "VERT"
     HORIZONTAL = "HORIZ"
     TABLE = "TABLE"
     SPACER = "SPACER"
+
 
 class DisplayerItems(Enum):
     TEXT = "TEXT"
@@ -23,7 +25,7 @@ class DisplayerItems(Enum):
     INMAPPING = "INMAPPING"
     INTEXTSELECT = "INTEXTSELECT"
     INSELECTTEXT = "INSELECTTEXT"
-    INDUALSELECTTEXT = 'INDUALSELECTTEXT'
+    INDUALSELECTTEXT = "INDUALSELECTTEXT"
     INDUALTEXTSELECT = "INDUALTEXTSELECT"
     INTEXTTEXT = "INTEXTTEXT"
     INLISTTEXT = "INLISTTEXT"
@@ -37,7 +39,7 @@ class DisplayerItems(Enum):
     PLACEHOLDER = "PLACEHOLDER"
     INPATH = "INPATH"
 
-    
+
 class BSstyle(Enum):
     PRIMARY = "primary"
     SUCCESS = "success"
@@ -48,19 +50,29 @@ class BSstyle(Enum):
     LIGHT = "secondary"
     NONE = "none"
 
+
 class BSalign(Enum):
     L = "start"
     R = "end"
     C = "center"
 
-class DisplayerLayout():
+
+class DisplayerLayout:
     g_next_layout = 0
 
     """Generic class to store information about a layout"""
-    def __init__(self, layoutType: Layouts, columns: list = [], subtitle = None, alignment: BSalign = None, spacing: int = 0) -> None:
+
+    def __init__(
+        self,
+        layoutType: Layouts,
+        columns: list = [],
+        subtitle=None,
+        alignment: BSalign = None,
+        spacing: int = 0,
+    ) -> None:
         """Constructor
 
-        :param layoutType: The layout type 
+        :param layoutType: The layout type
         :type layoutType: Layouts
         :param columns: Size of the columns (int), one item for one size. The sum should not be more than 12, defaults to []
         :type columns: list, optional
@@ -71,7 +83,7 @@ class DisplayerLayout():
         :param spacing: A spacing as defined by bootstratp, that is from 0 to 5, defaults to 0
         :type spacing: int, optional
         """
-        self.m_type=layoutType.value
+        self.m_type = layoutType.value
         self.m_column = columns
         self.m_subtitle = subtitle
         self.m_alignement = alignment
@@ -90,14 +102,19 @@ class DisplayerLayout():
         :type parent_id: str
         :return The layout id of the newly created layout
         """
-        current_layout = {"object": "layout", "type": self.m_type, "id": self.g_next_layout, "subtitle": self.m_subtitle}
+        current_layout = {
+            "object": "layout",
+            "type": self.m_type,
+            "id": self.g_next_layout,
+            "subtitle": self.m_subtitle,
+        }
 
         if self.m_type == Layouts.TABLE.value:
             current_layout["header"] = self.m_column
             current_layout["lines"] = None
-        
+
         else:
-            #Check column size
+            # Check column size
             column_size = 0
             col_nb = 0
             containers = []
@@ -109,10 +126,9 @@ class DisplayerLayout():
                     alignments.append(BSalign.L.value)
                 else:
                     alignments.append(self.m_alignement[col_nb].value)
-                
+
                 col_nb += 1
 
-            
             if column_size > 12 or column_size == 0:
                 current_layout["columns"] = []
                 current_layout["containers"] = []
@@ -125,12 +141,12 @@ class DisplayerLayout():
         container.append(current_layout)
 
         DisplayerLayout.g_next_layout += 1
-        return self.g_next_layout - 1 
+        return self.g_next_layout - 1
 
-    
-class DisplayerItem():
-    """Generic class to store the information about a display item. A display item is the atomic information used to display stuff on the screen.
-    """
+
+class DisplayerItem:
+    """Generic class to store the information about a display item. A display item is the atomic information used to display stuff on the screen."""
+
     def __init__(self, itemType: DisplayerItems) -> None:
         """Constructor
 
@@ -174,17 +190,17 @@ class DisplayerItem():
 
         container.append(item)
         return
-    
+
     def setDisabled(self, disabled: bool = False) -> None:
         """Disable the current item. While the function is always present, it can yield to no result depending on the item
 
         :param disabled: Disable the item, defaults to False
         :type disabled: bool, optional
         """
-        
+
         self.m_disabled = disabled
         return
-    
+
     def setId(self, id: str = None) -> None:
         """Set an id to the current item. This way, the item can easily be replaced by something else with some javascript
 
@@ -194,10 +210,11 @@ class DisplayerItem():
         """
         self.m_itemId = id
         return
-    
+
+
 class DisplayerItemPlaceholder(DisplayerItem):
-    """Specialized display item to set a placeholder with an id which can be filled later
-    """
+    """Specialized display item to set a placeholder with an id which can be filled later"""
+
     def __init__(self, id: str) -> None:
         """Initialize with the text content
 
@@ -209,8 +226,8 @@ class DisplayerItemPlaceholder(DisplayerItem):
 
 
 class DisplayerItemAlert(DisplayerItem):
-    """Specialized display item to display a an alert with a bootstrap style
-    """
+    """Specialized display item to display a an alert with a bootstrap style"""
+
     def __init__(self, text: str, highlightType: BSstyle = BSstyle.SUCCESS) -> None:
         """Initialize with the text content
 
@@ -227,9 +244,10 @@ class DisplayerItemAlert(DisplayerItem):
         self.m_text = text
         return
 
+
 class DisplayerItemText(DisplayerItem):
-    """Specialized display item to display a simple line of text
-    """
+    """Specialized display item to display a simple line of text"""
+
     def __init__(self, text: str) -> None:
         """Initialize with the text content
 
@@ -239,19 +257,29 @@ class DisplayerItemText(DisplayerItem):
         super().__init__(DisplayerItems.TEXT)
         self.m_text = text
 
+
 class DisplayerItemHidden(DisplayerItem):
-    """Specialized display to display a hidden field
-    """
-    def __init__(self, id: str, value : str = None) -> None:
+    """Specialized display to display a hidden field"""
+
+    def __init__(self, id: str, value: str = None) -> None:
         super().__init__(DisplayerItems.INHIDDEN)
         self.m_value = value
         self.m_id = id
         return
-    
+
+
 class DisplayerItemIconLink(DisplayerItem):
-    """Specialized display item to display a link icon
-    """
-    def __init__(self, id: str, text: str, icon: str, link: str, parameters: list = None, color: BSstyle = BSstyle.PRIMARY) -> None:
+    """Specialized display item to display a link icon"""
+
+    def __init__(
+        self,
+        id: str,
+        text: str,
+        icon: str,
+        link: str,
+        parameters: list = None,
+        color: BSstyle = BSstyle.PRIMARY,
+    ) -> None:
         """Initialize with the text content
 
         :param text: The text content
@@ -271,7 +299,7 @@ class DisplayerItemIconLink(DisplayerItem):
         self.m_parameters = parameters
         self.m_style = color.value
         return
-    
+
     def display(self, container: list, parent_id: str = None) -> None:
         """Add this item to a container view. Should be reimplemented by the child
 
@@ -284,10 +312,11 @@ class DisplayerItemIconLink(DisplayerItem):
         container[-1]["icon"] = self.m_icon
         container[-1]["parameters"] = self.m_parameters
         return
-    
+
+
 class DisplayerItemButton(DisplayerItem):
-    """Specialized display item to display a simple button
-    """
+    """Specialized display item to display a simple button"""
+
     def __init__(self, id: str, text: str) -> None:
         """Initialize with the text content
 
@@ -298,10 +327,11 @@ class DisplayerItemButton(DisplayerItem):
         self.m_text = text
         self.m_id = id
         return
-    
+
+
 class DisplayerItemBadge(DisplayerItem):
-    """Specialized display item to display a badge with a color
-    """
+    """Specialized display item to display a badge with a color"""
+
     def __init__(self, text: str, highlightType: BSstyle = BSstyle.SUCCESS) -> None:
         """Initialize with the text content
 
@@ -317,10 +347,11 @@ class DisplayerItemBadge(DisplayerItem):
     def setText(self, text: str):
         self.m_text = text
         return
-    
+
+
 class DisplayerItemDownload(DisplayerItem):
-    """Specialized display item to display a simple download button
-    """
+    """Specialized display item to display a simple download button"""
+
     def __init__(self, id: str, text: str, link) -> None:
         """Initialize with the text content
 
@@ -335,10 +366,11 @@ class DisplayerItemDownload(DisplayerItem):
         self.m_data = link
 
         return
-    
+
+
 class DisplayerItemImage(DisplayerItem):
-    """Specialized display item to display an image
-    """
+    """Specialized display item to display an image"""
+
     def __init__(self, height: str, link: str, path: str = None) -> None:
         """Initialize with the text content
 
@@ -355,44 +387,48 @@ class DisplayerItemImage(DisplayerItem):
         self.m_path = path
 
         return
-    
+
+
 class DisplayerItemInputBox(DisplayerItem):
-    """Specialized display to display an input checkbox
-    """
-    def __init__(self, id: str, text: str = None, value : bool = None) -> None:
+    """Specialized display to display an input checkbox"""
+
+    def __init__(self, id: str, text: str = None, value: bool = None) -> None:
         super().__init__(DisplayerItems.INBOX)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         return
-    
+
+
 class DisplayerItemGraph(DisplayerItem):
-    """Specialized display to display an input file explorer
-    """
-    def __init__(self, id: str, text: str = None, x : list = [], y: list = [], data_type="date") -> None:
+    """Specialized display to display an input file explorer"""
+
+    def __init__(
+        self, id: str, text: str = None, x: list = [], y: list = [], data_type="date"
+    ) -> None:
         """Initialize the display item
 
-        :param id: The id for the input form
-        :type id: str
-        :param text: An optional accompniing text, defaults to None
-        :type text: str, optional
-        :param x: List of x values
-        :type x: list, optional
-        :param y: List of data values
-        :type y: list, optional
-        :param data_type: The datatype, see the js library, defaults to "date"
-    :type data_type: str, optional
+            :param id: The id for the input form
+            :type id: str
+            :param text: An optional accompniing text, defaults to None
+            :type text: str, optional
+            :param x: List of x values
+            :type x: list, optional
+            :param y: List of data values
+            :type y: list, optional
+            :param data_type: The datatype, see the js library, defaults to "date"
+        :type data_type: str, optional
 
         """
         super().__init__(DisplayerItems.GRAPH)
         self.m_text = text
-        self.m_id = id   
+        self.m_id = id
 
         self.m_graphx = x
         self.m_graphy = y
         self.m_datatype = data_type
         return
-    
+
     def display(self, container: list, parent_id: str = None) -> None:
         """Add this item to a container view. Should be reimplemented by the child
 
@@ -402,17 +438,29 @@ class DisplayerItemGraph(DisplayerItem):
         :type parent_id: str
         """
         super().display(container, parent_id)
-        container[-1]["id"] = self.m_id.replace(' ', '_')     
+        container[-1]["id"] = self.m_id.replace(" ", "_")
         container[-1]["graph_x"] = self.m_graphx
         container[-1]["graph_y"] = self.m_graphy
         container[-1]["graph_type"] = self.m_datatype
-        container[-1]["id"] = container[-1]["id"].replace('.', '')  #Forbidden in javascript variables
+        container[-1]["id"] = container[-1]["id"].replace(
+            ".", ""
+        )  # Forbidden in javascript variables
         return
-    
+
+
 class DisplayerItemInputFileExplorer(DisplayerItem):
-    """Specialized display to display an input file explorer
-    """
-    def __init__(self, id: str, text: str = None, files : list = [], title: list = [], icons: list = [], classes: list = [], hiddens: list = []) -> None:
+    """Specialized display to display an input file explorer"""
+
+    def __init__(
+        self,
+        id: str,
+        text: str = None,
+        files: list = [],
+        title: list = [],
+        icons: list = [],
+        classes: list = [],
+        hiddens: list = [],
+    ) -> None:
         """Initialize the display item
 
         :param id: The id for the input form
@@ -440,7 +488,7 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
         self.m_explorerClasses = classes
         self.m_explorerHiddens = hiddens
         return
-    
+
     def display(self, container: list, parent_id: str = None) -> None:
         """Add this item to a container view. Should be reimplemented by the child
 
@@ -457,23 +505,35 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
         container[-1]["explorer_hiddens"] = self.m_explorerHiddens
         return
 
+
 class DisplayerItemInputSelect(DisplayerItem):
-    """Specialized display to display an input select box
-    """
-    def __init__(self, id: str, text: str = None, value : bool = None, choices : list = []) -> None:
+    """Specialized display to display an input select box"""
+
+    def __init__(
+        self, id: str, text: str = None, value: bool = None, choices: list = []
+    ) -> None:
         super().__init__(DisplayerItems.SELECT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_data = choices
         return
-    
+
+
 class DisplayerItemInputPath(DisplayerItem):
     """Specialized display to display a path dropdown menu.
 
     For the moment, this is only supported in AltiumHelper, we need to do something more generic. The path_variable consist of the type of path, symbol or footprint
     """
-    def __init__(self, id: str, text: str = None, value : str = None, path : str = "", possibles : list = []) -> None:
+
+    def __init__(
+        self,
+        id: str,
+        text: str = None,
+        value: str = None,
+        path: str = "",
+        possibles: list = [],
+    ) -> None:
         super().__init__(DisplayerItems.INPATH)
         self.m_text = text
         self.m_value = value
@@ -481,163 +541,193 @@ class DisplayerItemInputPath(DisplayerItem):
         self.m_data = path
         self.m_possibles = possibles
         return
-    
+
+
 class DisplayerItemInputMultiSelect(DisplayerItem):
-    """Specialized display to display a multiple select with a possibility to add them on the fly
-    """
-    def __init__(self, id: str, text: str = None, value : bool = None, choices : list = []) -> None:
+    """Specialized display to display a multiple select with a possibility to add them on the fly"""
+
+    def __init__(
+        self, id: str, text: str = None, value: bool = None, choices: list = []
+    ) -> None:
         super().__init__(DisplayerItems.INMULTISELECT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_data = choices
         return
-    
+
+
 class DisplayerItemInputMapping(DisplayerItem):
-    """Specialized display to display a mapping with a possibility to add them on the fly
-    """
-    def __init__(self, id: str, text: str = None, value : bool = None, choices : list = []) -> None:
+    """Specialized display to display a mapping with a possibility to add them on the fly"""
+
+    def __init__(
+        self, id: str, text: str = None, value: bool = None, choices: list = []
+    ) -> None:
         super().__init__(DisplayerItems.INMAPPING)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_data = choices
         return
-    
+
+
 class DisplayerItemInputListSelect(DisplayerItem):
-    """Specialized display to display a set of list select
-    """
-    def __init__(self, id: str, text: str = None, value : bool = None, choices : list = []) -> None:
+    """Specialized display to display a set of list select"""
+
+    def __init__(
+        self, id: str, text: str = None, value: bool = None, choices: list = []
+    ) -> None:
         super().__init__(DisplayerItems.INLISTSELECT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_data = choices
         return
-    
+
+
 class DisplayerItemInputTextSelect(DisplayerItem):
-    """Specialized display to display a mapping for a text and a selection for the user
-    """
-    def __init__(self, id: str, text: str = None, value : str = None, choices : list = []) -> None:
+    """Specialized display to display a mapping for a text and a selection for the user"""
+
+    def __init__(
+        self, id: str, text: str = None, value: str = None, choices: list = []
+    ) -> None:
         super().__init__(DisplayerItems.INTEXTSELECT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_data = choices
         return
-    
+
+
 class DisplayerItemInputSelectText(DisplayerItem):
-    """Specialized display to display a mapping for a selection for the user then a text
-    """
-    def __init__(self, id: str, text: str = None, value : str = None, choices : list = []) -> None:
+    """Specialized display to display a mapping for a selection for the user then a text"""
+
+    def __init__(
+        self, id: str, text: str = None, value: str = None, choices: list = []
+    ) -> None:
         super().__init__(DisplayerItems.INSELECTTEXT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_data = choices
         return
-    
+
+
 class DisplayerItemInputDualTextSelect(DisplayerItem):
-    """Specialized display to display a mapping for a dual text and a selection for the user
-    """
-    def __init__(self, id: str, text: str = None, value : str = None, choices : list = []) -> None:
+    """Specialized display to display a mapping for a dual text and a selection for the user"""
+
+    def __init__(
+        self, id: str, text: str = None, value: str = None, choices: list = []
+    ) -> None:
         super().__init__(DisplayerItems.INDUALTEXTSELECT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_data = choices
         return
-    
+
+
 class DisplayerItemInputDualSelectText(DisplayerItem):
-    """Specialized display to display a mapping for a dual selection for the user then a text
-    """
-    def __init__(self, id: str, text: str = None, value : str = None, choices : list = []) -> None:
+    """Specialized display to display a mapping for a dual selection for the user then a text"""
+
+    def __init__(
+        self, id: str, text: str = None, value: str = None, choices: list = []
+    ) -> None:
         super().__init__(DisplayerItems.INDUALSELECTTEXT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_data = choices
         return
-    
+
+
 class DisplayerItemInputTextText(DisplayerItem):
-    """Specialized display to display a mapping with two texts
-    """
-    def __init__(self, id: str, text: str = None, value : str = None) -> None:
+    """Specialized display to display a mapping with two texts"""
+
+    def __init__(self, id: str, text: str = None, value: str = None) -> None:
         super().__init__(DisplayerItems.INTEXTTEXT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         return
-    
+
+
 class DisplayerItemInputListText(DisplayerItem):
-    """Specialized display to display a list of input text
-    """
-    def __init__(self, id: str, text: str = None, value : str = None) -> None:
+    """Specialized display to display a list of input text"""
+
+    def __init__(self, id: str, text: str = None, value: str = None) -> None:
         super().__init__(DisplayerItems.INLISTTEXT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         return
 
+
 class DisplayerItemInputNumeric(DisplayerItem):
-    """Specialized display to display an input number
-    """
-    def __init__(self, id: str, text: str = None, value : float = None) -> None:
+    """Specialized display to display an input number"""
+
+    def __init__(self, id: str, text: str = None, value: float = None) -> None:
         super().__init__(DisplayerItems.INNUM)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         return
 
+
 class DisplayerItemInputDate(DisplayerItem):
-    """Specialized display to display an input date
-    """
-    def __init__(self, id: str, text: str = None, value : float = None) -> None:
+    """Specialized display to display an input date"""
+
+    def __init__(self, id: str, text: str = None, value: float = None) -> None:
         super().__init__(DisplayerItems.INDATE)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         return
 
+
 class DisplayerItemInputText(DisplayerItem):
-    """Specialized display to display an input number
-    """
-    def __init__(self, id: str, text: str = None, value : str = None) -> None:
+    """Specialized display to display an input number"""
+
+    def __init__(self, id: str, text: str = None, value: str = None) -> None:
         super().__init__(DisplayerItems.INTEXT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         return
-    
+
+
 class DisplayerItemInputMultiText(DisplayerItem):
-    """Specialized display to display an input number
-    """
-    def __init__(self, id: str, text: str = None, value : str = None) -> None:
+    """Specialized display to display an input number"""
+
+    def __init__(self, id: str, text: str = None, value: str = None) -> None:
         super().__init__(DisplayerItems.INMULTITEXT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         return
-    
+
+
 class DisplayerItemInputTextIcon(DisplayerItem):
-    """Specialized display to display a relation text / icon
-    """
-    def __init__(self, id: str, value : str = None) -> None:
+    """Specialized display to display a relation text / icon"""
+
+    def __init__(self, id: str, value: str = None) -> None:
         super().__init__(DisplayerItems.INTEXTICON)
         self.m_value = value
         self.m_id = id
         return
 
+
 class DisplayerItemInputFile(DisplayerItem):
-    """Specialized display to display an input number
-    """
+    """Specialized display to display an input number"""
+
     def __init__(self, id: str, text: str = None) -> None:
         super().__init__(DisplayerItems.INFILE)
         self.m_text = text
         self.m_id = id
         return
 
-class Displayer():
+
+class Displayer:
     """Main displayer class to construct the information displayed on the screen.
 
     The displayer is constituted of several modules (each module is a single form and card), which are them self created with layouts that can be stack on top of another
@@ -645,12 +735,13 @@ class Displayer():
 
     The modules, layouts and items are always displayed in the order in which they have been added in the displayer.
     """
+
     def __init__(self):
         self.m_modules = {}
 
         self.m_active_module = None
         return
-    
+
     def add_module(self, module: dict, name_override: str = None, display: bool = True):
         """Prepare a new module for displaying. An optionnal ID can be affected to this module
         The module is then set to active, which means that everything will be added on it.
@@ -663,13 +754,17 @@ class Displayer():
         :type display: bool
         """
 
-        self.m_modules[module.m_default_name] = {"id": module.m_default_name, "type": module.m_type, "display": display}
+        self.m_modules[module.m_default_name] = {
+            "id": module.m_default_name,
+            "type": module.m_type,
+            "display": display,
+        }
         if name_override:
             self.m_modules[module.m_default_name]["name_override"] = name_override
 
         self.m_active_module = module.m_default_name
         return
-    
+
     def add_generic(self, name: str, display: bool = True):
         """Prepare a generic item for displaying
 
@@ -682,7 +777,7 @@ class Displayer():
 
         self.m_active_module = name
         return
-    
+
     def switch_module(self, name: str) -> None:
         """Switch the current module to the given one, if it exists.
 
@@ -693,8 +788,8 @@ class Displayer():
             self.m_active_module = name
 
         return
-    
-    def find_layout(self, searchable_layout = [], layout_id = -1) -> list:
+
+    def find_layout(self, searchable_layout=[], layout_id=-1) -> list:
         """Find a layout recursively and return it, or an empty table if not found
 
         :param searchable_layout: A list of item that can also be layouts, defaults to []
@@ -720,9 +815,16 @@ class Displayer():
                                 return sublayouts
 
         return []
-                    
-    
-    def add_display_item(self, item: DisplayerItems, column: int = 0, layout_id: int  = -1, disabled: bool = False, id: int = None, line: int = -1) -> bool:
+
+    def add_display_item(
+        self,
+        item: DisplayerItems,
+        column: int = 0,
+        layout_id: int = -1,
+        disabled: bool = False,
+        id: int = None,
+        line: int = -1,
+    ) -> bool:
         """Add a new display item.
 
         :param item: The item to add
@@ -740,24 +842,28 @@ class Displayer():
         :rtype: bool
         """
 
-        #Check that there is at least a module and a layout
-        if not self.m_active_module or "layouts" not in self.m_modules[self.m_active_module]:
+        # Check that there is at least a module and a layout
+        if (
+            not self.m_active_module
+            or "layouts" not in self.m_modules[self.m_active_module]
+        ):
             return False
-        
-        #Try to find the layout
+
+        # Try to find the layout
         if layout_id == -1:
             layout_id = DisplayerLayout.g_next_layout - 1
-            
 
-        layout = self.find_layout(self.m_modules[self.m_active_module]["layouts"], layout_id)
+        layout = self.find_layout(
+            self.m_modules[self.m_active_module]["layouts"], layout_id
+        )
         if not layout:
             return False
-                
-        if layout["type"] == Layouts.VERTICAL.value: 
-            #Check that there is enought columns
+
+        if layout["type"] == Layouts.VERTICAL.value:
+            # Check that there is enought columns
             if column >= len(layout["containers"]):
                 return False
-            
+
         elif layout["type"] == Layouts.TABLE.value:
             # Do we have at least a line?
             if not layout["lines"]:
@@ -770,27 +876,31 @@ class Displayer():
             else:
                 if len(layout["lines"]) <= line:
                     for i in range(len(layout["lines"]), line + 1):
-                        layout["lines"].append([[] for _ in range(len(layout["header"]))])                 
-        
+                        layout["lines"].append(
+                            [[] for _ in range(len(layout["header"]))]
+                        )
+
         if disabled:
             item.setDisabled(True)
 
         if id:
             item.setId(id)
-        
-        #Add the display item
-        if layout["type"] == Layouts.VERTICAL.value: 
-            item.display(layout["containers"][column], 
-                            self.m_modules[self.m_active_module]["id"])
+
+        # Add the display item
+        if layout["type"] == Layouts.VERTICAL.value:
+            item.display(
+                layout["containers"][column], self.m_modules[self.m_active_module]["id"]
+            )
         elif layout["type"] == Layouts.TABLE.value:
-            item.display(layout["lines"][line][column], 
-                            self.m_modules[self.m_active_module]["id"])
-            
+            item.display(
+                layout["lines"][line][column],
+                self.m_modules[self.m_active_module]["id"],
+            )
+
         return True
 
-
-    def add_table_layout(self, header: list = [], subtitle = None) -> int:
-        if not "layouts" in self.m_modules[self.m_active_module]:
+    def add_table_layout(self, header: list = [], subtitle=None) -> int:
+        if "layouts" not in self.m_modules[self.m_active_module]:
             self.m_modules[self.m_active_module]["layouts"] = []
 
         current_layout = {"type": Layouts.TABLE.value}
@@ -802,50 +912,37 @@ class Displayer():
         self.m_current_layout = len(self.m_modules[self.m_active_module]["layouts"]) - 1
 
         return len(self.m_modules[self.m_active_module]["layouts"]) - 1
-    
-    def add_slave_layout(self, layout: DisplayerLayout, column: int = 0, layout_id: int  = -1, line: int = -1):
 
+    def add_slave_layout(
+        self,
+        layout: DisplayerLayout,
+        column: int = 0,
+        layout_id: int = -1,
+        line: int = -1,
+    ):
         if layout_id == -1:
             layout_id = DisplayerLayout.g_next_layout - 1
-        
-        master_layout = self.find_layout(self.m_modules[self.m_active_module]["layouts"], layout_id)
+
+        master_layout = self.find_layout(
+            self.m_modules[self.m_active_module]["layouts"], layout_id
+        )
         if not master_layout:
             return -1
-        
-        if layout.m_type == Layouts.VERTICAL.value: 
-            #Check that there is enought columns
+
+        if layout.m_type == Layouts.VERTICAL.value:
+            # Check that there is enought columns
             if column >= len(master_layout["containers"]):
                 return -1
-        
-        
-        #Add the display item
-        if layout.m_type == Layouts.VERTICAL.value: 
+
+        # Add the display item
+        if layout.m_type == Layouts.VERTICAL.value:
             return layout.display(master_layout["containers"][column])
-            
-        
+
     def add_master_layout(self, layout: DisplayerLayout) -> None:
-        if not "layouts" in self.m_modules[self.m_active_module]:
+        if "layouts" not in self.m_modules[self.m_active_module]:
             self.m_modules[self.m_active_module]["layouts"] = []
         return layout.display(self.m_modules[self.m_active_module]["layouts"])
-    
-    # def add_master_layout(self, layout: Layouts, columns: list = [], subtitle = None, alignment: BSalign = None) -> None:
-    #     """Set the layout type of the module
 
-    #     :param layout: A layout for the whole module
-    #     :type layout: Layouts
-    #     :param columns: The predifined length of the columns, in the form of an array. The total sum of the columns can't be more than 12. For instace [1 10 1] is valid, while [2 11] is not. Leave empty for default assignation
-    #     :type columns: list
-    #     :return: the id of the layout, so it can be modified later
-    #     :rtype: int
-    #     """
-    #     if not "layouts" in self.m_modules[self.m_active_module]:
-    #         self.m_modules[self.m_active_module]["layouts"] = []
-
-    #     # Create the layout
-    #     layout = DisplayerLayout(layout, columns, subtitle, alignment)
-    #     return layout.display(self.m_modules[self.m_active_module]["layouts"])
-        
-    
     def display(self) -> dict:
         """Return the information to pass to the template
 
@@ -853,7 +950,7 @@ class Displayer():
         :rtype: dict
         """
         return self.m_modules
-    
+
     def set_default_layout(self, id: int) -> None:
         """Impose the default layout back to a given one so that for any future item added, if layout is not specified, the layout id will be this one
 
@@ -862,5 +959,3 @@ class Displayer():
         """
         DisplayerLayout.g_next_layout = id
         return
-    
-    

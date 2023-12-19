@@ -1,19 +1,19 @@
-
 from submodules.framework.src import utilities
 
 import json
-import sys
 
 auth_object = None
 
-class Access_manager:
-    """Class that handle user management. It provide easy method to get the current user and its auhtorization on a given page or module.
 
-    :warning: It is supposed that there is a correctly configured "config.json" pertinent to the application
+class Access_manager:
+    """Class that handle user management. It provide easy method to get the
+    current user and its auhtorization on a given page or module.
+
+    :warning: It is supposed that there is a correctly configured "config.json"
+    pertinent to the application
     """
 
     def __init__(self):
-
         self.m_login = False
         self.m_user = ""
 
@@ -25,10 +25,9 @@ class Access_manager:
 
         self.load_authorizations()
 
-    def load_authorizations(self) :
-        """Load the authorization file into the manager
-        """
-        f = open('website/config.json', 'r')
+    def load_authorizations(self):
+        """Load the authorization file into the manager"""
+        f = open("website/config.json", "r")
         data = json.load(f)
         if "access" in data:
             self.m_users = data["access"]["users"]["value"]
@@ -36,10 +35,15 @@ class Access_manager:
             self.m_groups = data["access"]["groups"]["value"]
             self.m_modules = data["access"]["modules"]["value"]
 
-            if "default_user" in data["access"] and data["access"]["default_user"]["value"] in self.m_users:
+            if (
+                "default_user" in data["access"]
+                and data["access"]["default_user"]["value"] in self.m_users
+            ):
                 self.m_user = data["access"]["default_user"]["value"]
 
-            # When creating a user, the user name is not in the authorization file. Let's add it here, otherwise it will be too much a pain to do elsewhere
+            # When creating a user, the user name is not in the authorization
+            # file.Let's add it here, otherwise it will be too much a pain
+            # to do elsewhere
             for user in data["access"]["users"]["value"]:
                 if user not in data["access"]["users_password"]["value"]:
                     data["access"]["users_password"]["value"][user] = [""]
@@ -47,14 +51,14 @@ class Access_manager:
                 if user not in data["access"]["users_groups"]["value"]:
                     data["access"]["users_groups"]["value"][user] = ["admin"]
             f.close()
-            
-            f = open('website/config.json', 'w')
+
+            f = open("website/config.json", "w")
             json.dump(data, f)
-        
+
         f.close()
 
     def get_login(self) -> bool:
-        """Return the information as to if a user is logged 
+        """Return the information as to if a user is logged
 
         :return: True if a user is logged
         :rtype: bool
@@ -90,10 +94,13 @@ class Access_manager:
         if self.m_login:
             # Check password
             config = utilities.util_read_parameters()
-            if not user in config["access"]["users_password"]["value"]:
+            if user not in config["access"]["users_password"]["value"]:
                 # No password
                 return True
-            if password in config["access"]["users_password"]["value"][user] or config["access"]["users_password"]["value"][user] == "":
+            if (
+                password in config["access"]["users_password"]["value"][user]
+                or config["access"]["users_password"]["value"][user] == ""
+            ):
                 self.m_user = user
                 config = utilities.util_read_parameters()
                 utilities.util_write_parameters(config)
@@ -106,7 +113,8 @@ class Access_manager:
 
         :param allowed_groups: A list of groups, defaults to None
         :type allowed_groups: list, optional
-        :return: True if the current user is in the list, or if login is disabled, false otherwise
+        :return: True if the current user is in the list, or if login
+        is disabled, false otherwise
         :rtype: bool
         """
         if not self.m_login:
@@ -130,16 +138,16 @@ class Access_manager:
         :return: True if the current user is authorized to access the group
         :rtype: bool
         """
-        
+
         if not self.m_login:
             return True
 
         # No identification was provided
         if not self.m_user:
             return False
-        
-        #print(self.m_modules[module])
-        
+
+        # print(self.m_modules[module])
+
         for user_group in self.m_users_groups[self.m_user]:
             if module not in self.m_modules:
                 # Core modules are always in admin mode
@@ -150,5 +158,3 @@ class Access_manager:
                 return True
 
         return False
-
-    

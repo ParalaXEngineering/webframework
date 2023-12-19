@@ -2,9 +2,9 @@ import threading
 
 thread_manager_obj = None
 
+
 class Threaded_manager:
-    """Manage the different threads of the framework
-    """
+    """Manage the different threads of the framework"""
 
     m_running_threads = []
     """List of the currently running threads"""
@@ -21,7 +21,7 @@ class Threaded_manager:
             self.m_running_threads.append(thread)
 
     def del_thread(self, thread: threading.Thread):
-        """Delete a thread from the pool    
+        """Delete a thread from the pool
 
         :param thread: The thread to delete
         :type thread: _type_
@@ -30,11 +30,13 @@ class Threaded_manager:
             thread.command_close()
             thread.process_close()
         except Exception as e:
+            self.m_logger.info("Thread deletion failed: " + str(e))
             pass
 
         try:
             self.m_running_threads.remove(thread)
         except Exception as e:
+            self.m_logger.info("Thread removal failed: " + str(e))
             pass
 
     def get_names(self) -> list:

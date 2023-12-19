@@ -1,17 +1,14 @@
-from html.parser import HTMLParser
 from submodules.framework.src import displayer
 import json
 import os
 import sys
 import glob
-import serial
 import math
 from jinja2 import Environment, FileSystemLoader
-import jinja2
-
-
+import serial
 
 from submodules.framework.src import access_manager
+
 
 def util_list_serial() -> list:
     """Return the list of the serial ports on the machine
@@ -20,15 +17,15 @@ def util_list_serial() -> list:
     :return: The serial ports on the machine
     :rtype: list
     """
-    if sys.platform.startswith('win'):
-        ports = ['COM%s' % (i + 1) for i in range(256)]
-    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+    if sys.platform.startswith("win"):
+        ports = ["COM%s" % (i + 1) for i in range(256)]
+    elif sys.platform.startswith("linux") or sys.platform.startswith("cygwin"):
         # this excludes your current terminal "/dev/tty"
-        ports = glob.glob('/dev/tty[A-Za-z]*')
-    elif sys.platform.startswith('darwin'):
-        ports = glob.glob('/dev/tty.*')
+        ports = glob.glob("/dev/tty[A-Za-z]*")
+    elif sys.platform.startswith("darwin"):
+        ports = glob.glob("/dev/tty.*")
     else:
-        raise EnvironmentError('Unsupported platform')
+        raise EnvironmentError("Unsupported platform")
 
     result = []
     for port in ports:
@@ -41,6 +38,7 @@ def util_list_serial() -> list:
                 pass
 
     return result
+
 
 def util_post_unmap(data: dict) -> dict:
     """Parse the mapping fields in order to transform them in a more user friendly structure.
@@ -62,11 +60,13 @@ def util_post_unmap(data: dict) -> dict:
     # Take care of the mappings
     for module in data:
         if type(data[module]) is str:
-                continue
+            continue
         for item in data[module]:
             for cat in data[module][item]:
-                if type(data[module][item][cat]) is list or type(data[module][item][cat]) is dict:
-                    
+                if (
+                    type(data[module][item][cat]) is list
+                    or type(data[module][item][cat]) is dict
+                ):
                     # We need enough levels
                     if type(data[module][item][cat]) is not dict:
                         continue
@@ -76,26 +76,37 @@ def util_post_unmap(data: dict) -> dict:
                         i = 0
                         map_to_find = "mapleft" + str(i)
                         new_map = {}
-                        while(map_to_find in data[module][item][cat]):
-                            new_map[data[module][item][cat]["mapleft" + str(i)]] = data[module][item][cat]["mapright" + str(i)]
+                        while map_to_find in data[module][item][cat]:
+                            new_map[data[module][item][cat]["mapleft" + str(i)]] = data[
+                                module
+                            ][item][cat]["mapright" + str(i)]
                             i += 1
                             map_to_find = "mapleft" + str(i)
                         data[module][item][cat] = new_map
-                    
+
                     # Dual map
                     if "mapAleft0" in data[module][item][cat]:
                         i = 0
                         map_to_find = "mapAleft" + str(i)
                         new_map = []
-                        while(map_to_find in data[module][item][cat]):
-                            new_map.append( {data[module][item][cat]["mapAleft" + str(i)] : data[module][item][cat]["mapAright" + str(i)],
-                                                data[module][item][cat]["mapBleft" + str(i)] : data[module][item][cat]["mapBright" + str(i)]})
+                        while map_to_find in data[module][item][cat]:
+                            new_map.append(
+                                {
+                                    data[module][item][cat]["mapAleft" + str(i)]: data[
+                                        module
+                                    ][item][cat]["mapAright" + str(i)],
+                                    data[module][item][cat]["mapBleft" + str(i)]: data[
+                                        module
+                                    ][item][cat]["mapBright" + str(i)],
+                                }
+                            )
                             i += 1
                             map_to_find = "mapAleft" + str(i)
 
-                        data[module][item][cat] = new_map     
+                        data[module][item][cat] = new_map
 
     return data
+
 
 def util_post_to_json(data: dict) -> dict:
     """Transform an html datastructure into a easy to manipulate json.
@@ -126,9 +137,9 @@ def util_post_to_json(data: dict) -> dict:
     # For each item given, we will parse level by level
     for item in data:
         current = formated
-        
+
         # First, we split the data in order to have an array with each level
-        item_split = item.split('.')
+        item_split = item.split(".")
         if item[-1] == ".":
             item_split = [item_split[0]]
         if item[0] == ".":
@@ -150,25 +161,24 @@ def util_post_to_json(data: dict) -> dict:
                         else:
                             current[multichoice[0]].append(multichoice[1])
                     else:
-                        if '#' in item_split[0]:
-                            item_split[0] = item_split[0].split('#')[1]
+                        if "#" in item_split[0]:
+                            item_split[0] = item_split[0].split("#")[1]
 
                         if "list" not in item_split[0]:
                             current[item_split[0]] = data[item]
                         elif isinstance(current, list):
                             current.append(data[item])
 
-                        
                 # Prepare for next level
                 else:
-                    #Next item is a list, we need to add it
+                    # Next item is a list, we need to add it
                     if "list" in item_split[1]:
                         if not item_split[0] in current:
                             current[item_split[0]] = []
                         # Create only the list, the "final element" par will add the next items
-                        #else:
-                            #current[item_split[0]].append(data[item])
-                    else:   
+                        # else:
+                        # current[item_split[0]].append(data[item])
+                    else:
                         current[item_split[0]] = {}
             # Father already exists
             else:
@@ -184,8 +194,8 @@ def util_post_to_json(data: dict) -> dict:
                         else:
                             current[multichoice[0]].append(multichoice[1])
                     else:
-                        if '#' in item_split[0]:
-                            item_split[0] = item_split[0].split('#')[1]
+                        if "#" in item_split[0]:
+                            item_split[0] = item_split[0].split("#")[1]
 
                         if "list" not in item_split[0]:
                             current[item_split[0]] = data[item]
@@ -196,12 +206,11 @@ def util_post_to_json(data: dict) -> dict:
             if data[item] == "on":
                 current = current[item_split[0].split("_")[0]]
             else:
-                
                 if "list" not in item_split[0]:
                     current = current[item_split[0]]
                 else:
                     current = [data[item]]
-            item_split.pop(0)  
+            item_split.pop(0)
 
     return formated
 
@@ -212,7 +221,7 @@ def util_read_parameters() -> dict:
     :return: The parameters of the application
     :rtype: dict
     """
-    f = open('website/config.json')
+    f = open("website/config.json")
     config_data = json.load(f)
     f.close()
     return config_data
@@ -224,9 +233,10 @@ def util_write_parameters(data: dict):
     :param data: The new parameters to write
     :type data: dict
     """
-    f = open('website/config.json', "w")
+    f = open("website/config.json", "w")
     json.dump(data, f)
     f.close()
+
 
 def util_view_init(modules: list) -> dict:
     """Initialize a view module that can be passed in the base_content template
@@ -240,9 +250,16 @@ def util_view_init(modules: list) -> dict:
     for module in modules:
         auth = access_manager.auth_object.authorize_module(module.m_default_name)
         if auth:
-            view[module.m_default_name] = {"inputs": [], "submenus": ["", ], "type": module.m_type}
+            view[module.m_default_name] = {
+                "inputs": [],
+                "submenus": [
+                    "",
+                ],
+                "type": module.m_type,
+            }
 
     return view
+
 
 def util_view_reload_displayer(id: str, disp: displayer) -> dict:
     """Reload a multi-user input with new data while using a displayer as input
@@ -258,9 +275,10 @@ def util_view_reload_displayer(id: str, disp: displayer) -> dict:
     env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
     template = env.get_template("base_content_reloader.j2")
     reloader = template.render(content=disp.display())
-    
+
     to_render = [{"id": id, "content": reloader}]
     return to_render
+
 
 def util_view_reload_text(id: str, input: str) -> dict:
     """Reload a multi-user input with new data
@@ -293,39 +311,121 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
     for processing in inputs:
         if processing["type"] == "select":
             template = env.get_template("reload/select.j2")
-            to_render.append({"id": id + "." + processing["id"], "content": template.render(name=processing["id"] + "." + id, options=processing["data"], selected=processing["value"]) })
+            to_render.append(
+                {
+                    "id": id + "." + processing["id"],
+                    "content": template.render(
+                        name=processing["id"] + "." + id,
+                        options=processing["data"],
+                        selected=processing["value"],
+                    ),
+                }
+            )
 
         elif processing["type"] == "text":
             template = env.get_template("reload/text.j2")
-            to_render.append({"id": id + "." + processing["id"], "content": template.render(name=processing["id"] + "." + id, default=processing["value"])})
+            to_render.append(
+                {
+                    "id": id + "." + processing["id"],
+                    "content": template.render(
+                        name=processing["id"] + "." + id, default=processing["value"]
+                    ),
+                }
+            )
 
         elif processing["type"] == "slider":
             template = env.get_template("reload/slider.j2")
-            to_render.append({"id": id + "." + processing["id"], "content": template.render(name=processing["id"] + "." + id, default=processing["value"], min=processing["range"][0], max=processing["range"][1])})
+            to_render.append(
+                {
+                    "id": id + "." + processing["id"],
+                    "content": template.render(
+                        name=processing["id"] + "." + id,
+                        default=processing["value"],
+                        min=processing["range"][0],
+                        max=processing["range"][1],
+                    ),
+                }
+            )
 
         elif processing["type"] == "int":
             template = env.get_template("reload/int.j2")
-            to_render.append({"id": id + "." + processing["id"], "content": template.render(name=processing["id"] + "." + id, default=processing["value"])})
+            to_render.append(
+                {
+                    "id": id + "." + processing["id"],
+                    "content": template.render(
+                        name=processing["id"] + "." + id, default=processing["value"]
+                    ),
+                }
+            )
 
         elif processing["type"] == "select-text":
             template = env.get_template("reload/select-text.j2")
-            to_render.append({"id": id + "." + processing["id"] + ".div", "content": template.render(item = {"id": id}, current = {"id": processing["id"], "value": processing["value"], "select": processing["select"]} ) })
+            to_render.append(
+                {
+                    "id": id + "." + processing["id"] + ".div",
+                    "content": template.render(
+                        item={"id": id},
+                        current={
+                            "id": processing["id"],
+                            "value": processing["value"],
+                            "select": processing["select"],
+                        },
+                    ),
+                }
+            )
 
         elif processing["type"] == "text-text":
             template = env.get_template("reload/text-text.j2")
-            to_render.append({"id": id + "." + processing["id"] + ".div", "content": template.render(item = {"id": id}, current = {"id": processing["id"], "value": processing["value"]} ) })
+            to_render.append(
+                {
+                    "id": id + "." + processing["id"] + ".div",
+                    "content": template.render(
+                        item={"id": id},
+                        current={"id": processing["id"], "value": processing["value"]},
+                    ),
+                }
+            )
 
         elif processing["type"] == "list-select":
             template = env.get_template("reload/list-select.j2")
-            to_render.append({"id": id + "." + processing["id"] + ".div", "content": template.render(item = {"id": id}, current = {"id": processing["id"], "value": processing["value"], "select": processing["select"]} ) })
+            to_render.append(
+                {
+                    "id": id + "." + processing["id"] + ".div",
+                    "content": template.render(
+                        item={"id": id},
+                        current={
+                            "id": processing["id"],
+                            "value": processing["value"],
+                            "select": processing["select"],
+                        },
+                    ),
+                }
+            )
 
         elif processing["type"] == "list-text":
             template = env.get_template("reload/list-text.j2")
-            to_render.append({"id": id + "." + processing["id"] + ".div", "content": template.render(item = {"id": id}, current = {"id": processing["id"], "value": processing["value"]} ) })
+            to_render.append(
+                {
+                    "id": id + "." + processing["id"] + ".div",
+                    "content": template.render(
+                        item={"id": id},
+                        current={"id": processing["id"], "value": processing["value"]},
+                    ),
+                }
+            )
 
     return to_render
 
-def util_view_reload_input_file_manager(name: str, id: str, files : list = [], title: list = [], icons: list = [], classes: list = [], hiddens: list = []) -> dict:
+
+def util_view_reload_input_file_manager(
+    name: str,
+    id: str,
+    files: list = [],
+    title: list = [],
+    icons: list = [],
+    classes: list = [],
+    hiddens: list = [],
+) -> dict:
     """Create the content necessary to reload a given input file manager
 
     :param name: The name of the calling module
@@ -350,8 +450,22 @@ def util_view_reload_input_file_manager(name: str, id: str, files : list = [], t
     template = env.get_template("reload/files.j2")
     to_render = []
     for i in range(0, len(files)):
-        to_render.append({"id": name.replace(' ', '_') + '_' + id + "_files" + str(i), "content": template.render(file_id=id + "_files" + str(i), name=id, files=files[i], title=title[i], icon=icons[i], classes=classes[i], hidden=hiddens[i])})
+        to_render.append(
+            {
+                "id": name.replace(" ", "_") + "_" + id + "_files" + str(i),
+                "content": template.render(
+                    file_id=id + "_files" + str(i),
+                    name=id,
+                    files=files[i],
+                    title=title[i],
+                    icon=icons[i],
+                    classes=classes[i],
+                    hidden=hiddens[i],
+                ),
+            }
+        )
     return to_render
+
 
 def util_dir_list(root: str, inclusion: list = None, modifier: str = None) -> list:
     """Scan a directory, without it's children and return a list of the file that have the inclusion information given by the user
@@ -369,18 +483,19 @@ def util_dir_list(root: str, inclusion: list = None, modifier: str = None) -> li
     results = []
     try:
         current_files = os.listdir(root)
-    except Exception as e:
+    except Exception:
         return results
     for item in current_files:
-         if inclusion:
-                for inclu in inclusion:
-                    if inclu in item:
-                        if modifier:
-                            results.append(modifier(item))
-                        else:
-                            results.append(item)
-    
+        if inclusion:
+            for inclu in inclusion:
+                if inclu in item:
+                    if modifier:
+                        results.append(modifier(item))
+                    else:
+                        results.append(item)
+
     return results
+
 
 def util_find_files(root: str, inclusion: list = None) -> list:
     """Find all the files in a directory structure that fit the inclusion description, and return a list of the files with respect to the root path
@@ -397,14 +512,17 @@ def util_find_files(root: str, inclusion: list = None) -> list:
     current_results = []
     try:
         items = os.listdir(root)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         return current_results
-        
+
     for item in items:
         if os.path.isfile(os.path.join(root, item)):
             if inclusion:
                 for inclu in inclusion:
-                    if inclu in item and os.path.join(root, item) not in current_results: #Avoid duplicate if one line correspond to several criteria                      
+                    if (
+                        inclu in item
+                        and os.path.join(root, item) not in current_results
+                    ):  # Avoid duplicate if one line correspond to several criteria
                         current_results.append(os.path.join(root, item))
         else:
             dir = util_find_files(os.path.join(root, item), inclusion=inclusion)
@@ -412,7 +530,10 @@ def util_find_files(root: str, inclusion: list = None) -> list:
 
     return current_results
 
-def util_dir_structure(root: str, inclusion: list = None, modifier = None, clean = True) -> dict:
+
+def util_dir_structure(
+    root: str, inclusion: list = None, modifier=None, clean=True
+) -> dict:
     """Create the directory structure (all the directories and subfiles) recursively from a root folder
 
     :param root: The root folder
@@ -424,23 +545,23 @@ def util_dir_structure(root: str, inclusion: list = None, modifier = None, clean
     :param clean: Clean all empty folder from the results, defaults to True
     :type clean: bool, optional
     :return: A dictionnary with the file structure in the form:
-    
+
     code-block::
-    
+
         {
-        dir: 
+        dir:
             { dir: {...}, file, file}, file
         }
-        
+
     :rtype: dict
 
     """
     current_dir = {}
     try:
         items = os.listdir(root)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         return current_dir
-        
+
     for item in items:
         if os.path.isfile(os.path.join(root, item)):
             if inclusion:
@@ -451,7 +572,9 @@ def util_dir_structure(root: str, inclusion: list = None, modifier = None, clean
                         else:
                             current_dir[item] = os.path.join(root, item)
         else:
-            dir = util_dir_structure(os.path.join(root, item), inclusion=inclusion, modifier=modifier)
+            dir = util_dir_structure(
+                os.path.join(root, item), inclusion=inclusion, modifier=modifier
+            )
             if clean:
                 if len(dir) > 0:
                     current_dir[item] = dir
@@ -460,24 +583,26 @@ def util_dir_structure(root: str, inclusion: list = None, modifier = None, clean
 
     return current_dir
 
-def utils_keep_number(number:str) -> float:
+
+def utils_keep_number(number: str) -> float:
     number_string = ""
     number = number.replace(",", ".")
     for s in number:
-        if s.isnumeric() or s == '.':
+        if s.isnumeric() or s == ".":
             number_string += s
 
     try:
         if not number:
             return 0
-        if number[0] == '-':
+        if number[0] == "-":
             return -float(number_string)
         else:
             return float(number_string)
-    except:
+    except Exception:
         return math.nan
-        
-def utils_format_unit(cpnt:dict) -> dict:
+
+
+def utils_format_unit(cpnt: dict) -> dict:
     """Takes a list of strings that represent a unit and format them, by puting them all at the same decimal, etc.
 
     Args:
@@ -486,30 +611,44 @@ def utils_format_unit(cpnt:dict) -> dict:
     Returns:
         dict: The formated units
     """
-    unit_order = ['f', 'p', 'n', 'µ', 'm', "default", 'K', 'M', 'G']
+    unit_order = ["f", "p", "n", "µ", "m", "default", "K", "M", "G"]
 
     print(cpnt)
     for item in cpnt:
-        unit = item.split('[')[1][:-1]
+        unit = item.split("[")[1][:-1]
         value = cpnt[item]
         new_unit = "default"
 
         if not value:
             continue
-        
+
         # We might have stuff in () after the value, for instance (x4 channels)
         if "(" in value:
             value = value.split("(")[0]
 
-
         # Start by recovering the unit
         if unit == "R":
             unwanted = ["ohm", "Ohm", "ohms", "Ohms", "Ω", " "]
-            expected_units = {"m": "m", "k": "K", "K": "K", "G": "G", "M": "M", "default": "R"}
+            expected_units = {
+                "m": "m",
+                "k": "K",
+                "K": "K",
+                "G": "G",
+                "M": "M",
+                "default": "R",
+            }
 
         elif unit == "F":
             unwanted = [" "]
-            expected_units = {"f": "f", "p": "p", "n": "n", "u": "µ", "µ": "µ", "m": "m", "default": ""}
+            expected_units = {
+                "f": "f",
+                "p": "p",
+                "n": "n",
+                "u": "µ",
+                "µ": "µ",
+                "m": "m",
+                "default": "",
+            }
 
         elif unit == "V/µs":
             unwanted = [" "]
@@ -517,9 +656,17 @@ def utils_format_unit(cpnt:dict) -> dict:
 
         else:
             unwanted = [" "]
-            expected_units = {"f": "f", "p": "p", "n": "n", "u": "µ", "µ": "µ", "m": "m", "M": "M", "default": ""}
-            
-        
+            expected_units = {
+                "f": "f",
+                "p": "p",
+                "n": "n",
+                "u": "µ",
+                "µ": "µ",
+                "m": "m",
+                "M": "M",
+                "default": "",
+            }
+
         if new_unit == "default":
             new_unit = expected_units["default"]
 
@@ -566,7 +713,7 @@ def utils_format_unit(cpnt:dict) -> dict:
 
         if negative:
             value_float = -value_float
-        
+
         cpnt[item] = str(value_float) + new_unit
 
     return cpnt

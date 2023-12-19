@@ -2,14 +2,13 @@ from submodules.framework.src import access_manager
 
 site_conf_obj = None
 
-class Site_conf:
-    """Provides a set of function to configure the website
-    """
 
+class Site_conf:
+    """Provides a set of function to configure the website"""
 
     m_app = {"name": "Default", "version": "0", "icon": "home"}
     """App information"""
-    
+
     m_sidebar = []
     """Sidebar content"""
 
@@ -38,7 +37,7 @@ class Site_conf:
 
         :param section: The section
         :type section: str
-        :param icon: The section icon, from the mdi icon pack.  
+        :param icon: The section icon, from the mdi icon pack.
         :type icon: str
         :param endpoint: The endpoint address of the section.
         :type endpoint: str
@@ -47,20 +46,22 @@ class Site_conf:
             if "name" in self.m_sidebar[i] and self.m_sidebar[i]["name"] == section:
                 return
 
-        self.m_sidebar.append({
-            "name": section,
-            "endpoint": endpoint,
-            "icon": "mdi-" + icon,
-            "cat": "",
-            "submenu": []
-        })
+        self.m_sidebar.append(
+            {
+                "name": section,
+                "endpoint": endpoint,
+                "icon": "mdi-" + icon,
+                "cat": "",
+                "submenu": [],
+            }
+        )
 
     def add_sidebar_page(self, name: str, icon: str, url: str):
         """Add a page to the sidebar
 
         :param name: The name of the page
         :type name: str
-        :param icon: The page icon, from the mdi icon pack. 
+        :param icon: The page icon, from the mdi icon pack.
         :type icon: str
         :param url: The url of the page
         :type url: str
@@ -69,16 +70,20 @@ class Site_conf:
             if "name" in self.m_sidebar[i] and self.m_sidebar[i]["name"] == name:
                 return
 
-        self.m_sidebar.append({
-            "name": name,
-            "endpoint": url,
-            "url": url,
-            "icon": "mdi-" + icon,
-            "cat": ""
-        })
-    
-    def add_sidebar_submenu(self, name: str, url: str, parameter: str = None, endpoint: str = None):
-        """Add a submenu to the sidebar. It uses the url in order to extract the section. The url must be in the form endpoint.page 
+        self.m_sidebar.append(
+            {
+                "name": name,
+                "endpoint": url,
+                "url": url,
+                "icon": "mdi-" + icon,
+                "cat": "",
+            }
+        )
+
+    def add_sidebar_submenu(
+        self, name: str, url: str, parameter: str = None, endpoint: str = None
+    ):
+        """Add a submenu to the sidebar. It uses the url in order to extract the section. The url must be in the form endpoint.page
 
         :param name: The name of the submenu
         :type name: str
@@ -95,19 +100,26 @@ class Site_conf:
         for i in range(0, len(self.m_sidebar)):
             if "submenu" in self.m_sidebar[i]:
                 for j in range(0, len(self.m_sidebar[i]["submenu"])):
-                    # if(self.m_sidebar[i]["submenu"][j]["name"] == name 
-                    #     and "endpoint" in self.m_sidebar[i]["submenu"][j] 
+                    # if(self.m_sidebar[i]["submenu"][j]["name"] == name
+                    #     and "endpoint" in self.m_sidebar[i]["submenu"][j]
                     #     and endpoint in self.m_sidebar[i]["submenu"][j]["endpoint"]):
-                    if(self.m_sidebar[i]["submenu"][j]["name"] == name):
+                    if self.m_sidebar[i]["submenu"][j]["name"] == name:
                         return
 
-            if "endpoint" in self.m_sidebar[i] and self.m_sidebar[i]["endpoint"] == endpoint:
-                self.m_sidebar[i]["submenu"].append({"name": name, "url": url, "cat": ""})
+            if (
+                "endpoint" in self.m_sidebar[i]
+                and self.m_sidebar[i]["endpoint"] == endpoint
+            ):
+                self.m_sidebar[i]["submenu"].append(
+                    {"name": name, "url": url, "cat": ""}
+                )
 
                 if parameter:
                     self.m_sidebar[i]["submenu"][-1]["param"] = parameter
 
-    def add_topbar_button(self, id: str, icon: str, text: str, area: str, link : str =  None):
+    def add_topbar_button(
+        self, id: str, icon: str, text: str, area: str, link: str = None
+    ):
         """Add a new button to the topbar
 
         :param id: The id (of the div) of the button
@@ -126,8 +138,17 @@ class Site_conf:
             for i in range(0, len(self.m_topbar[area])):
                 if self.m_topbar[area][i]["id"] == id:
                     return
-            
-            self.m_topbar[area].append({"type": "button", "icon": icon, "text": text, "id": id, "color": "secondary", "link": link})
+
+            self.m_topbar[area].append(
+                {
+                    "type": "button",
+                    "icon": icon,
+                    "text": text,
+                    "id": id,
+                    "color": "secondary",
+                    "link": link,
+                }
+            )
 
     def add_topbar_thread_info(self, icon: str, area: str):
         """Add a zone where the thread are displayed. It can be skinned with an icon
@@ -142,12 +163,23 @@ class Site_conf:
             for i in range(0, len(self.m_topbar[area])):
                 if self.m_topbar[area][i]["id"] == "thread":
                     return
-            
-            self.m_topbar[area].append({"type": "thread", "icon": icon, "color": "secondary", "id": "thread"})
 
+            self.m_topbar[area].append(
+                {"type": "thread", "icon": icon, "color": "secondary", "id": "thread"}
+            )
 
-    def add_topbar_modal(self, id: str, icon: str, text: str, area: str, modal_text: str, modal_title: str, modal_footer: str, color: str):
-        """Add a new button to the topbar that will display a modal information. 
+    def add_topbar_modal(
+        self,
+        id: str,
+        icon: str,
+        text: str,
+        area: str,
+        modal_text: str,
+        modal_title: str,
+        modal_footer: str,
+        color: str,
+    ):
+        """Add a new button to the topbar that will display a modal information.
 
         Modal text content can be modified later on with the scheduler, or with the *update_topbar_modal* function
 
@@ -174,11 +206,29 @@ class Site_conf:
             for i in range(0, len(self.m_topbar[area])):
                 if self.m_topbar[area][i]["id"] == id:
                     return
-            
-            self.m_topbar[area].append({"type": "modal", "icon": icon, "text": text, "id": id, "modal_text": modal_text, "modal_title": modal_title, "modal_footer": modal_footer, "color": color})
 
+            self.m_topbar[area].append(
+                {
+                    "type": "modal",
+                    "icon": icon,
+                    "text": text,
+                    "id": id,
+                    "modal_text": modal_text,
+                    "modal_title": modal_title,
+                    "modal_footer": modal_footer,
+                    "color": color,
+                }
+            )
 
-    def update_topbar_button(self, id: str, icon: str, text: str, area: str, color: str = "secondary", link: str = None):
+    def update_topbar_button(
+        self,
+        id: str,
+        icon: str,
+        text: str,
+        area: str,
+        color: str = "secondary",
+        link: str = None,
+    ):
         """Update a new button to the topbar, works also for modals
 
         :param id: The id (of the div) of the button
@@ -229,14 +279,13 @@ class Site_conf:
         self.m_javascripts.append(script)
 
     def use_login(self):
-        """Indicate that this website uses login
-        """
+        """Indicate that this website uses login"""
         self.m_topbar["login"] = True
         access_manager.auth_object.use_login(True)
         return
 
     def app_details(self, name: str, version: str, icon: str):
-        """Set the application details  
+        """Set the application details
 
         :param name: The name of the application
         :type name: str
@@ -250,17 +299,14 @@ class Site_conf:
         self.m_app["version"] = version
 
     def context_processor(self):
-        """Function that is called before rendering any page, should be overwritten by the child object
-        """
+        """Function that is called before rendering any page, should be overwritten by the child object"""
         return
 
     def socketio_event(self, event):
-        """Function called to respond to event, should be overwritten by the child object
-        """
+        """Function called to respond to event, should be overwritten by the child object"""
         return
 
     def create_distribuate(self):
-        """Function to create the distribuable package on this plateform, should be overwritten by the child object
-        """
+        """Function to create the distribuable package on this plateform, should be overwritten by the child object"""
         raise Exception("Distribuate creation not handled by this website")
         return False

@@ -2,69 +2,6 @@
 
 {% block js %}
 
-<script>
-{% for category in content %}
-    {% if content[category]["inputs"] | length > 0 %}
-        {% for item in content[category]["inputs"] %}
-            {% if item["type"] == "graph" %}
-
-                {% set first_serie = namespace(value=0) %}
-                var {{ item["id"] }}_Options = {
-                    chart: {
-                        type: "line",
-                        height: 350
-                    },
-                    series: [
-                            {% for serie in  item["y_axis"] %}
-                                        {% if first_serie.value != 0 %}
-                                            ,
-                                        {% endif %}
-                                        {% set first_serie.value = first_serie.value + 1 %}
-                                    {
-                                        name: "{{ serie }}",
-                                        data: [
-                                            {% for i in range(0, item["x_axis"] | length - 1)%}
-                                                [{{item["x_axis"][i]}}, {{item["y_axis"][serie][i]}} ],
-                                            {% endfor %}
-                                                [{{item["x_axis"][-1]}}, {{item["y_axis"][serie][-1]}} ]
-                                        ]
-                                    }
-
-                            
-                            {% endfor %}
-                    ],
-                    {% if item["data_type"] == "date" %}
-                    xaxis: {
-                        type: 'datetime',
-                        format: 'dd/MM hh:mm:ss',
-                        labels: {
-                            datetimeUTC: false
-                        }
-                    },
-                    {% elif item["data_type"] == "number" %}
-                    xaxis: {
-                        type: 'numeric',
-                        tickAmount: 20
-                    },
-                    {% endif %}
-                    
-                    tooltip: {
-                        enabled: true,
-                        followCursor: true,
-                        x: {
-                            format: 'dd/MM hh:mm:ss'
-                        }
-                    },  
-                };
-                var {{ item["id"] }} = new ApexCharts(document.querySelector("#{{ item["id"] }}"), {{ item["id"] }}_Options);
-                {{ item["id"] }}.render();
-
-            {% endif %}
-        {% endfor %}
-    {% endif %}
-{% endfor %}
-</script>
-
 {% endblock %}
 
 {% block title %}
@@ -86,443 +23,51 @@
         <p class="fs-5 text-gray-600">There is no tools that you are authorized to use in this section</p>
     </div>
 {% else %}
-    {% for category in content %}
+    {# Each module is displayed in its block #}
+    {% for module in content %}
         <div class="card">
+            {# Possibility to add a header to the card #}
             <div class="card-header">
-            <h1>{{ category }} </h1>
-            {% if "header" in content[category] %}    
-                
-                <div class="card-body d-flex flex-row-reverse">
-                {% for item in content[category]["header"] %}
-                    {% if item["type"] == "button_add" %}
-                        {{ common_controls.add(item["link"], item["options"]) }}
-                    {% elif item["type"] == "button_edit" %}
-                        {{ common_controls.edit(item["link"], item["options"]) }}
-                    {% elif item["type"] == "pages" %}
-                        {{ common_controls.pages(item["link"], item["pages"], item["options"]) }}
-                    {% endif %}
-                {% endfor %}
-                </div>
-            {% endif %}
             </div>
+
+            {# Module content #}
             <div class="card-body">
-                {% if content[category]["inputs"] | length > 0 %}
-                    {% for submenu in content[category]["submenus"] %}
-                        
-                        {% if submenu %}
-                            {% if submenu_count.value >= 1%}
-                                <hr class="border-2 border-top">
-                            {% endif %}
-                            <h3 class="text-primary">{{submenu}}</h3>
-                            {% set submenu_count.value = submenu_count.value + 1 %}
-                        {% endif %}
-                        
-                        {% for item in content[category]["inputs"] %}
-                            <p>
-                                {% if submenu == item["submenu"] or ("submenu" not in item and not submenu) %}
-                                    <form action="{{ url_for(target) }}" method="POST" enctype="multipart/form-data">
-                                <div class="row align-items-center">
-                                    {% if item["display_only"] %}
-                                        <div class="col-12">
-                                    {% else %}
-                                        {% if "button" in item%}
-                                        <div class="col-10">
-                                        {% else %}
-                                        <div class="col-12">
-                                        {% endif %}
-                                            <div class="row">
-                                            <div class="col-4 align-items-center">{{ item["message"] }}</div>
-                                            <div class="col-8">
-                                    {% endif %}
+                {% if content[module]["display"] %}
+                    {% if "name_override" in content[module] %}
+                    <h1>{{ content[module]["name_override"] }}</h1>
+                    {% else %}
+                    <h1>{{ module }}</h1>
+                    {% endif %}
+                {% endif %}
 
-                                    {% if item["type"] == "highlight" %}
-                                    <div class="card-body">
-                                        <div class="row">
-                                        {% if "info" in item %}
-                                                <div class="col-6"><div class="alert alert-info mx-2">{{item["info"]}}</div></div>
-                                        {% endif %}
-                                        {% if "warning" in item %}
-                                                <div class="col-6"><div class="alert alert-warning mx-2">{{item["warning"]}}</div></div>
-                                        {% endif %}
-                                        {% if "error" in item %}
-                                                <div class="col-6"><div class="alert alert-danger mx-2">{{item["error"]}}</div></div>
-                                        {% endif %}
-                                        {% if "success" in item %}
-                                                <div class="col-6"><div class="alert alert-success mx-2">{{item["success"]}}</div></div>
-                                        {% endif %}
-                                        </div>
-                                    </div>  
-                                    {% elif item["type"] == "graph" %}
-                                        <div id="{{item["id"]}}"></div>
-                                    {% elif item["type"] == "simple_text" %}
-                                        <div {% if item["id"] %} id="{{item["id"]}}" {% endif %}>
-                                            {{ item["message"] }}
-                                        </div>
-                                    {% elif item["type"] == "multi-input" %}
-                                        <div id="{{item["id"]}}_div0" class="row align-items-center">
-                                            <div class="col-10 ">
-                                            {% for current in item["inputs"] %}
-                                                {% if current["type"] == "spacer" %}
-                                                    {% if current["value"]%}
-                                                    <h5 class="text-primary"> {{ current["value"]}} </h5>
-                                                        {% else %}
-                                                    <p style="margin-bottom:1cm;"></p>
-                                                    {% endif %}
-                                                {% endif %}
-                                                <div class="row mb-2">
-                                                    <div class="col-4">{{ current["label"] }}</div>
-                                                    <div class="col-8">
-                                                    {% if current["type"] == "static-text" %}
-                                                        {{ current["value"] }}
-                                                        
-                                                    {% elif current["type"] == "select" %}
-                                                        {% if current["value"]%}
-                                                            {{ common_input.select(item["id"] + "." + current["id"], current["data"], current["value"]) }}
-                                                        {% else %}
-                                                            {{ common_input.select(item["id"] + "." + current["id"], current["data"], history[item["id"] + "." + current["id"]]) }}
-                                                        {% endif %}
-                                                    {% elif current["type"] == "checkbox" %}                                                         
-                                                        {% if current["value"]%}
-                                                            {{ common_input.check(item["id"] + "." + current["id"], current["value"])}}
-                                                        {% else %}
-                                                            {{ common_input.check(item["id"] + "." + current["id"], history[item["id"] + "." + current["id"]])}}
-                                                        {% endif %}
-                                                    {% elif current["type"] == "int" %}                                                         
-                                                        {% if current["value"]%}
-                                                            {{ common_input.number(item["id"] + "." + current["id"], current["value"])}}
-                                                        {% else %}
-                                                            {{ common_input.number(item["id"] + "." + current["id"], history[item["id"] + "." + current["id"]])}}
-                                                        {% endif %}
-                                                        
-                                                    {% elif current["type"] == "text" %}
-                                                        {% if current["value"]%}
-                                                            {{ common_input.input(item["id"] + "." + current["id"], current["value"])}}
-                                                        {% else %}
-                                                            {{ common_input.input(item["id"] + "." + current["id"], history[item["id"] + "." + current["id"]])}}
-                                                        {% endif %}
-                                                        
-                                                    {% elif current["type"] == "file" %}
-                                                        {{ common_input.file(item["id"] + "." + current["id"])}}
+                {# Form information #}
+                {% if target %}
+                    <form action="{{ url_for(target) }}" method="POST" enctype="multipart/form-data">
+                {% endif %}
+                {# Module layouts #}
+                {% for layout in content[module]["layouts"] %}
 
-                                                     {% elif current["type"] == "path" %}
-                                                        <script type=text/javascript>
-                                                            {% autoescape false %}
-                                                                var path_{{path_count.value}} = {{ current["possible"] }};
-                                                                
-                                                            {% endautoescape %}
-                                                        </script>
-                                                        {{ common_input.hidden(item["id"] + "." + current["id"] + " Ref", current["value"]) }}
-                                                        {{ common_input.path(item["id"] + "." + current["id"] + " Path", "path_" + path_count.value|string, current["path"]) }}
-                                                        {% set path_count.value = path_count.value + 1 %}
+                    {# Subtitle #}
+                    {% if layout["subtitle"] %}
+                        <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
+                    {% endif %}
 
-                                                    {% elif current["type"] == "hidden" %}
-                                                        {{ common_input.hidden(item["id"] + "." + current["id"], current["value"])}}
-                                                        
-                                                    {% elif current["type"] == "slider" %}
-                                                        {% if current["value"]%}
-                                                            {{ common_input.slider(item["id"] + "." + current["id"], current["value"], current["range"][0], current["range"][1] )}}
-                                                        {% else %}
-                                                            {{ common_input.slider(item["id"] + "." + current["id"], history[item["id"] + "." + current["id"]], current["range"][0], current["range"][1] )}}
-                                                        {% endif %}
-                                                        
-                                                    {% elif current["type"] == "select-text" or current["type"] == "text-select" %}
-                                                        {% set displayed = namespace(value=0) %}
-                                                        <div class="row align-items-center">
-                                                        <div id="{{item["id"] + "." + current["id"]}}.div" class="col-sm-11">
-                                                        {% for subitem in current["value"] %}
-                                                                <div class="row" id="{{item["id"] + "." + current["id"] + ".maprow" + loop.index0 | string }}">
-                                                                    {% if current["type"] == "select-text"%}
-                                                                        <div class="col-sm-6">{{common_input.select(item["id"] + "." + current["id"] + ".mapleft" + loop.index0 | string, current["select"], current["value"][loop.index0][0]) }} </div>
-                                                                        <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".mapright" + loop.index0 | string, current["value"][loop.index0][1]) }} </div>
-                                                                    {% else %}
-                                                                        <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".mapright" + loop.index0 | string, current["value"][loop.index0][1]) }} </div>
-                                                                        <div class="col-sm-6">{{common_input.select(item["id"] + "." + current["id"] + ".mapleft" + loop.index0 | string, current["select"], current["value"][loop.index0][0]) }} </div>
-                                                                    {% endif %}
-                                                                </div>
-                                                                {% set displayed.value = displayed.value + 1 %}
-                                                        {% endfor %}
-                                                        {% if displayed.value == 0 %}
-                                                            <div class="row" id="{{item["id"] + "." + current["id"]}}.maprow0">
-                                                                {% if current["type"] == "select-text"%}
-                                                                    <div class="col-sm-6">{{common_input.select(item["id"] + "." + current["id"] + ".mapleft0", current["select"]) }} </div>
-                                                                    <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".mapright0") }} </div>
-                                                                {% else %}
-                                                                    <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".mapright0") }} </div>
-                                                                    <div class="col-sm-6">{{common_input.select(item["id"] + "." + current["id"] + ".mapleft0", current["select"]) }} </div>
-                                                                {% endif %}
-                                                            </div>
-                                                        {% endif %}
-                                                        </div>
-                                                        <div class="col-sm-1">
-                                                            <a href="#" onclick="setting_add_mapping('{{item["id"] + "." + current["id"]}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-                                                        </div>
-                                                        </div>
-                                                    {% elif current["type"] == "dual-select-text" or current["type"] == "dual-text-select" %}
-                                                        {% set displayed = namespace(value=0) %}
-                                                        <div class="row align-items-center">
-                                                        <div id="{{item["id"] + "." + current["id"]}}.div" class="col-sm-11">
-                                                        {% for subitem in current["value"] %}
-                                                                <div class="row" id="{{item["id"] + "." + current["id"] + ".maprow" + loop.index0 | string }}">
-                                                                    {% if current["type"] == "dual-select-text"%}
-                                                                        <div class="col-sm-3">{{common_input.select(item["id"] + "." + current["id"] + ".mapAleft" + loop.index0 | string, current["select"], current["value"][loop.index0][1]) }} </div>
-                                                                        <div class="col-sm-3">{{common_input.input(item["id"] + "." + current["id"] + ".mapAright" + loop.index0 | string, current["value"][loop.index0][0]) }} </div>
+                    {# Content #}
+                    {{ disp_layouts.display_layout(layout) }}
+                {% endfor%}
 
-                                                                        <div class="col-sm-3">{{common_input.select(item["id"] + "." + current["id"] + ".mapBleft" + loop.index0 | string, current["select"], current["value"][loop.index0][3]) }} </div>
-                                                                        <div class="col-sm-3">{{common_input.input(item["id"] + "." + current["id"] + ".mapBright" + loop.index0 | string, current["value"][loop.index0][2]) }} </div>
-                                                                    
-                                                                    {% else %}
-                                                                        <div class="col-sm-3">{{common_input.input(item["id"] + "." + current["id"] + ".mapAright" + loop.index0 | string, current["value"][loop.index0][0]) }} </div>
-                                                                        <div class="col-sm-3">{{common_input.select(item["id"] + "." + current["id"] + ".mapAleft" + loop.index0 | string, current["select"], current["value"][loop.index0][1]) }} </div>
-
-                                                                        <div class="col-sm-3">{{common_input.input(item["id"] + "." + current["id"] + ".mapBright" + loop.index0 | string, current["value"][loop.index0][2]) }} </div>
-                                                                        <div class="col-sm-3">{{common_input.select(item["id"] + "." + current["id"] + ".mapBleft" + loop.index0 | string, current["select"], current["value"][loop.index0][3]) }} </div>
-
-                                                                    {% endif %}
-                                                                </div>
-                                                                {% set displayed.value = displayed.value + 1 %}
-                                                        {% endfor %}
-                                                        {% if displayed.value == 0 %}
-                                                            <div class="row" id="{{item["id"] + "." + current["id"]}}.maprow0">
-                                                                {% if current["type"] == "dual-select-text"%}
-                                                                    <div class="col-sm-3">{{common_input.select(item["id"] + "." + current["id"] + ".mapAleft0", current["select"]) }} </div>
-                                                                    <div class="col-sm-3">{{common_input.input(item["id"] + "." + current["id"] + ".mapAright0") }} </div>
-
-                                                                    <div class="col-sm-3">{{common_input.select(item["id"] + "." + current["id"] + ".mapBleft0", current["select"]) }} </div>
-                                                                    <div class="col-sm-3">{{common_input.input(item["id"] + "." + current["id"] + ".mapBright0") }} </div>
-                                                                {% else %}
-                                                                    <div class="col-sm-3">{{common_input.input(item["id"] + "." + current["id"] + ".mapAright0") }} </div>
-                                                                    <div class="col-sm-3">{{common_input.select(item["id"] + "." + current["id"] + ".mapAleft0", current["select"]) }} </div>
-
-                                                                    <div class="col-sm-3">{{common_input.input(item["id"] + "." + current["id"] + ".mapBright0") }} </div>
-                                                                    <div class="col-sm-3">{{common_input.select(item["id"] + "." + current["id"] + ".mapBleft0", current["select"]) }} </div>
-                                                                {% endif %}
-                                                            </div>
-                                                        {% endif %}
-                                                        </div>
-                                                        <div class="col-sm-1">
-                                                            <a href="#" onclick="setting_add_dual_mapping('{{item["id"] + "." + current["id"]}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-                                                        </div>
-                                                        </div>
-
-                                                    {% elif current["type"] == "text-text" %}
-                                                        {% set displayed = namespace(value=0) %}
-                                                        <div class="row align-items-center">
-                                                        <div id="{{item["id"] + "." + current["id"]}}.div" class="col-sm-11">
-                                                        {% for subitem in current["value"] %}
-                                                                <div class="row" id="{{item["id"] + "." + current["id"] + ".maprow" + loop.index0 | string }}">
-                                                                    <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".mapleft" + loop.index0 | string, current["value"][loop.index0][0]) }} </div>
-                                                                    <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".mapright" + loop.index0 | string, current["value"][loop.index0][1]) }} </div>
-                                                                </div>
-                                                                {% set displayed.value = displayed.value + 1 %}
-                                                        {% endfor %}
-                                                        {% if displayed.value == 0 %}
-                                                            <div class="row" id="{{item["id"] + "." + current["id"]}}.maprow0">
-                                                                <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".mapleft0") }} </div>
-                                                                <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".mapright0") }} </div>
-                                                            </div>
-                                                        {% endif %}
-                                                        </div>
-                                                        <div class="col-sm-1">
-                                                            <a href="#" onclick="setting_add_mapping('{{current["id"]}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-                                                        </div>
-                                                        </div>
-                                                    {% elif current["type"] == "list-text" %}
-                                                        {% set displayed = namespace(value=0) %}
-                                                        <div class="row align-items-center">
-                                                        <div id="{{item["id"] + "." + current["id"]}}.div" class="col-sm-11">
-                                                        {% for subitem in current["value"] %}
-                                                                <div class="row" id="{{item["id"] + "." + current["id"] + ".div" + loop.index0 | string }}">
-                                                                    <div class="col-sm-12">{{common_input.input(item["id"] + "." + current["id"] + ".list" + loop.index0 | string, current["value"][loop.index0]) }} </div>
-                                                                </div>
-                                                                {% set displayed.value = displayed.value + 1 %}
-                                                        {% endfor %}
-                                                        {% if displayed.value == 0 %}
-                                                            <div class="row" id="{{item["id"] + "." + current["id"]}}.div">
-                                                                <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".div0") }} </div>
-                                                            </div>
-                                                        {% endif %}
-                                                        </div>
-                                                        <div class="col-sm-1">
-                                                            <a href="#" onclick="setting_add_list('{{item["id"] + "." + current["id"]}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-                                                        </div>
-                                                        </div>
-                                                    {% elif current["type"] == "list-select" %}
-                                                        {% set displayed = namespace(value=0) %}
-                                                        <div class="row align-items-center">
-                                                        <div id="{{item["id"] + "." + current["id"]}}.div" class="col-sm-11">
-                                                        {% for subitem in current["value"] %}
-                                                                <div class="row" id="{{item["id"] + "." + current["id"] + ".div" + loop.index0 | string }}">
-                                                                    <div class="col-sm-12">{{common_input.select(item["id"] + "." + current["id"] + ".list" + loop.index0 | string, current["select"], current["value"][loop.index0]) }} </div>
-                                                                </div>
-                                                                {% set displayed.value = displayed.value + 1 %}
-                                                        {% endfor %}
-                                                        {% if displayed.value == 0 %}
-                                                            <div class="row" id="{{item["id"] + "." + current["id"]}}.div">
-                                                                <div class="col-sm-6">{{common_input.input(item["id"] + "." + current["id"] + ".div0") }} </div>
-                                                            </div>
-                                                        {% endif %}
-                                                        </div>
-                                                        <div class="col-sm-1">
-                                                            <a href="#" onclick="setting_add_list('{{item["id"] + "." + current["id"]}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-                                                        </div>
-                                                        </div>
-                                                    {% endif %}
-                                                    </div>
-                                                </div>
-                                            {% endfor %}
-                                            </div>
-                                            <div class="col-2">
-                                                {% if "button" in item%}
-                                                <button id="{{ item["id"] }}.{{ item["button"] }}" type="submit" class="btn btn-primary {%if item["button_disabled"] %} disabled {%endif%}" {% if content[category]["disabled"] %}disabled="disabled"{%endif%}>
-                                                    {{item["button"]}}
-                                                </button>
-                                                {%endif%}
-                                            </div>
-                                        </div>
-                                    {% elif item["type"] == "array" %}
-                                        {{ common_input.hidden(item["id"], "")}}
-                                        {% if "hidden" in item %}
-                                            {% for hidden in item["hidden"]%}
-                                                {{ common_input.hidden(hidden["id"], hidden["value"])}}
-                                            {% endfor%}
-                                        {% endif %}
-                                        <table class="table table-striped mb-0">
-                                            <thead>
-                                                <tr>
-                                                    {% for head in item["header"] %}
-                                                        <th>{{ head }}</th>
-                                                    {% endfor %}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for array_line in item["data"] %}
-                                                    <tr>
-                                                        {% for content in item["data"][array_line] %}
-                                                        {% if content["type"] == "hidden" %}
-                                                            {{ common_input.hidden(content["id"], content["value"]) }}
-                                                        {% else %}
-                                                        <td>
-                                                            {% if content["type"] == "int" %}
-                                                                {% if not "id" in content %}
-                                                                    {{ content["value"] }}
-                                                                {% elif content["value"] %}
-                                                                    {{ common_input.number(content["id"], content["value"]) }}
-                                                                {% else %}
-                                                                    {{ common_input.number(content["id"], history[content["id"]]) }}
-                                                                {% endif %}
-                                                            {% elif content["type"] == "image" %}
-                                                                <img src="{{content["value"]}}" height="{{content["height"]}}">
-                                                            {% elif content["type"] == "checkbox" %}
-                                                                {{ common_input.check(content["id"], content["value"])}}
-                                                            {% elif content["type"] == "bool_icon" %}
-                                                                {{ common_controls.bool_icon(content["value"]) }}
-                                                            {% elif content["type"] == "string" %}
-                                                                {% if not "id" in content %}
-                                                                    {{ content["value"] }}
-                                                                {% elif content["value"] %}
-                                                                    {{ common_input.input(content["id"], content["value"]) }}
-                                                                {% else %}
-                                                                    {{ common_input.input(content["id"], history[content["id"]]) }}
-                                                                {% endif %}
-                                                            {% elif content["type"] == "buttons" %}
-                                                                {% for button in content["value"] %}
-                                                                    {% if button == "edit" %}
-                                                                        {{ common_controls.edit(content["value"][button]["link"], content["value"][button]["parameters"]) }}
-                                                                    {% elif button == "delete" %}
-                                                                        {{ common_controls.delete(content["value"][button]["link"], content["value"][button]["parameters"]) }}
-                                                                    {% elif button == "update" %}
-                                                                        {{ common_controls.update(content["value"][button]["link"], content["value"][button]["parameters"]) }}
-                                                                    {% elif button == "display" %}
-                                                                        {{ common_controls.display(content["value"][button]["link"], content["value"][button]["parameters"]) }}
-                                                                    {% endif %}
-                                                                {% endfor %}
-                                                            {% elif content["type"] == "colored" %}
-                                                                {% if content["limits"][0] == "less" %}
-                                                                    {% if content["value"] < content["limits"][1] %}
-                                                                        <span class="badge bg-danger">{{content["value"]}}</span>
-                                                                    {% elif content["value"]< content["limits"][2] %}
-                                                                        <span class="badge bg-warning">{{content["value"]}}</span>
-                                                                    {% else %}
-                                                                        <span class="badge bg-success">{{content["value"]}}</span>
-                                                                    {% endif %}
-                                                                {% else %}  
-                                                                    {% if content["value"] > content["limits"][1] %}
-                                                                        <span class="badge bg-danger">{{content["value"]}}</span>
-                                                                    {% elif content["value"] > content["limits"][2] %}
-                                                                        <span class="badge bg-warning">{{content["value"]}}</span>
-                                                                    {% else %}
-                                                                        <span class="badge bg-success">{{content["value"]}}</span>
-                                                                    {% endif %}
-                                                                {% endif %}                         
-                                                            {% elif content["type"] == "date" %}
-                                                                {% if content["value"] %}
-                                                                    {{ common_input.date(content["id"], content["value"]) }}
-                                                                {% else %}
-                                                                    {{ common_input.date(content["id"], history[content["id"]]) }}
-                                                                {% endif %}
-                                                            {% elif content["type"] == "text" %}
-                                                                {{ content["value"] }}
-                                                            {% elif content["type"] == "input_text" %}
-                                                                {{ common_input.input(content["id"], content["value"]) }}
-                                                            {% endif %}     
-                                                        </td>
-                                                        {% endif %}
-                                                        {% endfor %}
-
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    {% elif item["type"] == "files" %}
-                                        {{ common_input.hidden(item["id"], item["value"]) }}
-                                        {% for i in range(0, item["files"] | length) %}
-                                            <div id="{{item["id"]}}_files{{i}}">
-                                            {{ common_input.files(item["id"], item["titles"][i], item["files"][i], item["classes"][i], item["icons"][i], item["hiddens"][i] ) }}
-                                             </div>
-                                        {% endfor %}
-                                    {% endif%}
-                                    </div>
-                                    {{common_input.hidden(category, "")}}
-                                    
-                                    {% if item["display_only"] %}
-
-                                    {% else %}
-                                            </div>
-                                            </div>
-                                            {% if "button" in item%}
-                                            <div class="col-2 align-bottom">
-                                                {% if item["type"] == "download" %}
-                                                    <a class="btn btn-primary" href="{{url_for('common.download')}}?file={{item['file']}}"}>{{item['file']}}</a>
-                                                {% else %}
-                                                    <button type="submit" class="btn btn-primary" {% if content[category]["disabled"] %}disabled="disabled"{%endif%}>
-                                                        {{item["button"]}}
-                                                    </button>
-                                            </div>
-                                            {% endif %}
-                                    {% endif %}
-                                    
-                                    {% endif %}
-                                    
-                                </div>
-                                </form>
-                                {% endif %}
-                            </p>
-                        {% endfor %}
-                    {% endfor %}
-                    
-                {% else %}
-                <form action="{{ url_for(target) }}" method="POST">
-                    {{common_input.hidden(category, "")}}
-                    <div class="row">
-                    </div>
+                {% if target %}
                 </form>
                 {% endif %}
+
             </div>
-            {% if content[category]["type"] == "threaded_action" or content[category]["type"] == "worfklow" %}
+
+            {# Module footer #}
+            {% if content[module]["type"] == "threaded_action" or content[module]["type"] == "worfklow" %}
                 <div class="card-footer alert-light-secondary">
                     <h4>Action progress</h4>
                     <div class="table-responsive">
-                        <table class="table table-striped mb-0" id="{{category}}_result">
+                        <table class="table table-striped mb-0" id="{{module}}_result">
                             <thead>
                                 <tr>
                                     <th>Task</th>
@@ -538,7 +83,7 @@
                     </div>
                 </div>
             {% endif %}
-        </div> 
-    {% endfor %} 
+        </div>
+    {% endfor%}
 {% endif %}
 {% endblock %}
