@@ -1,14 +1,12 @@
-from flask import Flask, render_template, session, request, g
+from flask import Flask, render_template, session, request
 from flask_session import Session
 
-from submodules.framework.src.framework import settings
 from submodules.framework.src.framework import utilities
 
 import os
 import logging
 
-from flask_socketio import SocketIO, emit 
-import webbrowser
+from flask_socketio import SocketIO
 import importlib
 import sys
 import threading
@@ -17,16 +15,20 @@ from submodules.framework.src.framework import threaded_manager
 from submodules.framework.src.framework import access_manager
 from submodules.framework.src.framework import site_conf
 
+
 def main():
     if len(sys.argv) == 1:
         try:
             file = open("site", "r")
             read_content = file.read()
             sys.argv.append(read_content)
-        except Exception as e:
-            print("The software must be started with either an argument specifying the site, or a 'site' file with this information")
+        except Exception:
+            print('''The software must be started with either an argument
+                  specifying the site, or a 'site' file with this
+                  information''')
 
-    app = Flask(__name__, instance_relative_config=True, static_folder=os.path.join("..", "webengine", "assets"))
+    app = Flask(__name__, instance_relative_config=True,
+                static_folder=os.path.join("..", "webengine", "assets"))
 
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['SECRET_KEY'] = 'super secret key'
@@ -42,7 +44,8 @@ def main():
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         app_path = sys._MEIPASS
     else:
-        app_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        app_path = os.path.dirname(os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
     # Automatically import all pages
     for item in os.listdir(os.path.join(app_path, "website", "pages")):
@@ -64,12 +67,14 @@ def main():
 
     # Start scheduler
     if os.path.isfile(os.path.join(app_path, "website", "scheduler.py")):
-        scheduler_obj = importlib.import_module("website.scheduler").Scheduler()
+        scheduler_obj = importlib.import_module(
+            "website.scheduler").Scheduler()
     else:
         scheduler_obj = scheduler.Scheduler()
 
     scheduler_obj.socket_obj = socketio_obj
-    scheduler_thread = threading.Thread(target=scheduler_obj.start, daemon=True)
+    scheduler_thread = threading.Thread(
+        target=scheduler_obj.start, daemon=True)
     scheduler_thread.start()
 
     #
@@ -78,9 +83,9 @@ def main():
     threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
 
     # Import site_conf
-    site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
+    site_conf.site_conf_obj = importlib.import_module(
+        "website.site_conf").Site_conf()
     site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj
-
 
     @socketio_obj.on("user_connected")
     def connect():
@@ -93,24 +98,30 @@ def main():
     @app.context_processor
     def inject_bar():
         site_conf.site_conf_obj.context_processor()
-        return dict(sidebarItems=site_conf.site_conf_obj.m_sidebar, topbarItems=site_conf.site_conf_obj.m_topbar, app=site_conf.site_conf_obj.m_app, javascript=site_conf.site_conf_obj.m_javascripts, filename=None)
+        return dict(sidebarItems=site_conf.site_conf_obj.m_sidebar,
+                    topbarItems=site_conf.site_conf_obj.m_topbar,
+                    app=site_conf.site_conf_obj.m_app,
+                    javascript=site_conf.site_conf_obj.m_javascripts,
+                    filename=None)
 
     @app.context_processor
     def inject_endpoint():
-        if not "page_info" in session:
+        if "page_info" not in session:
             session["page_info"] = ""
-        
+
         if access_manager.auth_object.get_login():
             user = access_manager.auth_object.get_user()
         else:
             user = None
-        return dict(endpoint=request.endpoint, page_info=session["page_info"], user=user)
+        return dict(endpoint=request.endpoint,
+                    page_info=session["page_info"],
+                    user=user)
 
     # Index page
     @app.route('/')
     def index():
         session["page_info"] = "index"
-        return(render_template('index.j2'))
+        return (render_template('index.j2'))
 
     @app.before_request
     def before_request():
@@ -123,5 +134,4 @@ def main():
 
         inject_bar()
 
-    config = utilities.util_read_parameters()
     app.run(debug=True, host="0.0.0.0", use_reloader=False)
