@@ -165,8 +165,8 @@ class Scheduler:
     def start(self):
         """ Start the scheduler
         """
-        logging.config.fileConfig("submodules/framework/src/log_config.ini")
-        self.m_logger = logging.getLogger("OuFNis.modules")
+        logging.config.fileConfig("submodules/framework/log_config.ini")
+        self.m_logger = logging.getLogger("website")
         self.m_logger.info("Scheduler started")
 
         while(1):

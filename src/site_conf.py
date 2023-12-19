@@ -19,9 +19,6 @@ class Site_conf:
     m_javascripts = []
     """Custom javascripts"""
 
-    p_updates_ftp = False
-    """Variable to indicate that this site support ftp updates"""
-
     def add_sidebar_title(self, title: str):
         """Add a sidebar title, which can logically seperate several parts of the sidebar
 

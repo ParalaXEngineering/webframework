@@ -255,10 +255,8 @@ def util_view_reload_displayer(id: str, disp: displayer) -> dict:
     :rtype: dict
     """
     # And update display
-    templateLoader = jinja2.FileSystemLoader(searchpath="./templates")
-    templateEnv = jinja2.Environment(loader=templateLoader)
-    TEMPLATE_FILE = "base_content_reloader.j2"
-    template = templateEnv.get_template(TEMPLATE_FILE)
+    env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
+    template = env.get_template("base_content_reloader.j2")
     reloader = template.render(content=disp.display())
     
     to_render = [{"id": id, "content": reloader}]
@@ -290,7 +288,7 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
     :rtype: dict
     """
 
-    env = Environment(loader=FileSystemLoader("templates/"))
+    env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
     to_render = []
     for processing in inputs:
         if processing["type"] == "select":
@@ -327,9 +325,11 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
 
     return to_render
 
-def util_view_reload_input_file_manager(id: str, files : list = [], title: list = [], icons: list = [], classes: list = [], hiddens: list = []) -> dict:
+def util_view_reload_input_file_manager(name: str, id: str, files : list = [], title: list = [], icons: list = [], classes: list = [], hiddens: list = []) -> dict:
     """Create the content necessary to reload a given input file manager
 
+    :param name: The name of the calling module
+    :type name: str
     :param id: The id of the form
     :type id: str
     :param files: A list of the files that should be already in the file manager, defaults to []
@@ -346,11 +346,11 @@ def util_view_reload_input_file_manager(id: str, files : list = [], title: list 
     :rtype: dict
 
     """
-    env = Environment(loader=FileSystemLoader("templates/"))
+    env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
     template = env.get_template("reload/files.j2")
     to_render = []
     for i in range(0, len(files)):
-        to_render.append({"id": id + "_files" + str(i), "content": template.render(file_id=id + "_files" + str(i), name=id, files=files[i], title=title[i], icon=icons[i], classes=classes[i], hidden=hiddens[i])})
+        to_render.append({"id": name.replace(' ', '_') + '_' + id + "_files" + str(i), "content": template.render(file_id=id + "_files" + str(i), name=id, files=files[i], title=title[i], icon=icons[i], classes=classes[i], hidden=hiddens[i])})
     return to_render
 
 def util_dir_list(root: str, inclusion: list = None, modifier: str = None) -> list:

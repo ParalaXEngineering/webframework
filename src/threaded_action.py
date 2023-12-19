@@ -58,8 +58,8 @@ class Threaded_action:
         # Register the thread
         threaded_manager.thread_manager_obj.add_thread(self)
 
-        logging.config.fileConfig("framework/log_config.ini")
-        self.m_logger = logging.getLogger("ouFNis")
+        logging.config.fileConfig("submodules/framework/log_config.ini")
+        self.m_logger = logging.getLogger("website")
         self.m_logger.info("Scheduler started")
 
         self.m_scheduler = scheduler.scheduler_obj

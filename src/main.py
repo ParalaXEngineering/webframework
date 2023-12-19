@@ -17,16 +17,6 @@ from submodules.framework.src import site_conf
 
 
 def main():
-    if len(sys.argv) == 1:
-        try:
-            file = open("site", "r")
-            read_content = file.read()
-            sys.argv.append(read_content)
-        except Exception:
-            print('''The software must be started with either an argument
-                  specifying the site, or a 'site' file with this
-                  information''')
-
     app = Flask(__name__, instance_relative_config=True,
                 static_folder=os.path.join("..", "webengine", "assets"), template_folder=os.path.join("..", "templates"))
 
@@ -46,8 +36,11 @@ def main():
     else:
         app_path = os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        
+    print(app_path)
 
     # Automatically import all pages
+    print(os.listdir())
     for item in os.listdir(os.path.join(app_path, "website", "pages")):
         if ".py" in item:
             print("website.pages." + item[0:-3])
@@ -61,6 +54,8 @@ def main():
     app.register_blueprint(common.bp)
     from submodules.framework.src import updater
     app.register_blueprint(updater.bp)
+    from submodules.framework.src import packager
+    app.register_blueprint(packager.bp)
 
     # Register access manager
     access_manager.auth_object = access_manager.Access_manager()
@@ -77,7 +72,6 @@ def main():
         target=scheduler_obj.start, daemon=True)
     scheduler_thread.start()
 
-    #
     scheduler.scheduler_obj = scheduler_obj
 
     threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
