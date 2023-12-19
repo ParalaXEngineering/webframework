@@ -1,5 +1,5 @@
 
-from submodules.framework.src.framework import utilities
+from submodules.framework.src import utilities
 
 import json
 import sys

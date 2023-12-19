@@ -1,5 +1,5 @@
 from html.parser import HTMLParser
-from submodules.framework.src.framework import displayer
+from submodules.framework.src import displayer
 import json
 import os
 import sys
@@ -11,7 +11,7 @@ import jinja2
 
 
 
-from submodules.framework.src.framework import access_manager
+from submodules.framework.src import access_manager
 
 def util_list_serial() -> list:
     """Return the list of the serial ports on the machine

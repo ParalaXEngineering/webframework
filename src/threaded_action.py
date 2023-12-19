@@ -9,9 +9,9 @@ import subprocess
 import logging
 
 
-from submodules.framework.src.framework import threaded_manager
-from submodules.framework.src.framework import utilities
-from submodules.framework.src.framework import scheduler
+from submodules.framework.src import threaded_manager
+from submodules.framework.src import utilities
+from submodules.framework.src import scheduler
 
 class Threaded_action:
     """Base class to execute long term action. It registeres itself on the thread manager and handle the creation and destruction of the python thread.

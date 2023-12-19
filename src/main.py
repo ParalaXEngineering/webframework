@@ -1,7 +1,7 @@
 from flask import Flask, render_template, session, request
 from flask_session import Session
 
-from submodules.framework.src.framework import utilities
+from submodules.framework.src import utilities
 
 import os
 import logging
@@ -10,10 +10,10 @@ from flask_socketio import SocketIO
 import importlib
 import sys
 import threading
-from submodules.framework.src.framework import scheduler
-from submodules.framework.src.framework import threaded_manager
-from submodules.framework.src.framework import access_manager
-from submodules.framework.src.framework import site_conf
+from submodules.framework.src import scheduler
+from submodules.framework.src import threaded_manager
+from submodules.framework.src import access_manager
+from submodules.framework.src import site_conf
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
                   information''')
 
     app = Flask(__name__, instance_relative_config=True,
-                static_folder=os.path.join("..", "webengine", "assets"))
+                static_folder=os.path.join("..", "webengine", "assets"), template_folder=os.path.join("..", "templates"))
 
     app.config['SESSION_TYPE'] = 'filesystem'
     app.config['SECRET_KEY'] = 'super secret key'
@@ -55,11 +55,11 @@ def main():
             app.register_blueprint(module.bp)
 
     # Some pages are present in all websites
-    from submodules.framework.src.framework import settings
+    from submodules.framework.src import settings
     app.register_blueprint(settings.bp)
-    from submodules.framework.src.framework import common
+    from submodules.framework.src import common
     app.register_blueprint(common.bp)
-    from submodules.framework.src.framework import updater
+    from submodules.framework.src import updater
     app.register_blueprint(updater.bp)
 
     # Register access manager

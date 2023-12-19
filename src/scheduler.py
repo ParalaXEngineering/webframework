@@ -5,7 +5,7 @@ import logging
 import logging.config
 
 from flask import render_template
-from submodules.framework.src.framework import utilities
+from submodules.framework.src import utilities
 from enum import Enum
 
 from flask_socketio import SocketIO, emit 
@@ -13,7 +13,7 @@ import jinja2
 
 import time
 
-from submodules.framework.src.framework import threaded_manager
+from submodules.framework.src import threaded_manager
 
 scheduler_obj = None
 
@@ -165,7 +165,7 @@ class Scheduler:
     def start(self):
         """ Start the scheduler
         """
-        logging.config.fileConfig("submodules/framework/src/framework/log_config.ini")
+        logging.config.fileConfig("submodules/framework/src/log_config.ini")
         self.m_logger = logging.getLogger("OuFNis.modules")
         self.m_logger.info("Scheduler started")
 

@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, session
 
-from submodules.framework.src.framework import utilities
-from submodules.framework.src.framework import access_manager
-from submodules.framework.src.framework import displayer
+from submodules.framework.src import utilities
+from submodules.framework.src import access_manager
+from submodules.framework.src import displayer
 
 import json
 import importlib
@@ -30,7 +30,6 @@ def config_edit():
         app_path = sys._MEIPASS
     else:
         app_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-        app_path = app_path[:-10] # we don't wan't to be in "framework"
 
     # Load all the modules by names
     modules = []

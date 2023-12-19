@@ -1,4 +1,4 @@
-from submodules.framework.src.framework import access_manager
+from submodules.framework.src import access_manager
 
 site_conf_obj = None
 
