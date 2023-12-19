@@ -62,6 +62,11 @@ class Threaded_action:
 
         self.m_scheduler = scheduler.scheduler_obj
 
+    def command_close(self):
+        """For compatiblity
+        """
+        return
+    
     def get_name(self) -> str:
         """Return the name of the instance
 

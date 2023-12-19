@@ -1,4 +1,3 @@
-
 from flask import Blueprint, render_template, request
 
 from submodules.framework.src import utilities
@@ -17,6 +16,7 @@ import sys
 import platform
 import ftplib
 import shutil
+import traceback
 
 
 class SETUP_Updater(threaded_action.Threaded_action):
@@ -207,7 +207,9 @@ class SETUP_Updater(threaded_action.Threaded_action):
             try:
                 site_conf_obj.create_distribuate()
             except Exception as e:
-                self.m_logger.info("Update creation failed: " + str(e))
+                traceback_str = traceback.format_exc()
+                self.m_logger.warning("Update creation failed: " + str(e))
+                self.m_logger.info("Traceback was: " + traceback_str)
                 self.m_scheduler.emit_status(
                     self.get_name(),
                     "Creation of the update package",
@@ -232,19 +234,9 @@ class SETUP_Updater(threaded_action.Threaded_action):
                 for dir in directories:
                     directory = pathlib.Path(dir)
                     for file_path in directory.rglob("*"):
-                        if self.m_file == "sources":
-                            archive.write(
-                                file_path,
-                                arcname=os.path.join(
-                                    dir, file_path.relative_to(directory)
-                                ),
-                            )
-                        else:
-                            archive.write(
-                                file_path, arcname=file_path.relative_to(directory)
-                            )
-                if self.m_file == "sources":
-                    archive.write("main.py")
+                        archive.write(
+                            file_path, arcname=file_path.relative_to(directory)
+                        )
             self.m_scheduler.emit_status(
                 self.get_name(), "Creation of the update package", 100
             )
@@ -489,7 +481,11 @@ def update():
                 config["updates"]["password"]["value"],
             )
 
-            session.cwd(config["updates"]["path"]["value"] + "/updates")
+            session.cwd(
+                config["updates"]["path"]["value"]
+                + "/updates/"
+                + site_conf_obj.m_app["name"]
+            )
             content = session.nlst()
 
             disp.add_master_layout(

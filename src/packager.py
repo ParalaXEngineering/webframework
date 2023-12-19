@@ -251,7 +251,6 @@ def packager():
     if request.method == "POST":
         data_raw = request.form.to_dict()
         data_in = utilities.util_post_to_json(data_raw)
-        print(data_in)
         if SETUP_Packager.m_default_name in data_in:
             data_in = data_in[SETUP_Packager.m_default_name]
             packager = SETUP_Packager()
@@ -262,6 +261,7 @@ def packager():
 
             elif "upload" in data_in:
                 for item in data_raw:
+                    print(item)
                     if data_raw[item] == "primary":
                         packager.set_file(item)
                 packager.set_action("upload_package")
@@ -292,7 +292,14 @@ def packager():
     if access_manager.auth_object.authorize_group("admin"):
         disp.add_master_layout(
             displayer.DisplayerLayout(
-                displayer.Layouts.VERTICAL, [3, 6, 3], subtitle="Package creation"
+                displayer.Layouts.VERTICAL,
+                [3, 6, 3],
+                subtitle="Package creation",
+                alignment=[
+                    displayer.BSalign.L,
+                    displayer.BSalign.L,
+                    displayer.BSalign.R,
+                ],
             )
         )
         disp.add_display_item(displayer.DisplayerItemText("Create a new package"), 0)
@@ -306,7 +313,14 @@ def packager():
         )
         disp.add_master_layout(
             displayer.DisplayerLayout(
-                displayer.Layouts.VERTICAL, [3, 6, 3], subtitle=""
+                displayer.Layouts.VERTICAL,
+                [3, 6, 3],
+                subtitle="",
+                alignment=[
+                    displayer.BSalign.L,
+                    displayer.BSalign.L,
+                    displayer.BSalign.R,
+                ],
             )
         )
         disp.add_display_item(displayer.DisplayerItemText("Upload package"), 0)
@@ -328,7 +342,14 @@ def packager():
 
         disp.add_master_layout(
             displayer.DisplayerLayout(
-                displayer.Layouts.VERTICAL, [3, 6, 3], subtitle="Package restoration"
+                displayer.Layouts.VERTICAL,
+                [3, 6, 3],
+                subtitle="Package restoration",
+                alignment=[
+                    displayer.BSalign.L,
+                    displayer.BSalign.L,
+                    displayer.BSalign.R,
+                ],
             )
         )
         disp.add_display_item(displayer.DisplayerItemText("Load package from file"), 0)
@@ -395,7 +416,11 @@ def packager():
                     config["updates"]["password"]["value"],
                 )
 
-                session.cwd(config["updates"]["path"]["value"] + "/packages")
+                session.cwd(
+                    config["updates"]["path"]["value"]
+                    + "/packages/"
+                    + site_conf_obj.m_app["name"]
+                )
                 content = session.nlst()
 
                 disp.add_master_layout(
