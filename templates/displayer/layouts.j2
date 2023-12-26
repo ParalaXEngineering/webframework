@@ -26,9 +26,7 @@
         {# Display all the items in the containers one another #}
         {% for element in containers[loop.index0] %}
                 {% if element["object"] == "item" %}
-                <div class="row">
                     {{ disp_item.display_item(element) }}
-                </div>
                 {% elif element["object"] == "layout" %}
                 <div class="row">
                     {{ display_layout(element)}}

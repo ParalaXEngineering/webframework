@@ -205,10 +205,17 @@
         {{text}}
     </a>
         {% else %}
-    <a href="{{url_for(link)}}?{{parameters | join('&')}}">
-        <i class="mdi mdi-{{icon}} text-{{style}}"></i>
-        {{text}}
-    </a>
+            {% if parameters %}
+                <a href="{{url_for(link)}}?{{parameters | join('&')}}">
+                    <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+                    {{text}}
+                </a>
+            {% else %}
+                <a href="{{url_for(link)}}">
+                    <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+                    {{text}}
+                </a>
+            {% endif %}
         {% endif %}
     {% else %}
     <i class="mdi mdi-{{icon}} text-{{style}}"></i>
@@ -293,7 +300,7 @@
     {% endfor %}
     {% if displayed.value == 0 %}
         <div class="row" id="{{id}}.div">
-            <div class="col-sm-6">{{common_input.input(id + ".div0") }} </div>
+            <div class="col-sm-6">{{common_input.input(id + ".list0") }} </div>
         </div>
     {% endif %}
     </div>
@@ -319,7 +326,7 @@
     {% endfor %}
     {% if displayed.value == 0 %}
         <div class="row" id="{{id}}.div">
-            <div class="col-sm-6">{{common_input.input(id + ".div0") }} </div>
+            <div class="col-sm-6">{{common_input.input(id + ".list0") }} </div>
         </div>
     {% endif %}
     </div>

@@ -59,6 +59,7 @@ class BSalign(Enum):
 
 class DisplayerLayout:
     g_next_layout = 0
+    g_last_layout = None
 
     """Generic class to store information about a layout"""
 
@@ -403,9 +404,7 @@ class DisplayerItemInputBox(DisplayerItem):
 class DisplayerItemGraph(DisplayerItem):
     """Specialized display to display an input file explorer"""
 
-    def __init__(
-        self, id: str, text: str = None, x: list = [], y: list = [], data_type="date"
-    ) -> None:
+    def __init__(self, id: str, text: str = None, x: list = [], y: list = [], data_type="date") -> None:
         """Initialize the display item
 
             :param id: The id for the input form
@@ -442,9 +441,7 @@ class DisplayerItemGraph(DisplayerItem):
         container[-1]["graph_x"] = self.m_graphx
         container[-1]["graph_y"] = self.m_graphy
         container[-1]["graph_type"] = self.m_datatype
-        container[-1]["id"] = container[-1]["id"].replace(
-            ".", ""
-        )  # Forbidden in javascript variables
+        container[-1]["id"] = container[-1]["id"].replace(".", "")  # Forbidden in javascript variables
         return
 
 
@@ -509,9 +506,7 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
 class DisplayerItemInputSelect(DisplayerItem):
     """Specialized display to display an input select box"""
 
-    def __init__(
-        self, id: str, text: str = None, value: bool = None, choices: list = []
-    ) -> None:
+    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.SELECT)
         self.m_text = text
         self.m_value = value
@@ -546,9 +541,7 @@ class DisplayerItemInputPath(DisplayerItem):
 class DisplayerItemInputMultiSelect(DisplayerItem):
     """Specialized display to display a multiple select with a possibility to add them on the fly"""
 
-    def __init__(
-        self, id: str, text: str = None, value: bool = None, choices: list = []
-    ) -> None:
+    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INMULTISELECT)
         self.m_text = text
         self.m_value = value
@@ -560,9 +553,7 @@ class DisplayerItemInputMultiSelect(DisplayerItem):
 class DisplayerItemInputMapping(DisplayerItem):
     """Specialized display to display a mapping with a possibility to add them on the fly"""
 
-    def __init__(
-        self, id: str, text: str = None, value: bool = None, choices: list = []
-    ) -> None:
+    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INMAPPING)
         self.m_text = text
         self.m_value = value
@@ -574,9 +565,7 @@ class DisplayerItemInputMapping(DisplayerItem):
 class DisplayerItemInputListSelect(DisplayerItem):
     """Specialized display to display a set of list select"""
 
-    def __init__(
-        self, id: str, text: str = None, value: bool = None, choices: list = []
-    ) -> None:
+    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INLISTSELECT)
         self.m_text = text
         self.m_value = value
@@ -588,9 +577,7 @@ class DisplayerItemInputListSelect(DisplayerItem):
 class DisplayerItemInputTextSelect(DisplayerItem):
     """Specialized display to display a mapping for a text and a selection for the user"""
 
-    def __init__(
-        self, id: str, text: str = None, value: str = None, choices: list = []
-    ) -> None:
+    def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INTEXTSELECT)
         self.m_text = text
         self.m_value = value
@@ -602,9 +589,7 @@ class DisplayerItemInputTextSelect(DisplayerItem):
 class DisplayerItemInputSelectText(DisplayerItem):
     """Specialized display to display a mapping for a selection for the user then a text"""
 
-    def __init__(
-        self, id: str, text: str = None, value: str = None, choices: list = []
-    ) -> None:
+    def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INSELECTTEXT)
         self.m_text = text
         self.m_value = value
@@ -616,9 +601,7 @@ class DisplayerItemInputSelectText(DisplayerItem):
 class DisplayerItemInputDualTextSelect(DisplayerItem):
     """Specialized display to display a mapping for a dual text and a selection for the user"""
 
-    def __init__(
-        self, id: str, text: str = None, value: str = None, choices: list = []
-    ) -> None:
+    def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INDUALTEXTSELECT)
         self.m_text = text
         self.m_value = value
@@ -630,9 +613,7 @@ class DisplayerItemInputDualTextSelect(DisplayerItem):
 class DisplayerItemInputDualSelectText(DisplayerItem):
     """Specialized display to display a mapping for a dual selection for the user then a text"""
 
-    def __init__(
-        self, id: str, text: str = None, value: str = None, choices: list = []
-    ) -> None:
+    def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INDUALSELECTTEXT)
         self.m_text = text
         self.m_value = value
@@ -655,7 +636,7 @@ class DisplayerItemInputTextText(DisplayerItem):
 class DisplayerItemInputListText(DisplayerItem):
     """Specialized display to display a list of input text"""
 
-    def __init__(self, id: str, text: str = None, value: str = None) -> None:
+    def __init__(self, id: str, text: str = None, value: dict = None) -> None:
         super().__init__(DisplayerItems.INLISTTEXT)
         self.m_text = text
         self.m_value = value
@@ -843,19 +824,14 @@ class Displayer:
         """
 
         # Check that there is at least a module and a layout
-        if (
-            not self.m_active_module
-            or "layouts" not in self.m_modules[self.m_active_module]
-        ):
+        if not self.m_active_module or "layouts" not in self.m_modules[self.m_active_module]:
             return False
 
         # Try to find the layout
         if layout_id == -1:
             layout_id = DisplayerLayout.g_next_layout - 1
 
-        layout = self.find_layout(
-            self.m_modules[self.m_active_module]["layouts"], layout_id
-        )
+        layout = self.find_layout(self.m_modules[self.m_active_module]["layouts"], layout_id)
         if not layout:
             return False
 
@@ -876,9 +852,7 @@ class Displayer:
             else:
                 if len(layout["lines"]) <= line:
                     for i in range(len(layout["lines"]), line + 1):
-                        layout["lines"].append(
-                            [[] for _ in range(len(layout["header"]))]
-                        )
+                        layout["lines"].append([[] for _ in range(len(layout["header"]))])
 
         if disabled:
             item.setDisabled(True)
@@ -888,9 +862,7 @@ class Displayer:
 
         # Add the display item
         if layout["type"] == Layouts.VERTICAL.value:
-            item.display(
-                layout["containers"][column], self.m_modules[self.m_active_module]["id"]
-            )
+            item.display(layout["containers"][column], self.m_modules[self.m_active_module]["id"])
         elif layout["type"] == Layouts.TABLE.value:
             item.display(
                 layout["lines"][line][column],
@@ -923,9 +895,7 @@ class Displayer:
         if layout_id == -1:
             layout_id = DisplayerLayout.g_next_layout - 1
 
-        master_layout = self.find_layout(
-            self.m_modules[self.m_active_module]["layouts"], layout_id
-        )
+        master_layout = self.find_layout(self.m_modules[self.m_active_module]["layouts"], layout_id)
         if not master_layout:
             return -1
 
@@ -941,7 +911,16 @@ class Displayer:
     def add_master_layout(self, layout: DisplayerLayout) -> None:
         if "layouts" not in self.m_modules[self.m_active_module]:
             self.m_modules[self.m_active_module]["layouts"] = []
+
+        self.m_last_layout = layout
         return layout.display(self.m_modules[self.m_active_module]["layouts"])
+
+    def duplicate_master_layout(self) -> None:
+        """Add a new layout, identical to the previous one"""
+        if self.m_last_layout:
+            return self.m_last_layout.display(self.m_modules[self.m_active_module]["layouts"])
+
+        return None
 
     def display(self) -> dict:
         """Return the information to pass to the template
