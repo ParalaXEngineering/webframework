@@ -923,9 +923,7 @@ class Displayer:
         if layout_id == -1:
             layout_id = DisplayerLayout.g_next_layout - 1
 
-        master_layout = self.find_layout(
-            self.m_modules[self.m_active_module]["layouts"], layout_id
-        )
+        master_layout = self.find_layout(self.m_modules[self.m_active_module]["layouts"], layout_id)
         if not master_layout:
             return -1
 
