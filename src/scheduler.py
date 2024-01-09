@@ -197,7 +197,6 @@ class Scheduler:
 
             if len(filtered_status) > 0:
                 for item in reversed(filtered_status):
-                    print("Emiting " + str(item[0]) + ": " + str(item[1]))
                     self.socket_obj.emit(
                         "action_status", {item[0]: [item[1], item[2], item[3]]}
                     )

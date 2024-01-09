@@ -290,7 +290,7 @@ def config_apply():
                 ):
                     session["config"][group][item]["value"] = data_json[group][
                         item
-                    ].split(",")
+                    ].split("#")
                 elif session["config"][group][item]["type"] == "modules":
                     session["config"][group][item]["value"] = json.loads(
                         data_json[group][item].replace("'", '"')
@@ -301,7 +301,7 @@ def config_apply():
                         if "_list" not in map_item and data_json[group][item][map_item]:
                             mapping_info[map_item] = data_json[group][item][
                                 map_item
-                            ].split(",")
+                            ].split("#")
                     session["config"][group][item]["value"] = mapping_info
 
     utilities.util_write_parameters(session["config"])

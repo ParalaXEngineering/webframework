@@ -70,6 +70,7 @@ class DisplayerLayout:
         subtitle=None,
         alignment: BSalign = None,
         spacing: int = 0,
+        height: int = 0
     ) -> None:
         """Constructor
 
@@ -83,11 +84,14 @@ class DisplayerLayout:
         :type alignment: BSalign, optional
         :param spacing: A spacing as defined by bootstratp, that is from 0 to 5, defaults to 0
         :type spacing: int, optional
+        :param height: A height value. This value will correspond to the height of a default line, and can be used to align divs with several lines that are next to each other
+        :type height: int, optional
         """
         self.m_type = layoutType.value
         self.m_column = columns
         self.m_subtitle = subtitle
         self.m_alignement = alignment
+        self.m_height = 0
 
         if spacing <= 5:
             self.m_spacing = spacing
@@ -277,7 +281,7 @@ class DisplayerItemIconLink(DisplayerItem):
         id: str,
         text: str,
         icon: str,
-        link: str,
+        link: str = "",
         parameters: list = None,
         color: BSstyle = BSstyle.PRIMARY,
     ) -> None:

@@ -306,6 +306,7 @@
     </div>
     <div class="col-sm-1">
         <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
     </div>
     </div>
 {% endmacro %}
@@ -332,6 +333,7 @@
     </div>
     <div class="col-sm-1">
         <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
     </div>
     </div>
 {% endmacro %}
@@ -512,7 +514,8 @@
     {% endfor %}
     {{ common_input.hidden(id, value | join(',')) }}
     </div>
-    <a href="#a" onclick="setting_add_list('{{ id }}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i>Add entry</a>
+    <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+    <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
 
 {% endmacro %}
 
@@ -536,7 +539,8 @@
                     {{ common_input.hidden(id + "." + col, value[col] | join(',')) }}
                 </div>
                 <div div class="col-sm-2">
-                    <a href="#a" onclick="setting_add_list('{{ id + "." + col}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i>Map</a>
+                    <a href="#a" onclick="setting_add_list('{{ id + "." + col}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+                    <a href="#a" onclick="setting_rm_list('{{ id + "." + col}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
                 </div>
         </div>
     {% endfor%}
@@ -565,7 +569,8 @@
     {% endfor %}
     {{ common_input.hidden(id, value | join(',')) }}
     </div>
-    <a href="#a" onclick="setting_add_list('{{ id }}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i>Add entry</a>
+    <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+    <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
 
 {% endmacro %}
 

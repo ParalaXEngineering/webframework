@@ -2,7 +2,7 @@
 
 {% macro display_layout(layout = [])%}
     {% if layout["type"] == "VERT" %}
-        {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
+        {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["height"]) }}
     {% elif layout["type"] == "HORIZ" %}
         {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
     {% elif layout["type"] == "TABLE" %}
@@ -17,7 +17,7 @@
     TOCODE
 {% endmacro %}
 
-{% macro display_vertical_layout(columns=[], containers = [], align = [], spacing = 0) %}
+{% macro display_vertical_layout(columns=[], containers = [], align = [], spacing = 0, height = 0) %}
     <div class="row py-{{spacing}} align-items-center">
     {# For each columns #}
     {% for col in columns %}
@@ -25,6 +25,9 @@
         
         {# Display all the items in the containers one another #}
         {% for element in containers[loop.index0] %}
+            {% if height %}
+                <div style="height: {{ height * 50 }}px">
+            {% endif %}
                 {% if element["object"] == "item" %}
                     {{ disp_item.display_item(element) }}
                 {% elif element["object"] == "layout" %}
@@ -34,6 +37,10 @@
                 {% else %}
                     NOT SUPPORTED
                 {% endif %}
+            
+            {% if height %}
+                </div>
+            {% endif %}
         {% endfor %}
 
         </div>
