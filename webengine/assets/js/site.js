@@ -38,6 +38,39 @@ function setting_add_list(name)
      }   
 }
 
+function setting_rm_list(name)
+{
+    console.log(name)
+
+     //Find the biggest line
+     var max_nb = 0
+     var content_name = []
+     for (var i = 0; i < 100; i++)
+     {
+         var div = document.getElementById(name + ".list" + (i).toString());
+         if(div)
+         {
+            console.log(div)
+            content_name.push(document.getElementById(name + ".list" + (i).toString()).value);
+            max_nb += 1;
+         }
+         else
+         {
+             i = 100;
+         }
+     }
+
+     //Add the line
+     var div = document.getElementById(name + ".div")
+     document.getElementById(name + ".list" + (max_nb - 1).toString()).remove();
+ 
+     //And repush the user data
+     for (var i = 0; i < max_nb - 1; i++)
+     {
+         document.getElementById(name + ".list" + (i).toString()).value = content_name[i];
+     }   
+}
+
 function button_machine_display(info)
 {
     var div = document.getElementById("btn-info")
@@ -105,7 +138,7 @@ function settings_list_format(name)
     }
 
     //Create the result
-    document.getElementById(name).value = content_name.filter(Boolean).join(',')
+    document.getElementById(name).value = content_name.filter(Boolean).join('#')
 }
 
 function settings_map_format(name)
