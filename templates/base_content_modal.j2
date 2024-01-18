@@ -1,0 +1,31 @@
+<div class="modal fade" id="modal_{{id}}" tabindex="-1" aria-labelledby="Coucou" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog modal-dialog-scrollable modal-full" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+            {% import 'displayer/layouts.j2' as disp_layouts %}
+
+            {% set submenu_count = namespace(value=0) %}
+            {% set path_count = namespace(value=0) %}
+
+            {# Each module is displayed in its block #}
+            {% for module in content %}
+                {# Module layouts #}
+                {% for layout in content[module]["layouts"] %}
+
+                    {# Subtitle #}
+                    {% if layout["subtitle"] %}
+                        <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
+                    {% endif %}
+
+                    {# Content #}
+                    {% if layout["type"] == "VERT" %}
+                        {{ disp_layouts.display_vertical_layout(layout["columns"], layout["containers"], layout["align"]) }}
+                    {% elif layout["type"] == "TABLE" %}
+                        {{ disp_layouts.display_table_layout(layout["header"], layout["lines"]) }}
+                    {% endif %}
+                {% endfor%}
+            {% endfor%}
+        </div>
+        </div>
+    </div>
+</div>

@@ -25,7 +25,7 @@ function setting_add_list(name)
      //Add the line
      var div = document.getElementById(name + ".div")
      content = document.getElementById(name + ".list0").outerHTML;
-     content = content.replaceAll("0", (max_nb).toString());
+     content = content.replaceAll("list0", "list" + (max_nb).toString());
      div.innerHTML += content
 
      //Remove the content of what we pushed
