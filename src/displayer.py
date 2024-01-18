@@ -31,6 +31,7 @@ class DisplayerItems(Enum):
     INLISTTEXT = "INLISTTEXT"
     INLISTSELECT = "INLISTSELECT"
     BUTTON = "BUTTON"
+    MODALBUTTON = "MODALBUTTON"
     ALERT = "ALERT"
     SELECT = "SELECT"
     GRAPH = "GRAPH"
@@ -58,7 +59,7 @@ class BSalign(Enum):
 
 
 class DisplayerLayout:
-    g_next_layout = 0
+    #g_next_layout = 0
     g_last_layout = None
 
     """Generic class to store information about a layout"""
@@ -98,7 +99,7 @@ class DisplayerLayout:
         else:
             spacing = 5
 
-    def display(self, container: list) -> int:
+    def display(self, container: list, id: int): # -> int:
         """Add this item to a container view. Should be reimplemented by the child
 
         :param container: The container in which the display item should be appended. The items are added by order of adding in the code
@@ -110,7 +111,7 @@ class DisplayerLayout:
         current_layout = {
             "object": "layout",
             "type": self.m_type,
-            "id": self.g_next_layout,
+            "id": id,
             "subtitle": self.m_subtitle,
         }
 
@@ -145,8 +146,8 @@ class DisplayerLayout:
 
         container.append(current_layout)
 
-        DisplayerLayout.g_next_layout += 1
-        return self.g_next_layout - 1
+        #DisplayerLayout.g_next_layout += 1
+        #return self.g_next_layout - 1
 
 
 class DisplayerItem:
@@ -262,7 +263,6 @@ class DisplayerItemText(DisplayerItem):
         super().__init__(DisplayerItems.TEXT)
         self.m_text = text
 
-
 class DisplayerItemHidden(DisplayerItem):
     """Specialized display to display a hidden field"""
 
@@ -331,6 +331,20 @@ class DisplayerItemButton(DisplayerItem):
         super().__init__(DisplayerItems.BUTTON)
         self.m_text = text
         self.m_id = id
+        return
+    
+class DisplayerItemModalButton(DisplayerItem):
+    """Specialized display item to display a button to show a modal"""
+
+    def __init__(self, text: str, link: str) -> None:
+        """Initialize with the text content
+
+        :param text: The text content
+        :type text: str
+        """
+        super().__init__(DisplayerItems.MODALBUTTON)
+        self.m_text = text
+        self.m_path = link
         return
 
 
@@ -723,6 +737,8 @@ class Displayer:
 
     def __init__(self):
         self.m_modules = {}
+        self.m_modals = []
+        self.g_next_layout = 0
 
         self.m_active_module = None
         return
@@ -833,7 +849,7 @@ class Displayer:
 
         # Try to find the layout
         if layout_id == -1:
-            layout_id = DisplayerLayout.g_next_layout - 1
+            layout_id = self.g_next_layout - 1
 
         layout = self.find_layout(self.m_modules[self.m_active_module]["layouts"], layout_id)
         if not layout:
@@ -874,6 +890,11 @@ class Displayer:
             )
 
         return True
+    
+    def add_modal(self, id: str, modal: str) -> None:
+        self.m_modals.append({"id": id, "modal": modal})
+
+        return
 
     def add_table_layout(self, header: list = [], subtitle=None) -> int:
         if "layouts" not in self.m_modules[self.m_active_module]:
@@ -910,19 +931,24 @@ class Displayer:
 
         # Add the display item
         if layout.m_type == Layouts.VERTICAL.value:
-            return layout.display(master_layout["containers"][column])
+            id = layout.display(master_layout["containers"][column], self.g_next_layout)
+            self.g_next_layout += 1
+            return id
+            
 
     def add_master_layout(self, layout: DisplayerLayout) -> None:
         if "layouts" not in self.m_modules[self.m_active_module]:
             self.m_modules[self.m_active_module]["layouts"] = []
 
         self.m_last_layout = layout
-        return layout.display(self.m_modules[self.m_active_module]["layouts"])
+        id = layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
+        self.g_next_layout += 1
+        return id
 
     def duplicate_master_layout(self) -> None:
         """Add a new layout, identical to the previous one"""
         if self.m_last_layout:
-            return self.m_last_layout.display(self.m_modules[self.m_active_module]["layouts"])
+            return self.m_last_layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
 
         return None
 
@@ -932,6 +958,8 @@ class Displayer:
         :return: The dictionnary needed for the template to display
         :rtype: dict
         """
+        # Start by adding the modals
+        self.m_modules["modals"] = self.m_modals
         return self.m_modules
 
     def set_default_layout(self, id: int) -> None:
@@ -940,5 +968,6 @@ class Displayer:
         :param id: A new layout id
         :type id: int
         """
-        DisplayerLayout.g_next_layout = id
+        #DisplayerLayout.g_next_layout = id
+        self.g_next_layout = id
         return
