@@ -27,35 +27,29 @@ class Access_manager:
 
     def load_authorizations(self):
         """Load the authorization file into the manager"""
-        f = open("website/config.json", "r")
-        data = json.load(f)
-        if "access" in data:
-            self.m_users = data["access"]["users"]["value"]
-            self.m_users_groups = data["access"]["users_groups"]["value"]
-            self.m_groups = data["access"]["groups"]["value"]
-            self.m_modules = data["access"]["modules"]["value"]
+        config = utilities.util_read_parameters()
+    
+        if "access" in config:
+            self.m_users = config["access"]["users"]["value"]
+            self.m_users_groups = config["access"]["users_groups"]["value"]
+            self.m_groups = config["access"]["groups"]["value"]
+            self.m_modules = config["access"]["modules"]["value"]
 
             if (
-                "default_user" in data["access"]
-                and data["access"]["default_user"]["value"] in self.m_users
+                "default_user" in config["access"]
+                and config["access"]["default_user"]["value"] in self.m_users
             ):
-                self.m_user = data["access"]["default_user"]["value"]
+                self.m_user = config["access"]["default_user"]["value"]
 
             # When creating a user, the user name is not in the authorization
             # file.Let's add it here, otherwise it will be too much a pain
             # to do elsewhere
-            for user in data["access"]["users"]["value"]:
-                if user not in data["access"]["users_password"]["value"]:
-                    data["access"]["users_password"]["value"][user] = [""]
+            for user in config["access"]["users"]["value"]:
+                if user not in config["access"]["users_password"]["value"]:
+                    config["access"]["users_password"]["value"][user] = [""]
 
-                if user not in data["access"]["users_groups"]["value"]:
-                    data["access"]["users_groups"]["value"][user] = ["admin"]
-            f.close()
-
-            f = open("website/config.json", "w")
-            json.dump(data, f)
-
-        f.close()
+                if user not in config["access"]["users_groups"]["value"]:
+                    config["access"]["users_groups"]["value"][user] = ["admin"]
 
     def get_login(self) -> bool:
         """Return the information as to if a user is logged
@@ -103,7 +97,6 @@ class Access_manager:
             ):
                 self.m_user = user
                 config = utilities.util_read_parameters()
-                utilities.util_write_parameters(config)
                 return True
             else:
                 return False
