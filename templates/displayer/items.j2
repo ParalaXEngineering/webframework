@@ -291,23 +291,23 @@
 
     {% set displayed = namespace(value=0) %}
     <div class="row align-items-center">
-    <div id="{{id}}.div" class="col-sm-11">
-    {% for subitem in values %}
-            <div class="row" id="{{id + ".div" + loop.index0 | string }}">
-                <div class="col-sm-12">{{common_input.select(id + ".list" + loop.index0 | string, data, values[loop.index0]) }} </div>
+        <div id="{{id}}.div" class="col-sm-11">
+        {% for subitem in values %}
+                <div class="row" id="{{id + ".div" + loop.index0 | string }}">
+                    <div class="col-sm-12">{{common_input.select(id + ".list" + loop.index0 | string, data, values[loop.index0]) }} </div>
+                </div>
+                {% set displayed.value = displayed.value + 1 %}
+        {% endfor %}
+        {% if displayed.value == 0 %}
+            <div class="row" id="{{id}}.div">
+                <div class="col-sm-6">{{common_input.input(id + ".list0") }} </div>
             </div>
-            {% set displayed.value = displayed.value + 1 %}
-    {% endfor %}
-    {% if displayed.value == 0 %}
-        <div class="row" id="{{id}}.div">
-            <div class="col-sm-6">{{common_input.input(id + ".list0") }} </div>
+        {% endif %}
         </div>
-    {% endif %}
-    </div>
-    <div class="col-sm-1">
-        <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-        <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
-    </div>
+        <div class="col-sm-1">
+            <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+            <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+        </div>
     </div>
 {% endmacro %}
 
@@ -318,23 +318,23 @@
 
     {% set displayed = namespace(value=0) %}
     <div class="row align-items-center">
-    <div id="{{id}}.div" class="col-sm-11">
-    {% for subitem in values %}
-            <div class="row" id="{{id + ".div" + loop.index0 | string }}">
-                <div class="col-sm-12">{{common_input.input(id + ".list" + loop.index0 | string, values[loop.index0]) }} </div>
+        <div id="{{id}}.div" class="col-sm-11">
+        {% for subitem in values %}
+                <div class="row" id="{{id + ".div" + loop.index0 | string }}">
+                    <div class="col-sm-12">{{common_input.input(id + ".list" + loop.index0 | string, values[loop.index0]) }} </div>
+                </div>
+                {% set displayed.value = displayed.value + 1 %}
+        {% endfor %}
+        {% if displayed.value == 0 %}
+            <div class="row" id="{{id}}.div">
+                <div class="col-sm-6">{{common_input.input(id + ".list0") }} </div>
             </div>
-            {% set displayed.value = displayed.value + 1 %}
-    {% endfor %}
-    {% if displayed.value == 0 %}
-        <div class="row" id="{{id}}.div">
-            <div class="col-sm-6">{{common_input.input(id + ".list0") }} </div>
+        {% endif %}
         </div>
-    {% endif %}
-    </div>
-    <div class="col-sm-1">
-        <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-        <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
-    </div>
+        <div class="col-sm-1">
+            <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+            <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+        </div>
     </div>
 {% endmacro %}
 
@@ -345,30 +345,30 @@
 
     {% set displayed = namespace(value=0) %}
     <div class="row align-items-center">
-    <div id="{{id}}.div" class="col-sm-11">
-    {% for subitem in values %}
-            <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
-                    <div class="col-sm-3">{{common_input.input(id + ".mapAright" + loop.index0 | string, values[loop.index0][0]) }} </div>
-                    <div class="col-sm-3">{{common_input.select(id + ".mapAleft" + loop.index0 | string, data, values[loop.index0][1]) }} </div>
+        <div id="{{id}}.div" class="col-sm-11">
+        {% for subitem in values %}
+                <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
+                        <div class="col-sm-3">{{common_input.input(id + ".mapAright" + loop.index0 | string, values[loop.index0][0]) }} </div>
+                        <div class="col-sm-3">{{common_input.select(id + ".mapAleft" + loop.index0 | string, data, values[loop.index0][1]) }} </div>
 
-                    <div class="col-sm-3">{{common_input.input(id + ".mapBright" + loop.index0 | string, values[loop.index0][2]) }} </div>
-                    <div class="col-sm-3">{{common_input.select(id + ".mapBleft" + loop.index0 | string, data, values[loop.index0][3]) }} </div>
+                        <div class="col-sm-3">{{common_input.input(id + ".mapBright" + loop.index0 | string, values[loop.index0][2]) }} </div>
+                        <div class="col-sm-3">{{common_input.select(id + ".mapBleft" + loop.index0 | string, data, values[loop.index0][3]) }} </div>
+                </div>
+                {% set displayed.value = displayed.value + 1 %}
+        {% endfor %}
+        {% if displayed.value == 0 %}
+            <div class="row" id="{{id}}.maprow0">
+                    <div class="col-sm-3">{{common_input.input(id + ".mapAright0") }} </div>
+                    <div class="col-sm-3">{{common_input.select(id + ".mapAleft0", data) }} </div>
+
+                    <div class="col-sm-3">{{common_input.input(id + ".mapBright0") }} </div>
+                    <div class="col-sm-3">{{common_input.select(id + ".mapBleft0", data) }} </div>
             </div>
-            {% set displayed.value = displayed.value + 1 %}
-    {% endfor %}
-    {% if displayed.value == 0 %}
-        <div class="row" id="{{id}}.maprow0">
-                <div class="col-sm-3">{{common_input.input(id + ".mapAright0") }} </div>
-                <div class="col-sm-3">{{common_input.select(id + ".mapAleft0", data) }} </div>
-
-                <div class="col-sm-3">{{common_input.input(id + ".mapBright0") }} </div>
-                <div class="col-sm-3">{{common_input.select(id + ".mapBleft0", data) }} </div>
+        {% endif %}
         </div>
-    {% endif %}
-    </div>
-    <div class="col-sm-1">
-        <a href="#" onclick="setting_add_dual_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-    </div>
+        <div class="col-sm-1">
+            <a href="#" onclick="setting_add_dual_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        </div>
     </div>
 {% endmacro %}
 
@@ -524,26 +524,27 @@
         {{ text }}
     {% endif %}
 
-    <div class="col-sm-10" id="{{id}}.div">
+    <div class="col-sm-12" id="{{id}}.div">
     {% for col in value %}
         <div class="form-group row">
             <div class="col-sm-4">{{ col }}: </div>
-                <div class="col-sm-6" id="{{id + "." + col}}.div">
-                    {% for list_item in value[col] %}
-                        {% if data %}
-                            {{ common_input.select_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "." + col + "')", data, list_item)}}
-                        {% else %}
-                            {{ common_input.input_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "." + col + "')", list_item)}}
-                        {% endif %}
-                    {% endfor %}
-                    {{ common_input.hidden(id + "." + col, value[col] | join('#')) }}
-                </div>
-                <div div class="col-sm-2">
-                    <a href="#a" onclick="setting_add_list('{{ id + "." + col}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-                    <a href="#a" onclick="setting_rm_list('{{ id + "." + col}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
-                </div>
+            <div class="col-sm-6" id="{{id + "." + col}}.div">
+                {% for list_item in value[col] %}
+                    {% if data %}
+                        {{ common_input.select_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "." + col + "')", data, list_item)}}
+                    {% else %}
+                        {{ common_input.input_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "." + col + "')", list_item)}}
+                    {% endif %}
+                {% endfor %}
+                {{ common_input.hidden(id + "." + col, value[col] | join('#')) }}
+            </div>
+            <div class="col-sm-2">
+                <a href="#a" onclick="setting_add_list('{{ id + "." + col}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+                <a href="#a" onclick="setting_rm_list('{{ id + "." + col}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+            </div>
         </div>
     {% endfor%}
+    </div>
 {% endmacro %}
 
 {% macro intext(id, value, text) %}
@@ -559,18 +560,22 @@
 {% endmacro %}
 
 {% macro inmultitext(id, value, text) %}
-    {% if text %}
-        {{ text }}
-    {% endif %}
+    <div class="row">
+        {% if text %}
+            {{ text }}
+        {% endif %}
 
-    <div id="{{id}}.div">
-    {% for list_item in value %}
-        {{ common_input.input_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "')", list_item)}}
-    {% endfor %}
-    {{ common_input.hidden(id, value | join('#')) }}
+        <div id="{{id}}.div" class="col-sm-10">
+        {% for list_item in value %}
+            {{ common_input.input_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "')", list_item)}}
+        {% endfor %}
+        {{ common_input.hidden(id, value | join('#')) }}
+        </div>
+        <div class="col-sm-2">
+        <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+        </div>
     </div>
-    <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-    <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
 
 {% endmacro %}
 

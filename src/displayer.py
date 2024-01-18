@@ -92,7 +92,7 @@ class DisplayerLayout:
         self.m_column = columns
         self.m_subtitle = subtitle
         self.m_alignement = alignment
-        self.m_height = 0
+        self.m_height = height
 
         if spacing <= 5:
             self.m_spacing = spacing

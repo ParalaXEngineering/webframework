@@ -88,14 +88,14 @@ def config_edit():
     for group in config:
         disp.add_master_layout(
             displayer.DisplayerLayout(
-                displayer.Layouts.VERTICAL, [12], subtitle=config[group]["friendly"]
+                displayer.Layouts.VERTICAL, [12], subtitle=config[group]["friendly"], spacing=2
             )
         )
         for item in config[group]:
             if "friendly" in config[group][item] and item != "friendly":
                 if config[group][item]["type"] == "string":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9])
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -108,7 +108,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "int":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9])
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -121,7 +121,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "select":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9])
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -137,7 +137,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "serial_select":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9])
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -153,7 +153,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "cat_icon":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9])
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -166,7 +166,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "multistring":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 3, 6])
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 3, 6], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -194,7 +194,7 @@ def config_edit():
                             )
                 elif config[group][item]["type"] == "constrained_list":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9])
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -210,7 +210,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "free_list":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9])
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -223,7 +223,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "constrained_mapping":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9])
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -239,7 +239,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "mapping":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9])
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -253,7 +253,7 @@ def config_edit():
 
     disp.add_master_layout(
         displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [12], alignment=[displayer.BSalign.R]
+            displayer.Layouts.VERTICAL, [12], alignment=[displayer.BSalign.R], spacing=2
         )
     )
     disp.add_display_item(
