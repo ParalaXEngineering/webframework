@@ -512,7 +512,7 @@
     {% for list_item in value %}
         {{ common_input.select_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "')", data, list_item)}}
     {% endfor %}
-    {{ common_input.hidden(id, value | join(',')) }}
+    {{ common_input.hidden(id, value | join('#')) }}
     </div>
     <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
     <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
@@ -536,7 +536,7 @@
                             {{ common_input.input_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "." + col + "')", list_item)}}
                         {% endif %}
                     {% endfor %}
-                    {{ common_input.hidden(id + "." + col, value[col] | join(',')) }}
+                    {{ common_input.hidden(id + "." + col, value[col] | join('#')) }}
                 </div>
                 <div div class="col-sm-2">
                     <a href="#a" onclick="setting_add_list('{{ id + "." + col}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
@@ -567,7 +567,7 @@
     {% for list_item in value %}
         {{ common_input.input_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "')", list_item)}}
     {% endfor %}
-    {{ common_input.hidden(id, value | join(',')) }}
+    {{ common_input.hidden(id, value | join('#')) }}
     </div>
     <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
     <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
