@@ -2,7 +2,7 @@
 
 {% macro display_layout(layout = [])%}
     {% if layout["type"] == "VERT" %}
-        {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["height"]) }}
+        {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["height"], layout["background"]) }}
     {% elif layout["type"] == "HORIZ" %}
         {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
     {% elif layout["type"] == "TABLE" %}
@@ -17,8 +17,8 @@
     TOCODE
 {% endmacro %}
 
-{% macro display_vertical_layout(columns=[], containers = [], align = [], spacing = 0, height = 0) %}
-    <div class="row py-{{spacing}} align-items-center">
+{% macro display_vertical_layout(columns=[], containers = [], align = [], spacing = 0, height = 0, background = none) %}
+    <div class="row py-{{spacing}} align-items-center {% if background %}bg-{{background}}{% endif %}">
     {# For each columns #}
     {% for col in columns %}
         <div class="col-{{col}} text-{{align[loop.index0]}}">

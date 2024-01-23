@@ -293,7 +293,7 @@ def util_view_reload_text(id: str, input: str) -> dict:
     to_render = [{"id": id, "content": input}]
     return to_render
 
-def util_view_create_modal(id: str, modal_displayer: displayer, base_displayer: displayer) -> str:
+def util_view_create_modal(id: str, modal_displayer: displayer, base_displayer: displayer, header: str = None) -> str:
     """Add the content of a displayer as a modal in a second displayer. Return the link to use to access the modal
 
     :param id: The id of the modal to use
@@ -302,13 +302,15 @@ def util_view_create_modal(id: str, modal_displayer: displayer, base_displayer: 
     :type modal_displayer: displayer
     :param base_displayer: The displayer where the modal is inserted
     :type base_displayer: displayer
+    :param header: A string for the header text
+    :type header: str
     :return: The link to access the modal
     :rtype: dict
     """
     id = id.replace(" ", "_").replace(".", "_").replace('/', '_')
     env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
     template = env.get_template("base_content_modal.j2")
-    reloader = template.render(content=modal_displayer.display(), id=id)
+    reloader = template.render(content=modal_displayer.display(), id=id, header=header)
     base_displayer.add_modal("modal_" + id, reloader)
     
     return id

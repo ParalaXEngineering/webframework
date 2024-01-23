@@ -17,6 +17,7 @@ class DisplayerItems(Enum):
     INNUM = "INNUM"
     INHIDDEN = "INHIDDEN"
     INTEXT = "INTEXT"
+    INSTRING = "INSTRING"
     INMULTITEXT = "INMULTITEXT"
     INFILE = "INFILE"
     INTEXTICON = "INTEXTICON"
@@ -30,8 +31,10 @@ class DisplayerItems(Enum):
     INTEXTTEXT = "INTEXTTEXT"
     INLISTTEXT = "INLISTTEXT"
     INLISTSELECT = "INLISTSELECT"
+    INIMAGE = "INIMAGE"
     BUTTON = "BUTTON"
     MODALBUTTON = "MODALBUTTON"
+    MODALLINK = "MODALLINK"
     ALERT = "ALERT"
     SELECT = "SELECT"
     GRAPH = "GRAPH"
@@ -48,7 +51,7 @@ class BSstyle(Enum):
     WARNING = "warning"
     ERROR = "danger"
     DARK = "dark"
-    LIGHT = "secondary"
+    LIGHT = "light"
     NONE = "none"
 
 
@@ -71,7 +74,8 @@ class DisplayerLayout:
         subtitle=None,
         alignment: BSalign = None,
         spacing: int = 0,
-        height: int = 0
+        height: int = 0,
+        background: BSstyle = None,
     ) -> None:
         """Constructor
 
@@ -93,6 +97,7 @@ class DisplayerLayout:
         self.m_subtitle = subtitle
         self.m_alignement = alignment
         self.m_height = height
+        self.m_background = background
 
         if spacing <= 5:
             self.m_spacing = spacing
@@ -113,6 +118,7 @@ class DisplayerLayout:
             "type": self.m_type,
             "id": id,
             "subtitle": self.m_subtitle,
+            "background": self.m_background.value if self.m_background else None
         }
 
         if self.m_type == Layouts.TABLE.value:
@@ -147,7 +153,7 @@ class DisplayerLayout:
         container.append(current_layout)
 
         #DisplayerLayout.g_next_layout += 1
-        #return self.g_next_layout - 1
+        #return self.g_next_layout
 
 
 class DisplayerItem:
@@ -182,10 +188,16 @@ class DisplayerItem:
             item["disabled"] = self.m_disabled
         if hasattr(self, "m_data"):
             item["data"] = self.m_data
+        if hasattr(self, "m_header"):
+            item["header"] = self.m_header
         if hasattr(self, "m_possibles"):
             item["possibles"] = self.m_possibles
         if hasattr(self, "m_path"):
             item["path"] = self.m_path
+        if hasattr(self, "m_icon"):
+            item["icon"] = self.m_icon
+        if hasattr(self, "m_endpoint"):
+            item["endpoint"] = self.m_endpoint
         if hasattr(self, "m_id"):
             if parent_id:
                 item["id"] = parent_id + "." + self.m_id
@@ -346,6 +358,34 @@ class DisplayerItemModalButton(DisplayerItem):
         self.m_text = text
         self.m_path = link
         return
+    
+class DisplayerItemModalLink(DisplayerItem):
+    """Specialized display item to display a link icon"""
+
+    def __init__(
+        self,
+        text: str,
+        icon: str,
+        link: str = "",
+        color: BSstyle = BSstyle.PRIMARY,
+    ) -> None:
+        """Initialize with the text content
+
+        :param text: The text content
+        :type text: str
+        :param icon: The icon name of the mdi icons. Do not prefix with mdi-
+        :type icon: str
+        :param link: the link (in the flask terms) to point to. Can be set to empty to only have an icon
+        :type link: str
+        :param parameters: a list of text line with the parameters after the link, that is after a "?". Those will be passed with a GET method
+        :type parameters: list
+        """
+        super().__init__(DisplayerItems.MODALLINK)
+        self.m_text = text
+        self.m_path = link
+        self.m_icon = icon
+        self.m_style = color.value
+        return
 
 
 class DisplayerItemBadge(DisplayerItem):
@@ -390,20 +430,23 @@ class DisplayerItemDownload(DisplayerItem):
 class DisplayerItemImage(DisplayerItem):
     """Specialized display item to display an image"""
 
-    def __init__(self, height: str, link: str, path: str = None) -> None:
+    def __init__(self, height: str, link: str, endpoint: str = None, path: str = None) -> None:
         """Initialize with the text content
 
         :param height: The height of the image
         :type height: int
-        :param link: The link to the image
+        :param link: The link to the image. Can be either the name of the file, or a full http adress.
         :type link: str
-        :param link: The base static path, as defined optionnaly in the blueprint
-        :type link: str
+        :param endpoint: If using local path, then an endpoint must be used, which is in reference with the endpoint defined in site_conf
+        :type endpoint: str
+        :param path: The path relative to the endpoint
+        :type path: str
         """
         super().__init__(DisplayerItems.IMAGE)
         self.m_data = height
         self.m_value = link
         self.m_path = path
+        self.m_endpoint = endpoint
 
         return
 
@@ -693,6 +736,16 @@ class DisplayerItemInputText(DisplayerItem):
         self.m_value = value
         self.m_id = id
         return
+    
+class DisplayerItemInputString(DisplayerItem):
+    """Specialized display to display an input number"""
+
+    def __init__(self, id: str, text: str = None, value: str = None) -> None:
+        super().__init__(DisplayerItems.INSTRING)
+        self.m_text = text
+        self.m_value = value
+        self.m_id = id
+        return
 
 
 class DisplayerItemInputMultiText(DisplayerItem):
@@ -721,6 +774,15 @@ class DisplayerItemInputFile(DisplayerItem):
 
     def __init__(self, id: str, text: str = None) -> None:
         super().__init__(DisplayerItems.INFILE)
+        self.m_text = text
+        self.m_id = id
+        return
+    
+class DisplayerItemInputImage(DisplayerItem):
+    """Specialized display to display an input image box"""
+
+    def __init__(self, id: str, text: str = None) -> None:
+        super().__init__(DisplayerItems.INIMAGE)
         self.m_text = text
         self.m_id = id
         return
@@ -918,7 +980,7 @@ class Displayer:
         line: int = -1,
     ):
         if layout_id == -1:
-            layout_id = DisplayerLayout.g_next_layout - 1
+            layout_id = self.g_next_layout - 1
 
         master_layout = self.find_layout(self.m_modules[self.m_active_module]["layouts"], layout_id)
         if not master_layout:
@@ -931,9 +993,9 @@ class Displayer:
 
         # Add the display item
         if layout.m_type == Layouts.VERTICAL.value:
-            id = layout.display(master_layout["containers"][column], self.g_next_layout)
+            layout.display(master_layout["containers"][column], self.g_next_layout)
             self.g_next_layout += 1
-            return id
+            return self.g_next_layout - 1
             
 
     def add_master_layout(self, layout: DisplayerLayout) -> None:
@@ -941,14 +1003,16 @@ class Displayer:
             self.m_modules[self.m_active_module]["layouts"] = []
 
         self.m_last_layout = layout
-        id = layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
+        layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
         self.g_next_layout += 1
-        return id
+        return self.g_next_layout - 1
 
     def duplicate_master_layout(self) -> None:
         """Add a new layout, identical to the previous one"""
         if self.m_last_layout:
-            return self.m_last_layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
+            self.m_last_layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
+            self.g_next_layout += 1
+            return self.g_next_layout - 1
 
         return None
 
@@ -968,6 +1032,5 @@ class Displayer:
         :param id: A new layout id
         :type id: int
         """
-        #DisplayerLayout.g_next_layout = id
         self.g_next_layout = id
         return

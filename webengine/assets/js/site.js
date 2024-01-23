@@ -169,7 +169,7 @@ function settings_map_format(name)
     document.getElementById(name).value = JSON.stringify(content)
 }
 
-$(document).ready(function() {
+$(document).ready(function() {    
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     setTimeout(test_connect, 1000)
     function test_connect(){socket.emit("user_connected") }

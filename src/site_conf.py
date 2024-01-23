@@ -1,6 +1,9 @@
 from submodules.framework.src import access_manager
 
+import os
+
 site_conf_obj = None
+site_conf_app_path = None
 
 
 class Site_conf:
@@ -310,3 +313,7 @@ class Site_conf:
         """Function to create the distribuable package on this plateform, should be overwritten by the child object"""
         raise Exception("Distribuate creation not handled by this website")
         return False
+    
+    def get_statics(self, app_path) -> dict:
+        """Function to store the other endpoints that must be registered by the application, for instance to serve images """
+        return {"images": os.path.join(app_path, "website", "assets", "images")}

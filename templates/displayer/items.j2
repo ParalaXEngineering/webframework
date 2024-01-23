@@ -15,18 +15,24 @@
         {{placeholder(item["id"])}}
     {% elif item["type"] == "BUTTON" %}
         {{button(item["id"], item["text"], item["disabled"])}}
+    {% elif item["type"] == "MODALBUTTON" %}
+        {{modalbutton(item["path"], item["text"], item["disabled"])}}
+    {% elif item["type"] == "MODALLINK" %}
+        {{modallink(item["path"], item["text"], item["icon"], item["style"])}}
     {% elif item["type"] == "DOWNLOAD" %}
         {{download(item["id"], item["text"], item["data"])}}
     {% elif item["type"] == "ICONLINK" %}
         {{iconlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
     {% elif item["type"] == "IMAGE" %}
-        {{image(item["id"], item["value"], item["data"], item["path"])}}
+        {{image(item["id"], item["value"], item["data"], item["endpoint"], item["path"])}}
     {% elif item["type"] == "INBOX" %}
         {{inbox(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INDATE" %}
         {{indate(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INNUM" %}
         {{innum(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INSTRING" %}
+        {{instring(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INTEXT" %}
         {{intext(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INMULTITEXT" %}
@@ -37,6 +43,8 @@
         {{inhidden(item["id"], item["value"])}}
     {% elif item["type"] == "INFILE" %}
         {{infile(item["id"], item["text"])}}
+    {% elif item["type"] == "INIMAGE" %}
+        {{inimage(item["id"], item["text"])}}
     {% elif item["type"] == "SELECT" %}
         {{inselect(item["id"], item["data"], item["value"], item["text"])}}
     {% elif item["type"] == "INLISTTEXT" %}
@@ -185,9 +193,21 @@
     </button>
 {% endmacro %}
 
-{% macro image(id, src, height, path) %}
+{% macro modalbutton(link, text, disabled = false) %}
+    <button type="button" class="btn btn-warning mx-1" data-bs-toggle="modal" data-bs-target="#modal_{{link}}", id="{{link}}">
+        {{text}}
+    </button>
+{% endmacro %}
+
+{% macro modallink(link, text, icon, style) %}
+    <p><a href="#" data-bs-toggle="modal" data-bs-target="#modal_{{link}}", id="{{link}}">
+        <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+    </a></p>
+{% endmacro %}
+
+{% macro image(id, src, height, endpoint, path) %}
     {% if path %}
-    <img src="{{url_for(path)}}/{{src}}" height="{{height}}">
+    <img src="{{ url_for('common.assets', asset_type=endpoint, filename=path + '/' + src) }}" height="{{ height }}">
     {% else %}
     <img src="{{src}}" height="{{height}}">
     {% endif %}
@@ -300,7 +320,7 @@
         {% endfor %}
         {% if displayed.value == 0 %}
             <div class="row" id="{{id}}.div">
-                <div class="col-sm-6">{{common_input.input(id + ".list0") }} </div>
+                <div class="col-sm-6">{{common_input.inputstring(id + ".list0") }} </div>
             </div>
         {% endif %}
         </div>
@@ -321,13 +341,13 @@
         <div id="{{id}}.div" class="col-sm-11">
         {% for subitem in values %}
                 <div class="row" id="{{id + ".div" + loop.index0 | string }}">
-                    <div class="col-sm-12">{{common_input.input(id + ".list" + loop.index0 | string, values[loop.index0]) }} </div>
+                    <div class="col-sm-12">{{common_input.inputstring(id + ".list" + loop.index0 | string, values[loop.index0]) }} </div>
                 </div>
                 {% set displayed.value = displayed.value + 1 %}
         {% endfor %}
         {% if displayed.value == 0 %}
             <div class="row" id="{{id}}.div">
-                <div class="col-sm-6">{{common_input.input(id + ".list0") }} </div>
+                <div class="col-sm-6">{{common_input.inputstring(id + ".list0") }} </div>
             </div>
         {% endif %}
         </div>
@@ -348,20 +368,20 @@
         <div id="{{id}}.div" class="col-sm-11">
         {% for subitem in values %}
                 <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
-                        <div class="col-sm-3">{{common_input.input(id + ".mapAright" + loop.index0 | string, values[loop.index0][0]) }} </div>
+                        <div class="col-sm-3">{{common_input.inputstring(id + ".mapAright" + loop.index0 | string, values[loop.index0][0]) }} </div>
                         <div class="col-sm-3">{{common_input.select(id + ".mapAleft" + loop.index0 | string, data, values[loop.index0][1]) }} </div>
 
-                        <div class="col-sm-3">{{common_input.input(id + ".mapBright" + loop.index0 | string, values[loop.index0][2]) }} </div>
+                        <div class="col-sm-3">{{common_input.inputstring(id + ".mapBright" + loop.index0 | string, values[loop.index0][2]) }} </div>
                         <div class="col-sm-3">{{common_input.select(id + ".mapBleft" + loop.index0 | string, data, values[loop.index0][3]) }} </div>
                 </div>
                 {% set displayed.value = displayed.value + 1 %}
         {% endfor %}
         {% if displayed.value == 0 %}
             <div class="row" id="{{id}}.maprow0">
-                    <div class="col-sm-3">{{common_input.input(id + ".mapAright0") }} </div>
+                    <div class="col-sm-3">{{common_input.inputstring(id + ".mapAright0") }} </div>
                     <div class="col-sm-3">{{common_input.select(id + ".mapAleft0", data) }} </div>
 
-                    <div class="col-sm-3">{{common_input.input(id + ".mapBright0") }} </div>
+                    <div class="col-sm-3">{{common_input.inputstring(id + ".mapBright0") }} </div>
                     <div class="col-sm-3">{{common_input.select(id + ".mapBleft0", data) }} </div>
             </div>
         {% endif %}
@@ -382,14 +402,14 @@
     <div id="{{id}}.div" class="col-sm-11">
     {% for subitem in values %}
             <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
-                    <div class="col-sm-6">{{common_input.input(id + ".mapright" + loop.index0 | string, values[loop.index0][1]) }} </div>
+                    <div class="col-sm-6">{{common_input.inputstring(id + ".mapright" + loop.index0 | string, values[loop.index0][1]) }} </div>
                     <div class="col-sm-6">{{common_input.select(id + ".mapleft" + loop.index0 | string, data, values[loop.index0][0]) }} </div>
             </div>
             {% set displayed.value = displayed.value + 1 %}
     {% endfor %}
     {% if displayed.value == 0 %}
         <div class="row" id="{{id}}.maprow0">
-                <div class="col-sm-6">{{common_input.input(id + ".mapright0") }} </div>
+                <div class="col-sm-6">{{common_input.inputstring(id + ".mapright0") }} </div>
                 <div class="col-sm-6">{{common_input.select(id + ".mapleft0", data) }} </div>
         </div>
     {% endif %}
@@ -411,14 +431,14 @@
     {% for subitem in values %}
             <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
                     <div class="col-sm-6">{{common_input.select(id + ".mapleft" + loop.index0 | string, data, values[loop.index0][0]) }} </div>
-                    <div class="col-sm-6">{{common_input.input(id + ".mapright" + loop.index0 | string, values[loop.index0][1]) }} </div>
+                    <div class="col-sm-6">{{common_input.inputstring(id + ".mapright" + loop.index0 | string, values[loop.index0][1]) }} </div>
             </div>
             {% set displayed.value = displayed.value + 1 %}
     {% endfor %}
     {% if displayed.value == 0 %}
         <div class="row" id="{{id}}.maprow0">
                 <div class="col-sm-6">{{common_input.select(id + ".mapleft0", data) }} </div>
-                <div class="col-sm-6">{{common_input.input(id + ".mapright0") }} </div>
+                <div class="col-sm-6">{{common_input.inputstring(id + ".mapright0") }} </div>
         </div>
     {% endif %}
     </div>
@@ -439,10 +459,10 @@
     {% for subitem in values %}
             <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
                     <div class="col-sm-3">{{common_input.select(id + ".mapAleft" + loop.index0 | string, data, values[loop.index0][1]) }} </div>
-                    <div class="col-sm-3">{{common_input.input(id + ".mapAright" + loop.index0 | string, values[loop.index0][0]) }} </div>
+                    <div class="col-sm-3">{{common_input.inputstring(id + ".mapAright" + loop.index0 | string, values[loop.index0][0]) }} </div>
 
                     <div class="col-sm-3">{{common_input.select(id + ".mapBleft" + loop.index0 | string, data, values[loop.index0][3]) }} </div>
-                    <div class="col-sm-3">{{common_input.input(id + ".mapBright" + loop.index0 | string, values[loop.index0][2]) }} </div>
+                    <div class="col-sm-3">{{common_input.inputstring(id + ".mapBright" + loop.index0 | string, values[loop.index0][2]) }} </div>
 
             </div>
             {% set displayed.value = displayed.value + 1 %}
@@ -450,10 +470,10 @@
     {% if displayed.value == 0 %}
         <div class="row" id="{{id}}.maprow0">
                 <div class="col-sm-3">{{common_input.select(id + ".mapAleft0", data) }} </div>
-                <div class="col-sm-3">{{common_input.input(id + ".mapAright0") }} </div>
+                <div class="col-sm-3">{{common_input.inputstring(id + ".mapAright0") }} </div>
 
                 <div class="col-sm-3">{{common_input.select(id + ".mapBleft0", data) }} </div>
-                <div class="col-sm-3">{{common_input.input(id + ".mapBright0") }} </div>
+                <div class="col-sm-3">{{common_input.inputstring(id + ".mapBright0") }} </div>
         </div>
     {% endif %}
     </div>
@@ -473,15 +493,15 @@
     <div id="{{id}}.div" class="col-sm-11">
     {% for subitem in values %}
             <div class="row" id="{{id + ".maprow" + loop.index0 | string }}">
-                <div class="col-sm-6">{{common_input.input(id + ".mapleft" + loop.index0 | string, values[loop.index0][0]) }} </div>
-                <div class="col-sm-6">{{common_input.input(id + ".mapright" + loop.index0 | string, values[loop.index0][1]) }} </div>
+                <div class="col-sm-6">{{common_input.inputstring(id + ".mapleft" + loop.index0 | string, values[loop.index0][0]) }} </div>
+                <div class="col-sm-6">{{common_input.inputstring(id + ".mapright" + loop.index0 | string, values[loop.index0][1]) }} </div>
             </div>
             {% set displayed.value = displayed.value + 1 %}
     {% endfor %}
     {% if displayed.value == 0 %}
         <div class="row" id="{{id}}.maprow0">
-            <div class="col-sm-6">{{common_input.input(id + ".mapleft0") }} </div>
-            <div class="col-sm-6">{{common_input.input(id + ".mapright0") }} </div>
+            <div class="col-sm-6">{{common_input.inputstring(id + ".mapleft0") }} </div>
+            <div class="col-sm-6">{{common_input.inputstring(id + ".mapright0") }} </div>
         </div>
     {% endif %}
     </div>
@@ -547,15 +567,27 @@
     </div>
 {% endmacro %}
 
+{% macro instring(id, value, text) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% if value %}
+        {{ common_input.inputstring(id, value)}}
+    {% else %}
+        {{ common_input.inputstring(id, history[id] if history is defined else None)}}
+    {% endif %}
+{% endmacro %}
+
 {% macro intext(id, value, text) %}
     {% if text %}
         {{ text }}
     {% endif %}
 
     {% if value %}
-        {{ common_input.input(id, value)}}
+        {{ common_input.inputtext(id, value)}}
     {% else %}
-        {{ common_input.input(id, history[id] if history is defined else None)}}
+        {{ common_input.inputtext(id, history[id] if history is defined else None)}}
     {% endif %}
 {% endmacro %}
 
@@ -583,7 +615,7 @@
     {% for cat in value %}
         <div class="form-group row">
             <div class="col-sm-3">{{cat}}:</div>
-            <div class="col-sm-4">{{ common_input.input(id + "." + cat + ".alias" , value[cat]["alias"])}}</div>
+            <div class="col-sm-4">{{ common_input.inputstring(id + "." + cat + ".alias" , value[cat]["alias"])}}</div>
             <div class="col-sm-4">{{ common_input.input_js(id + "." + cat + ".icon" , "settings_update_icon('" + id + "." + cat + ".icon')", value[cat]["icon"])}}</div>
             <div class="col-sm-1" id="{{id + ".icondiv"}}"><i class="mdi {{value[cat]["icon"]}}" ></i></div>
         </div>
@@ -596,9 +628,9 @@
 {% endmacro %}
 
 {% macro infile(id, file) %}
-    {% if text %}
-        {{ text }}
-    {% endif %}
-
     {{ common_input.file(id)}}
+{% endmacro %}
+
+{% macro inimage(id, file) %}
+    {{ common_input.image(id)}}
 {% endmacro %}

@@ -303,7 +303,7 @@ def packager():
             )
         )
         disp.add_display_item(displayer.DisplayerItemText("Create a new package"), 0)
-        disp.add_display_item(displayer.DisplayerItemInputText("create_package"), 1)
+        disp.add_display_item(displayer.DisplayerItemInputString("create_package"), 1)
         disp.add_display_item(
             displayer.DisplayerItemButton("pack", "Package creation"), 2
         )

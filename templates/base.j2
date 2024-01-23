@@ -15,6 +15,8 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/main/app.css') }}">
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/main/app-dark.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond/filepond.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css') }}">
 	<link rel="shortcut icon" href="{{ url_for('static', filename= 'images/logo/favicon.svg') }}" type="image/x-icon">
 	<link rel="shortcut icon" href="{{ url_for('static', filename= 'images/logo/favicon.png') }}" type="image/png">
     
@@ -187,11 +189,11 @@
                                 {% if topbarItems["login"] %}
                                         <a href="{{url_for('common.login') }}"><button class="btn btn-secondary mx-1">
                                         <div id="topbar_target" class="float-end align-items-center">
-                                            <div class="col">
+                                            <div class="col avatar avatar-lg">
                                                 {% if user %}
-                                                    <img src="{{ url_for('static', filename= 'images/users/' ~ user ~ '.svg') }}" width="48px">
+                                                    <img src="{{ url_for('common.assets', asset_type="images", filename='users/' + user + '.jpg') }}" width="48px">
                                                     {% else %}
-                                                    <img src="{{ url_for('static', filename= 'images/users/GUEST.svg') }}" width="48px">
+                                                    <img src="{{ url_for('common.assets', asset_type="images", filename='users/GUEST.jpg') }}" width="48px">
                                                 {% endif %}
                                             </div>
                                             <div class="col">
@@ -235,8 +237,48 @@
         </div>
 
     </div>
+    <script src="{{ url_for('static', filename= 'vendors/tinymce/tinymce.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'vendors/jquery/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/filepond/filepond.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
+    <script>FilePond.registerPlugin(FilePondPluginImagePreview);
+    // Filepond: Image Preview
+    const filePondImage = document.querySelectorAll(".image-preview-filepond");
+    filePondImage.forEach(element => {
+        FilePond.create(element, {
+            credits: null,
+            allowImagePreview: true,
+            allowImageFilter: false,
+            allowImageExifOrientation: false,
+            allowImageCrop: false,
+            acceptedFileTypes: ["image/png", "image/jpg", "image/jpeg"],
+            fileValidateTypeDetectType: (source, type) => new Promise((resolve, reject) => {
+                // Faites la détection de type personnalisée ici et retournez avec une promesse
+                resolve(type);
+            }),
+            storeAsFile: true,
+        });
+    });
+
+    // Filepond: Base
+    filePondBase = document.querySelectorAll(".basic-filepond");
+    filePondBase.forEach(element => {
+        FilePond.create(element, {
+            credits: null,
+            storeAsFile: true,
+        });
+    });
+
+
+    tinymce.init({
+        selector: 'textarea',  // change this value according to your HTML
+        plugins: 'a_tinymce_plugin',
+        a_plugin_option: true,
+        a_configuration_option: 400,
+        promotion:false
+        });
+    </script>
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/bootstrap.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>

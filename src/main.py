@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, request
+from flask import Flask, render_template, session, request, send_from_directory
 from flask_session import Session
 
 from submodules.framework.src import utilities
@@ -42,10 +42,7 @@ def main():
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         )
 
-    print(app_path)
-
     # Automatically import all pages
-    print(os.listdir())
     for item in os.listdir(os.path.join(app_path, "website", "pages")):
         if ".py" in item:
             print("website.pages." + item[0:-3])
@@ -86,6 +83,7 @@ def main():
     # Import site_conf
     site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
     site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj
+    site_conf.site_conf_app_path = app_path
 
     @socketio_obj.on("user_connected")
     def connect():
@@ -135,5 +133,9 @@ def main():
         session["config"] = utilities.util_read_parameters()
 
         inject_bar()
+
+    for rule in app.url_map.iter_rules():
+        print(f"Endpoint: {rule.endpoint}, Methods: {','.join(rule.methods)}, Path: {rule.rule}")
+
 
     app.run(debug=True, host="0.0.0.0", use_reloader=False)

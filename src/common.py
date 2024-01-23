@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, send_file
 from submodules.framework.src import utilities
 from submodules.framework.src import access_manager
 from submodules.framework.src import displayer
+from submodules.framework.src import site_conf
 
 import os
 import sys
@@ -12,7 +13,6 @@ import re
 from datetime import datetime
 
 bp = Blueprint("common", __name__, url_prefix="/common")
-
 
 @bp.route("/download", methods=["GET"])
 def download():
@@ -25,9 +25,27 @@ def download():
             request.args.to_dict()["file"],
         )
     else:
-        path = os.path.join(os.path.join("downloads"), request.args.to_dict()["file"])
+        path = os.path.join(os.path.join("..", "..", "..", "ressources", "downloads"), request.args.to_dict()["file"])
     return send_file(path, as_attachment=True)
 
+
+@bp.route("/assets/<asset_type>/", methods=["GET"])
+def assets(asset_type):
+    asset_paths = site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path)
+    
+    folder_path = None
+    for path_info in asset_paths:
+        if asset_type in path_info:
+            folder_path = asset_paths[asset_type]
+            break
+
+    if folder_path is None:
+        return "Invalid folder type", 404
+
+    file_name = request.args.get("filename")
+    print("Serving path " + asset_type + " on file " + file_name)
+    file_path = os.path.join(folder_path, file_name)
+    return send_file(file_path, as_attachment=True)
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():

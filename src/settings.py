@@ -101,7 +101,7 @@ def config_edit():
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
                     )
                     disp.add_display_item(
-                        displayer.DisplayerItemInputText(
+                        displayer.DisplayerItemInputString(
                             group + "." + item, None, config[group][item]["value"]
                         ),
                         1,
@@ -159,7 +159,7 @@ def config_edit():
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
                     )
                     disp.add_display_item(
-                        displayer.DisplayerItemInputTextIcon(
+                        displayer.DisplayerItemInputStringIcon(
                             group + "." + item, config[group][item]["value"]
                         ),
                         1,
@@ -180,7 +180,7 @@ def config_edit():
                                 1,
                             )
                             disp.add_display_item(
-                                displayer.DisplayerItemInputText(
+                                displayer.DisplayerItemInputString(
                                     group + "." + item + "." + line,
                                     None,
                                     config[group][item][line]["value"],
