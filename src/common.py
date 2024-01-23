@@ -100,6 +100,22 @@ def parse_log_file(log_file):
         lines = file.readlines()
 
     full_line = ""
+    previous_entry = {
+        "time": 0,
+        "level": 0,
+        "file": "",
+        "function": "",
+        "line": 0,
+        "message": "",
+    }
+    current_entry = {
+        "time": 0,
+        "level": 0,
+        "file": "",
+        "function": "",
+        "line": 0,
+        "message": "",
+    }
     for line in reversed(lines):
         full_line = line + full_line
         if "|" not in line:
@@ -110,8 +126,10 @@ def parse_log_file(log_file):
                 timestamp_str, level, file, function, line_num, message = match.groups()
 
                 timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S,%f")
+                timestamp = timestamp.replace(microsecond=0)
 
-                entry = {
+
+                current_entry = {
                     "time": timestamp,
                     "level": level,
                     "file": file,
@@ -120,13 +138,24 @@ def parse_log_file(log_file):
                     "message": message.strip(),
                 }
 
-                if entry["message"] == "Scheduler started":
-                    log_entries.append(entry)
+                if current_entry["message"] == "Scheduler started":
+                    log_entries.append(current_entry)
                     break
-
-                log_entries.append(entry)
+                
+                are_equal = all(previous_entry[key] == current_entry[key] for key in previous_entry if key != "message")
+                if are_equal:
+                    current_entry["message"] = previous_entry["message"] + '<br>' + current_entry["message"]
+                    previous_entry = current_entry
+                    break
+                
+                if previous_entry["time"] != 0:
+                    log_entries.append(previous_entry)
+                previous_entry = current_entry
                 full_line = ""
 
+    # Don't forget the last one...
+    if current_entry["time"] != 0:
+        log_entries.append(current_entry)
     log_entries.reverse()
 
     return log_entries
@@ -141,7 +170,6 @@ def logs():
     log_files = ["website.log", "root.log"]
     for log_file in log_files:
         log_entries = parse_log_file(log_file)
-        print(log_entries)
 
         disp.add_master_layout(
             displayer.DisplayerLayout(

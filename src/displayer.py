@@ -1,3 +1,5 @@
+from submodules.framework.src import access_manager
+
 from enum import Enum
 
 
@@ -1022,9 +1024,15 @@ class Displayer:
         :return: The dictionnary needed for the template to display
         :rtype: dict
         """
-        # Start by adding the modals
-        self.m_modules["modals"] = self.m_modals
-        return self.m_modules
+        serve_modules = {}
+        serve_modules["modals"] = self.m_modals
+
+        for module in self.m_modules:
+            auth = access_manager.auth_object.authorize_module(module)
+            if auth:
+                serve_modules[module] = self.m_modules[module]
+
+        return serve_modules
 
     def set_default_layout(self, id: int) -> None:
         """Impose the default layout back to a given one so that for any future item added, if layout is not specified, the layout id will be this one

@@ -238,29 +238,6 @@ def util_write_parameters(data: dict):
     f.close()
 
 
-def util_view_init(modules: list) -> dict:
-    """Initialize a view module that can be passed in the base_content template
-
-    :param modules: A list of the modules to add
-    :type modules: list
-    :return: A correctly initialized view module with no input
-    :rtype: dict
-    """
-    view = {}
-    for module in modules:
-        auth = access_manager.auth_object.authorize_module(module.m_default_name)
-        if auth:
-            view[module.m_default_name] = {
-                "inputs": [],
-                "submenus": [
-                    "",
-                ],
-                "type": module.m_type,
-            }
-
-    return view
-
-
 def util_view_reload_displayer(id: str, disp: displayer) -> dict:
     """Reload a multi-user input with new data while using a displayer as input
 

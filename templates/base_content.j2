@@ -16,7 +16,8 @@
 {% set submenu_count = namespace(value=0) %}
 {% set path_count = namespace(value=0) %}
 
-{%if content|length == 0 %}
+{%if content|length == 1 %} 
+    {# This is size of 1 because the modals are always here #}
     <div class="text-center">
         <img src="{{ url_for('static', filename= 'images/status/unauthorized.svg')}}" width="500vw">
         <h1 class="error-title">Unauthorized</h1>
