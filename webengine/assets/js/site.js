@@ -36,6 +36,8 @@ function setting_add_list(name)
      {
          document.getElementById(name + ".list" + (i).toString()).value = content_name[i];
      }   
+
+     settings_list_format(name)
 }
 
 function setting_rm_list(name)
@@ -69,6 +71,7 @@ function setting_rm_list(name)
      {
          document.getElementById(name + ".list" + (i).toString()).value = content_name[i];
      }   
+     settings_list_format(name)
 }
 
 function button_machine_display(info)

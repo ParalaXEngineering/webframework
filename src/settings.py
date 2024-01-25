@@ -69,9 +69,7 @@ def config_edit():
         for user in session["config"]["access"]["users"]["value"]:
             if user not in session["config"]["access"]["users_groups"]["value"]:
                 session["config"]["access"]["users_groups"]["value"][user] = ["admin"]
-        session["config"]["access"]["users_groups"]["constrains"] = session["config"][
-            "access"
-        ]["groups"]["value"]
+        session["config"]["access"]["users_groups"]["constrains"] = session["config"]["access"]["groups"]["value"]
         to_remove = []
         for user in session["config"]["access"]["users_groups"]["value"]:
             if user not in session["config"]["access"]["users"]["value"]:
@@ -79,6 +77,20 @@ def config_edit():
 
         for removal in to_remove:
             session["config"]["access"]["users_groups"]["value"].pop(removal)
+
+        # Update user passwords
+        for user in session["config"]["access"]["users"]["value"]:
+            if user not in session["config"]["access"]["users_password"]["value"]:
+                session["config"]["access"]["users_password"]["value"][user] = [""]
+
+        to_remove = []
+        for user in session["config"]["access"]["users_password"]["value"]:
+            if user not in session["config"]["access"]["users"]["value"]:
+                to_remove.append(user)
+
+        for removal in to_remove:
+            session["config"]["access"]["users_password"]["value"].pop(removal)
+            
 
     # And now, display!
     disp = displayer.Displayer()
