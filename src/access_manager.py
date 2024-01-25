@@ -90,6 +90,7 @@ class Access_manager:
             config = utilities.util_read_parameters()
             if user not in config["access"]["users_password"]["value"]:
                 # No password
+                self.m_user = user
                 return True
             if (
                 password in config["access"]["users_password"]["value"][user]

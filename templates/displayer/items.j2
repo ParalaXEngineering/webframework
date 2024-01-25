@@ -200,7 +200,7 @@
 {% endmacro %}
 
 {% macro modallink(link, text, icon, style) %}
-    <p><a href="#" data-bs-toggle="modal" data-bs-target="#modal_{{link}}", id="{{link}}">
+    <p><a  data-bs-toggle="modal" data-bs-target="#modal_{{link}}", id="{{link}}">
         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
     </a></p>
 {% endmacro %}
@@ -325,8 +325,8 @@
         {% endif %}
         </div>
         <div class="col-sm-1">
-            <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-            <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+            <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+            <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
         </div>
     </div>
 {% endmacro %}
@@ -352,8 +352,8 @@
         {% endif %}
         </div>
         <div class="col-sm-1">
-            <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-            <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+            <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+            <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
         </div>
     </div>
 {% endmacro %}
@@ -387,7 +387,7 @@
         {% endif %}
         </div>
         <div class="col-sm-1">
-            <a href="#" onclick="setting_add_dual_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+            <a  onclick="setting_add_dual_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
         </div>
     </div>
 {% endmacro %}
@@ -415,7 +415,7 @@
     {% endif %}
     </div>
     <div class="col-sm-1">
-        <a href="#" onclick="setting_add_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_add_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
     </div>
     </div>
 {% endmacro %}
@@ -443,7 +443,7 @@
     {% endif %}
     </div>
     <div class="col-sm-1">
-        <a href="#" onclick="setting_add_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_add_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
     </div>
     </div>
 {% endmacro %}
@@ -478,7 +478,7 @@
     {% endif %}
     </div>
     <div class="col-sm-1">
-        <a href="#" onclick="setting_add_dual_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_add_dual_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
     </div>
     </div>
 {% endmacro %}
@@ -506,7 +506,7 @@
     {% endif %}
     </div>
     <div class="col-sm-1">
-        <a href="#" onclick="setting_add_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_add_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
     </div>
     </div>
 {% endmacro %}
@@ -534,8 +534,8 @@
     {% endfor %}
     {{ common_input.hidden(id, value | join('#')) }}
     </div>
-    <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-    <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+    <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+    <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
 
 {% endmacro %}
 
@@ -604,8 +604,8 @@
         {{ common_input.hidden(id, value | join('#')) }}
         </div>
         <div class="col-sm-2">
-        <a href="#" onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-        <a href="#" onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
         </div>
     </div>
 
