@@ -12,8 +12,8 @@
     {% block stylesfirst %}{% endblock %}
     {% block styles %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/mdi/css/materialdesignicons.min.css') }}">
-	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/main/app.css') }}">
-	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/main/app-dark.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app-dark.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond/filepond.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css') }}">
@@ -50,6 +50,7 @@
 {% endif %}
 
 <body class="theme-light" style="overflow-y: auto">
+    <script src="{{ url_for('static', filename= 'js/initTheme.js') }}"></script>
     <div id="app">                   
         <div id="sidebar" class="active">
             <div class="sidebar-wrapper active ps ps--active-y">
@@ -284,7 +285,6 @@
         });
     </script>
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
-    <script src="{{ url_for('static', filename= 'js/bootstrap.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
     {% for script in javascript %}
