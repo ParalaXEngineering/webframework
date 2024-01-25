@@ -21,10 +21,11 @@ def main():
         __name__,
         instance_relative_config=True,
         static_folder=os.path.join("..", "webengine", "assets"),
-        template_folder=os.path.join("..", "templates"),
+        template_folder=os.path.join("..", "templates")
     )
 
     app.config["SESSION_TYPE"] = "filesystem"
+    app.config['TEMPLATES_AUTO_RELOAD'] = False
     app.config["SECRET_KEY"] = "super secret key"
     app.config.from_object(__name__)
     Session(app)
@@ -138,4 +139,4 @@ def main():
         print(f"Endpoint: {rule.endpoint}, Methods: {','.join(rule.methods)}, Path: {rule.rule}")
 
 
-    app.run(debug=True, host="0.0.0.0", use_reloader=False)
+    app.run(debug=False, host="0.0.0.0", use_reloader=False)

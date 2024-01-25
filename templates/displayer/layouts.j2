@@ -6,7 +6,7 @@
     {% elif layout["type"] == "HORIZ" %}
         {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
     {% elif layout["type"] == "TABLE" %}
-        {{ display_table_layout(layout["header"], layout["lines"]) }}
+        {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"]) }}
     {% elif layout["type"] == "SPACER" %}
         <div><p style="margin-bottom:1cm;"></p></div>
           
@@ -48,39 +48,41 @@
     </div>
 {% endmacro %}
 
-{% macro display_table_layout(header=[], lines = []) %}
+{% macro display_table_layout(header=[], lines = [], responsive = None) %}
     
     <div class="row m-1">
-    <table class="table table-striped mb-0">
-        <thead>
-            <tr>
-                {% for head in header %}
-                    <th>{{ head }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-        {% if lines %}
-            {% for line in lines %}
+    <div class="table-responsive">
+        <table class="table table-striped mb-0" {% if responsive %} id="responsive_{{responsive}}" {% endif %}>
+            <thead>
                 <tr>
-                {% for item in line %}
-                    <td>
-                        {% for element in item %}
-                            {% if element["object"] == "item" %}
-                                {{ disp_item.display_item(element) }}
-                            {% elif element["object"] == "layout" %}
-                                {{ display_layout(element)}}
-                            {% else %}
-                                NOT SUPPORTED
-                            {% endif %}
-                        {% endfor %}
-                    </td>
-                {% endfor %}
+                    {% for head in header %}
+                        <th>{{ head }}</th>
+                    {% endfor %}
                 </tr>
-            {% endfor %}
-        {% endif %}
-        </tbody>
+            </thead>
+            <tbody>
+            {% if lines %}
+                {% for line in lines %}
+                    <tr>
+                    {% for item in line %}
+                        <td>
+                            {% for element in item %}
+                                {% if element["object"] == "item" %}
+                                    {{ disp_item.display_item(element) }}
+                                {% elif element["object"] == "layout" %}
+                                    {{ display_layout(element)}}
+                                {% else %}
+                                    NOT SUPPORTED
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                    {% endfor %}
+                    </tr>
+                {% endfor %}
+            {% endif %}
+            </tbody>
 
-        </table>
+            </table>
+        </div>
     </div>
 {% endmacro %}

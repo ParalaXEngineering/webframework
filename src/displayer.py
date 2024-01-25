@@ -78,6 +78,7 @@ class DisplayerLayout:
         spacing: int = 0,
         height: int = 0,
         background: BSstyle = None,
+        responsive = None
     ) -> None:
         """Constructor
 
@@ -100,6 +101,7 @@ class DisplayerLayout:
         self.m_alignement = alignment
         self.m_height = height
         self.m_background = background
+        self.m_responsive = responsive
 
         if spacing <= 5:
             self.m_spacing = spacing
@@ -125,6 +127,7 @@ class DisplayerLayout:
 
         if self.m_type == Layouts.TABLE.value:
             current_layout["header"] = self.m_column
+            current_layout["responsive"] = self.m_responsive
             current_layout["lines"] = None
 
         else:
@@ -968,7 +971,6 @@ class Displayer:
         current_layout["header"] = header
         current_layout["lines"] = None
         current_layout["subtitle"] = subtitle
-
         self.m_modules[self.m_active_module]["layouts"].append(current_layout)
         self.m_current_layout = len(self.m_modules[self.m_active_module]["layouts"]) - 1
 
