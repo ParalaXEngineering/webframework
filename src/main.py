@@ -4,6 +4,7 @@ from flask_session import Session
 from submodules.framework.src import utilities
 
 import os
+import webbrowser
 import logging
 
 from flask_socketio import SocketIO
@@ -138,5 +139,7 @@ def main():
     for rule in app.url_map.iter_rules():
         print(f"Endpoint: {rule.endpoint}, Methods: {','.join(rule.methods)}, Path: {rule.rule}")
 
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        webbrowser.open("http://127.0.0.1:5000")
 
     app.run(debug=False, host="0.0.0.0", use_reloader=False)
