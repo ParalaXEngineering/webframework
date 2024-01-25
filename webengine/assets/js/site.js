@@ -169,6 +169,28 @@ function settings_map_format(name)
     document.getElementById(name).value = JSON.stringify(content)
 }
 
+document.addEventListener('DOMContentLoaded', (event) => {
+    // Sélection de la checkbox
+    const toggleCheckbox = document.getElementById('toggle-dark');
+
+    // Ajout de l'écouteur d'événements sur la checkbox
+    toggleCheckbox.addEventListener('change', function() {
+        // Sélection de tous les éléments avec la classe 'bg-light' ou 'bg-dark'
+        const elements = document.querySelectorAll('.bg-light, .bg-body');
+
+        // Parcourir chaque élément et changer sa classe
+        elements.forEach(element => {
+            if (element.classList.contains('bg-light')) {
+                element.classList.replace('bg-light', 'bg-body');
+            } else {
+                element.classList.replace('bg-body', 'bg-light');
+            }
+        });
+    });
+
+});
+
+
 $(document).ready(function() {    
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     setTimeout(test_connect, 1000)

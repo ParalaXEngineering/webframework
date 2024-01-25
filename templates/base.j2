@@ -276,7 +276,11 @@
         plugins: 'a_tinymce_plugin',
         a_plugin_option: true,
         a_configuration_option: 400,
-        promotion:false
+        promotion:false,
+        height: 125,
+        menubar: '',
+        statusbar:false,
+        toolbar: "undo redo | | blocks fontsizeinput | bold italic | align numlist bullist", // Note: if a toolbar item requires a plugin, the item will not present in the toolbar if the plugin is not also loaded.
         });
     </script>
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
