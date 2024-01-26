@@ -23,6 +23,8 @@
         {{download(item["id"], item["text"], item["data"])}}
     {% elif item["type"] == "ICONLINK" %}
         {{iconlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
+    {% elif item["type"] == "FILE" %}
+        {{file(item["id"], item["value"], item["text"], item["endpoint"], item["path"])}}
     {% elif item["type"] == "IMAGE" %}
         {{image(item["id"], item["value"], item["data"], item["endpoint"], item["path"])}}
     {% elif item["type"] == "INBOX" %}
@@ -213,6 +215,24 @@
     {% endif %}
 {% endmacro %}
 
+{% macro file(id, src, text, endpoint, path) %}
+    {% if ".docx" in src %}
+    <i class="mdi mdi-file-word-box text-primary"></i>
+    {% elif ".xlsx" in src %}
+    <i class="mdi mdi-file-excel-box text-success"></i>
+    {% elif ".pdf" in src %}
+    <i class="mdi mdi-file-pdf-box text-danger"></i>
+    {% else %}
+    <i class="mdi mdi-file-document text-primary"></i>
+    {% endif %}
+
+    {% if path %}
+    <a href="{{ url_for('common.assets', asset_type=endpoint, filename=path + '/' + src) }}"> {{ text }}</a>
+    {% else %}
+    <a href="{{src}}">{{ text }}
+    {% endif %}
+{% endmacro %}
+
 {% macro download(id, text, link) %}
     <a class="btn btn-primary" href="{{url_for(link)}}"}>{{text}}</a>
 {% endmacro %}
@@ -307,21 +327,34 @@
 {% macro inlistselect(id, data, values, text) %}
     {% if text %}
         {{ text }}
-    {% endif %}
+    {% endif %}   
 
     {% set displayed = namespace(value=0) %}
     <div class="row align-items-center">
         <div id="{{id}}.div" class="col-sm-11">
-        {% for subitem in values %}
-                <div class="row" id="{{id + ".div" + loop.index0 | string }}">
-                    <div class="col-sm-12">{{common_input.select(id + ".list" + loop.index0 | string, data, values[loop.index0]) }} </div>
+        {# Special case: we were given an empty list, that means that we need to display an empty field, but with a masked item so we can add items #}
+        {% if values == [None]%}
+            <div class="row" id="{{id + ".div0" }}">
+                <div class="col-sm-12">
+                    <select class="form-control" id="{{ id + ".masked" }}" style="display: none">
+                    {% for item in data %}
+                        <option>{{item}}</option>
+                    {% endfor %}
+                    </select>
                 </div>
-                {% set displayed.value = displayed.value + 1 %}
-        {% endfor %}
-        {% if displayed.value == 0 %}
-            <div class="row" id="{{id}}.div">
-                <div class="col-sm-6">{{common_input.inputstring(id + ".list0") }} </div>
             </div>
+        {% else %}
+            {% for subitem in values %}
+                    <div class="row" id="{{id + ".div" + loop.index0 | string }}">
+                        <div class="col-sm-12">{{common_input.select(id + ".list" + loop.index0 | string, data, values[loop.index0]) }} </div>
+                    </div>
+                    {% set displayed.value = displayed.value + 1 %}
+            {% endfor %}
+            {% if displayed.value == 0 %}
+                <div class="row" id="{{id}}.div">
+                    <div class="col-sm-6">{{common_input.inputstring(id + ".list0") }} </div>
+                </div>
+            {% endif %}
         {% endif %}
         </div>
         <div class="col-sm-1">
@@ -528,8 +561,9 @@
         {{ text }}
     {% endif %}
 
+
     <div id="{{id}}.div">
-    {% for list_item in value %}
+    {% for list_item in value%}
         {{ common_input.select_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "')", data, list_item)}}
     {% endfor %}
     {{ common_input.hidden(id, value | join('#')) }}

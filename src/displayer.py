@@ -13,6 +13,7 @@ class Layouts(Enum):
 class DisplayerItems(Enum):
     TEXT = "TEXT"
     IMAGE = "IMAGE"
+    FILE = "FILE"
     BADGE = "BADGE"
     INDATE = "INDATE"
     INBOX = "INBOX"
@@ -455,7 +456,26 @@ class DisplayerItemImage(DisplayerItem):
 
         return
 
+class DisplayerItemFile(DisplayerItem):
+    """Specialized display item to display an image"""
 
+    def __init__(self, link: str, endpoint: str = None, path: str = None, text: str = None) -> None:
+        """Initialize with the text content
+
+        :param link: The link to the image. Can be either the name of the file, or a full http adress.
+        :type link: str
+        :param endpoint: If using local path, then an endpoint must be used, which is in reference with the endpoint defined in site_conf
+        :type endpoint: str
+        :param path: The path relative to the endpoint
+        :type path: str
+        """
+        super().__init__(DisplayerItems.FILE)
+        self.m_text = text
+        self.m_value = link
+        self.m_path = path
+        self.m_endpoint = endpoint
+        return
+    
 class DisplayerItemInputBox(DisplayerItem):
     """Specialized display to display an input checkbox"""
 

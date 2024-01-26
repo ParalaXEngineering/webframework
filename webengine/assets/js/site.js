@@ -2,6 +2,18 @@ function setting_add_list(name)
 {
     console.log(name)
 
+    // If the first item in the list is hidden, then it's simply a matter of displaying it
+    var list0 = document.getElementById(name + ".masked");
+    if (list0 && list0.style.display == 'none') 
+    {
+        list0.id = name + ".list0"
+        list0.name = name + ".list0"
+        document.getElementById(name + ".list0").value = "";
+        list0.style.display = ''
+        return
+    }
+
+
      //Find the biggest line
      var max_nb = 0
      var content_name = []
@@ -36,8 +48,6 @@ function setting_add_list(name)
      {
          document.getElementById(name + ".list" + (i).toString()).value = content_name[i];
      }   
-
-     settings_list_format(name)
 }
 
 function setting_rm_list(name)
@@ -62,16 +72,19 @@ function setting_rm_list(name)
          }
      }
 
-     //Add the line
-     var div = document.getElementById(name + ".div")
-     document.getElementById(name + ".list" + (max_nb - 1).toString()).remove();
- 
-     //And repush the user data
-     for (var i = 0; i < max_nb - 1; i++)
+     
+     if(max_nb == 1)
      {
-         document.getElementById(name + ".list" + (i).toString()).value = content_name[i];
-     }   
-     settings_list_format(name)
+        var div = document.getElementById(name + ".list0")
+        div.style.display = 'none'; // Cache le div
+        div.id = name + ".masked"
+        div.name = ""
+     }
+     else
+     {
+        var div = document.getElementById(name + ".div")
+        document.getElementById(name + ".list" + (max_nb - 1).toString()).remove();
+     }
 }
 
 function button_machine_display(info)
