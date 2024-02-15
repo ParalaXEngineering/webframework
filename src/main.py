@@ -80,12 +80,20 @@ def main():
 
     scheduler.scheduler_obj = scheduler_obj
 
+    # Start long term scheduler
+    scheduler_lt = scheduler.Scheduler_LongTerm()
+    scheduler_lt.start()
+    scheduler.scheduler_ltobj = scheduler_lt
+
     threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
 
     # Import site_conf
     site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
     site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj
     site_conf.site_conf_app_path = app_path
+
+    # Register long term functions from the site confi
+    site_conf.site_conf_obj.register_scheduler_lt_functions()
 
     @socketio_obj.on("user_connected")
     def connect():

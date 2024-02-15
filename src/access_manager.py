@@ -1,6 +1,5 @@
 from submodules.framework.src import utilities
-
-import json
+from flask import session
 
 auth_object = None
 
@@ -15,7 +14,6 @@ class Access_manager:
 
     def __init__(self):
         self.m_login = False
-        self.m_user = ""
 
         self.m_users = {}
         self.m_groups = []
@@ -23,7 +21,6 @@ class Access_manager:
 
         self.m_users_groups = {}
 
-        self.load_authorizations()
 
     def load_authorizations(self):
         """Load the authorization file into the manager"""
@@ -39,7 +36,9 @@ class Access_manager:
                 "default_user" in config["access"]
                 and config["access"]["default_user"]["value"] in self.m_users
             ):
-                self.m_user = config["access"]["default_user"]["value"]
+                session['username'] = config["access"]["default_user"]["value"]
+            else:
+                session['username'] = "GUEST"
 
             # When creating a user, the user name is not in the authorization
             # file.Let's add it here, otherwise it will be too much a pain
@@ -65,7 +64,9 @@ class Access_manager:
         :return: The currently logged user
         :rtype: str
         """
-        return self.m_user
+        if 'username' not in session:
+            session['username'] = None
+        return session['username']
 
     def use_login(self, login: bool):
         """Activate the login capabilities of the website
@@ -84,22 +85,25 @@ class Access_manager:
         :type password: str
         """
 
+        if not self.m_users_groups:
+            self.load_authorizations()
+
         # Check if not already there
         if self.m_login:
             # Check password
             config = utilities.util_read_parameters()
             if user not in config["access"]["users_password"]["value"]:
                 # No password
-                self.m_user = user
+                session['username'] = user
                 return True
             if (
                 password in config["access"]["users_password"]["value"][user]
                 or config["access"]["users_password"]["value"][user] == ""
             ):
-                self.m_user = user
-                config = utilities.util_read_parameters()
+                session['username'] = user
                 return True
             else:
+                session['username'] = None
                 return False
 
     def authorize_group(self, allowed_groups: list = None) -> bool:
@@ -111,14 +115,23 @@ class Access_manager:
         is disabled, false otherwise
         :rtype: bool
         """
+        if not self.m_users_groups:
+            self.load_authorizations()
+
         if not self.m_login:
             return True
 
         # No identification was provided
-        if not self.m_user:
+        if 'username' not in session:
+            session['username'] = None
+
+        if not session['username']:
+            return False
+        
+        if session['username'] not in  self.m_users_groups:
             return False
 
-        for user_group in self.m_users_groups[self.m_user]:
+        for user_group in self.m_users_groups[session['username']]:
             if user_group in allowed_groups:
                 return True
 
@@ -137,12 +150,18 @@ class Access_manager:
             return True
 
         # No identification was provided
-        if not self.m_user:
+        if 'username' not in session:
+            session['username'] = None
+
+        if not session['username']:
+            return False
+
+        if session['username'] not in self.m_users_groups:
             return False
 
         # print(self.m_modules[module])
 
-        for user_group in self.m_users_groups[self.m_user]:
+        for user_group in self.m_users_groups[session['username']]:
             if module not in self.m_modules:
                 # Core modules are always in admin mode
                 if user_group == "admin":

@@ -6,6 +6,8 @@ import glob
 import math
 from jinja2 import Environment, FileSystemLoader
 import serial
+import zlib
+import tarfile
 
 from submodules.framework.src import access_manager
 
@@ -716,3 +718,24 @@ def utils_format_unit(cpnt: dict) -> dict:
         cpnt[item] = str(value_float) + new_unit
 
     return cpnt
+
+def utils_calculate_crc32(filepath):
+    """Calcule le CRC32 d'un fichier donné."""
+    with open(filepath, 'rb') as file:
+        content = file.read()
+        return zlib.crc32(content)
+
+def utils_get_directory_crc32(directory_path):
+    """Génère un dictionnaire des CRC32 pour tous les fichiers dans un répertoire."""
+    crc32_dict = {}
+    for root, dirs, files in os.walk(directory_path):
+        for file in files:
+            filepath = os.path.join(root, file)
+            crc32_dict[filepath] = utils_calculate_crc32(filepath)
+    return crc32_dict
+
+def utils_create_backup(backup_folders, backup_name):
+    """Crée un fichier .tar.gz contenant les dossiers spécifiés."""
+    with tarfile.open(backup_name, "w:gz") as tar:
+        for folder in backup_folders:
+            tar.add(folder, arcname=os.path.basename(folder))

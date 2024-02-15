@@ -1,4 +1,5 @@
 from submodules.framework.src import access_manager
+from submodules.framework.src import scheduler
 
 import os
 
@@ -20,6 +21,17 @@ class Site_conf:
 
     m_javascripts = []
     """Custom javascripts"""
+
+    m_scheduler_lt_functions = []
+    """Functions that can be registered in the long term scheduler. Should be an array of arrays which are [func, period]"""
+
+    def register_scheduler_lt_functions(self):
+        """
+        Register all the functions that are set in the m_scheduler_lt_functions, which must be populated by the child class
+        """
+        print(self.m_scheduler_lt_functions)
+        for func in self.m_scheduler_lt_functions:
+            scheduler.scheduler_ltobj.register_function(func[0], func[1])
 
     def add_sidebar_title(self, title: str):
         """Add a sidebar title, which can logically seperate several parts of the sidebar

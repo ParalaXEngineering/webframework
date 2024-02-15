@@ -1,4 +1,5 @@
 import time
+import threading
 import logging
 import logging.config
 
@@ -7,6 +8,7 @@ from enum import Enum
 from submodules.framework.src import threaded_manager
 
 scheduler_obj = None
+scheduler_ltobj = None
 
 
 class logLevel(Enum):
@@ -15,6 +17,56 @@ class logLevel(Enum):
     warning = 2
     error = 3
     empty = 4
+
+
+class Scheduler_LongTerm:
+    def __init__(self):
+        self.functions = []
+        self.thread = threading.Thread(target=self.run, daemon=True)
+        self.running = False
+
+    def register_function(self, function, period: int) -> None:
+        """Register a nex function
+
+        :param function: The function to register
+        :type function: Function
+        :param period: The period, in minutes, to execute this function
+        :type period: int
+        """
+        self.functions.append((function, period, time.time()))
+
+    def run(self):
+        """
+        Main execution loop
+        """
+        self.running = True
+        while self.running:
+            current_time = time.time()
+            for func, period, last_run in self.functions:
+                if current_time - last_run >= period * 6:
+                    try:
+                        print("Executuing " + str(func))
+                        func()
+                    except Exception as e:
+                        print(f"Error executing function {func.__name__}: {e}")
+                    
+                    # Update last execution time
+                    self.functions = [(f, p, (current_time if f is func else last_run)) for f, p, last_run in self.functions]
+
+            time.sleep(10)
+
+    def start(self):
+        """"
+        Start the scheduler in its thread
+        """
+        if not self.running:
+            self.thread.start()
+
+    def stop(self):
+        """
+        Stop the scheduler
+        """
+        self.running = False
 
 
 class Scheduler:
