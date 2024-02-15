@@ -43,9 +43,8 @@ class Scheduler_LongTerm:
         while self.running:
             current_time = time.time()
             for func, period, last_run in self.functions:
-                if current_time - last_run >= period * 6:
+                if current_time - last_run >= period * 60:
                     try:
-                        print("Executuing " + str(func))
                         func()
                     except Exception as e:
                         print(f"Error executing function {func.__name__}: {e}")
