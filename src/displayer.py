@@ -239,14 +239,17 @@ class DisplayerItem:
 class DisplayerItemPlaceholder(DisplayerItem):
     """Specialized display item to set a placeholder with an id which can be filled later"""
 
-    def __init__(self, id: str) -> None:
+    def __init__(self, id: str, data: str) -> None:
         """Initialize with the text content
 
         :param id: The id of the placehpmder
         :type id: str
+        :param data: some data that are already in the placeholder
+        :type data: str
         """
         super().__init__(DisplayerItems.PLACEHOLDER)
         self.m_id = id
+        self.m_data = data
 
 
 class DisplayerItemAlert(DisplayerItem):

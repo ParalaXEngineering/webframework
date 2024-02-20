@@ -12,7 +12,7 @@
     {% if item["type"] == "TEXT" %}
         {{text(item["text"])}}
     {% elif item["type"] == "PLACEHOLDER" %}
-        {{placeholder(item["id"])}}
+        {{placeholder(item["id"], item["data"])}}
     {% elif item["type"] == "BUTTON" %}
         {{button(item["id"], item["text"], item["disabled"])}}
     {% elif item["type"] == "MODALBUTTON" %}
@@ -185,8 +185,8 @@
     {{text}}
 {% endmacro %}
 
-{% macro placeholder(id) %}
-    <div id="{{id}}"> </div>
+{% macro placeholder(id, data) %}
+    <div id="{{id}}">{{data}}</div>
 {% endmacro %}
 
 {% macro button(id, text, disabled = false) %}
