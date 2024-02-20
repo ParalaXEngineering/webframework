@@ -287,11 +287,7 @@ def util_view_create_modal(id: str, modal_displayer: displayer, base_displayer: 
     :rtype: dict
     """
     id = id.replace(" ", "_").replace(".", "_").replace('/', '_')
-    env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
-    template = env.get_template("base_content_modal.j2")
-    content = modal_displayer.display()
-    reloader = template.render(content=content, id=id, header=header)
-    base_displayer.add_modal("modal_" + id, reloader)
+    base_displayer.add_modal("modal_" + id, header, modal_displayer)
     
     return id
 

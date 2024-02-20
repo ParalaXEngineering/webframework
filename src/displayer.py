@@ -981,8 +981,8 @@ class Displayer:
 
         return True
     
-    def add_modal(self, id: str, modal: str) -> None:
-        self.m_modals.append({"id": id, "modal": modal})
+    def add_modal(self, id: str, header: str, modal) -> None:
+        self.m_modals.append({"id": id, "header": header, "content": modal.display()})
 
         return
 
