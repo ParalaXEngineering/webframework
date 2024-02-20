@@ -101,7 +101,7 @@ def main():
 
     @socketio_obj.server.on("*")
     def catch_all(event, sid, *args):
-        site_conf.site_conf_obj.socketio_event(event)
+        site_conf.site_conf_obj.socketio_event(event, args)
 
     @app.context_processor
     def inject_bar():

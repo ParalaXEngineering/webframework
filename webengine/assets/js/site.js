@@ -206,6 +206,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 });
 
+function send_terminal() {
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var inputElement = document.getElementById('terminal_input'); // C'est l'élément d'input lui-même
+    var command = inputElement.value; // C'est la valeur de l'input
+    socket.emit('terminal_cmd', command);
+    inputElement.value = ""; // Réinitialisez l'élément d'input ici
+}
+
 
 $(document).ready(function() {    
     var socket = io.connect('http://' + document.domain + ':' + location.port);

@@ -228,12 +228,10 @@ class Scheduler:
             # Send popups if any
             for item in self.m_popups:
                 level = item[0].name
-                print("Popuping " + str(level) + str(item[1]))
                 self.socket_obj.emit("popup", {level: item[1]})
 
             # Send content if any
             for item in self.m_contents:
-                print("Contenting " + str(item[0]) + ": " + str(item[1]))
                 self.socket_obj.emit("content", {item[0]: item[1]})
 
             # Send the status if any. Start by filtering the status so we only keep the last important ones
@@ -254,7 +252,6 @@ class Scheduler:
 
             # Send result if any
             for item in self.m_results:
-                print("Resulting " + str(item[0]) + ": " + str(item[1]))
                 self.socket_obj.emit("result", {"category": item[0], "text": item[1]})
 
             for item in self.m_modals:
@@ -262,7 +259,6 @@ class Scheduler:
 
             # Send new formulaire information
             for item in self.m_reload:
-                print("Reloading " + str(item[0]))
                 self.socket_obj.emit("reload", {"id": item[0], "content": item[1]})
 
             threads_names = threaded_manager.thread_manager_obj.get_names()
@@ -291,4 +287,4 @@ class Scheduler:
             self.m_button_enable = []
 
             self.user_after()
-            time.sleep(0.5)
+            time.sleep(0.1)

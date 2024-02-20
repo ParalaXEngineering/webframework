@@ -317,7 +317,7 @@ class Site_conf:
         """Function that is called before rendering any page, should be overwritten by the child object"""
         return
 
-    def socketio_event(self, event):
+    def socketio_event(self, event, data):
         """Function called to respond to event, should be overwritten by the child object"""
         return
 
