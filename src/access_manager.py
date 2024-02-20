@@ -123,12 +123,12 @@ class Access_manager:
 
         # No identification was provided
         if 'username' not in session:
-            session['username'] = None
+            self.load_authorizations()
 
         if not session['username']:
             return False
         
-        if session['username'] not in  self.m_users_groups:
+        if session['username'] not in self.m_users_groups:
             return False
 
         for user_group in self.m_users_groups[session['username']]:
@@ -151,13 +151,14 @@ class Access_manager:
 
         # No identification was provided
         if 'username' not in session:
-            session['username'] = None
+            # Check if we have a default user:
+            self.load_authorizations()
 
         if not session['username']:
-            return False
+            self.load_authorizations()
 
         if session['username'] not in self.m_users_groups:
-            return False
+            self.load_authorizations()
 
         # print(self.m_modules[module])
 
