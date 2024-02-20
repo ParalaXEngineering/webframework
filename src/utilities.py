@@ -253,7 +253,7 @@ def util_view_reload_displayer(id: str, disp: displayer) -> dict:
     # And update display
     env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
     template = env.get_template("base_content_reloader.j2")
-    reloader = template.render(content=disp.display())
+    reloader = template.render(content=disp.display(True)) # Bypass authentification here
 
     to_render = [{"id": id, "content": reloader}]
     return to_render

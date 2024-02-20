@@ -981,8 +981,8 @@ class Displayer:
 
         return True
     
-    def add_modal(self, id: str, header: str, modal) -> None:
-        self.m_modals.append({"id": id, "header": header, "content": modal.display()})
+    def add_modal(self, id: str, modal: str) -> None:
+        self.m_modals.append({"id": id, "modal": modal})
 
         return
 
@@ -1043,7 +1043,7 @@ class Displayer:
 
         return None
 
-    def display(self) -> dict:
+    def display(self, bypass_auth: bool = False) -> dict:
         """Return the information to pass to the template
 
         :return: The dictionnary needed for the template to display
@@ -1052,8 +1052,11 @@ class Displayer:
         serve_modules = {}
         serve_modules["modals"] = self.m_modals
 
-        for module in self.m_modules:
-            auth = access_manager.auth_object.authorize_module(module)
+        for module in self.m_modules:  
+            if not bypass_auth:
+                auth = access_manager.auth_object.authorize_module(module)
+            else: 
+                auth = True
             if auth:
                 serve_modules[module] = self.m_modules[module]
 
