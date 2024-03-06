@@ -206,12 +206,36 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 });
 
+function scrollToBottom() {
+    var terminalConsole = document.getElementById("terminal-console");
+    terminalConsole.scrollTop = terminalConsole.scrollHeight;
+}
+
+
 function send_terminal() {
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     var inputElement = document.getElementById('terminal_input'); // C'est l'élément d'input lui-même
     var command = inputElement.value; // C'est la valeur de l'input
     socket.emit('terminal_cmd', command);
     inputElement.value = ""; // Réinitialisez l'élément d'input ici
+    
+    // Créez une instance de MutationObserver pour surveiller les changements dans le terminal
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                scrollToBottom();
+            }
+        });
+    });
+
+    // Configuration de l'observer :
+    var config = { childList: true };
+
+    // Ciblez l'élément à observer :
+    var target = document.getElementById('terminal-user-content');
+
+    // Commencez à observer le target pour les mutations configurées
+    observer.observe(target, config);
 }
 
 $(document).ready(function() {    

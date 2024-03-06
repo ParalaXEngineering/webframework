@@ -88,7 +88,7 @@ class Threaded_action:
 
     def delete(self):
         """Delete the thread and unregister it from the thread manager"""
-
+        self.m_running = False
         threaded_manager.thread_manager_obj.del_thread(self)
 
     def process_exec(self, command: list, source_folder: str, shell=True, inputs=None):
