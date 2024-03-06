@@ -25,6 +25,9 @@ class Scheduler_LongTerm:
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.running = False
 
+        logging.config.fileConfig("submodules/framework/log_config.ini")
+        self.m_logger = logging.getLogger("website")
+
     def register_function(self, function, period: int) -> None:
         """Register a nex function
 
@@ -47,18 +50,21 @@ class Scheduler_LongTerm:
                     try:
                         func()
                     except Exception as e:
-                        print(f"Error executing function {func.__name__}: {e}")
+                        self.m_logger.error(f"Error executing function {func.__name__}: {e}")
                     
                     # Update last execution time
                     self.functions = [(f, p, (current_time if f is func else last_run)) for f, p, last_run in self.functions]
 
             time.sleep(10)
 
+        self.m_logger.info("LT Scheduler stopped")
+
     def start(self):
         """"
         Start the scheduler in its thread
         """
         if not self.running:
+            self.m_logger.info("LT Scheduler started")
             self.thread.start()
 
     def stop(self):
@@ -222,7 +228,6 @@ class Scheduler:
 
             # Send buttons, if any
             for item in self.m_buttons:
-                # print("Buttuning " + str({item[0]: [item[1], item[2], item[3]]}))
                 self.socket_obj.emit("button", {item[0]: [item[1], item[2], item[3]]})
 
             # Send popups if any

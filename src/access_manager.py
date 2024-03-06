@@ -32,16 +32,14 @@ class Access_manager:
             self.m_groups = config["access"]["groups"]["value"]
             self.m_modules = config["access"]["modules"]["value"]
 
-            if (
-                "default_user" in config["access"]
-                and config["access"]["default_user"]["value"] in self.m_users
-            ):
-                session['username'] = config["access"]["default_user"]["value"]
-            else:
-                session['username'] = "GUEST"
+            if "username" not in session:
+                if ("default_user" in config["access"] and config["access"]["default_user"]["value"] in self.m_users):
+                    session['username'] = config["access"]["default_user"]["value"]
+                else:
+                    session['username'] = "GUEST"
 
             # When creating a user, the user name is not in the authorization
-            # file.Let's add it here, otherwise it will be too much a pain
+            # file. Let's add it here, otherwise it will be too much a pain
             # to do elsewhere
             for user in config["access"]["users"]["value"]:
                 if user not in config["access"]["users_password"]["value"]:

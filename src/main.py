@@ -16,15 +16,14 @@ from submodules.framework.src import threaded_manager
 from submodules.framework.src import access_manager
 from submodules.framework.src import site_conf
 
-
-def main():
-    app = Flask(
+app = Flask(
         __name__,
         instance_relative_config=True,
         static_folder=os.path.join("..", "webengine", "assets"),
         template_folder=os.path.join("..", "templates")
     )
 
+def setup_app(app):
     app.config["SESSION_TYPE"] = "filesystem"
     app.config['TEMPLATES_AUTO_RELOAD'] = False
     app.config["SECRET_KEY"] = "super secret key"
@@ -47,7 +46,6 @@ def main():
     # Automatically import all pages
     for item in os.listdir(os.path.join(app_path, "website", "pages")):
         if ".py" in item:
-            print("website.pages." + item[0:-3])
             module = importlib.import_module("website.pages." + item[0:-3])
             app.register_blueprint(module.bp)
 
@@ -144,10 +142,7 @@ def main():
 
         inject_bar()
 
-    for rule in app.url_map.iter_rules():
-        print(f"Endpoint: {rule.endpoint}, Methods: {','.join(rule.methods)}, Path: {rule.rule}")
-
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         webbrowser.open("http://127.0.0.1:5000")
 
-    app.run(debug=False, host="0.0.0.0", use_reloader=False)
+setup_app(app)

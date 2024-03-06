@@ -24,7 +24,7 @@ class Threaded_action:
 
     m_type = "threaded_action"
     """The type of the module"""
-
+    
     def __init__(self):
         self.m_name = None
 
@@ -220,7 +220,6 @@ class Threaded_action:
         self.m_running = True
         # Wait for the browser
         try:
-            print("Trying to start action")
             self.action()
         except Exception as e:
             traceback_str = traceback.format_exc()

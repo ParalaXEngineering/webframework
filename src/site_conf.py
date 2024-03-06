@@ -29,7 +29,6 @@ class Site_conf:
         """
         Register all the functions that are set in the m_scheduler_lt_functions, which must be populated by the child class
         """
-        print(self.m_scheduler_lt_functions)
         for func in self.m_scheduler_lt_functions:
             scheduler.scheduler_ltobj.register_function(func[0], func[1])
 

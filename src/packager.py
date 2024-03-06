@@ -56,7 +56,6 @@ class SETUP_Packager(threaded_action.Threaded_action):
             to_upload_files = utilities.util_dir_structure(
                 os.path.join("packages"), inclusion=[".zip"]
             )
-            print(to_upload_files)
             reloader = utilities.util_view_reload_input_file_manager(
                 self.m_default_name,
                 "upload_package",
@@ -66,7 +65,6 @@ class SETUP_Packager(threaded_action.Threaded_action):
                 ["primary"],
                 [False],
             )
-            print(reloader)
             self.m_scheduler.emit_reload(reloader)
 
         elif self.m_action == "upload_package":
@@ -261,7 +259,6 @@ def packager():
 
             elif "upload" in data_in:
                 for item in data_raw:
-                    print(item)
                     if data_raw[item] == "primary":
                         packager.set_file(item)
                 packager.set_action("upload_package")

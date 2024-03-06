@@ -43,7 +43,6 @@ def assets(asset_type):
         return "Invalid folder type", 404
 
     file_name = request.args.get("filename")
-    print("Serving path " + asset_type + " on file " + file_name)
     file_path = os.path.join(folder_path, file_name)
     return send_file(file_path, as_attachment=True)
 
