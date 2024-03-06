@@ -287,7 +287,7 @@ def util_view_create_modal(id: str, modal_displayer: displayer, base_displayer: 
     :rtype: dict
     """
     id = id.replace(" ", "_").replace(".", "_").replace('/', '_')
-    base_displayer.add_modal("modal_" + id, header, modal_displayer)
+    base_displayer.add_modal("modal_" + id, modal_displayer, header)
     
     return id
 
@@ -610,7 +610,6 @@ def utils_format_unit(cpnt: dict) -> dict:
     """
     unit_order = ["f", "p", "n", "µ", "m", "default", "K", "M", "G"]
 
-    print(cpnt)
     for item in cpnt:
         unit = item.split("[")[1][:-1]
         value = cpnt[item]
@@ -674,9 +673,6 @@ def utils_format_unit(cpnt: dict) -> dict:
             if current_unwanted in value:
                 value = value.replace(current_unwanted, "")
 
-        print("Hello")
-        print(value)
-
         # Set the unit
         new_unit = expected_units["default"]
         for eu in expected_units:
@@ -686,7 +682,6 @@ def utils_format_unit(cpnt: dict) -> dict:
 
         # We have the number and unit, see if we can change the unit
         value_float = utils_keep_number(value)
-        print(value_float)
         if math.isnan(value_float):
             continue
         unit_index = unit_order.index(new_unit)

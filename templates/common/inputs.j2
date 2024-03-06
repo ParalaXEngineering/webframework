@@ -73,6 +73,11 @@
 
 {% macro date(name, default=None) %}
     <input type="date" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+    {% if 'T' in default %}
+        <input type="datetime-local" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+    {% else %}
+        <input type="date" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+    {% endif %}
 {% endmacro %}
 
 {% macro input_js(name, js, default=None) %}

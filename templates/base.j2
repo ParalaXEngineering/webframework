@@ -19,8 +19,28 @@
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond/filepond.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css') }}">
-	<link rel="shortcut icon" href="{{ url_for('static', filename= 'images/logo/favicon.svg') }}" type="image/x-icon">
-	<link rel="shortcut icon" href="{{ url_for('static', filename= 'images/logo/favicon.png') }}" type="image/png">
+	<link rel="shortcut icon" href="{{ url_for('common.assets', asset_type="images", filename= 'logo/favicon.png') }}" type="image/png">
+
+    <style>
+        #overlay {
+            position: fixed; /* Cover the whole screen */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+            display: none; /* Hidden by default */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            z-index: 1000; /* Make sure it's above other content */
+            display: flex; /* Use Flexbox to center the image */
+        }
+        #overlay img {
+            max-width: 80%; /* Limit image size, keeping some margin */
+            max-height: 80%;
+            margin: auto; /* Center the image within the flex container */
+        }
+    </style>
     
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
@@ -280,14 +300,14 @@
 
     tinymce.init({
         selector: 'textarea',  // change this value according to your HTML
-        plugins: 'a_tinymce_plugin',
+        plugins: 'a_tinymce_plugin lists',
         a_plugin_option: true,
         a_configuration_option: 400,
         promotion:false,
         height: 125,
+        resize: true,
         menubar: '',
-        statusbar:false,
-        toolbar: "undo redo | | blocks fontsizeinput | bold italic | align numlist bullist", // Note: if a toolbar item requires a plugin, the item will not present in the toolbar if the plugin is not also loaded.
+        toolbar: "undo redo | blocks fontsizeinput | bold italic | align numlist | bullist numlist outdent indent", // Note: if a toolbar item requires a plugin, the item will not present in the toolbar if the plugin is not also loaded.
         });
 
 

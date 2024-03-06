@@ -745,9 +745,10 @@ class DisplayerItemInputNumeric(DisplayerItem):
 
 
 class DisplayerItemInputDate(DisplayerItem):
-    """Specialized display to display an input date"""
+    """Specialized display to display an input date.
+    Date shall be in format YYYY-MM-DD or YYYY-MM-DDT000:00 if the minute and hour is also needed"""
 
-    def __init__(self, id: str, text: str = None, value: float = None) -> None:
+    def __init__(self, id: str, text: str = None, value: str = None) -> None:
         super().__init__(DisplayerItems.INDATE)
         self.m_text = text
         self.m_value = value
@@ -981,8 +982,8 @@ class Displayer:
 
         return True
     
-    def add_modal(self, id: str, modal: str) -> None:
-        self.m_modals.append({"id": id, "modal": modal})
+    def add_modal(self, id: str, modal: str, header: str = "") -> None:
+        self.m_modals.append({"id": id, "content": modal.display(), "header": header})
 
         return
 

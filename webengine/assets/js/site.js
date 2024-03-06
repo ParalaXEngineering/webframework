@@ -214,11 +214,25 @@ function send_terminal() {
     inputElement.value = ""; // Réinitialisez l'élément d'input ici
 }
 
-
 $(document).ready(function() {    
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     setTimeout(test_connect, 1000)
     function test_connect(){socket.emit("user_connected") }
+
+    // Append overlay to body
+    $('body').append('<div id="overlay" style="display: none;"><img src=""></div>');
+
+    // When any image with class 'zoomable' is clicked
+    $('.zoomable').click(function() {
+        var imageSrc = $(this).attr('src');
+        $('#overlay img').attr('src', imageSrc);
+        $('#overlay').fadeIn();
+    });
+
+    // When overlay is clicked
+    $('#overlay').click(function() {
+        $('#overlay').fadeOut();
+    });
 
     socket.on( 'content', function( msg ) {
         for(let id of Object.keys(msg))
