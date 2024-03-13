@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, request, send_file
+from flask import Blueprint, render_template, request, send_file, send_from_directory
 
 from submodules.framework.src import utilities
 from submodules.framework.src import access_manager
 from submodules.framework.src import displayer
 from submodules.framework.src import site_conf
+from website.modules import User_defined_module
 
 import os
 import sys
@@ -13,6 +14,7 @@ import re
 from datetime import datetime
 
 bp = Blueprint("common", __name__, url_prefix="/common")
+
 
 @bp.route("/download", methods=["GET"])
 def download():
@@ -32,7 +34,7 @@ def download():
 @bp.route("/assets/<asset_type>/", methods=["GET"])
 def assets(asset_type):
     asset_paths = site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path)
-    
+
     folder_path = None
     for path_info in asset_paths:
         if asset_type in path_info:
@@ -46,9 +48,11 @@ def assets(asset_type):
     file_path = os.path.join(folder_path, file_name)
     return send_file(file_path, as_attachment=True)
 
+
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     """Login page"""
+    access_manager.auth_object.unlog()
     config = utilities.util_read_parameters()
     users = config["access"]["users"]["value"]
 
@@ -72,13 +76,18 @@ def help():
     topic = data_in["topic"]
 
     # Open md file
-    text = open(os.path.join("website", "help", topic + ".md"), "r")
-    text_data = text.read()
-    text.close()
+    md_file_path = os.path.join("website", "help", topic + ".md")
+    # Vérifiez si le fichier existe pour éviter FileNotFoundError
+    if not os.path.exists(md_file_path):
+        return "Fichier Markdown non trouvé.", 404    
+    with open(md_file_path, "r", encoding="utf-8") as text:
+        text_data = text.read()
+
     content = markdown.markdown(text_data, extensions=["sane_lists"])
 
     disp = displayer.Displayer()
-    disp.add_generic("Changelog", display=False)
+    # disp.add_generic("Changelog", display=False)
+    disp.add_module(User_defined_module.User_defined_module)
     disp.add_master_layout(
         displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
     )
@@ -94,7 +103,7 @@ def parse_log_file(log_file):
     log_entries = []
 
     log_pattern = r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) \| (\w+) +\| (\w+\.\w+) +\| (\w+) +\| (\d+) +\| (.*)"
-    
+
     with open(log_file, "r") as file:
         lines = file.readlines()
 
@@ -127,7 +136,6 @@ def parse_log_file(log_file):
                 timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S,%f")
                 timestamp = timestamp.replace(microsecond=0)
 
-
                 current_entry = {
                     "time": timestamp,
                     "level": level,
@@ -140,13 +148,13 @@ def parse_log_file(log_file):
                 if current_entry["message"] == "Scheduler started":
                     log_entries.append(current_entry)
                     break
-                
+
                 are_equal = all(previous_entry[key] == current_entry[key] for key in previous_entry if key != "message")
                 if are_equal:
                     current_entry["message"] = previous_entry["message"] + '<br>' + current_entry["message"]
                     previous_entry = current_entry
                     break
-                
+
                 if previous_entry["time"] != 0:
                     log_entries.append(previous_entry)
                 previous_entry = current_entry

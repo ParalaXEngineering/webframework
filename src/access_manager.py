@@ -21,11 +21,10 @@ class Access_manager:
 
         self.m_users_groups = {}
 
-
     def load_authorizations(self):
         """Load the authorization file into the manager"""
         config = utilities.util_read_parameters()
-    
+
         if "access" in config:
             self.m_users = config["access"]["users"]["value"]
             self.m_users_groups = config["access"]["users_groups"]["value"]
@@ -35,8 +34,8 @@ class Access_manager:
             if "username" not in session:
                 if ("default_user" in config["access"] and config["access"]["default_user"]["value"] in self.m_users):
                     session['username'] = config["access"]["default_user"]["value"]
-                else:
-                    session['username'] = "GUEST"
+            else:
+                session['username'] = "GUEST"
 
             # When creating a user, the user name is not in the authorization
             # file. Let's add it here, otherwise it will be too much a pain
@@ -63,7 +62,7 @@ class Access_manager:
         :rtype: str
         """
         if 'username' not in session:
-            session['username'] = None
+            session['username'] = "GUEST"
         return session['username']
 
     def use_login(self, login: bool):
@@ -73,6 +72,10 @@ class Access_manager:
         :type login: bool
         """
         self.m_login = login
+
+    def unlog(self):
+        if session['username']:
+            session['username'] = "GUEST"
 
     def set_user(self, user: str, password: str):
         """Set the current user
@@ -101,7 +104,7 @@ class Access_manager:
                 session['username'] = user
                 return True
             else:
-                session['username'] = None
+                session['username'] = "GUEST"
                 return False
 
     def authorize_group(self, allowed_groups: list = None) -> bool:
@@ -125,7 +128,7 @@ class Access_manager:
 
         if not session['username']:
             return False
-        
+
         if session['username'] not in self.m_users_groups:
             return False
 
