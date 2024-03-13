@@ -353,124 +353,124 @@ def packager():
         disp.add_display_item(displayer.DisplayerItemInputFile("load_package_file"), 1)
         disp.add_display_item(displayer.DisplayerItemButton("unpack", "Unpack"), 2)
 
-        config = utilities.util_read_parameters()
+    config = utilities.util_read_parameters()
 
-        # Folder mode
-        if config["updates"]["source"]["value"] == "Folder":
-            if not os.path.exists(os.path.join(config["updates"]["folder"]["value"])):
-                info = "Configured package folder doesn't exists"
-                disp.add_master_layout(
-                    displayer.DisplayerLayout(
-                        displayer.Layouts.VERTICAL,
-                        [12],
-                        subtitle="",
-                        alignment=[displayer.BSalign.C],
-                    )
+    # Folder mode
+    if config["updates"]["source"]["value"] == "Folder":
+        if not os.path.exists(os.path.join(config["updates"]["folder"]["value"])):
+            info = "Configured package folder doesn't exists"
+            disp.add_master_layout(
+                displayer.DisplayerLayout(
+                    displayer.Layouts.VERTICAL,
+                    [12],
+                    subtitle="",
+                    alignment=[displayer.BSalign.C],
                 )
-                disp.add_display_item(
-                    displayer.DisplayerItemAlert(info, displayer.BSstyle.INFO), 0
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemAlert(info, displayer.BSstyle.INFO), 0
+            )
+        else:
+            content = utilities.util_dir_structure(
+                os.path.join(
+                    config["updates"]["folder"]["value"],
+                    "packages",
+                    site_conf_obj.m_app["name"],
+                ),
+                inclusion=[".zip"],
+            )
+            disp.add_master_layout(
+                displayer.DisplayerLayout(
+                    displayer.Layouts.VERTICAL,
+                    [3, 6, 3],
+                    subtitle="",
+                    alignment=[
+                        displayer.BSalign.L,
+                        displayer.BSalign.L,
+                        displayer.BSalign.R,
+                    ],
                 )
-            else:
-                content = utilities.util_dir_structure(
-                    os.path.join(
-                        config["updates"]["folder"]["value"],
-                        "packages",
-                        site_conf_obj.m_app["name"],
-                    ),
-                    inclusion=[".zip"],
-                )
-                disp.add_master_layout(
-                    displayer.DisplayerLayout(
-                        displayer.Layouts.VERTICAL,
-                        [3, 6, 3],
-                        subtitle="",
-                        alignment=[
-                            displayer.BSalign.L,
-                            displayer.BSalign.L,
-                            displayer.BSalign.R,
-                        ],
-                    )
-                )
-                disp.add_display_item(
-                    displayer.DisplayerItemText("Select a package to download"), 0
-                )
-                disp.add_display_item(
-                    displayer.DisplayerItemInputSelect(
-                        "download_package", None, None, content
-                    ),
-                    1,
-                )
-                disp.add_display_item(
-                    displayer.DisplayerItemButton("download", "Download"), 2
-                )
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemText("Select a package to download"), 0
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemInputSelect(
+                    "download_package", None, None, content
+                ),
+                1,
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemButton("download", "Download"), 2
+            )
 
-        # FTP mode
-        elif config["updates"]["source"]["value"] == "FTP":
-            try:
-                session = ftplib.FTP(
-                    config["updates"]["address"]["value"],
-                    config["updates"]["user"]["value"],
-                    config["updates"]["password"]["value"],
-                )
+    # FTP mode
+    elif config["updates"]["source"]["value"] == "FTP":
+        try:
+            session = ftplib.FTP(
+                config["updates"]["address"]["value"],
+                config["updates"]["user"]["value"],
+                config["updates"]["password"]["value"],
+            )
 
-                session.cwd(
-                    config["updates"]["path"]["value"]
-                    + "/packages/"
-                    + site_conf_obj.m_app["name"]
-                )
-                content = session.nlst()
+            session.cwd(
+                config["updates"]["path"]["value"]
+                + "/packages/"
+                + site_conf_obj.m_app["name"]
+            )
+            content = session.nlst()
 
-                disp.add_master_layout(
-                    displayer.DisplayerLayout(
-                        displayer.Layouts.VERTICAL,
-                        [3, 6, 3],
-                        subtitle="",
-                        alignment=[
-                            displayer.BSalign.L,
-                            displayer.BSalign.L,
-                            displayer.BSalign.R,
-                        ],
-                    )
+            disp.add_master_layout(
+                displayer.DisplayerLayout(
+                    displayer.Layouts.VERTICAL,
+                    [3, 6, 3],
+                    subtitle="",
+                    alignment=[
+                        displayer.BSalign.L,
+                        displayer.BSalign.L,
+                        displayer.BSalign.R,
+                    ],
                 )
-                disp.add_display_item(
-                    displayer.DisplayerItemText("Select a package to download"), 0
-                )
-                disp.add_display_item(
-                    displayer.DisplayerItemInputSelect(
-                        "download_package", None, None, content
-                    ),
-                    1,
-                )
-                disp.add_display_item(
-                    displayer.DisplayerItemButton("download", "Download"), 2
-                )
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemText("Select a package to download"), 0
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemInputSelect(
+                    "download_package", None, None, content
+                ),
+                1,
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemButton("download", "Download"), 2
+            )
 
-            except socket.gaierror:
-                info = "FTP server not accessible, please check your connection, use a zip file or use a local folder"
-                disp.add_master_layout(
-                    displayer.DisplayerLayout(
-                        displayer.Layouts.VERTICAL,
-                        [12],
-                        subtitle="",
-                        alignment=[displayer.BSalign.C],
-                    )
+        except socket.gaierror:
+            info = "FTP server not accessible, please check your connection, use a zip file or use a local folder"
+            disp.add_master_layout(
+                displayer.DisplayerLayout(
+                    displayer.Layouts.VERTICAL,
+                    [12],
+                    subtitle="",
+                    alignment=[displayer.BSalign.C],
                 )
-                disp.add_display_item(
-                    displayer.DisplayerItemAlert(info, displayer.BSstyle.INFO), 0
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemAlert(info, displayer.BSstyle.INFO), 0
+            )
+        except Exception as e:
+            info = "Unkown FTP error: " + str(e)
+            disp.add_master_layout(
+                displayer.DisplayerLayout(
+                    displayer.Layouts.VERTICAL,
+                    [12],
+                    subtitle="",
+                    alignment=[displayer.BSalign.C],
                 )
-            except Exception as e:
-                info = "Unkown FTP error: " + str(e)
-                disp.add_master_layout(
-                    displayer.DisplayerLayout(
-                        displayer.Layouts.VERTICAL,
-                        [12],
-                        subtitle="",
-                        alignment=[displayer.BSalign.C],
-                    )
-                )
-                disp.add_display_item(
-                    displayer.DisplayerItemAlert(info, displayer.BSstyle.WARNING), 0
-                )
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemAlert(info, displayer.BSstyle.WARNING), 0
+            )
 
     return render_template(
         "base_content.j2", content=disp.display(), target="packager.packager"
