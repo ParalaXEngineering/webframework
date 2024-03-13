@@ -4,6 +4,7 @@ from submodules.framework.src import utilities
 from submodules.framework.src import access_manager
 from submodules.framework.src import displayer
 from submodules.framework.src import site_conf
+from submodules.framework.src import User_defined_module
 
 import os
 import sys
