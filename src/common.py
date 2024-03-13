@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, send_file, send_from_directory
+from flask import Blueprint, render_template, request, send_file
 
 from submodules.framework.src import utilities
 from submodules.framework.src import access_manager
@@ -83,8 +83,7 @@ def help():
     with open(md_file_path, "r", encoding="utf-8") as text:
         text_data = text.read()
 
-    content = markdown.markdown(text_data, extensions=["sane_lists"])
-
+    content = markdown.markdown(text_data, extensions=["sane_lists", "toc"])
     disp = displayer.Displayer()
     # disp.add_generic("Changelog", display=False)
     disp.add_module(User_defined_module.User_defined_module)

@@ -34,8 +34,8 @@ class Access_manager:
             if "username" not in session:
                 if ("default_user" in config["access"] and config["access"]["default_user"]["value"] in self.m_users):
                     session['username'] = config["access"]["default_user"]["value"]
-            else:
-                session['username'] = "GUEST"
+                else:
+                    session['username'] = "GUEST"
 
             # When creating a user, the user name is not in the authorization
             # file. Let's add it here, otherwise it will be too much a pain
