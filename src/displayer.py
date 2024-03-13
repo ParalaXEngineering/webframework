@@ -597,6 +597,7 @@ class DisplayerItemInputSelect(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.SELECT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -632,6 +633,7 @@ class DisplayerItemInputMultiSelect(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INMULTISELECT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -644,6 +646,7 @@ class DisplayerItemInputMapping(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INMAPPING)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -656,6 +659,7 @@ class DisplayerItemInputListSelect(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INLISTSELECT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -668,6 +672,7 @@ class DisplayerItemInputTextSelect(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INTEXTSELECT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -680,6 +685,7 @@ class DisplayerItemInputSelectText(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INSELECTTEXT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -692,6 +698,7 @@ class DisplayerItemInputDualTextSelect(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INDUALTEXTSELECT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -704,6 +711,7 @@ class DisplayerItemInputDualSelectText(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INDUALSELECTTEXT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
