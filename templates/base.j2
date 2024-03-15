@@ -269,11 +269,14 @@
     <script src="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'vendors/filepond/filepond.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
-    <script>FilePond.registerPlugin(FilePondPluginImagePreview);
+    <script src="{{ url_for('static', filename= 'vendors/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js') }}"></script>
+    <script>FilePond.registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType);
+
     // Filepond: Image Preview
     const filePondImage = document.querySelectorAll(".image-preview-filepond");
     filePondImage.forEach(element => {
         FilePond.create(element, {
+            labelIdle: `Drag & Drop image <span class="filepond--label-action">Browse</span>`,
             credits: null,
             allowImagePreview: true,
             allowImageFilter: false,
@@ -294,6 +297,17 @@
         FilePond.create(element, {
             credits: null,
             storeAsFile: true,
+        });
+    });
+
+    // Filepond: Folder
+    filePondFolder = document.querySelectorAll(".folder-filepond");
+    filePondFolder.forEach(element => {
+        FilePond.create(element, {
+            credits: null,
+            storeAsFile: true,
+            labelIdle: `Drag & Drop a zip file <span class="filepond--label-action">Browse</span>`,
+            acceptedFileTypes: ['application/x-zip-compressed']
         });
     });
 

@@ -67,6 +67,10 @@
     <input type="file" class="basic-filepond" name="{{ name }}" id="{{ name }}">
 {% endmacro %}
 
+{% macro folder(name) %}
+    <input type="file" class="folder-filepond" name="{{ name }}" id="{{ name }}">
+{% endmacro %}
+
 {% macro image(name) %}
     <input type="file" class="image-preview-filepond", id="{{name}}", name="{{name}}">    
 {% endmacro %}
@@ -148,3 +152,4 @@
         {% endif %}
     
 {% endmacro %}
+

@@ -45,6 +45,8 @@
         {{inhidden(item["id"], item["value"])}}
     {% elif item["type"] == "INFILE" %}
         {{infile(item["id"], item["text"])}}
+    {% elif item["type"] == "INFOLDER" %}
+        {{infolder(item["id"], item["text"])}}
     {% elif item["type"] == "INIMAGE" %}
         {{inimage(item["id"], item["text"])}}
     {% elif item["type"] == "SELECT" %}
@@ -663,6 +665,10 @@
 
 {% macro infile(id, file) %}
     {{ common_input.file(id)}}
+{% endmacro %}
+
+{% macro infolder(id, file) %}
+    {{ common_input.folder(id)}}
 {% endmacro %}
 
 {% macro inimage(id, file) %}
