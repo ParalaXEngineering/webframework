@@ -74,7 +74,7 @@ class Access_manager:
         self.m_login = login
 
     def unlog(self):
-        if session['username']:
+        if 'username' in session:
             session['username'] = "GUEST"
 
     def set_user(self, user: str, password: str):

@@ -17,6 +17,7 @@ import platform
 import ftplib
 import shutil
 import traceback
+import subprocess
 
 
 class SETUP_Updater(threaded_action.Threaded_action):
@@ -62,9 +63,7 @@ class SETUP_Updater(threaded_action.Threaded_action):
         if self.m_action == "update" or self.m_action == "load_update_file":
             self.m_scheduler.emit_status(self.get_name(), "Applying update", 103)
             current_param = utilities.util_read_parameters()
-            with zipfile.ZipFile(
-                os.path.join("..", "updates", self.m_file), mode="r"
-            ) as zip:
+            with zipfile.ZipFile(os.path.join(self.m_file), mode="r") as zip:
                 zip.extractall(path="../")
 
             # config file has been overwritten, we need to reapply current configuration
@@ -76,16 +75,25 @@ class SETUP_Updater(threaded_action.Threaded_action):
                     current_param[topic] = new_param[topic]
 
             # Remove old ones
-            to_remove = []
-            for topic in current_param:
-                if topic not in new_param:
-                    to_remove.append(topic)
-
+            to_remove = [topic for topic in current_param if topic not in new_param]
             for topic in to_remove:
                 current_param.pop(topic)
 
             # and save
             utilities.util_write_parameters(current_param)
+
+            # Configuration pour le lancement du bootloader
+            path_to_bootloader = os.path.join("BTL.bat")
+            path_to_new_executable = os.path.join("OuFNis_DFDIG_update.exe")
+            original_executable_path = os.path.join("OuFNis_DFDIG.exe")
+            print("path_to_bootloader: " + path_to_bootloader)
+            print("path_to_new_executable: " + path_to_new_executable)
+            print("original_executable_path: " + original_executable_path)
+            # Lancer le bootloader dans un nouveau processus
+            try:
+                subprocess.Popen([path_to_bootloader, path_to_new_executable, original_executable_path])
+            except Exception as e:
+                print(e)
 
             self.m_scheduler.emit_status(self.get_name(), "Applying update", 100)
             if "distribution" in self.m_file:
@@ -181,13 +189,13 @@ class SETUP_Updater(threaded_action.Threaded_action):
             inputs.append(
                 {
                     "label": "Select",
-                    "id": "extract_package",
+                    "id": "update_package",
                     "value": "",
                     "type": "select",
                     "data": packages,
                 }
             )
-            reloader = utilities.util_view_reload_multi_input("extract_package", inputs)
+            reloader = utilities.util_view_reload_multi_input("update_package", inputs)
             self.m_scheduler.emit_reload(reloader)
 
         elif self.m_action == "create":
@@ -346,7 +354,7 @@ def update():
         elif "apply" in data_in:
             packager = SETUP_Updater()
             packager.set_action("update")
-            packager.set_file(data_in["extract_package"])
+            packager.set_file(data_in["update_package"])
             packager.start()
         elif "download" in data_in:
             packager = SETUP_Updater()
@@ -419,7 +427,7 @@ def update():
     )
     disp.add_display_item(displayer.DisplayerItemText("Apply update"), 0)
     disp.add_display_item(
-        displayer.DisplayerItemInputSelect("update_package", None, None, to_apply), 1
+        displayer.DisplayerItemInputSelect("update_package", None, None, list(to_apply.values())), 1
     )
     disp.add_display_item(displayer.DisplayerItemButton("apply", "Apply"), 2)
 
