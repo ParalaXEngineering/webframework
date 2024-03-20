@@ -23,6 +23,7 @@ class DisplayerItems(Enum):
     INSTRING = "INSTRING"
     INMULTITEXT = "INMULTITEXT"
     INFILE = "INFILE"
+    INFOLDER = "INFOLDER"
     INTEXTICON = "INTEXTICON"
     INFILEEXPLORER = "INFILEEXPLORER"
     INMULTISELECT = "INMULTISELECT"
@@ -239,7 +240,7 @@ class DisplayerItem:
 class DisplayerItemPlaceholder(DisplayerItem):
     """Specialized display item to set a placeholder with an id which can be filled later"""
 
-    def __init__(self, id: str, data: str) -> None:
+    def __init__(self, id: str, data: str = "") -> None:
         """Initialize with the text content
 
         :param id: The id of the placehpmder
@@ -597,10 +598,11 @@ class DisplayerItemInputSelect(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.SELECT)
-        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
+        if isinstance(choices, list):
+            choices.sort()
         self.m_data = choices
         return
 
@@ -805,6 +807,14 @@ class DisplayerItemInputTextIcon(DisplayerItem):
         self.m_id = id
         return
 
+class DisplayerItemInputFolder(DisplayerItem):
+    """Specialized display to display an input number"""
+
+    def __init__(self, id: str, text: str = None) -> None:
+        super().__init__(DisplayerItems.INFOLDER)
+        self.m_text = text
+        self.m_id = id
+        return
 
 class DisplayerItemInputFile(DisplayerItem):
     """Specialized display to display an input number"""
