@@ -10,8 +10,10 @@ site_conf_app_path = None
 class Site_conf:
     """Provides a set of function to configure the website"""
 
-    m_app = {"name": "Default", "version": "0", "icon": "home"}
+    m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
     """App information"""
+
+    m_index = "Bienvenue sur la page par défaut du framework ESD"
 
     m_sidebar = []
     """Sidebar content"""
@@ -298,7 +300,7 @@ class Site_conf:
         access_manager.auth_object.use_login(True)
         return
 
-    def app_details(self, name: str, version: str, icon: str):
+    def app_details(self, name: str, version: str, icon: str, footer: str = None, index: str = None):
         """Set the application details
 
         :param name: The name of the application
@@ -308,9 +310,16 @@ class Site_conf:
         :param icon: The icon of the application, in mdi format
         :type icon: str
         """
+        m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
+    
         self.m_app["name"] = name
         self.m_app["icon"] = icon
         self.m_app["version"] = version
+        if footer:
+            self.m_app["footer"] = footer
+
+        if index:
+            self.m_index = index
 
     def context_processor(self):
         """Function that is called before rendering any page, should be overwritten by the child object"""

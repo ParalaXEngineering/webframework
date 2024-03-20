@@ -110,6 +110,8 @@ def setup_app(app):
             app=site_conf.site_conf_obj.m_app,
             javascript=site_conf.site_conf_obj.m_javascripts,
             filename=None,
+            title=site_conf.site_conf_obj.m_app["name"],
+            footer=site_conf.site_conf_obj.m_app["footer"]
         )
 
     @app.context_processor
@@ -129,7 +131,7 @@ def setup_app(app):
     @app.route("/")
     def index():
         session["page_info"] = "index"
-        return render_template("index.j2")
+        return render_template("index.j2", title=site_conf.site_conf_obj.m_app["name"], content=site_conf.site_conf_obj.m_index)
 
     @app.before_request
     def before_request():

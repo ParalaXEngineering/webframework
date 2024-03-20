@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} - {{ web_title }}</title>
+    <title>{{ title }}</title>
     {% block stylesfirst %}{% endblock %}
     {% block styles %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/mdi/css/materialdesignicons.min.css') }}">
@@ -254,7 +254,7 @@
             <footer>
                 <div class="footer clearfix p-5 text-muted float-end">
                     <div class="float-start">
-                        <p>2022 &copy;FN Herstal, Template by Mazer</p>
+                        <p>{{footer}}</p><p>Template by Mazer</p>
                     </div>
                 </div>
             </footer>
