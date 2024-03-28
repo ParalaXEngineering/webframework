@@ -9,6 +9,7 @@ from submodules.framework.src import User_defined_module
 import os
 import sys
 import markdown
+import bcrypt
 
 import re
 from datetime import datetime
@@ -55,19 +56,28 @@ def login():
     access_manager.auth_object.unlog()
     config = utilities.util_read_parameters()
     users = config["access"]["users"]["value"]
+    users_password = config["access"]["users_password"]["value"]
+
+    error_message = None
 
     if request.method == "POST":
         data_in = utilities.util_post_to_json(request.form.to_dict())
-        authorized = access_manager.auth_object.set_user(
-            data_in["user"], data_in["password"]
-        )
 
-        if authorized:
-            return render_template("index.j2")
+        username = data_in["user"]
+        password_attempt = data_in["password"].encode('utf-8')
+
+        if username in users:
+            stored_hash = users_password[username][0].encode('utf-8')
+            if bcrypt.checkpw(password_attempt, stored_hash):
+                # Connexion réussie
+                access_manager.auth_object.set_user(username, True)
+                return render_template("index.j2")
+            else:
+                error_message = "Bad Password for this user"
         else:
-            return render_template("failure.j2", message="Bad password")
+            error_message = "User does not exist"
 
-    return render_template("login.j2", target="common.login", users=users)
+    return render_template("login.j2", target="common.login", users=users, message=error_message)
 
 
 @bp.route("/help", methods=["GET"])

@@ -77,35 +77,54 @@ class Access_manager:
         if 'username' in session:
             session['username'] = "GUEST"
 
-    def set_user(self, user: str, password: str):
+    # def set_user(self, user: str, password: str):
+    #     """Set the current user
+
+    #     :param user: The user to set
+    #     :type user: str
+    #     :param password: The password of the user
+    #     :type password: str
+    #     """
+
+    #     if not self.m_users_groups:
+    #         self.load_authorizations()
+
+    #     # Check if not already there
+    #     if self.m_login:
+    #         # Check password
+    #         config = utilities.util_read_parameters()
+    #         if user not in config["access"]["users_password"]["value"]:
+    #             # No password
+    #             session['username'] = user
+    #             return True
+    #         if (
+    #             password in config["access"]["users_password"]["value"][user]
+    #             or config["access"]["users_password"]["value"][user] == ""
+    #         ):
+    #             session['username'] = user
+    #             return True
+    #         else:
+    #             session['username'] = "GUEST"
+    #             return False
+    def set_user(self, user: str, password_verified: bool):
         """Set the current user
 
         :param user: The user to set
         :type user: str
-        :param password: The password of the user
-        :type password: str
+        :param password_verified: Indicate if the password has been verified
+        :type password_verified: bool
         """
 
         if not self.m_users_groups:
             self.load_authorizations()
 
-        # Check if not already there
-        if self.m_login:
-            # Check password
-            config = utilities.util_read_parameters()
-            if user not in config["access"]["users_password"]["value"]:
-                # No password
-                session['username'] = user
-                return True
-            if (
-                password in config["access"]["users_password"]["value"][user]
-                or config["access"]["users_password"]["value"][user] == ""
-            ):
-                session['username'] = user
-                return True
-            else:
-                session['username'] = "GUEST"
-                return False
+        # Si l'utilisateur est déjà connecté ou si le mot de passe a été vérifié, mettez à jour la session
+        if self.m_login or password_verified:
+            session['username'] = user
+            return True
+        else:
+            session['username'] = "GUEST"
+            return False
 
     def authorize_group(self, allowed_groups: list = None) -> bool:
         """Indicate if the current user is in an authorized group
