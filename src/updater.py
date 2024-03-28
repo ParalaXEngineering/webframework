@@ -84,11 +84,8 @@ class SETUP_Updater(threaded_action.Threaded_action):
 
             # Configuration pour le lancement du bootloader
             path_to_bootloader = os.path.join("BTL.bat")
-            path_to_new_executable = os.path.join("OuFNis_DFDIG_update.exe")
-            original_executable_path = os.path.join("OuFNis_DFDIG.exe")
-            print("path_to_bootloader: " + path_to_bootloader)
-            print("path_to_new_executable: " + path_to_new_executable)
-            print("original_executable_path: " + original_executable_path)
+            path_to_new_executable = os.path.join(site_conf_obj.m_app["name"] + "_update.exe")
+            original_executable_path = os.path.join(site_conf_obj.m_app["name"] + ".exe")
             # Lancer le bootloader dans un nouveau processus
             try:
                 subprocess.Popen([path_to_bootloader, path_to_new_executable, original_executable_path])
@@ -99,7 +96,7 @@ class SETUP_Updater(threaded_action.Threaded_action):
             if "distribution" in self.m_file:
                 self.m_scheduler.emit_status(
                     self.get_name(),
-                    "Please close application, run updater.bat and restart application",
+                    "Application will restart, you can close this tab",
                     102,
                 )
             else:
