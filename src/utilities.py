@@ -505,6 +505,9 @@ def util_find_files(root: str, inclusion: list = None) -> list:
     :rtype: list
 
     """
+    # In case of misuse of the function and that just a string is given...
+    if isinstance(inclusion, str):
+        inclusion = [inclusion]
 
     current_results = []
     try:
@@ -521,6 +524,8 @@ def util_find_files(root: str, inclusion: list = None) -> list:
                         and os.path.join(root, item) not in current_results
                     ):  # Avoid duplicate if one line correspond to several criteria
                         current_results.append(os.path.join(root, item))
+            else:
+                current_results.append(os.path.join(root, item))
         else:
             dir = util_find_files(os.path.join(root, item), inclusion=inclusion)
             current_results += dir
