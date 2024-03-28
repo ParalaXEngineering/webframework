@@ -1,3 +1,30 @@
+function cascaded(data, ids, caller)
+{
+    // Find the level
+    var level = ids.indexOf(caller.id)
+    if(level >= 0 && level < ids.length)
+    {
+        //Start by clearing all the following levels
+        for(var i = level + 1; i < ids.length; i++)
+        {
+            toclear = document.getElementById(ids[i])
+            while (toclear.options.length > 0) {                
+                toclear.remove(0);
+            }
+        }   
+
+        var selected = document.getElementById(ids[level]).value
+        var toUpdate = document.getElementById(ids[level + 1])
+        
+        var data_to_option = Object.keys(data[selected])
+        for (var element of data_to_option) {
+            toUpdate.add(new Option(element, element))
+        }
+        toUpdate.value
+        
+    }
+}
+
 function setting_add_list(name)
 {
     console.log(name)

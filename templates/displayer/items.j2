@@ -51,6 +51,8 @@
         {{inimage(item["id"], item["text"])}}
     {% elif item["type"] == "SELECT" %}
         {{inselect(item["id"], item["data"], item["value"], item["text"])}}
+    {% elif item["type"] == "INCASCADED" %}
+        {{incascaded(item["id"], item["data"], item["value"], item["text"], item["level"])}}
     {% elif item["type"] == "INLISTTEXT" %}
         {{inlisttext(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INLISTSELECT" %}
@@ -325,6 +327,36 @@
         {{ common_input.select(id, data, history[id] if history is defined else None)}}
     {% endif %}
 {% endmacro %}
+
+{% macro incascaded(id, data, value, text, level) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+
+
+    {% for i in range(0, id | length) %}
+        {% if level == i %}
+            {% if i == 0 %}
+                {{ common_input.select_js(
+                    id[level], 
+                    'cascaded(' + (data | tojson | safe) + ', ' + (id | tojson | safe) + ', this)', 
+                    data.keys() | list, 
+                    value[level]
+                ) }}
+            {% else %}
+                {{ common_input.select_js(
+                    id[i], 
+                    'cascaded(' + (data | tojson | safe) + ', ' + (id | tojson | safe) + ', this)', 
+                    data[value[i-1]].keys(), 
+                    value[i]
+                ) }}
+            {% endif %}  
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
+
 
 {% macro inlistselect(id, data, values, text) %}
     {% if text %}

@@ -25,6 +25,7 @@ class DisplayerItems(Enum):
     INFILE = "INFILE"
     INFOLDER = "INFOLDER"
     INTEXTICON = "INTEXTICON"
+    INCASCADED = "INCASCADED"
     INFILEEXPLORER = "INFILEEXPLORER"
     INMULTISELECT = "INMULTISELECT"
     INMAPPING = "INMAPPING"
@@ -187,6 +188,8 @@ class DisplayerItem:
         # Check exisitings common variables, so basic items don't need to reimplement this function
         if hasattr(self, "m_text"):
             item["text"] = self.m_text
+        if hasattr(self, "m_level"):
+            item["level"] = self.m_level
         if hasattr(self, "m_value"):
             item["value"] = self.m_value
         if hasattr(self, "m_style"):
@@ -205,6 +208,14 @@ class DisplayerItem:
             item["icon"] = self.m_icon
         if hasattr(self, "m_endpoint"):
             item["endpoint"] = self.m_endpoint
+        if hasattr(self, "m_ids"):
+            item["id"] = []
+            if parent_id:
+                for id in self.m_ids:
+                    item["id"].append(parent_id + "." + id)
+            else:
+                item["id"] = self.m_ids
+
         if hasattr(self, "m_id"):
             if parent_id:
                 item["id"] = parent_id + "." + self.m_id
@@ -592,6 +603,30 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
         container[-1]["explorer_hiddens"] = self.m_explorerHiddens
         return
 
+class DisplayerItemInputCascaded(DisplayerItem):
+    """Specialized display to have multiple select choices, where each level depend on the previous one
+    :param ids: The ids of each levels of the cascade
+    :type ids: list
+    :param value: The current value of the cascade
+    :type value: list, containing each value for each level of the cascade
+    :param choices: The possibles choices for each cascade
+    :type choices: list of list, with a choice list for each level of the cascade
+    :param level: If only one level of the cascade should be displayed, use this parameter
+    :type: level: int, that correspond on the position in the list of the level, or -1 if all levels needs to be displayed"""
+
+    def __init__(self, ids: list, text: str = None, value: list = None, choices: list = [], level: int = -1) -> None:
+        super().__init__(DisplayerItems.INCASCADED)
+        self.m_text = text
+        self.m_value = value
+        self.m_ids = ids
+        for items in choices:
+            if isinstance(items, list):
+                items.sort()
+        self.m_data = choices
+        if level > len(choices):
+            level = len(choices)
+        self.m_level = level
+        return
 
 class DisplayerItemInputSelect(DisplayerItem):
     """Specialized display to display an input select box"""
