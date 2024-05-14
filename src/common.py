@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, send_file
+from flask import Blueprint, render_template, request, send_file, redirect
 
 from submodules.framework.src import utilities
 from submodules.framework.src import access_manager
@@ -67,11 +67,13 @@ def login():
         password_attempt = data_in["password"].encode('utf-8')
 
         if username in users:
-            stored_hash = users_password[username][0].encode('utf-8')
+            stored_password = users_password[username][0]
+            stored_hash = stored_password.encode('utf-8')
+            # Vérifier le mot de passe avec bcrypt
             if bcrypt.checkpw(password_attempt, stored_hash):
                 # Connexion réussie
                 access_manager.auth_object.set_user(username, True)
-                return render_template("index.j2")
+                return redirect('/')
             else:
                 error_message = "Bad Password for this user"
         else:
@@ -89,13 +91,14 @@ def help():
     md_file_path = os.path.join("website", "help", topic + ".md")
     # Vérifiez si le fichier existe pour éviter FileNotFoundError
     if not os.path.exists(md_file_path):
-        return "Fichier Markdown non trouvé.", 404    
+        return "Fichier Markdown non trouvé.", 404
     with open(md_file_path, "r", encoding="utf-8") as text:
         text_data = text.read()
 
     content = markdown.markdown(text_data, extensions=["sane_lists", "toc"])
     disp = displayer.Displayer()
     # disp.add_generic("Changelog", display=False)
+    User_defined_module.User_defined_module.m_default_name = " "
     disp.add_module(User_defined_module.User_defined_module)
     disp.add_master_layout(
         displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
