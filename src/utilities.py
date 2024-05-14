@@ -10,7 +10,9 @@ import zlib
 import tarfile
 
 from submodules.framework.src import access_manager
+from flask import current_app
 
+config_global = {}
 
 def util_list_serial() -> list:
     """Return the list of the serial ports on the machine
@@ -223,9 +225,14 @@ def util_read_parameters() -> dict:
     :return: The parameters of the application
     :rtype: dict
     """
-    f = open("website/config.json")
-    config_data = json.load(f)
-    f.close()
+    global config_global
+    try:
+        f = open("website/config.json")
+        config_data = json.load(f)
+        config_global = config_data
+        f.close()
+    except Exception as e:
+        config_data = config_global
     return config_data
 
 
