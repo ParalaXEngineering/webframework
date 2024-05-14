@@ -3,13 +3,78 @@ from flask import Blueprint, render_template, request, session
 from submodules.framework.src import utilities
 from submodules.framework.src import access_manager
 from submodules.framework.src import displayer
+from submodules.framework.src import User_defined_module
 
 import json
+import subprocess
+import psutil
 import importlib
 import os
 import sys
 
 bp = Blueprint("settings", __name__, url_prefix="/settings")
+
+
+@bp.route("/ip_config", methods=["GET"])
+def ip_config():
+    interfaces = psutil.net_if_addrs()
+    # Configuration des adresses IP et des masques de sous-réseau
+    # And now, display!
+    disp = displayer.Displayer()
+    User_defined_module.User_defined_module.m_default_name = "IP Configuration"
+    disp.add_module(User_defined_module.User_defined_module)
+    disp.add_master_layout(
+        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
+    )
+    disp.add_display_item(displayer.DisplayerItemText('<a href="http://127.0.0.1:5000/common/help?topic=usage#configuration-de-la-carte-reseau-pour-utiliser-les-oufnis">Documentation</a>'), 0)
+    disp.add_master_layout(
+        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
+    )
+    disp.add_display_item(displayer.DisplayerItemAlert("You need admin privileges to change IP Configuration on your PC, please run OuFNis_DFDIG.exe as admin", displayer.BSstyle.INFO), 0)
+    disp.add_master_layout(
+        displayer.DisplayerLayout(
+            displayer.Layouts.VERTICAL,
+            [3, 3, 3, 2, 1],
+            subtitle="",
+            alignment=[displayer.BSalign.L, displayer.BSalign.L, displayer.BSalign.R, displayer.BSalign.L, displayer.BSalign.R],
+        )
+    )
+    disp.add_display_item(displayer.DisplayerItemText("Select Network Interface"), 0)
+    disp.add_display_item(displayer.DisplayerItemInputSelect("network_interface", None, None, sorted(interfaces)), 1)
+    disp.add_display_item(displayer.DisplayerItemText("Static or DHCP"), 2)
+    disp.add_display_item(displayer.DisplayerItemInputSelect("ip_type", None, "Static", ["Static", "DHCP"]), 3)
+    disp.add_display_item(displayer.DisplayerItemButton("start_ip_config", "Run"), 4)
+
+    return render_template("base_content.j2", content=disp.display(), target="settings.ip_config_apply")
+
+
+@bp.route("/ip_config_apply", methods=["POST"])
+def ip_config_apply():
+    ip_configs = [
+        {"ip": "10.0.0.10", "mask": "255.255.255.0"},
+        {"ip": "10.0.1.10", "mask": "255.255.255.0"},
+        {"ip": "192.168.1.10", "mask": "255.255.255.0"}
+    ]
+    data_in = utilities.util_post_to_json(request.form.to_dict())
+    data_in = data_in["IP Configuration"]
+    if "start_ip_config" in data_in:
+        try:
+            if data_in["ip_type"] == "Static":
+                first_ip = ip_configs.pop(0)
+                cmd_ip = f"netsh interface ip set address name=\"{data_in["network_interface"]}\" static {first_ip["ip"]} {first_ip["mask"]}"
+                subprocess.run(cmd_ip, shell=True, check=True)
+                for ip_config in ip_configs:
+                    command = f"netsh interface ip add address name=\"{data_in["network_interface"]}\" addr={ip_config["ip"]} mask={ip_config["mask"]}"
+                    subprocess.run(command, shell=True, check=True)
+            else:
+                cmd_ip = f"netsh interface ip set address name=\"{data_in["network_interface"]}\" dhcp"
+                subprocess.run(cmd_ip, shell=True, check=True)
+        except Exception:
+            return render_template("failure.j2", message="You need admin authorization !!! Run OuFNis_DFDIG.exe with admin privileges")
+
+    # Reload authorization
+    access_manager.auth_object.load_authorizations()
+    return render_template("success.j2", message="Paramètre modifiés")
 
 
 @bp.route("/config_edit", methods=["GET"])
@@ -52,18 +117,11 @@ def config_edit():
         for module in modules:
             if module not in session["config"]["access"]["modules"]["value"]:
                 session["config"]["access"]["modules"]["value"][module] = ["admin"]
-        session["config"]["access"]["modules"]["constrains"] = session["config"][
-            "access"
-        ]["groups"]["value"]
+        session["config"]["access"]["modules"]["constrains"] = session["config"]["access"]["groups"]["value"]
 
         # Also add system modules:
-        session["config"]["access"]["modules"]["value"][
-            "Website engine update creation"
-        ] = ["admin"]
-        session["config"]["access"]["modules"]["value"]["Website engine update"] = [
-            "admin",
-            "user",
-        ]
+        session["config"]["access"]["modules"]["value"]["Website engine update creation"] = ["admin", "user", "quality", "technicians"]
+        session["config"]["access"]["modules"]["value"]["Website engine update"] = ["admin", "user", "quality", "technicians"]
 
         # Update user groups
         for user in session["config"]["access"]["users"]["value"]:
@@ -90,7 +148,6 @@ def config_edit():
 
         for removal in to_remove:
             session["config"]["access"]["users_password"]["value"].pop(removal)
-            
 
     # And now, display!
     disp = displayer.Displayer()
@@ -107,7 +164,7 @@ def config_edit():
             if "friendly" in config[group][item] and item != "friendly":
                 if config[group][item]["type"] == "string":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 8, 1], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -120,7 +177,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "int":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 8, 1], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -133,7 +190,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "select":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 8, 1], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -149,7 +206,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "serial_select":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 8, 1], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -165,7 +222,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "cat_icon":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 8, 1], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -178,7 +235,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "multistring":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 3, 6], spacing=2)
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 3, 5, 1], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -206,7 +263,7 @@ def config_edit():
                             )
                 elif config[group][item]["type"] == "constrained_list":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 8, 1], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -222,7 +279,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "free_list":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 8, 1], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -235,7 +292,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "constrained_mapping":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 8, 1], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -251,7 +308,7 @@ def config_edit():
                     )
                 elif config[group][item]["type"] == "mapping":
                     disp.add_master_layout(
-                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9], spacing=2)
+                        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 8, 1], spacing=2)
                     )
                     disp.add_display_item(
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
@@ -261,6 +318,15 @@ def config_edit():
                             group + "." + item, None, config[group][item]["value"]
                         ),
                         1,
+                    )
+
+                if "persistent" in config[group][item]:
+                    disp.add_display_item(
+                        displayer.DisplayerItemInputBox("persistent." + group + "." + item, None, config[group][item]["persistent"]), 2
+                    )
+                else:
+                    disp.add_display_item(
+                        displayer.DisplayerItemInputBox("persistent." + group + "." + item, None, False), 2
                     )
 
     disp.add_master_layout(
@@ -287,7 +353,7 @@ def config_apply():
 
     for group in data_json:
         for item in data_json[group]:
-            if "_list" not in item and "mapleft" not in item and "mapright" not in item:
+            if "_list" not in item and "mapleft" not in item and "mapright" not in item and "persistent" not in group:
                 if (
                     session["config"][group][item]["type"] == "string"
                     or session["config"][group][item]["type"] == "int"
@@ -315,6 +381,11 @@ def config_apply():
                                 map_item
                             ].split("#")
                     session["config"][group][item]["value"] = mapping_info
+
+                if "persistent" in data_json and group in data_json["persistent"] and item in data_json["persistent"][group]:
+                    session["config"][group][item]["persistent"] = True
+                else:
+                    session["config"][group][item]["persistent"] = False
 
     utilities.util_write_parameters(session["config"])
 
