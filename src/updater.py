@@ -73,6 +73,11 @@ class SETUP_Updater(threaded_action.Threaded_action):
             for topic in new_param:
                 if topic not in current_param:
                     current_param[topic] = new_param[topic]
+                else:
+                    for key in new_param[topic]:
+                        if isinstance(new_param[topic][key], dict) and 'persistent' in new_param[topic][key]:
+                            if new_param[topic][key]['persistent']:
+                                current_param[topic][key]['value'] = new_param[topic][key]['value']
 
             # Remove old ones
             to_remove = [topic for topic in current_param if topic not in new_param]

@@ -215,7 +215,7 @@
     {% if path %}
     <img class="zoomable" src="{{ url_for('common.assets', asset_type=endpoint, filename=path + '/' + src) }}" height="{{ height }}">
     {% else %}
-    <img src="{{src}}" height="{{height}}">
+    <img class="zoomable" src="{{ url_for('common.assets', asset_type=endpoint, filename=src) }}" height="{{ height }}">
     {% endif %}
 {% endmacro %}
 
