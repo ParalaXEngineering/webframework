@@ -15,8 +15,27 @@ function cascaded(data, ids, caller)
 
         var selected = document.getElementById(ids[level]).value
         var toUpdate = document.getElementById(ids[level + 1])
-        
-        var data_to_option = Object.keys(data[selected])
+
+        console.log(selected)
+        console.log(toUpdate)
+        console.log(ids)
+
+        // Recover the data for the given level
+        var data_to_parse = data
+        for(var i = 0; i <= level; i++)
+        {
+            console.log("-----")
+            console.log(i)
+            previous_selection = document.getElementById(ids[i]).value
+            console.log(previous_selection)
+            data_to_parse = data_to_parse[previous_selection]
+            console.log(data_to_parse)
+        }
+    
+
+        var data_to_option = Object.keys(data_to_parse)
+        console.log(data_to_option)
+        toUpdate.add(new Option("", ""))
         for (var element of data_to_option) {
             toUpdate.add(new Option(element, element))
         }
@@ -327,6 +346,18 @@ $(document).ready(function() {
         let div = document.getElementById(msg["id"])
         if(div)
             div.innerHTML = msg["content"]
+
+        // When any image with class 'zoomable' is clicked
+        $('.zoomable').click(function() {
+            var imageSrc = $(this).attr('src');
+            $('#overlay img').attr('src', imageSrc);
+            $('#overlay').fadeIn();
+        });
+
+        // When overlay is clicked
+        $('#overlay').click(function() {
+            $('#overlay').fadeOut();
+        });
     })
 
     socket.on( 'result', function( msg ) {
