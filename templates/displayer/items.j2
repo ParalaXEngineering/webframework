@@ -215,17 +215,25 @@
     {% if path %}
     <img class="zoomable" src="{{ url_for('common.assets', asset_type=endpoint, filename=path + '/' + src) }}" height="{{ height }}">
     {% else %}
-    <img class="zoomable" src="{{ url_for('common.assets', asset_type=endpoint, filename=src) }}" height="{{ height }}">
+    <img src="{{src}}" height="{{height}}">
     {% endif %}
 {% endmacro %}
 
 {% macro file(id, src, text, endpoint, path) %}
-    {% if ".docx" in src %}
-    <i class="mdi mdi-file-word-box text-primary"></i>
-    {% elif ".xlsx" in src %}
-    <i class="mdi mdi-file-excel-box text-success"></i>
-    {% elif ".pdf" in src %}
-    <i class="mdi mdi-file-pdf-box text-danger"></i>
+    {% if ".docx" in src | lower or ".doc" in src | lower %}
+    <i class="mdi mdi-file-word text-primary"></i>
+    {% elif ".xlsx" in src | lower or ".xls" in src | lower %}
+    <i class="mdi mdi-file-excel text-success"></i>
+    {% elif ".pptx" in src | lower or ".ppt" in src | lower %}
+    <i class="mdi mdi-file-powerpoint text-warning"></i>
+    {% elif ".pdf" in src | lower %}
+    <i class="mdi mdi-file-document text-danger"></i>
+    {% elif ".c" in src | lower or ".cpp" in src | lower or ".h" in src | lower or ".py" in src | lower%}
+    <i class="mdi mdi-file-code text-primary"></i>
+    {% elif ".zip" in src | lower or ".rar" in src | lower or ".tar" in src | lower or ".7z" in src | lower%}
+    <i class="mdi mdi-folder-zip text-primary"></i>
+    {% elif ".png" in src | lower or ".jpeg" in src | lower or ".jpg" in src | lower or ".jfif" in src | lower%}
+    <i class="mdi mdi-image text-primary"></i>
     {% else %}
     <i class="mdi mdi-file-document text-primary"></i>
     {% endif %}
@@ -249,16 +257,30 @@
         {{text}}
     </a>
         {% else %}
-            {% if parameters %}
-                <a href="{{url_for(link)}}?{{parameters | join('&')}}">
-                    <i class="mdi mdi-{{icon}} text-{{style}}"></i>
-                    {{text}}
-                </a>
+            {% if '/' in link %}
+                {% if parameters %}
+                    <a href="{{link}}?{{parameters | join('&')}}">
+                        <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+                        {{text}}
+                    </a>
+                {% else %}
+                    <a href="{{link}}">
+                        <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+                        {{text}}
+                    </a>
+                {% endif %}
             {% else %}
-                <a href="{{url_for(link)}}">
-                    <i class="mdi mdi-{{icon}} text-{{style}}"></i>
-                    {{text}}
-                </a>
+                {% if parameters %}
+                    <a href="{{url_for(link)}}?{{parameters | join('&')}}">
+                        <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+                        {{text}}
+                    </a>
+                {% else %}
+                    <a href="{{url_for(link)}}">
+                        <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+                        {{text}}
+                    </a>
+                {% endif %}
             {% endif %}
         {% endif %}
     {% else %}
@@ -333,25 +355,49 @@
         {{ text }}
     {% endif %}
 
-
+    {% set ns = namespace(data=data) %}
 
     {% for i in range(0, id | length) %}
-        {% if level == i %}
+        {% if level == -1 %}
             {% if i == 0 %}
                 {{ common_input.select_js(
-                    id[level], 
+                    id[0], 
                     'cascaded(' + (data | tojson | safe) + ', ' + (id | tojson | safe) + ', this)', 
-                    data.keys() | list, 
-                    value[level]
+                    data.keys() | list | sort, 
+                    value[0]
                 ) }}
             {% else %}
                 {{ common_input.select_js(
                     id[i], 
                     'cascaded(' + (data | tojson | safe) + ', ' + (id | tojson | safe) + ', this)', 
-                    data[value[i-1]].keys(), 
+                    ([""] if ns.data is none or not ns.data or value[i-1] not in ns.data or ns.data[value[i-1]] is not iterable else ns.data[value[i-1]].keys()) | list | sort, 
                     value[i]
                 ) }}
+                {% if ns.data is none or not ns.data or value[i-1] not in ns.data %}
+                {% else %}
+                    {% set ns.data = ns.data[value[i-1]] %}
+                {% endif %}
             {% endif %}  
+
+        {% else %}
+            {% if level == i%}
+                {% if i == 0 %}
+                    {{ common_input.select_js(
+                        id[level], 
+                        'cascaded(' + (data | tojson | safe) + ', ' + (id | tojson | safe) + ', this)', 
+                        data.keys() | list | sort, 
+                        value[level]
+                    ) }}
+                {% else %}
+                    
+                    {{ common_input.select_js(
+                        id[i], 
+                        'cascaded(' + (data | tojson | safe) + ', ' + (id | tojson | safe) + ', this)', 
+                        ([""] if data is none or not data or value[i-1] not in data or data[value[i-1]] is not iterable else data[value[i-1]].keys()) | list | sort, 
+                        value[i]
+                    ) }}
+                {% endif %}  
+            {% endif %}
         {% endif %}
     {% endfor %}
 {% endmacro %}
@@ -598,7 +644,7 @@
 
     <div id="{{id}}.div">
     {% for list_item in value%}
-        {{ common_input.select_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "')", data, list_item)}}
+        {{ common_input.select_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format(" + id + ")", data, list_item)}}
     {% endfor %}
     {{ common_input.hidden(id, value | join('#')) }}
     </div>
@@ -619,9 +665,9 @@
             <div class="col-sm-6" id="{{id + "." + col}}.div">
                 {% for list_item in value[col] %}
                     {% if data %}
-                        {{ common_input.select_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "." + col + "')", data, list_item)}}
+                        {{ common_input.select_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format(" + id + "." + col + ")", data, list_item)}}
                     {% else %}
-                        {{ common_input.input_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "." + col + "')", list_item)}}
+                        {{ common_input.input_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format(" + id + "." + col + ")", list_item)}}
                     {% endif %}
                 {% endfor %}
                 {{ common_input.hidden(id + "." + col, value[col] | join('#')) }}
@@ -667,7 +713,7 @@
 
         <div id="{{id}}.div" class="col-sm-10">
         {% for list_item in value %}
-            {{ common_input.input_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format('" + id + "')", list_item)}}
+            {{ common_input.input_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format(" + id + ")", list_item)}}
         {% endfor %}
         {{ common_input.hidden(id, value | join('#')) }}
         </div>

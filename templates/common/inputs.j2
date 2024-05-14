@@ -46,9 +46,7 @@
 {% endmacro %}
 
 {% macro check(name, default=None) %}
-    <div>
         <input class="form-check-input" type="checkbox" name="{{ name }}" id="{{ name }}" value="1" {% if default %}checked{% endif %}>
-    </div>
 {% endmacro %}
 
 {% macro slider(name, default=None, min=0, max=100) %}
@@ -76,7 +74,7 @@
 {% endmacro %}
 
 {% macro date(name, default=None) %}
-    {% if 'T' in default %}
+    {% if default and 'T' in default %}
         <input type="datetime-local" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
     {% else %}
         <input type="date" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
