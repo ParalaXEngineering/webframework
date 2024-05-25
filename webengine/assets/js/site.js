@@ -479,7 +479,6 @@ $(document).ready(function() {
 
 function path_init()
 {
-    console.log("Path init")
     //Search the path results items
     var paths = document.getElementsByClassName('path_result');
     for (var i = 0; i < paths.length; ++i) 
@@ -785,4 +784,15 @@ function path_extend(base_name, base_item, group_to_extend)
 
 document.addEventListener("DOMContentLoaded", function() {
     path_init();
+
+    // Reaply focus
+    function reapplyAutofocus() {
+        // Get all elements with the autofocus attribute
+        var autofocusElements = document.querySelectorAll('[autofocus]');
+        if (autofocusElements.length > 0) {
+            // Set focus to the first autofocus element found
+            autofocusElements[0].focus();
+        }
+    }
+    setTimeout(reapplyAutofocus, 200);
   });

@@ -208,6 +208,8 @@ class DisplayerItem:
             item["icon"] = self.m_icon
         if hasattr(self, "m_endpoint"):
             item["endpoint"] = self.m_endpoint
+        if hasattr(self, "m_focus"):
+            item["focus"] = self.m_focus
         if hasattr(self, "m_ids"):
             item["id"] = []
             if parent_id:
@@ -814,11 +816,12 @@ class DisplayerItemInputText(DisplayerItem):
 class DisplayerItemInputString(DisplayerItem):
     """Specialized display to display an input number"""
 
-    def __init__(self, id: str, text: str = None, value: str = None) -> None:
+    def __init__(self, id: str, text: str = None, value: str = None, focus: bool =  False) -> None:
         super().__init__(DisplayerItems.INSTRING)
         self.m_text = text
         self.m_value = value
         self.m_id = id
+        self.m_focus = focus
         return
 
 

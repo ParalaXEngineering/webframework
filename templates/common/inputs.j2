@@ -53,8 +53,8 @@
     <input type="range" class="form-range col-sm-2" min="{{ min }}" max="{{ max }}" id="{{ name }}" name="{{ name }}" value="{{ default }}">
 {% endmacro %}
 
-{% macro inputstring(name, default=None) %}
-    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+{% macro inputstring(name, default=None, focus=False) %}
+    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control" {% if focus %} autofocus {% endif %}>
 {% endmacro %}
 
 {% macro inputtext(name, default=None) %}

@@ -34,7 +34,7 @@
     {% elif item["type"] == "INNUM" %}
         {{innum(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INSTRING" %}
-        {{instring(item["id"], item["value"], item["text"])}}
+        {{instring(item["id"], item["value"], item["text"], item["focus"])}}
     {% elif item["type"] == "INTEXT" %}
         {{intext(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INMULTITEXT" %}
@@ -644,7 +644,7 @@
 
     <div id="{{id}}.div">
     {% for list_item in value%}
-        {{ common_input.select_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format(" + id + ")", data, list_item)}}
+        {{ common_input.select_js(id + ".list" + loop.index0 | string, "settings_list_format('" + id + "')", data, list_item)}}
     {% endfor %}
     {{ common_input.hidden(id, value | join('#')) }}
     </div>
@@ -665,9 +665,9 @@
             <div class="col-sm-6" id="{{id + "." + col}}.div">
                 {% for list_item in value[col] %}
                     {% if data %}
-                        {{ common_input.select_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format(" + id + "." + col + ")", data, list_item)}}
+                        {{ common_input.select_js(id + "." + col + ".list" + loop.index0 | string, "settings_list_format('" + id + "'.'" + col + "')", data, list_item)}}
                     {% else %}
-                        {{ common_input.input_js(id + "." + col + ".list" + loop.index0 | string, "onchange=settings_list_format(" + id + "." + col + ")", list_item)}}
+                        {{ common_input.input_js(id + "." + col + ".list" + loop.index0 | string, "settings_list_format('" + id + "'.'" + col + "')", list_item)}}
                     {% endif %}
                 {% endfor %}
                 {{ common_input.hidden(id + "." + col, value[col] | join('#')) }}
@@ -681,15 +681,15 @@
     </div>
 {% endmacro %}
 
-{% macro instring(id, value, text) %}
+{% macro instring(id, value, text, focus) %}
     {% if text %}
         {{ text }}
     {% endif %}
 
     {% if value %}
-        {{ common_input.inputstring(id, value)}}
+        {{ common_input.inputstring(id, value, focus)}}
     {% else %}
-        {{ common_input.inputstring(id, history[id] if history is defined else None)}}
+        {{ common_input.inputstring(id, history[id] if history is defined else None, focus)}}
     {% endif %}
 {% endmacro %}
 
@@ -713,7 +713,7 @@
 
         <div id="{{id}}.div" class="col-sm-10">
         {% for list_item in value %}
-            {{ common_input.input_js(id + ".list" + loop.index0 | string, "onchange=settings_list_format(" + id + ")", list_item)}}
+            {{ common_input.input_js(id + ".list" + loop.index0 | string, "settings_list_format('" + id + "')", list_item)}}
         {% endfor %}
         {{ common_input.hidden(id, value | join('#')) }}
         </div>
