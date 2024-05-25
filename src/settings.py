@@ -61,13 +61,13 @@ def ip_config_apply():
         try:
             if data_in["ip_type"] == "Static":
                 first_ip = ip_configs.pop(0)
-                cmd_ip = f"netsh interface ip set address name=\"{data_in["network_interface"]}\" static {first_ip["ip"]} {first_ip["mask"]}"
+                cmd_ip = f"netsh interface ip set address name=\"{data_in['network_interface']}\" static {first_ip['ip']} {first_ip['mask']}"
                 subprocess.run(cmd_ip, shell=True, check=True)
                 for ip_config in ip_configs:
-                    command = f"netsh interface ip add address name=\"{data_in["network_interface"]}\" addr={ip_config["ip"]} mask={ip_config["mask"]}"
+                    command = f"netsh interface ip add address name=\"{data_in['network_interface']}\" addr={ip_config['ip']} mask={ip_config['mask']}"
                     subprocess.run(command, shell=True, check=True)
             else:
-                cmd_ip = f"netsh interface ip set address name=\"{data_in["network_interface"]}\" dhcp"
+                cmd_ip = f"netsh interface ip set address name=\"{data_in['network_interface']}\" dhcp"
                 subprocess.run(cmd_ip, shell=True, check=True)
         except Exception:
             return render_template("failure.j2", message="You need admin authorization !!! Run OuFNis_DFDIG.exe with admin privileges")

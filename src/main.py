@@ -31,9 +31,7 @@ def setup_app(app):
     Session(app)
 
     socketio_obj = SocketIO(app)
-
-    log = logging.getLogger("werkzeug")
-    log.setLevel(logging.WARNING)
+    logging.config.fileConfig("submodules/framework/log_config.ini")
 
     # Detect if we're running from exe
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
@@ -132,6 +130,12 @@ def setup_app(app):
     def index():
         session["page_info"] = "index"
         return render_template("index.j2", title=site_conf.site_conf_obj.m_app["name"], content=site_conf.site_conf_obj.m_index)
+
+    # Error handling to log errors
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        app.logger.error("An error occurred", exc_info=e)
+        return render_template("error.j2", content=str(e))
 
     @app.before_request
     def before_request():
