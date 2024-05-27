@@ -665,9 +665,9 @@
             <div class="col-sm-6" id="{{id + "." + col}}.div">
                 {% for list_item in value[col] %}
                     {% if data %}
-                        {{ common_input.select_js(id + "." + col + ".list" + loop.index0 | string, "settings_list_format('" + id + "'.'" + col + "')", data, list_item)}}
+                        {{ common_input.select_js(id + "." + col + ".list" + loop.index0 | string, "settings_list_format('" + id + "." + col + "')", data, list_item)}}
                     {% else %}
-                        {{ common_input.input_js(id + "." + col + ".list" + loop.index0 | string, "settings_list_format('" + id + "'.'" + col + "')", list_item)}}
+                        {{ common_input.input_js(id + "." + col + ".list" + loop.index0 | string, "settings_list_format('" + id + "." + col + "')", list_item)}}
                     {% endif %}
                 {% endfor %}
                 {{ common_input.hidden(id + "." + col, value[col] | join('#')) }}
