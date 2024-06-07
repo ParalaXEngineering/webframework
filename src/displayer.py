@@ -984,8 +984,8 @@ class Displayer:
         :param id: If set, the whole item will have an id, so a javascript can update its content later
         :type id: str, optional
         :param line: If set, the line in the layout is forced. Some layout don't have the notion of lines, so it might be skipped. If the line is needed
-        by the layout and it is not specified, either tthere is an item in the column (in which case a new line is created) or not (in which case the column is filled)
-        :type line: int, optional
+        by the layout and it is not specified, either tthere is an item in the column (in which case a new line is created) or not (in which case the column is filled). 
+        If line == -2, a new line will only be created if no oither line already exists
         :return: True if success, False if the given information are not correct
         :rtype: bool
         """
@@ -1016,6 +1016,11 @@ class Displayer:
                 # Check if we need to create a new line
                 if layout["lines"][-1][column]:
                     layout["lines"].append([[] for _ in range(len(layout["header"]))])
+            elif line == -2:
+                # Check if we need to create a new line
+                if layout["lines"][-1][column] and len(layout["lines"][-1][column]) == 0:
+                    layout["lines"].append([[] for _ in range(len(layout["header"]))])
+                line = -1
             else:
                 if len(layout["lines"]) <= line:
                     for i in range(len(layout["lines"]), line + 1):

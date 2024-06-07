@@ -237,6 +237,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     // Ajout de l'écouteur d'événements sur la checkbox
     toggleCheckbox.addEventListener('change', function() {
+        console.log("Coucou")
         // Sélection de tous les éléments avec la classe 'bg-light' ou 'bg-dark'
         const elements = document.querySelectorAll('.bg-light, .bg-body');
 

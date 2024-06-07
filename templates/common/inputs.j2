@@ -21,7 +21,7 @@
 
 {% macro select_js(name, js, options, selected="") %}
     {% if options %}
-    <select class="form-control" name="{{ name }}" id="{{ name }}" onchange="{{ js }}">
+    <select class="form-control" name="{{ name }}" id="{{ name }}" onchange="{{ js|replace('"', "'") }}">
         {% if options is integer %}
             {% for n in range(0, options + 1) %}
                 <option {% if n == selected %} selected {% endif %}>{{ n }}</option>

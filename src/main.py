@@ -60,6 +60,9 @@ def setup_app(app):
     from submodules.framework.src import packager
 
     app.register_blueprint(packager.bp)
+    from submodules.framework.src import bug_tracker
+
+    app.register_blueprint(bug_tracker.bp)
 
     # Register access manager
     access_manager.auth_object = access_manager.Access_manager()
@@ -135,6 +138,9 @@ def setup_app(app):
     @app.errorhandler(Exception)
     def handle_exception(e):
         app.logger.error("An error occurred", exc_info=e)
+        if "404" in str(e):
+            return "", 200  # Return a blank page with status 200
+        
         return render_template("error.j2", content=str(e))
 
     @app.before_request

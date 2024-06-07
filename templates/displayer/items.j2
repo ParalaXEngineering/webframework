@@ -135,27 +135,39 @@
     {% set first_serie = namespace(value=0) %}
     var {{ id }}_Options = {
         chart: {
-            type: "line",
+            type: "{{ 'bar' if data_type == 'bar' else 'line' }}",
             height: 350
         },
         series: [
+                {% if data_type == "bar" %}
+                    {
+                    name: 'Data',
+                    data: [
+                        {% for key, value in graphy.items() %}
+                            {
+                                x: "{{ key }}",
+                                y: {{ value }}
+                            }{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ]
+                }
+                {% else %}
                 {% for serie in  graphy %}
-                            {% if first_serie.value != 0 %}
-                                ,
-                            {% endif %}
-                            {% set first_serie.value = first_serie.value + 1 %}
-                        {
-                            name: "{{ serie }}",
-                            data: [
-                                {% for i in range(0, graphx | length - 1)%}
-                                    [{{graphx[i]}}, {{graphy[serie][i]}} ],
-                                {% endfor %}
-                                    [{{graphx[-1]}}, {{graphy[serie][-1]}} ]
-                            ]
-                        }
-
-                
+                        {% if first_serie.value != 0 %}
+                            ,
+                        {% endif %}
+                        {% set first_serie.value = first_serie.value + 1 %}
+                    {
+                        name: "{{ serie }}",
+                        data: [
+                            {% for i in range(0, graphx | length - 1)%}
+                                [{{graphx[i]}}, {{graphy[serie][i]}} ],
+                            {% endfor %}
+                                [{{graphx[-1]}}, {{graphy[serie][-1]}} ]
+                        ]
+                    }                
                 {% endfor %}
+                {% endif %}
         ],
         {% if data_type == "date" %}
         xaxis: {
@@ -169,6 +181,14 @@
         xaxis: {
             type: 'numeric',
             tickAmount: 20
+        },
+        {% elif data_type == "bar" %}
+        xaxis: {
+            categories: [
+                {% for item in graphx %}
+                    "{{ item }}"{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ]
         },
         {% endif %}
         
@@ -212,7 +232,9 @@
 {% endmacro %}
 
 {% macro image(id, src, height, endpoint, path) %}
-    {% if path %}
+    {% if path == "/" %}
+    <img class="zoomable" src="{{ url_for('common.assets', asset_type=endpoint, filename=src) }}" height="{{ height }}">
+    {% elif path %}    
     <img class="zoomable" src="{{ url_for('common.assets', asset_type=endpoint, filename=path + '/' + src) }}" height="{{ height }}">
     {% else %}
     <img src="{{src}}" height="{{height}}">

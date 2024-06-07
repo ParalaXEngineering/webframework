@@ -96,6 +96,33 @@ class Site_conf:
             }
         )
 
+    def add_sidebar_subsubmenu(self, name: str, url: str, submenu: str, parameter: str = None, endpoint: str = None):
+        url_endpoint = url.split(".")[0]
+        if not endpoint:
+            endpoint = url_endpoint
+        for i in range(0, len(self.m_sidebar)):
+            if "submenu" in self.m_sidebar[i]:
+                if "subsubmenu" in self.m_sidebar[i]["submenu"]:
+                    for j in range(0, len(self.m_sidebar[i]["submenu"]["subsubmenu"])):
+                        if self.m_sidebar[i]["submenu"][submenu]["subsubmenu"][j]["name"] == name:
+                            return
+
+            if (
+                "endpoint" in self.m_sidebar[i]
+                and self.m_sidebar[i]["endpoint"] == endpoint
+            ):
+                for j in range(0, len(self.m_sidebar[i]["submenu"])):
+                    if self.m_sidebar[i]["submenu"][j]["name"] == submenu:
+                        if "subsubmenu" not in self.m_sidebar[i]["submenu"][j]:
+                            self.m_sidebar[i]["submenu"][j]["subsubmenu"] = []
+
+                        self.m_sidebar[i]["submenu"][j]["subsubmenu"].append(
+                            {"name": name, "url": url, "cat": ""}
+                        )
+
+                        if parameter:
+                            self.m_sidebar[i]["submenu"][j]["subsubmenu"][-1]["param"] = parameter
+
     def add_sidebar_submenu(
         self, name: str, url: str, parameter: str = None, endpoint: str = None
     ):
@@ -116,9 +143,6 @@ class Site_conf:
         for i in range(0, len(self.m_sidebar)):
             if "submenu" in self.m_sidebar[i]:
                 for j in range(0, len(self.m_sidebar[i]["submenu"])):
-                    # if(self.m_sidebar[i]["submenu"][j]["name"] == name
-                    #     and "endpoint" in self.m_sidebar[i]["submenu"][j]
-                    #     and endpoint in self.m_sidebar[i]["submenu"][j]["endpoint"]):
                     if self.m_sidebar[i]["submenu"][j]["name"] == name:
                         return
 

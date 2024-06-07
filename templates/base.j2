@@ -72,7 +72,6 @@
 {% endif %}
 
 <body class="theme-light" style="overflow-y: auto">
-    <script src="{{ url_for('static', filename= 'js/initTheme.js') }}"></script>
     <div id="app">                   
         <div id="sidebar" class="active">
             <div class="sidebar-wrapper active ps ps--active-y">
@@ -103,20 +102,37 @@
                         {% if sidebarItem.isTitle %}
                         <li class="sidebar-title">{{sidebarItem.name}}</li>
                         {% else %}
-                            <li class="sidebar-item {{ 'active' if ((sidebarItem.endpoint in endpoint) and (sidebarItem.cat in page_info)) }} {{'has-sub' if "submenu" in sidebarItem }}">
+                            <li class="sidebar-item {{ 'active' if (endpoint and page_info and ((sidebarItem.endpoint in endpoint) and (sidebarItem.cat in page_info)) ) }} {{'has-sub' if "submenu" in sidebarItem }}">
                                 <a href="{{ url_for(sidebarItem.url) if sidebarItem.url!=undefined else '#'}}" class='sidebar-link'>
                                     <i class="mdi {{ sidebarItem.icon }}"></i>
                                     <span>{{sidebarItem.name}}</span>
                                 </a>
                                 {% if "submenu" in sidebarItem %}
-                                    <ul class="submenu {{ 'active' if ((sidebarItem.endpoint in endpoint) and (sidebarItem.cat in page_info)) }}">
+                                    <ul class="submenu {{ 'active' if (endpoint and page_info and ((sidebarItem.endpoint in endpoint) and (sidebarItem.cat in page_info)) ) }}">
                                     {% for sub in sidebarItem.submenu %}
-                                        <li class="submenu-item {{ 'active' if ((sub.url in endpoint) and (sub.name in page_info)) }}">
-                                            <a href="{{ url_for(sub.url) }}?{{ sub.param }}">{{ sub.name }}</a>
+                                        <li class="submenu-item {% if "subsubmenu" in sub %} has-sub {% endif %} {{ 'active' if (endpoint and page_info and ((sub.url in endpoint) and (sub.name in page_info)) ) }}">
+                                            {% if "." in sub.url%}
+                                                <a href="{{ url_for(sub.url) }}?{{ sub.param }}">{{ sub.name }}</a>
+                                            {% else %}
+                                                <a href="#" class="submenu-link">{{ sub.name }}</a>
+                                            {% endif %}
+
+                                            {% if "subsubmenu" in sub %}
+                                                <ul class="submenu submenu-level-2">
+                                                {% for subsub in sub.subsubmenu %}
+                                                    <li class="submenu-link {{ 'active' if (endpoint and page_info and ((subsub.url in endpoint) and (subsub.name in page_info)) ) }}">
+                                                        <a href="{{ url_for(subsub.url) }}?{{ subsub.param }}">{{ subsub.name }}</a>
+                                                    </li>
+                                                {% endfor %}
+                                                </ul>
+                                        {% endif %}
                                         </li>
+                                        
                                     {% endfor %}
                                     </ul>
                                 {% endif %}
+
+                                
                             </li>
                         {% endif %}
                     {% endfor %}
@@ -314,7 +330,7 @@
 
     tinymce.init({
         selector: 'textarea',  // change this value according to your HTML
-        plugins: 'a_tinymce_plugin lists',
+        plugins: 'lists',
         a_plugin_option: true,
         a_configuration_option: 400,
         promotion:false,
@@ -336,6 +352,7 @@
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/dark.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'js/sidebar.js') }}"></script>
     {% for script in javascript %}
         <script src="{{ url_for('static', filename= 'js/' + script) }}"></script>
     {% endfor %}

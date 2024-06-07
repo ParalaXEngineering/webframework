@@ -68,6 +68,9 @@ class Workflow:
             if "workflow_skip" in data_in:
                 self.m_current_step = int(data_in["current_step"]) + 1
                 return True
+            elif "workflow_prev" in data_in:
+                self.m_current_step = int(data_in["current_step"]) - 1
+                return True
             elif "workflow_next" in data_in:
                 if "next_step" in data_in:
                     self.m_current_step = int(data_in["next_step"])
@@ -88,7 +91,7 @@ class Workflow:
         if len(self.m_steps["workers"]) < self.m_current_step:
             return
 
-        if "workflow_skip" in self.m_data_in:
+        if "workflow_skip" in self.m_data_in or "workflow_prev" in self.m_data_in:
             try:
                 # Start the worker in a thread
                 self.m_thread_worker = threading.Thread(
@@ -158,7 +161,12 @@ class Workflow:
                 disp.add_display_item(
                     displayer.DisplayerItemHidden("next_step", str(self.m_next_step))
                 )
-
+            if self.m_current_step > 0:
+                disp.add_display_item(
+                    displayer.DisplayerItemButton("workflow_prev", "Previous"),
+                    0,
+                    disabled=False,
+                )
             disp.add_display_item(
                 displayer.DisplayerItemButton("workflow_next", "Next"),
                 0,

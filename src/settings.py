@@ -392,3 +392,4 @@ def config_apply():
     # Reload authorization
     access_manager.auth_object.load_authorizations()
     return render_template("success.j2", message="Paramètre modifiés")
+
