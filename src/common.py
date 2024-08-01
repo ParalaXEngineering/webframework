@@ -71,11 +71,13 @@ def login():
         username = data_in["user"]
         password_attempt = data_in["password"].encode('utf-8')
 
+        redirect_path = config["core"]["redirect"]["value"] if "core" in config else "/"
+
         if username in users:
             if username not in users_password:
                 # No password is always allowed for now
                 access_manager.auth_object.set_user(username, True)
-                return redirect('/')
+                return redirect(redirect_path)
             else:
                 stored_password = users_password[username][0]
                 stored_hash = stored_password.encode('utf-8')
@@ -83,7 +85,7 @@ def login():
                 if bcrypt.checkpw(password_attempt, stored_hash):
                     # Connexion réussie
                     access_manager.auth_object.set_user(username, True)
-                    return redirect('/')
+                    return redirect(redirect_path)
                 else:
                     error_message = "Bad Password for this user"
         else:
