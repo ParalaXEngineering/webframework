@@ -57,6 +57,7 @@ class BSstyle(Enum):
     ERROR = "danger"
     DARK = "dark"
     LIGHT = "light"
+    ULTRALIGHT = "body"
     NONE = "none"
 
 
@@ -65,6 +66,11 @@ class BSalign(Enum):
     R = "end"
     C = "center"
 
+
+class MAZERStyles(Enum):
+    CARD = "card"
+    HEADER = ""
+    BODY = ""
 
 class DisplayerLayout:
     #g_next_layout = 0
@@ -81,7 +87,9 @@ class DisplayerLayout:
         spacing: int = 0,
         height: int = 0,
         background: BSstyle = None,
-        responsive = None
+        responsive = None,
+        userid = None,
+        style: MAZERStyles = None
     ) -> None:
         """Constructor
 
@@ -105,6 +113,8 @@ class DisplayerLayout:
         self.m_height = height
         self.m_background = background
         self.m_responsive = responsive
+        self.m_userid = userid
+        self.m_style = style
 
         if spacing <= 5:
             self.m_spacing = spacing
@@ -132,7 +142,7 @@ class DisplayerLayout:
             current_layout["header"] = self.m_column
             current_layout["responsive"] = self.m_responsive
             current_layout["lines"] = None
-
+    
         else:
             # Check column size
             column_size = 0
@@ -157,6 +167,9 @@ class DisplayerLayout:
                 current_layout["containers"] = containers
             current_layout["align"] = alignments
             current_layout["spacing"] = self.m_spacing
+            current_layout["user_id"] = self.m_userid
+            current_layout["style"] = self.m_style.value if self.m_style else None
+
 
         container.append(current_layout)
 
@@ -198,6 +211,8 @@ class DisplayerItem:
             item["disabled"] = self.m_disabled
         if hasattr(self, "m_data"):
             item["data"] = self.m_data
+        if hasattr(self, "m_tooltips"):
+            item["tooltips"] = self.m_tooltips
         if hasattr(self, "m_header"):
             item["header"] = self.m_header
         if hasattr(self, "m_possibles"):
@@ -633,7 +648,7 @@ class DisplayerItemInputCascaded(DisplayerItem):
 class DisplayerItemInputSelect(DisplayerItem):
     """Specialized display to display an input select box"""
 
-    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
+    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = [], tooltips: list = []) -> None:
         super().__init__(DisplayerItems.SELECT)
         self.m_text = text
         self.m_value = value
@@ -641,6 +656,7 @@ class DisplayerItemInputSelect(DisplayerItem):
         if isinstance(choices, list):
             choices.sort()
         self.m_data = choices
+        self.m_tooltips = tooltips
         return
 
 

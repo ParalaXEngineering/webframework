@@ -6,7 +6,7 @@
     {% if "itemId" in item %}
     <span id="{{item["itemId"]}}">
     {% else %}
-    <span>
+    {# <span> #}
     {% endif %}
 
     {% if item["type"] == "TEXT" %}
@@ -50,7 +50,7 @@
     {% elif item["type"] == "INIMAGE" %}
         {{inimage(item["id"], item["text"])}}
     {% elif item["type"] == "SELECT" %}
-        {{inselect(item["id"], item["data"], item["value"], item["text"])}}
+        {{inselect(item["id"], item["data"], item["value"], item["text"], item["tooltips"])}}
     {% elif item["type"] == "INCASCADED" %}
         {{incascaded(item["id"], item["data"], item["value"], item["text"], item["level"])}}
     {% elif item["type"] == "INLISTTEXT" %}
@@ -83,7 +83,7 @@
         {{path(item["id"], item["value"], item["data"], item["possibles"])}}
     {% endif %}
 
-    </span>
+    {# </span> #}
 {% endmacro %}
 
 
@@ -214,7 +214,7 @@
 {% endmacro %}
 
 {% macro button(id, text, disabled = false) %}
-    <button name="{{ id }}" id="{{ id }}" type="submit" class="btn btn-primary {%if disabled %} disabled {%endif%}">
+    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn btn-primary {%if disabled %} disabled {%endif%}">
         {{text}}
     </button>
 {% endmacro %}
@@ -360,15 +360,15 @@
     {% endif %}
 {% endmacro %}
 
-{% macro inselect(id, data, value, text) %}
+{% macro inselect(id, data, value, text, tooltips) %}
     {% if text %}
         {{ text }}
     {% endif %}
 
     {% if value %}
-        {{ common_input.select(id, data, value)}}
+        {{ common_input.select(id, data, value, false, tooltips)}}
     {% else %}
-        {{ common_input.select(id, data, history[id] if history is defined else None)}}
+        {{ common_input.select(id, data, history[id] if history is defined else None, false, tooltips)}}
     {% endif %}
 {% endmacro %}
 
@@ -642,6 +642,7 @@
     </div>
     <div class="col-sm-1">
         <a  onclick="setting_add_mapping('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_rm_mapping('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
     </div>
     </div>
 {% endmacro %}
@@ -705,7 +706,7 @@
 
 {% macro instring(id, value, text, focus) %}
     {% if text %}
-        {{ text }}
+        <span>{{ text }}</span>
     {% endif %}
 
     {% if value %}

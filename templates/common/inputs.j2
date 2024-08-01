@@ -1,4 +1,4 @@
-{% macro select(name, options, selected="", generic=false) %}
+{% macro select(name, options, selected="", generic=false, tooltips=false) %}
     {% if options %}
     <select class="form-control" name="{{ name }}" id="{{ name }}">
         {% if options is integer %}
@@ -10,7 +10,7 @@
             <option>Veillez sélectionner</option>
         {% endif %}
         {% for option in options %}
-            <option {% if option == selected %} selected {% endif %}>{{ option }}</option>
+            <option {% if tooltips %} data-tooltip="{{tooltips[loop.index0]}}" {% endif %} {% if option == selected %} selected {% endif %}>{{ option }}</option>
         {% endfor %}
         {% endif %}
     </select>

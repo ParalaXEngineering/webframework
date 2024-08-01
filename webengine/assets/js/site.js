@@ -141,6 +141,17 @@ function button_machine_display(info)
 
 function setting_add_mapping(name)
 {
+    // If the first item in the list is hidden, then it's simply a matter of displaying it
+    var maprow0 = document.getElementById(name + ".masked");
+    if (maprow0 && maprow0.style.display == 'none') 
+    {
+        maprow0.id = name + ".maprow0"
+        maprow0.name = name + ".maprow0"
+        document.getElementById(name + ".maprow0").value = "";
+        maprow0.style.display = ''
+        return
+    }
+
      //Find the biggest line
      var max_nb = 0
      var content_left = []
@@ -180,6 +191,42 @@ function setting_add_mapping(name)
          document.getElementById(name + ".mapleft" + (i).toString()).value = content_left[i];
          document.getElementById(name + ".mapright" + (i).toString()).value = content_right[i];
      }   
+}
+
+function setting_rm_mapping(name)
+{
+     //Find the biggest line
+     var max_nb = 0
+     var content_left = []
+     var content_right = []
+     for (var i = 0; i < 100; i++)
+     {
+         var div = document.getElementById(name + ".mapleft" + (i).toString());
+         if(div)
+         {
+             content_left.push(document.getElementById(name + ".mapleft" + (i).toString()).value);
+             content_right.push(document.getElementById(name + ".mapright" + (i).toString()).value);
+             max_nb += 1;
+         }
+         else
+         {
+             i = 100;
+         }
+     }
+
+    if(max_nb == 1)
+    {
+        var div = document.getElementById(name + ".maprow0")
+        div.style.display = 'none'; // Cache le div
+        div.id = name + ".masked"
+        div.name = ""
+    }
+    else
+    {
+        var div = document.getElementById(name + ".div")
+        document.getElementById(name + ".mapleft" + (max_nb - 1).toString()).remove();
+        document.getElementById(name + ".mapright" + (max_nb - 1).toString()).remove();
+    } 
 }
 
 function settings_list_format(name)
@@ -285,6 +332,13 @@ function send_terminal() {
     observer.observe(target, config);
 }
 
+function saveScrollPosition() {
+    var scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+    localStorage.setItem('scrollPosition', scrollPosition);
+    // Soumettre le formulaire ou faire l'appel AJAX ici
+    document.getElementById('your-form-id').submit();
+}
+
 $(document).ready(function() {    
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     setTimeout(test_connect, 1000)
@@ -304,6 +358,50 @@ $(document).ready(function() {
     $('#overlay').click(function() {
         $('#overlay').fadeOut();
     });
+
+    // Tooltips in selects
+    $('select').each(function() {
+        var select = $(this);
+
+        function addTooltipText() {
+            select.find('option').each(function() {
+                var option = $(this);
+                var tooltip = option.data('tooltip');
+                if (tooltip && !option.data('original-text')) {
+                    var value = option.val();
+                    option.data('original-text', option.text());
+                    option.text(value + ' - ' + tooltip);
+                }
+            });
+        }
+
+        function removeTooltipText() {
+            select.find('option').each(function() {
+                var option = $(this);
+                var originalText = option.data('original-text');
+                if (originalText) {
+                    option.text(originalText);
+                    option.removeData('original-text');
+                }
+            });
+        }
+
+        select.on('focus', function() {
+            addTooltipText();
+        });
+
+        select.on('blur', function() {
+            removeTooltipText();
+        });
+    });
+
+    window.onload = function() {
+        var scrollPosition = localStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.scrollTo(0, scrollPosition);
+            localStorage.removeItem('scrollPosition');
+        }
+    };
 
     socket.on( 'content', function( msg ) {
         for(let id of Object.keys(msg))
