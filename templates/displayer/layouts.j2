@@ -2,9 +2,9 @@
 
 {% macro display_layout(layout = [])%}
     {% if layout["type"] == "VERT" %}
-        {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["height"], layout["background"]) }}
+        {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["height"], layout["background"], layout["user_id"], layout["style"]) }}
     {% elif layout["type"] == "HORIZ" %}
-        {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
+        {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["user_id"]) }}
     {% elif layout["type"] == "TABLE" %}
         {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"]) }}
     {% elif layout["type"] == "SPACER" %}
@@ -17,8 +17,8 @@
     TOCODE
 {% endmacro %}
 
-{% macro display_vertical_layout(columns=[], containers = [], align = [], spacing = 0, height = 0, background = none) %}
-    <div class="row py-{{spacing}} align-items-center {% if background %}bg-{{background}}{% endif %}">
+{% macro display_vertical_layout(columns=[], containers = [], align = [], spacing = 0, height = 0, background = none, user_id = none, style = none) %}
+    <div class="row my-1 py-{{spacing}} align-items-center {% if background %}bg-{{background}}{% endif %} {% if style %}{{style}}{% endif %}" {% if user_id %} id="{{user_id}}"{% endif %} >
     {# For each columns #}
     {% for col in columns %}
         <div class="col-{{col}} text-{{align[loop.index0]}}">
@@ -31,9 +31,9 @@
                 {% if element["object"] == "item" %}
                     {{ disp_item.display_item(element) }}
                 {% elif element["object"] == "layout" %}
-                <div class="row">
+                {#<div class="row">#}
                     {{ display_layout(element)}}
-                </div>
+                {#</div>#}
                 {% else %}
                     NOT SUPPORTED
                 {% endif %}
@@ -46,6 +46,7 @@
         </div>
     {% endfor %}
     </div>
+
 {% endmacro %}
 
 {% macro display_table_layout(header=[], lines = [], responsive = None) %}
