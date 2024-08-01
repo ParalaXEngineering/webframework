@@ -9,6 +9,7 @@ from submodules.framework.src import scheduler
 import shutil
 import socket
 import datetime
+import sys
 from submodules.framework.src import threaded_action
 
 import os
@@ -17,6 +18,7 @@ import ftplib
 
 class SETUP_Packager(threaded_action.Threaded_action):
     m_default_name = "Binaries Package Manager"
+    m_action = ""
 
     def set_file(self, file):
         self.m_file = file
@@ -39,6 +41,12 @@ class SETUP_Packager(threaded_action.Threaded_action):
             )
             today = datetime.datetime.now()
             try:
+                with open(os.path.join("ressources", "version.txt"), 'r') as file:
+                    package_version = file.read()
+                if site_conf_obj.m_app["version"] != package_version:
+                    with open(os.path.join("ressources", "version.txt"), 'w') as file:
+                        file.write(site_conf_obj.m_app["version"])
+
                 shutil.make_archive(
                     os.path.join("packages", today.strftime("%y%m%d_" + self.m_file)),
                     "zip",
@@ -157,6 +165,7 @@ class SETUP_Packager(threaded_action.Threaded_action):
 
                 # Folder mode
                 config = utilities.util_read_parameters()
+                path_to_file = self.m_file
                 if config["updates"]["source"]["value"] == "Folder":
                     shutil.copyfile(
                         os.path.join(
@@ -170,6 +179,7 @@ class SETUP_Packager(threaded_action.Threaded_action):
 
                 # FTP mode
                 elif config["updates"]["source"]["value"] == "FTP":
+                    path_to_file = os.path.join("downloads", self.m_file)
                     try:
                         session = ftplib.FTP(
                             config["updates"]["address"]["value"],
@@ -183,9 +193,10 @@ class SETUP_Packager(threaded_action.Threaded_action):
                             + site_conf_obj.m_app["name"]
                             + "/"
                             + self.m_file,
-                            open(os.path.join("downloads", self.m_file), "wb").write,
+                            open(path_to_file, "wb").write,
                         )  # send the file
                         session.quit()
+
                     except Exception as e:
                         self.m_logger.info("Download package failed: " + str(e))
                         self.m_scheduler.emit_status(
@@ -204,23 +215,24 @@ class SETUP_Packager(threaded_action.Threaded_action):
                     )
                     return
 
-            # Remove old binaries folder and add the new one
-            self.m_scheduler.emit_status(self.get_name(), "Deleting old content", 0)
-            try:
-                shutil.rmtree(os.path.join("ressources"))
-            except Exception:
-                # Will except if it doesn't already exists
-                pass
-            os.mkdir(os.path.join("ressources"))
+            # # Remove old binaries folder and add the new one
+            # self.m_scheduler.emit_status(self.get_name(), "Deleting old content", 0)
+            # try:
+            #     shutil.rmtree(os.path.join("ressources"))
+            # except Exception:
+            #     # Will except if it doesn't already exists
+            #     pass
+            # os.mkdir(os.path.join("ressources"))
 
-            self.m_scheduler.emit_status(self.get_name(), "Deleting old content", 100)
+            # self.m_scheduler.emit_status(self.get_name(), "Deleting old content", 100)
 
             self.m_scheduler.emit_status(
                 self.get_name(), "Unpacking archive, this might take a while", 103
             )
+
             try:
                 shutil.unpack_archive(
-                    os.path.join("downloads", self.m_file),
+                    path_to_file,
                     os.path.join("ressources"),
                     "zip",
                 )
@@ -268,14 +280,17 @@ def packager():
                 packager.set_action("download_package")
             else:
                 try:
-                    f = request.files[".load_package_file"]
+                    for item in data_raw:
+                        if data_raw[item] == "primary":
+                            packager.set_file(item)
+                    # f = request.files[".load_package_file"]
                     try:
                         os.mkdir(os.path.join("downloads"))
                     except FileExistsError:
                         pass
 
-                    f.save(os.path.join("downloads", f.filename))
-                    packager.set_file(f.filename)
+                    # f.save(os.path.join("downloads", f.filename))
+                    # packager.set_file(f.filename)
                     packager.set_action("load_package_file")
                 except Exception:
                     pass
@@ -286,7 +301,7 @@ def packager():
     disp.add_module(SETUP_Packager)
 
     # Packager
-    if access_manager.auth_object.authorize_group("admin"):
+    if access_manager.auth_object.authorize_group("admin") and not ((getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"))):
         disp.add_master_layout(
             displayer.DisplayerLayout(
                 displayer.Layouts.VERTICAL,
@@ -337,21 +352,37 @@ def packager():
             displayer.DisplayerItemButton("upload", "Package upload"), 2
         )
 
-        disp.add_master_layout(
-            displayer.DisplayerLayout(
-                displayer.Layouts.VERTICAL,
-                [3, 6, 3],
-                subtitle="Package restoration",
-                alignment=[
-                    displayer.BSalign.L,
-                    displayer.BSalign.L,
-                    displayer.BSalign.R,
-                ],
-            )
+    disp.add_master_layout(
+        displayer.DisplayerLayout(
+            displayer.Layouts.VERTICAL,
+            [3, 6, 3],
+            subtitle="Package restoration",
+            alignment=[
+                displayer.BSalign.L,
+                displayer.BSalign.L,
+                displayer.BSalign.R,
+            ],
         )
-        disp.add_display_item(displayer.DisplayerItemText("Load package from file"), 0)
-        disp.add_display_item(displayer.DisplayerItemInputFile("load_package_file"), 1)
-        disp.add_display_item(displayer.DisplayerItemButton("unpack", "Unpack"), 2)
+    )
+
+    package_file = utilities.util_dir_structure(
+            os.path.join("downloads"), inclusion=[".zip"]
+        )
+    disp.add_display_item(displayer.DisplayerItemText("Package available localy"), 0)
+    # disp.add_display_item(displayer.DisplayerItemInputFile("load_package_file"), 1)
+    disp.add_display_item(
+            displayer.DisplayerItemInputFileExplorer(
+                "load_package_file",
+                None,
+                [package_file],
+                ["Package to unpack"],
+                ["file-package"],
+                ["primary"],
+                [False],
+            ),
+            1,
+        )
+    disp.add_display_item(displayer.DisplayerItemButton("unpack", "Unpack"), 2)
 
     config = utilities.util_read_parameters()
 
@@ -401,7 +432,7 @@ def packager():
                 1,
             )
             disp.add_display_item(
-                displayer.DisplayerItemButton("download", "Download"), 2
+                displayer.DisplayerItemButton("download", "Install Package"), 2
             )
 
     # FTP mode
@@ -442,7 +473,7 @@ def packager():
                 1,
             )
             disp.add_display_item(
-                displayer.DisplayerItemButton("download", "Download"), 2
+                displayer.DisplayerItemButton("download", "Install package"), 2
             )
 
         except socket.gaierror:

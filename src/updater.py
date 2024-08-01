@@ -11,6 +11,7 @@ from submodules.framework.src import threaded_action
 
 import os
 import zipfile
+import tarfile
 import pathlib
 import sys
 import platform
@@ -41,6 +42,9 @@ class SETUP_Updater(threaded_action.Threaded_action):
         """
         self.m_file = file
 
+    def set_distribution(self, distribution: str) -> None:
+        self.m_distribution = distribution
+
     def set_action(self, action: str) -> None:
         """Set the action to perform
 
@@ -63,8 +67,14 @@ class SETUP_Updater(threaded_action.Threaded_action):
         if self.m_action == "update" or self.m_action == "load_update_file":
             self.m_scheduler.emit_status(self.get_name(), "Applying update", 103)
             current_param = utilities.util_read_parameters()
-            with zipfile.ZipFile(os.path.join(self.m_file), mode="r") as zip:
-                zip.extractall(path="../")
+
+            # Unzip or untar archive
+            if platform.system().lower() == "windows":
+                with zipfile.ZipFile(os.path.join(self.m_file), mode="r") as zip:
+                    zip.extractall(path="../")
+            else:  # Assuming Linux for other platforms
+                with tarfile.open(os.path.join(self.m_file), mode="r:gz") as tar:
+                    tar.extractall(path="../")
 
             # config file has been overwritten, we need to reapply current configuration
             new_param = utilities.util_read_parameters()
@@ -88,12 +98,33 @@ class SETUP_Updater(threaded_action.Threaded_action):
             utilities.util_write_parameters(current_param)
 
             # Configuration pour le lancement du bootloader
-            path_to_bootloader = os.path.join("BTL.bat")
-            path_to_new_executable = os.path.join(site_conf_obj.m_app["name"] + "_update.exe")
-            original_executable_path = os.path.join(site_conf_obj.m_app["name"] + ".exe")
+            if platform.system().lower() == "windows":
+                path_to_bootloader = os.path.join("BTL.bat")
+                path_to_new_executable = os.path.join(site_conf_obj.m_app["name"] + "_update.exe")
+                original_executable_path = os.path.join(site_conf_obj.m_app["name"] + ".exe")
+            else:  # Assuming Linux for other platforms
+                current_directory = os.path.dirname(os.path.abspath(__file__))
+                path_to_bootloader = os.path.join(current_directory, "BTL.sh")
+                path_to_new_executable = os.path.join(site_conf_obj.m_app["name"] + "_update")
+                original_executable_path = os.path.join(site_conf_obj.m_app["name"])
             # Lancer le bootloader dans un nouveau processus
+
+            # Vérifier si le script BTL.sh existe
+            if not os.path.isfile(path_to_bootloader):
+                print(f"Erreur: Le script {path_to_bootloader} n'existe pas.")
+                return
+            if not os.path.isfile(path_to_bootloader):
+                print(f"Erreur: Le script {path_to_new_executable} n'existe pas.")
+                return
+            if not os.path.isfile(path_to_bootloader):
+                print(f"Erreur: Le script {original_executable_path} n'existe pas.")
+                return
+
             try:
-                subprocess.Popen([path_to_bootloader, path_to_new_executable, original_executable_path])
+                if platform.system().lower() == "windows":
+                    subprocess.Popen([path_to_bootloader, path_to_new_executable, original_executable_path])
+                else:  # Assuming Linux for other platforms
+                    subprocess.Popen(["bash", path_to_bootloader, path_to_new_executable, original_executable_path])
             except Exception as e:
                 print(e)
 
@@ -215,7 +246,7 @@ class SETUP_Updater(threaded_action.Threaded_action):
             )
             # Create the package with pyinstaller
             try:
-                site_conf_obj.create_distribuate()
+                site_conf_obj.create_distribuate(self.m_distribution)
             except Exception as e:
                 traceback_str = traceback.format_exc()
                 self.m_logger.warning("Update creation failed: " + str(e))
@@ -227,76 +258,70 @@ class SETUP_Updater(threaded_action.Threaded_action):
                     supplement=str(e),
                 )
                 return
-            directories = [os.path.join("updater", "dist")]
+            directories = [os.path.join("updater", self.m_distribution, "dist")]
 
-            with zipfile.ZipFile(
-                os.path.join(
-                    "updates",
-                    site_conf_obj.m_app["name"]
-                    + "_"
-                    + site_conf_obj.m_app["version"]
-                    + "_"
-                    + platform.system()
-                    + ".zip",
-                ),
-                mode="w",
-            ) as archive:
-                for dir in directories:
-                    directory = pathlib.Path(dir)
-                    for file_path in directory.rglob("*"):
-                        archive.write(
-                            file_path, arcname=file_path.relative_to(directory)
-                        )
+            if (self.m_distribution == "Windows"):
+                with zipfile.ZipFile(
+                    os.path.join(
+                        "updates",
+                        site_conf_obj.m_app["name"]
+                        + "_"
+                        + site_conf_obj.m_app["version"]
+                        + "_"
+                        + platform.system()
+                        + ".zip",
+                    ),
+                    mode="w",
+                ) as archive:
+                    for dir in directories:
+                        directory = pathlib.Path(dir)
+                        for file_path in directory.rglob("*"):
+                            archive.write(
+                                file_path, arcname=file_path.relative_to(directory)
+                            )
             self.m_scheduler.emit_status(
                 self.get_name(), "Creation of the update package", 100
             )
 
         elif self.m_action == "upload":
-            self.m_file = os.path.join(
-                "updates",
-                site_conf_obj.m_app["name"]
-                + "_"
-                + site_conf_obj.m_app["version"]
-                + "_"
-                + platform.system()
-                + ".zip",
-            )
+            updates_folder = "updates"
+            files_to_upload = []
 
-            self.m_scheduler.emit_status(
-                self.get_name(), "Uploading update, this might take a while", 103
-            )
+            # Vérifiez les fichiers présents dans le dossier updates
+            for file in os.listdir(updates_folder):
+                if file.endswith(".zip") or file.endswith(".tar.gz"):
+                    files_to_upload.append(os.path.join(updates_folder, file))
+
+            if not files_to_upload:
+                self.m_scheduler.emit_status(self.get_name(), "Uploading updates, this might take a while", 101)
+                return
+
+            self.m_scheduler.emit_status(self.get_name(), "Uploading updates, this might take a while", 103)
 
             # Folder mode
             config = utilities.util_read_parameters()
 
             if config["updates"]["source"]["value"] == "Folder":
                 try:
-                    os.mkdir(
-                        os.path.join(config["updates"]["folder"]["value"], "updates")
-                    )
-                except FileExistsError:
-                    pass
+                    os.makedirs(os.path.join(config["updates"]["folder"]["value"], "updates", site_conf_obj.m_app["name"]), exist_ok=True)
+                except Exception as e:
+                    self.m_scheduler.emit_status(self.get_name(), f"Failed to create directories: {str(e)}", 101)
+                    return
 
-                try:
-                    os.mkdir(
-                        os.path.join(
-                            config["updates"]["folder"]["value"],
-                            "updates",
-                            site_conf_obj.m_app["name"],
+                for file in files_to_upload:
+                    try:
+                        shutil.copyfile(
+                            file,
+                            os.path.join(
+                                config["updates"]["folder"]["value"],
+                                "updates",
+                                site_conf_obj.m_app["name"],
+                                os.path.basename(file),
+                            ),
                         )
-                    )
-                except FileExistsError:
-                    pass
-
-                shutil.copyfile(
-                    self.m_file,
-                    os.path.join(
-                        config["updates"]["folder"]["value"],
-                        "updates",
-                        site_conf_obj.m_app["name"],
-                        self.m_file.split(os.path.sep)[-1],
-                    ),
-                )
+                    except Exception as e:
+                        self.m_scheduler.emit_status(self.get_name(), f"Failed to copy file {file}: {str(e)}", 101)
+                        return
 
             # FTP mode
             elif config["updates"]["source"]["value"] == "FTP":
@@ -307,29 +332,30 @@ class SETUP_Updater(threaded_action.Threaded_action):
                         config["updates"]["password"]["value"],
                     )
 
-                    file = open(self.m_file, "rb")  # file to send
-                    session.storbinary(
-                        "STOR "
-                        + config["updates"]["path"]["value"]
-                        + "/updates/"
-                        + site_conf_obj.m_app["name"]
-                        + "/"
-                        + self.m_file.split(os.path.sep)[-1],
-                        file,
-                    )  # send the file
-                    file.close()  # close file and FTP
+                    for file in files_to_upload:
+                        with open(file, "rb") as f:  # file to send
+                            session.storbinary(
+                                "STOR "
+                                + config["updates"]["path"]["value"]
+                                + "/updates/"
+                                + site_conf_obj.m_app["name"]
+                                + "/"
+                                + os.path.basename(file),
+                                f,
+                            )  # send the file
+
                     session.quit()
                 except Exception as e:
                     self.m_logger.info("Update upload failed: " + str(e))
-                    self.m_scheduler.emit_status(
+                    self.emit_status(
                         self.get_name(),
-                        "Uploading update, this might take a while",
-                        101,
+                        "Uploading updates, this might take a while",
+                        101, e
                     )
                     return
 
             self.m_scheduler.emit_status(
-                self.get_name(), "Uploading update, this might take a while", 100
+                self.get_name(), "Uploading updates, this might take a while", 100
             )
 
 
@@ -348,6 +374,7 @@ def update():
         if "create" in data_in:
             packager = SETUP_Updater()
             packager.set_action("create")
+            packager.set_distribution(data_in["distrib"])
             packager.start()
         elif "upload" in data_in:
             packager = SETUP_Updater()
@@ -382,7 +409,7 @@ def update():
     disp.add_module(SETUP_Updater)
     config = utilities.util_read_parameters()
 
-    if access_manager.auth_object.authorize_group("admin"):
+    if access_manager.auth_object.authorize_group("admin") and not ((getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"))):
         disp.add_master_layout(
             displayer.DisplayerLayout(
                 displayer.Layouts.VERTICAL,
@@ -396,9 +423,8 @@ def update():
             )
         )
 
-        disp.add_display_item(
-            displayer.DisplayerItemText("Create a new update with installer"), 0
-        )
+        disp.add_display_item(displayer.DisplayerItemText("Create a new update with installer"), 0)
+        disp.add_display_item(displayer.DisplayerItemInputSelect("distrib", None, None, ["Windows", "Linux"]), 1)
         disp.add_display_item(displayer.DisplayerItemButton("create", "Create"), 2)
 
         disp.add_master_layout(
@@ -427,9 +453,13 @@ def update():
             alignment=[displayer.BSalign.L, displayer.BSalign.L, displayer.BSalign.R],
         )
     )
+
+    content = to_apply.values()
+    content = [item for item in content if platform.system() in item]
+
     disp.add_display_item(displayer.DisplayerItemText("Apply update"), 0)
     disp.add_display_item(
-        displayer.DisplayerItemInputSelect("update_package", None, None, list(to_apply.values())), 1
+        displayer.DisplayerItemInputSelect("update_package", None, None, list(content)), 1
     )
     disp.add_display_item(displayer.DisplayerItemButton("apply", "Apply"), 2)
 
@@ -496,7 +526,9 @@ def update():
                 + "/updates/"
                 + site_conf_obj.m_app["name"]
             )
+
             content = session.nlst()
+            content = [item for item in content if platform.system() in item]
 
             disp.add_master_layout(
                 displayer.DisplayerLayout(

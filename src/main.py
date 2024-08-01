@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, request, send_from_directory
+from flask import Flask, render_template, session, request
 from flask_session import Session
 
 from submodules.framework.src import utilities
@@ -22,6 +22,7 @@ app = Flask(
         static_folder=os.path.join("..", "webengine", "assets"),
         template_folder=os.path.join("..", "templates")
     )
+
 
 def setup_app(app):
     app.config["SESSION_TYPE"] = "filesystem"
@@ -138,9 +139,9 @@ def setup_app(app):
     @app.errorhandler(Exception)
     def handle_exception(e):
         app.logger.error("An error occurred", exc_info=e)
-        if "404" in str(e):
-            return "", 200  # Return a blank page with status 200
-        
+        if e.code == 404:
+            return render_template("404.j2")
+
         return render_template("error.j2", content=str(e))
 
     @app.before_request
@@ -156,5 +157,6 @@ def setup_app(app):
 
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         webbrowser.open("http://127.0.0.1:5000/common/login")
+
 
 setup_app(app)
