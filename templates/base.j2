@@ -354,7 +354,7 @@
     <script src="{{ url_for('static', filename= 'js/dark.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/sidebar.js') }}"></script>
     {% for script in javascript %}
-        <script src="{{ url_for('static', filename= 'js/' + script) }}"></script>
+        <script src="{{ url_for('common.assets', asset_type="js", filename= script) }}"></script>
     {% endfor %}
     {% block js %}{% endblock %}
 </body>
