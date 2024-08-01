@@ -27,8 +27,8 @@ def download():
     else:
         path = os.path.join(os.path.join("..", "..", "..", "ressources", "downloads"), request.args.to_dict()["file"])
 
-    #if not os.path.exists(path):
-    #    return "", 200  # Return a blank page with status 200
+    if not os.path.exists(path):
+        return render_template("404.j2")
     
     return send_file(path, as_attachment=True)
 
