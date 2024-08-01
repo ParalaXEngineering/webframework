@@ -8,15 +8,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} - {{ web_title }}</title>
+    <title>{{ title }}</title>
     {% block stylesfirst %}{% endblock %}
     {% block styles %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/mdi/css/materialdesignicons.min.css') }}">
-	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/main/app.css') }}">
-	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/main/app-dark.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app-dark.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/table-datatable-jquery.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/datatables.net-bs5/css/dataTables.bootstrap5.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.css') }}">
-	<link rel="shortcut icon" href="{{ url_for('static', filename= 'images/logo/favicon.svg') }}" type="image/x-icon">
-	<link rel="shortcut icon" href="{{ url_for('static', filename= 'images/logo/favicon.png') }}" type="image/png">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond/filepond.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css') }}">
+	<link rel="shortcut icon" href="{{ url_for('common.assets', asset_type="images", filename= 'logo/favicon.png') }}" type="image/png">
+
+    <style>
+        #overlay {
+            position: fixed; /* Cover the whole screen */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7); /* Semi-transparent black background */
+            display: none; /* Hidden by default */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            z-index: 1000; /* Make sure it's above other content */
+            display: flex; /* Use Flexbox to center the image */
+        }
+        #overlay img {
+            max-width: 80%; /* Limit image size, keeping some margin */
+            max-height: 80%;
+            margin: auto; /* Center the image within the flex container */
+        }
+    </style>
     
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
@@ -54,16 +78,17 @@
                 <div class="sidebar-header position-relative">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="logo">
-                            <h3><i class="mdi mdi-{{app["icon"]}}"></i>{{app["name"]}}</h3>
-                        <h6>v{{app["version"]}}</h6>
-                        </div>
-                        <div class="theme-toggle d-flex gap-2  align-items-center mt-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--system-uicons" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 21 21"><g fill="none" fill-rule="evenodd" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 14.5c2.219 0 4-1.763 4-3.982a4.003 4.003 0 0 0-4-4.018c-2.219 0-4 1.781-4 4c0 2.219 1.781 4 4 4zM4.136 4.136L5.55 5.55m9.9 9.9l1.414 1.414M1.5 10.5h2m14 0h2M4.135 16.863L5.55 15.45m9.899-9.9l1.414-1.415M10.5 19.5v-2m0-14v-2" opacity=".3"></path><g transform="translate(-210 -1)"><path d="M220.5 2.5v2m6.5.5l-1.5 1.5"></path><circle cx="220.5" cy="11.5" r="4"></circle><path d="m214 5l1.5 1.5m5 14v-2m6.5-.5l-1.5-1.5M214 18l1.5-1.5m-4-5h2m14 0h2"></path></g></g></svg>
-                            <div class="form-check form-switch fs-6">
-                                <input class="form-check-input  me-0" type="checkbox" id="toggle-dark">
-                                <label class="form-check-label"></label>
+                            <div class="theme-toggle d-flex gap-2  align-items-center mt-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--system-uicons" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 21 21"><g fill="none" fill-rule="evenodd" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 14.5c2.219 0 4-1.763 4-3.982a4.003 4.003 0 0 0-4-4.018c-2.219 0-4 1.781-4 4c0 2.219 1.781 4 4 4zM4.136 4.136L5.55 5.55m9.9 9.9l1.414 1.414M1.5 10.5h2m14 0h2M4.135 16.863L5.55 15.45m9.899-9.9l1.414-1.415M10.5 19.5v-2m0-14v-2" opacity=".3"></path><g transform="translate(-210 -1)"><path d="M220.5 2.5v2m6.5.5l-1.5 1.5"></path><circle cx="220.5" cy="11.5" r="4"></circle><path d="m214 5l1.5 1.5m5 14v-2m6.5-.5l-1.5-1.5M214 18l1.5-1.5m-4-5h2m14 0h2"></path></g></g></svg>
+                                <div class="form-check form-switch fs-6">
+                                    <input class="form-check-input  me-0" type="checkbox" id="toggle-dark" style="cursor: pointer">
+                                    <label class="form-check-label"></label>
+                                </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--mdi" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path fill="currentColor" d="m17.75 4.09l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L12.44 4l1.06-3l1.06 3l3.19.09m3.5 6.91l-1.64 1.25l.59 1.98l-1.7-1.17l-1.7 1.17l.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95l2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85c-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14c.4-.4.82-.76 1.27-1.08c.75-.53 1.93.36 1.85 1.19c-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82c-2.81 3.14-2.7 7.96.31 10.98c3.02 3.01 7.84 3.12 10.98.31Z"></path></svg>
                             </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--mdi" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path fill="currentColor" d="m17.75 4.09l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L12.44 4l1.06-3l1.06 3l3.19.09m3.5 6.91l-1.64 1.25l.59 1.98l-1.7-1.17l-1.7 1.17l.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95l2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85c-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14c.4-.4.82-.76 1.27-1.08c.75-.53 1.93.36 1.85 1.19c-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82c-2.81 3.14-2.7 7.96.31 10.98c3.02 3.01 7.84 3.12 10.98.31Z"></path></svg>
+
+                            <h3><i class="mdi mdi-{{app["icon"]}}"></i>{{app["name"]}}</h3>
+                            <h6>v{{app["version"]}}</h6>
                         </div>
                         <div class="sidebar-toggler  x">
                             <a href="#" class="sidebar-hide d-xl-none d-block"><i class="bi bi-x bi-middle"></i></a>
@@ -77,20 +102,37 @@
                         {% if sidebarItem.isTitle %}
                         <li class="sidebar-title">{{sidebarItem.name}}</li>
                         {% else %}
-                            <li class="sidebar-item {{ 'active' if ((sidebarItem.endpoint in endpoint) and (sidebarItem.cat in page_info)) }} {{'has-sub' if "submenu" in sidebarItem }}">
+                            <li class="sidebar-item {{ 'active' if (endpoint and page_info and ((sidebarItem.endpoint in endpoint) and (sidebarItem.cat in page_info)) ) }} {{'has-sub' if "submenu" in sidebarItem }}">
                                 <a href="{{ url_for(sidebarItem.url) if sidebarItem.url!=undefined else '#'}}" class='sidebar-link'>
                                     <i class="mdi {{ sidebarItem.icon }}"></i>
                                     <span>{{sidebarItem.name}}</span>
                                 </a>
                                 {% if "submenu" in sidebarItem %}
-                                    <ul class="submenu {{ 'active' if ((sidebarItem.endpoint in endpoint) and (sidebarItem.cat in page_info)) }}">
+                                    <ul class="submenu {{ 'active' if (endpoint and page_info and ((sidebarItem.endpoint in endpoint) and (sidebarItem.cat in page_info)) ) }}">
                                     {% for sub in sidebarItem.submenu %}
-                                        <li class="submenu-item {{ 'active' if ((sub.url in endpoint) and (sub.name in page_info)) }}">
-                                            <a href="{{ url_for(sub.url) }}?{{ sub.param }}">{{ sub.name }}</a>
+                                        <li class="submenu-item {% if "subsubmenu" in sub %} has-sub {% endif %} {{ 'active' if (endpoint and page_info and ((sub.url in endpoint) and (sub.name in page_info)) ) }}">
+                                            {% if "." in sub.url%}
+                                                <a href="{{ url_for(sub.url) }}?{{ sub.param }}">{{ sub.name }}</a>
+                                            {% else %}
+                                                <a href="#" class="submenu-link">{{ sub.name }}</a>
+                                            {% endif %}
+
+                                            {% if "subsubmenu" in sub %}
+                                                <ul class="submenu submenu-level-2">
+                                                {% for subsub in sub.subsubmenu %}
+                                                    <li class="submenu-link {{ 'active' if (endpoint and page_info and ((subsub.url in endpoint) and (subsub.name in page_info)) ) }}">
+                                                        <a href="{{ url_for(subsub.url) }}?{{ subsub.param }}">{{ subsub.name }}</a>
+                                                    </li>
+                                                {% endfor %}
+                                                </ul>
+                                        {% endif %}
                                         </li>
+                                        
                                     {% endfor %}
                                     </ul>
                                 {% endif %}
+
+                                
                             </li>
                         {% endif %}
                     {% endfor %}
@@ -187,11 +229,11 @@
                                 {% if topbarItems["login"] %}
                                         <a href="{{url_for('common.login') }}"><button class="btn btn-secondary mx-1">
                                         <div id="topbar_target" class="float-end align-items-center">
-                                            <div class="col">
+                                            <div class="col avatar avatar-lg">
                                                 {% if user %}
-                                                    <img src="{{ url_for('static', filename= 'images/users/' ~ user ~ '.svg') }}" width="48px">
+                                                    <img src="{{ url_for('common.assets', asset_type="images", filename='users/' + user + '.jpg') }}" width="48px">
                                                     {% else %}
-                                                    <img src="{{ url_for('static', filename= 'images/users/GUEST.svg') }}" width="48px">
+                                                    <img src="{{ url_for('common.assets', asset_type="images", filename='users/GUEST.jpg') }}" width="48px">
                                                 {% endif %}
                                             </div>
                                             <div class="col">
@@ -228,21 +270,91 @@
             <footer>
                 <div class="footer clearfix p-5 text-muted float-end">
                     <div class="float-start">
-                        <p>2022 &copy;FN Herstal, Template by Mazer</p>
+                        <p>{{footer}}</p><p>Template by Mazer</p>
                     </div>
                 </div>
             </footer>
         </div>
 
     </div>
-    <script src="{{ url_for('static', filename= 'vendors/jquery/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/tinymce/tinymce.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/datatables.net/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/filepond/filepond.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js') }}"></script>
+    <script>FilePond.registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType);
+
+    // Filepond: Image Preview
+    const filePondImage = document.querySelectorAll(".image-preview-filepond");
+    filePondImage.forEach(element => {
+        FilePond.create(element, {
+            labelIdle: `Drag & Drop image <span class="filepond--label-action">Browse</span>`,
+            credits: null,
+            allowImagePreview: true,
+            allowImageFilter: false,
+            allowImageExifOrientation: false,
+            allowImageCrop: false,
+            acceptedFileTypes: ["image/png", "image/jpg", "image/jpeg"],
+            fileValidateTypeDetectType: (source, type) => new Promise((resolve, reject) => {
+                // Faites la détection de type personnalisée ici et retournez avec une promesse
+                resolve(type);
+            }),
+            storeAsFile: true,
+        });
+    });
+
+    // Filepond: Base
+    filePondBase = document.querySelectorAll(".basic-filepond");
+    filePondBase.forEach(element => {
+        FilePond.create(element, {
+            credits: null,
+            storeAsFile: true,
+        });
+    });
+
+    // Filepond: Folder
+    filePondFolder = document.querySelectorAll(".folder-filepond");
+    filePondFolder.forEach(element => {
+        FilePond.create(element, {
+            credits: null,
+            storeAsFile: true,
+            labelIdle: `Drag & Drop a zip file <span class="filepond--label-action">Browse</span>`,
+            acceptedFileTypes: ['application/x-zip-compressed']
+        });
+    });
+
+
+    tinymce.init({
+        selector: 'textarea',  // change this value according to your HTML
+        plugins: 'lists',
+        a_plugin_option: true,
+        a_configuration_option: 400,
+        promotion:false,
+        height: 250,
+        resize: true,
+        menubar: '',
+        toolbar: "undo redo | blocks fontsizeinput | bold italic | align numlist | bullist numlist outdent indent", // Note: if a toolbar item requires a plugin, the item will not present in the toolbar if the plugin is not also loaded.
+        });
+
+
+    let elements = document.querySelectorAll('[id^="responsive_"]');
+    elements.forEach(element => {
+        let table = new DataTable(`#${element.id}`);
+        // Vous pouvez ajouter d'autres configurations ici si nécessaire
+    });
+    
+    </script>
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
-    <script src="{{ url_for('static', filename= 'js/bootstrap.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'js/dark.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'js/sidebar.js') }}"></script>
     {% for script in javascript %}
-        <script src="{{ url_for('static', filename= 'js/' + script) }}"></script>
+        <script src="{{ url_for('common.assets', asset_type="js", filename= script) }}"></script>
     {% endfor %}
     {% block js %}{% endblock %}
 </body>

@@ -16,7 +16,8 @@
 {% set submenu_count = namespace(value=0) %}
 {% set path_count = namespace(value=0) %}
 
-{%if content|length == 0 %}
+{%if content|length == 1 %} 
+    {# This is size of 1 because the modals are always here #}
     <div class="text-center">
         <img src="{{ url_for('static', filename= 'images/status/unauthorized.svg')}}" width="500vw">
         <h1 class="error-title">Unauthorized</h1>
@@ -25,7 +26,39 @@
 {% else %}
     {# Start with the modals #}
     {% for modal in content["modals"] %}
-    {{ modal["modal"] }}
+    <div class="modal fade" id="{{modal["id"]}}" tabindex="-1" aria-labelledby="Coucou" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-dialog-scrollable modal-full" role="document">
+            <div class="modal-content">
+                {% if "header" in modal %}
+                <div class="modal-header">
+                <h5 class="modal-title">{{ modal["header"] }}</h5>
+                </div>
+                {% endif %}
+                <div class="modal-body">
+                {# Each module is displayed in its block #}
+                {% for module in modal["content"] %}
+                    {% if module != "modals" %}
+                        {# Module layouts #}
+                        {% for layout in modal["content"][module]["layouts"] %}
+
+                            {# Subtitle #}
+                            {% if layout["subtitle"] %}
+                                <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
+                            {% endif %}
+
+                            {# Content #}
+                            {% if layout["type"] == "VERT" %}
+                                {{ disp_layouts.display_vertical_layout(layout["columns"], layout["containers"], layout["align"]) }}
+                            {% elif layout["type"] == "TABLE" %}
+                                {{ disp_layouts.display_table_layout(layout["header"], layout["lines"]) }}
+                            {% endif %}
+                        {% endfor%}
+                    {% endif %}
+                {% endfor%}
+            </div>
+            </div>
+        </div>
+    </div>
     {% endfor %}
 
     {# Each module is displayed in its block #}

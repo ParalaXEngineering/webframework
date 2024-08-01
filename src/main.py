@@ -1,9 +1,10 @@
-from flask import Flask, render_template, session, request
+from flask import Flask, render_template, session, request, send_from_directory
 from flask_session import Session
 
 from submodules.framework.src import utilities
 
 import os
+import webbrowser
 import logging
 
 from flask_socketio import SocketIO
@@ -15,24 +16,22 @@ from submodules.framework.src import threaded_manager
 from submodules.framework.src import access_manager
 from submodules.framework.src import site_conf
 
-
-def main():
-    app = Flask(
+app = Flask(
         __name__,
         instance_relative_config=True,
         static_folder=os.path.join("..", "webengine", "assets"),
-        template_folder=os.path.join("..", "templates"),
+        template_folder=os.path.join("..", "templates")
     )
 
+def setup_app(app):
     app.config["SESSION_TYPE"] = "filesystem"
+    app.config['TEMPLATES_AUTO_RELOAD'] = False
     app.config["SECRET_KEY"] = "super secret key"
     app.config.from_object(__name__)
     Session(app)
 
     socketio_obj = SocketIO(app)
-
-    log = logging.getLogger("werkzeug")
-    log.setLevel(logging.WARNING)
+    logging.config.fileConfig("submodules/framework/log_config.ini")
 
     # Detect if we're running from exe
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
@@ -42,13 +41,9 @@ def main():
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         )
 
-    print(app_path)
-
     # Automatically import all pages
-    print(os.listdir())
     for item in os.listdir(os.path.join(app_path, "website", "pages")):
         if ".py" in item:
-            print("website.pages." + item[0:-3])
             module = importlib.import_module("website.pages." + item[0:-3])
             app.register_blueprint(module.bp)
 
@@ -65,6 +60,9 @@ def main():
     from submodules.framework.src import packager
 
     app.register_blueprint(packager.bp)
+    from submodules.framework.src import bug_tracker
+
+    app.register_blueprint(bug_tracker.bp)
 
     # Register access manager
     access_manager.auth_object = access_manager.Access_manager()
@@ -81,11 +79,20 @@ def main():
 
     scheduler.scheduler_obj = scheduler_obj
 
+    # Start long term scheduler
+    scheduler_lt = scheduler.Scheduler_LongTerm()
+    scheduler_lt.start()
+    scheduler.scheduler_ltobj = scheduler_lt
+
     threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
 
     # Import site_conf
     site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
     site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj
+    site_conf.site_conf_app_path = app_path
+
+    # Register long term functions from the site confi
+    site_conf.site_conf_obj.register_scheduler_lt_functions()
 
     @socketio_obj.on("user_connected")
     def connect():
@@ -93,7 +100,7 @@ def main():
 
     @socketio_obj.server.on("*")
     def catch_all(event, sid, *args):
-        site_conf.site_conf_obj.socketio_event(event)
+        site_conf.site_conf_obj.socketio_event(event, args)
 
     @app.context_processor
     def inject_bar():
@@ -104,6 +111,8 @@ def main():
             app=site_conf.site_conf_obj.m_app,
             javascript=site_conf.site_conf_obj.m_javascripts,
             filename=None,
+            title=site_conf.site_conf_obj.m_app["name"],
+            footer=site_conf.site_conf_obj.m_app["footer"]
         )
 
     @app.context_processor
@@ -123,7 +132,16 @@ def main():
     @app.route("/")
     def index():
         session["page_info"] = "index"
-        return render_template("index.j2")
+        return render_template("index.j2", title=site_conf.site_conf_obj.m_app["name"], content=site_conf.site_conf_obj.m_index)
+
+    # Error handling to log errors
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        app.logger.error("An error occurred", exc_info=e)
+        if "404" in str(e):
+            return "", 200  # Return a blank page with status 200
+        
+        return render_template("error.j2", content=str(e))
 
     @app.before_request
     def before_request():
@@ -136,4 +154,7 @@ def main():
 
         inject_bar()
 
-    app.run(debug=True, host="0.0.0.0", use_reloader=False)
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        webbrowser.open("http://127.0.0.1:5000/common/login")
+
+setup_app(app)

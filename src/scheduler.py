@@ -1,4 +1,5 @@
 import time
+import threading
 import logging
 import logging.config
 
@@ -7,6 +8,7 @@ from enum import Enum
 from submodules.framework.src import threaded_manager
 
 scheduler_obj = None
+scheduler_ltobj = None
 
 
 class logLevel(Enum):
@@ -15,6 +17,61 @@ class logLevel(Enum):
     warning = 2
     error = 3
     empty = 4
+
+
+class Scheduler_LongTerm:
+    def __init__(self):
+        self.functions = []
+        self.thread = threading.Thread(target=self.run, daemon=True)
+        self.running = False
+
+        logging.config.fileConfig("submodules/framework/log_config.ini")
+        self.m_logger = logging.getLogger("website")
+
+    def register_function(self, function, period: int) -> None:
+        """Register a nex function
+
+        :param function: The function to register
+        :type function: Function
+        :param period: The period, in minutes, to execute this function
+        :type period: int
+        """
+        self.functions.append((function, period, time.time()))
+
+    def run(self):
+        """
+        Main execution loop
+        """
+        self.running = True
+        while self.running:
+            current_time = time.time()
+            for func, period, last_run in self.functions:
+                if current_time - last_run >= period * 60:
+                    try:
+                        func()
+                    except Exception as e:
+                        self.m_logger.error(f"Error executing function {func.__name__}: {e}")
+                    
+                    # Update last execution time
+                    self.functions = [(f, p, (current_time if f is func else last_run)) for f, p, last_run in self.functions]
+
+            time.sleep(10)
+
+        self.m_logger.info("LT Scheduler stopped")
+
+    def start(self):
+        """"
+        Start the scheduler in its thread
+        """
+        if not self.running:
+            self.m_logger.info("LT Scheduler started")
+            self.thread.start()
+
+    def stop(self):
+        """
+        Stop the scheduler
+        """
+        self.running = False
 
 
 class Scheduler:
@@ -171,18 +228,15 @@ class Scheduler:
 
             # Send buttons, if any
             for item in self.m_buttons:
-                # print("Buttuning " + str({item[0]: [item[1], item[2], item[3]]}))
                 self.socket_obj.emit("button", {item[0]: [item[1], item[2], item[3]]})
 
             # Send popups if any
             for item in self.m_popups:
                 level = item[0].name
-                print("Popuping " + str(level) + str(item[1]))
                 self.socket_obj.emit("popup", {level: item[1]})
 
             # Send content if any
             for item in self.m_contents:
-                print("Contenting " + str(item[0]) + ": " + str(item[1]))
                 self.socket_obj.emit("content", {item[0]: item[1]})
 
             # Send the status if any. Start by filtering the status so we only keep the last important ones
@@ -203,7 +257,6 @@ class Scheduler:
 
             # Send result if any
             for item in self.m_results:
-                print("Resulting " + str(item[0]) + ": " + str(item[1]))
                 self.socket_obj.emit("result", {"category": item[0], "text": item[1]})
 
             for item in self.m_modals:
@@ -211,7 +264,6 @@ class Scheduler:
 
             # Send new formulaire information
             for item in self.m_reload:
-                print("Reloading " + str(item[0]))
                 self.socket_obj.emit("reload", {"id": item[0], "content": item[1]})
 
             threads_names = threaded_manager.thread_manager_obj.get_names()
@@ -240,4 +292,4 @@ class Scheduler:
             self.m_button_enable = []
 
             self.user_after()
-            time.sleep(0.5)
+            time.sleep(0.1)

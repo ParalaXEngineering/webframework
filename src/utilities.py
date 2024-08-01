@@ -6,9 +6,13 @@ import glob
 import math
 from jinja2 import Environment, FileSystemLoader
 import serial
+import zlib
+import tarfile
 
 from submodules.framework.src import access_manager
+from flask import current_app
 
+config_global = {}
 
 def util_list_serial() -> list:
     """Return the list of the serial ports on the machine
@@ -221,9 +225,14 @@ def util_read_parameters() -> dict:
     :return: The parameters of the application
     :rtype: dict
     """
-    f = open("website/config.json")
-    config_data = json.load(f)
-    f.close()
+    global config_global
+    try:
+        f = open("website/config.json")
+        config_data = json.load(f)
+        config_global = config_data
+        f.close()
+    except Exception as e:
+        config_data = config_global
     return config_data
 
 
@@ -236,29 +245,6 @@ def util_write_parameters(data: dict):
     f = open("website/config.json", "w")
     json.dump(data, f)
     f.close()
-
-
-def util_view_init(modules: list) -> dict:
-    """Initialize a view module that can be passed in the base_content template
-
-    :param modules: A list of the modules to add
-    :type modules: list
-    :return: A correctly initialized view module with no input
-    :rtype: dict
-    """
-    view = {}
-    for module in modules:
-        auth = access_manager.auth_object.authorize_module(module.m_default_name)
-        if auth:
-            view[module.m_default_name] = {
-                "inputs": [],
-                "submenus": [
-                    "",
-                ],
-                "type": module.m_type,
-            }
-
-    return view
 
 
 def util_view_reload_displayer(id: str, disp: displayer) -> dict:
@@ -274,7 +260,7 @@ def util_view_reload_displayer(id: str, disp: displayer) -> dict:
     # And update display
     env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
     template = env.get_template("base_content_reloader.j2")
-    reloader = template.render(content=disp.display())
+    reloader = template.render(content=disp.display(True)) # Bypass authentification here
 
     to_render = [{"id": id, "content": reloader}]
     return to_render
@@ -293,7 +279,7 @@ def util_view_reload_text(id: str, input: str) -> dict:
     to_render = [{"id": id, "content": input}]
     return to_render
 
-def util_view_create_modal(id: str, modal_displayer: displayer, base_displayer: displayer) -> str:
+def util_view_create_modal(id: str, modal_displayer: displayer, base_displayer: displayer, header: str = None) -> str:
     """Add the content of a displayer as a modal in a second displayer. Return the link to use to access the modal
 
     :param id: The id of the modal to use
@@ -302,14 +288,13 @@ def util_view_create_modal(id: str, modal_displayer: displayer, base_displayer: 
     :type modal_displayer: displayer
     :param base_displayer: The displayer where the modal is inserted
     :type base_displayer: displayer
+    :param header: A string for the header text
+    :type header: str
     :return: The link to access the modal
     :rtype: dict
     """
     id = id.replace(" ", "_").replace(".", "_").replace('/', '_')
-    env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
-    template = env.get_template("base_content_modal.j2")
-    reloader = template.render(content=modal_displayer.display(), id=id)
-    base_displayer.add_modal("modal_" + id, reloader)
+    base_displayer.add_modal("modal_" + id, modal_displayer, header)
     
     return id
 
@@ -527,6 +512,9 @@ def util_find_files(root: str, inclusion: list = None) -> list:
     :rtype: list
 
     """
+    # In case of misuse of the function and that just a string is given...
+    if isinstance(inclusion, str):
+        inclusion = [inclusion]
 
     current_results = []
     try:
@@ -543,6 +531,8 @@ def util_find_files(root: str, inclusion: list = None) -> list:
                         and os.path.join(root, item) not in current_results
                     ):  # Avoid duplicate if one line correspond to several criteria
                         current_results.append(os.path.join(root, item))
+            else:
+                current_results.append(os.path.join(root, item))
         else:
             dir = util_find_files(os.path.join(root, item), inclusion=inclusion)
             current_results += dir
@@ -632,7 +622,6 @@ def utils_format_unit(cpnt: dict) -> dict:
     """
     unit_order = ["f", "p", "n", "µ", "m", "default", "K", "M", "G"]
 
-    print(cpnt)
     for item in cpnt:
         unit = item.split("[")[1][:-1]
         value = cpnt[item]
@@ -696,9 +685,6 @@ def utils_format_unit(cpnt: dict) -> dict:
             if current_unwanted in value:
                 value = value.replace(current_unwanted, "")
 
-        print("Hello")
-        print(value)
-
         # Set the unit
         new_unit = expected_units["default"]
         for eu in expected_units:
@@ -708,7 +694,6 @@ def utils_format_unit(cpnt: dict) -> dict:
 
         # We have the number and unit, see if we can change the unit
         value_float = utils_keep_number(value)
-        print(value_float)
         if math.isnan(value_float):
             continue
         unit_index = unit_order.index(new_unit)
@@ -736,3 +721,24 @@ def utils_format_unit(cpnt: dict) -> dict:
         cpnt[item] = str(value_float) + new_unit
 
     return cpnt
+
+def utils_calculate_crc32(filepath):
+    """Calcule le CRC32 d'un fichier donné."""
+    with open(filepath, 'rb') as file:
+        content = file.read()
+        return zlib.crc32(content)
+
+def utils_get_directory_crc32(directory_path):
+    """Génère un dictionnaire des CRC32 pour tous les fichiers dans un répertoire."""
+    crc32_dict = {}
+    for root, dirs, files in os.walk(directory_path):
+        for file in files:
+            filepath = os.path.join(root, file)
+            crc32_dict[filepath] = utils_calculate_crc32(filepath)
+    return crc32_dict
+
+def utils_create_backup(backup_folders, backup_name):
+    """Crée un fichier .tar.gz contenant les dossiers spécifiés."""
+    with tarfile.open(backup_name, "w:gz") as tar:
+        for folder in backup_folders:
+            tar.add(folder, arcname=os.path.basename(folder))

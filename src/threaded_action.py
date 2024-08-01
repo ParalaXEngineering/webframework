@@ -24,7 +24,7 @@ class Threaded_action:
 
     m_type = "threaded_action"
     """The type of the module"""
-
+    
     def __init__(self):
         self.m_name = None
 
@@ -88,7 +88,7 @@ class Threaded_action:
 
     def delete(self):
         """Delete the thread and unregister it from the thread manager"""
-
+        self.m_running = False
         threaded_manager.thread_manager_obj.del_thread(self)
 
     def process_exec(self, command: list, source_folder: str, shell=True, inputs=None):
@@ -220,7 +220,6 @@ class Threaded_action:
         self.m_running = True
         # Wait for the browser
         try:
-            print("Trying to start action")
             self.action()
         except Exception as e:
             traceback_str = traceback.format_exc()

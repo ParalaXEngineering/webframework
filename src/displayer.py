@@ -1,3 +1,5 @@
+from submodules.framework.src import access_manager
+
 from enum import Enum
 
 
@@ -11,15 +13,19 @@ class Layouts(Enum):
 class DisplayerItems(Enum):
     TEXT = "TEXT"
     IMAGE = "IMAGE"
+    FILE = "FILE"
     BADGE = "BADGE"
     INDATE = "INDATE"
     INBOX = "INBOX"
     INNUM = "INNUM"
     INHIDDEN = "INHIDDEN"
     INTEXT = "INTEXT"
+    INSTRING = "INSTRING"
     INMULTITEXT = "INMULTITEXT"
     INFILE = "INFILE"
+    INFOLDER = "INFOLDER"
     INTEXTICON = "INTEXTICON"
+    INCASCADED = "INCASCADED"
     INFILEEXPLORER = "INFILEEXPLORER"
     INMULTISELECT = "INMULTISELECT"
     INMAPPING = "INMAPPING"
@@ -30,8 +36,10 @@ class DisplayerItems(Enum):
     INTEXTTEXT = "INTEXTTEXT"
     INLISTTEXT = "INLISTTEXT"
     INLISTSELECT = "INLISTSELECT"
+    INIMAGE = "INIMAGE"
     BUTTON = "BUTTON"
     MODALBUTTON = "MODALBUTTON"
+    MODALLINK = "MODALLINK"
     ALERT = "ALERT"
     SELECT = "SELECT"
     GRAPH = "GRAPH"
@@ -48,7 +56,8 @@ class BSstyle(Enum):
     WARNING = "warning"
     ERROR = "danger"
     DARK = "dark"
-    LIGHT = "secondary"
+    LIGHT = "light"
+    ULTRALIGHT = "body"
     NONE = "none"
 
 
@@ -57,6 +66,11 @@ class BSalign(Enum):
     R = "end"
     C = "center"
 
+
+class MAZERStyles(Enum):
+    CARD = "card"
+    HEADER = ""
+    BODY = ""
 
 class DisplayerLayout:
     #g_next_layout = 0
@@ -71,7 +85,11 @@ class DisplayerLayout:
         subtitle=None,
         alignment: BSalign = None,
         spacing: int = 0,
-        height: int = 0
+        height: int = 0,
+        background: BSstyle = None,
+        responsive = None,
+        userid = None,
+        style: MAZERStyles = None
     ) -> None:
         """Constructor
 
@@ -92,7 +110,11 @@ class DisplayerLayout:
         self.m_column = columns
         self.m_subtitle = subtitle
         self.m_alignement = alignment
-        self.m_height = 0
+        self.m_height = height
+        self.m_background = background
+        self.m_responsive = responsive
+        self.m_userid = userid
+        self.m_style = style
 
         if spacing <= 5:
             self.m_spacing = spacing
@@ -113,12 +135,14 @@ class DisplayerLayout:
             "type": self.m_type,
             "id": id,
             "subtitle": self.m_subtitle,
+            "background": self.m_background.value if self.m_background else None
         }
 
         if self.m_type == Layouts.TABLE.value:
             current_layout["header"] = self.m_column
+            current_layout["responsive"] = self.m_responsive
             current_layout["lines"] = None
-
+    
         else:
             # Check column size
             column_size = 0
@@ -143,11 +167,14 @@ class DisplayerLayout:
                 current_layout["containers"] = containers
             current_layout["align"] = alignments
             current_layout["spacing"] = self.m_spacing
+            current_layout["user_id"] = self.m_userid
+            current_layout["style"] = self.m_style.value if self.m_style else None
+
 
         container.append(current_layout)
 
         #DisplayerLayout.g_next_layout += 1
-        #return self.g_next_layout - 1
+        #return self.g_next_layout
 
 
 class DisplayerItem:
@@ -174,6 +201,8 @@ class DisplayerItem:
         # Check exisitings common variables, so basic items don't need to reimplement this function
         if hasattr(self, "m_text"):
             item["text"] = self.m_text
+        if hasattr(self, "m_level"):
+            item["level"] = self.m_level
         if hasattr(self, "m_value"):
             item["value"] = self.m_value
         if hasattr(self, "m_style"):
@@ -182,10 +211,28 @@ class DisplayerItem:
             item["disabled"] = self.m_disabled
         if hasattr(self, "m_data"):
             item["data"] = self.m_data
+        if hasattr(self, "m_tooltips"):
+            item["tooltips"] = self.m_tooltips
+        if hasattr(self, "m_header"):
+            item["header"] = self.m_header
         if hasattr(self, "m_possibles"):
             item["possibles"] = self.m_possibles
         if hasattr(self, "m_path"):
             item["path"] = self.m_path
+        if hasattr(self, "m_icon"):
+            item["icon"] = self.m_icon
+        if hasattr(self, "m_endpoint"):
+            item["endpoint"] = self.m_endpoint
+        if hasattr(self, "m_focus"):
+            item["focus"] = self.m_focus
+        if hasattr(self, "m_ids"):
+            item["id"] = []
+            if parent_id:
+                for id in self.m_ids:
+                    item["id"].append(parent_id + "." + id)
+            else:
+                item["id"] = self.m_ids
+
         if hasattr(self, "m_id"):
             if parent_id:
                 item["id"] = parent_id + "." + self.m_id
@@ -221,14 +268,17 @@ class DisplayerItem:
 class DisplayerItemPlaceholder(DisplayerItem):
     """Specialized display item to set a placeholder with an id which can be filled later"""
 
-    def __init__(self, id: str) -> None:
+    def __init__(self, id: str, data: str = "") -> None:
         """Initialize with the text content
 
         :param id: The id of the placehpmder
         :type id: str
+        :param data: some data that are already in the placeholder
+        :type data: str
         """
         super().__init__(DisplayerItems.PLACEHOLDER)
         self.m_id = id
+        self.m_data = data
 
 
 class DisplayerItemAlert(DisplayerItem):
@@ -346,6 +396,34 @@ class DisplayerItemModalButton(DisplayerItem):
         self.m_text = text
         self.m_path = link
         return
+    
+class DisplayerItemModalLink(DisplayerItem):
+    """Specialized display item to display a link icon"""
+
+    def __init__(
+        self,
+        text: str,
+        icon: str,
+        link: str = "",
+        color: BSstyle = BSstyle.PRIMARY,
+    ) -> None:
+        """Initialize with the text content
+
+        :param text: The text content
+        :type text: str
+        :param icon: The icon name of the mdi icons. Do not prefix with mdi-
+        :type icon: str
+        :param link: the link (in the flask terms) to point to. Can be set to empty to only have an icon
+        :type link: str
+        :param parameters: a list of text line with the parameters after the link, that is after a "?". Those will be passed with a GET method
+        :type parameters: list
+        """
+        super().__init__(DisplayerItems.MODALLINK)
+        self.m_text = text
+        self.m_path = link
+        self.m_icon = icon
+        self.m_style = color.value
+        return
 
 
 class DisplayerItemBadge(DisplayerItem):
@@ -390,24 +468,46 @@ class DisplayerItemDownload(DisplayerItem):
 class DisplayerItemImage(DisplayerItem):
     """Specialized display item to display an image"""
 
-    def __init__(self, height: str, link: str, path: str = None) -> None:
+    def __init__(self, height: str, link: str, endpoint: str = None, path: str = None) -> None:
         """Initialize with the text content
 
         :param height: The height of the image
         :type height: int
-        :param link: The link to the image
+        :param link: The link to the image. Can be either the name of the file, or a full http adress.
         :type link: str
-        :param link: The base static path, as defined optionnaly in the blueprint
-        :type link: str
+        :param endpoint: If using local path, then an endpoint must be used, which is in reference with the endpoint defined in site_conf
+        :type endpoint: str
+        :param path: The path relative to the endpoint
+        :type path: str
         """
         super().__init__(DisplayerItems.IMAGE)
         self.m_data = height
         self.m_value = link
         self.m_path = path
+        self.m_endpoint = endpoint
 
         return
 
+class DisplayerItemFile(DisplayerItem):
+    """Specialized display item to display an image"""
 
+    def __init__(self, link: str, endpoint: str = None, path: str = None, text: str = None) -> None:
+        """Initialize with the text content
+
+        :param link: The link to the image. Can be either the name of the file, or a full http adress.
+        :type link: str
+        :param endpoint: If using local path, then an endpoint must be used, which is in reference with the endpoint defined in site_conf
+        :type endpoint: str
+        :param path: The path relative to the endpoint
+        :type path: str
+        """
+        super().__init__(DisplayerItems.FILE)
+        self.m_text = text
+        self.m_value = link
+        self.m_path = path
+        self.m_endpoint = endpoint
+        return
+    
 class DisplayerItemInputBox(DisplayerItem):
     """Specialized display to display an input checkbox"""
 
@@ -520,16 +620,43 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
         container[-1]["explorer_hiddens"] = self.m_explorerHiddens
         return
 
+class DisplayerItemInputCascaded(DisplayerItem):
+    """Specialized display to have multiple select choices, where each level depend on the previous one
+    :param ids: The ids of each levels of the cascade
+    :type ids: list
+    :param value: The current value of the cascade
+    :type value: list, containing each value for each level of the cascade
+    :param choices: The possibles choices for each cascade
+    :type choices: list of list, with a choice list for each level of the cascade
+    :param level: If only one level of the cascade should be displayed, use this parameter
+    :type: level: int, that correspond on the position in the list of the level, or -1 if all levels needs to be displayed"""
+
+    def __init__(self, ids: list, text: str = None, value: list = None, choices: list = [], level: int = -1) -> None:
+        super().__init__(DisplayerItems.INCASCADED)
+        self.m_text = text
+        self.m_value = value
+        self.m_ids = ids
+        for items in choices:
+            if isinstance(items, list):
+                items.sort()
+        self.m_data = choices
+        if level > len(choices):
+            level = len(choices)
+        self.m_level = level
+        return
 
 class DisplayerItemInputSelect(DisplayerItem):
     """Specialized display to display an input select box"""
 
-    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
+    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = [], tooltips: list = []) -> None:
         super().__init__(DisplayerItems.SELECT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
+        if isinstance(choices, list):
+            choices.sort()
         self.m_data = choices
+        self.m_tooltips = tooltips
         return
 
 
@@ -561,6 +688,7 @@ class DisplayerItemInputMultiSelect(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INMULTISELECT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -573,6 +701,7 @@ class DisplayerItemInputMapping(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INMAPPING)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -585,6 +714,7 @@ class DisplayerItemInputListSelect(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INLISTSELECT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -597,6 +727,7 @@ class DisplayerItemInputTextSelect(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INTEXTSELECT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -609,6 +740,7 @@ class DisplayerItemInputSelectText(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INSELECTTEXT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -621,6 +753,7 @@ class DisplayerItemInputDualTextSelect(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INDUALTEXTSELECT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -633,6 +766,7 @@ class DisplayerItemInputDualSelectText(DisplayerItem):
 
     def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
         super().__init__(DisplayerItems.INDUALSELECTTEXT)
+        choices.sort()
         self.m_text = text
         self.m_value = value
         self.m_id = id
@@ -674,9 +808,10 @@ class DisplayerItemInputNumeric(DisplayerItem):
 
 
 class DisplayerItemInputDate(DisplayerItem):
-    """Specialized display to display an input date"""
+    """Specialized display to display an input date.
+    Date shall be in format YYYY-MM-DD or YYYY-MM-DDT000:00 if the minute and hour is also needed"""
 
-    def __init__(self, id: str, text: str = None, value: float = None) -> None:
+    def __init__(self, id: str, text: str = None, value: str = None) -> None:
         super().__init__(DisplayerItems.INDATE)
         self.m_text = text
         self.m_value = value
@@ -692,6 +827,17 @@ class DisplayerItemInputText(DisplayerItem):
         self.m_text = text
         self.m_value = value
         self.m_id = id
+        return
+    
+class DisplayerItemInputString(DisplayerItem):
+    """Specialized display to display an input number"""
+
+    def __init__(self, id: str, text: str = None, value: str = None, focus: bool =  False) -> None:
+        super().__init__(DisplayerItems.INSTRING)
+        self.m_text = text
+        self.m_value = value
+        self.m_id = id
+        self.m_focus = focus
         return
 
 
@@ -715,12 +861,29 @@ class DisplayerItemInputTextIcon(DisplayerItem):
         self.m_id = id
         return
 
+class DisplayerItemInputFolder(DisplayerItem):
+    """Specialized display to display an input number"""
+
+    def __init__(self, id: str, text: str = None) -> None:
+        super().__init__(DisplayerItems.INFOLDER)
+        self.m_text = text
+        self.m_id = id
+        return
 
 class DisplayerItemInputFile(DisplayerItem):
     """Specialized display to display an input number"""
 
     def __init__(self, id: str, text: str = None) -> None:
         super().__init__(DisplayerItems.INFILE)
+        self.m_text = text
+        self.m_id = id
+        return
+    
+class DisplayerItemInputImage(DisplayerItem):
+    """Specialized display to display an input image box"""
+
+    def __init__(self, id: str, text: str = None) -> None:
+        super().__init__(DisplayerItems.INIMAGE)
         self.m_text = text
         self.m_id = id
         return
@@ -837,8 +1000,8 @@ class Displayer:
         :param id: If set, the whole item will have an id, so a javascript can update its content later
         :type id: str, optional
         :param line: If set, the line in the layout is forced. Some layout don't have the notion of lines, so it might be skipped. If the line is needed
-        by the layout and it is not specified, either tthere is an item in the column (in which case a new line is created) or not (in which case the column is filled)
-        :type line: int, optional
+        by the layout and it is not specified, either tthere is an item in the column (in which case a new line is created) or not (in which case the column is filled). 
+        If line == -2, a new line will only be created if no oither line already exists
         :return: True if success, False if the given information are not correct
         :rtype: bool
         """
@@ -869,6 +1032,11 @@ class Displayer:
                 # Check if we need to create a new line
                 if layout["lines"][-1][column]:
                     layout["lines"].append([[] for _ in range(len(layout["header"]))])
+            elif line == -2:
+                # Check if we need to create a new line
+                if layout["lines"][-1][column] and len(layout["lines"][-1][column]) == 0:
+                    layout["lines"].append([[] for _ in range(len(layout["header"]))])
+                line = -1
             else:
                 if len(layout["lines"]) <= line:
                     for i in range(len(layout["lines"]), line + 1):
@@ -891,8 +1059,8 @@ class Displayer:
 
         return True
     
-    def add_modal(self, id: str, modal: str) -> None:
-        self.m_modals.append({"id": id, "modal": modal})
+    def add_modal(self, id: str, modal: str, header: str = "") -> None:
+        self.m_modals.append({"id": id, "content": modal.display(), "header": header})
 
         return
 
@@ -904,7 +1072,6 @@ class Displayer:
         current_layout["header"] = header
         current_layout["lines"] = None
         current_layout["subtitle"] = subtitle
-
         self.m_modules[self.m_active_module]["layouts"].append(current_layout)
         self.m_current_layout = len(self.m_modules[self.m_active_module]["layouts"]) - 1
 
@@ -918,7 +1085,7 @@ class Displayer:
         line: int = -1,
     ):
         if layout_id == -1:
-            layout_id = DisplayerLayout.g_next_layout - 1
+            layout_id = self.g_next_layout - 1
 
         master_layout = self.find_layout(self.m_modules[self.m_active_module]["layouts"], layout_id)
         if not master_layout:
@@ -931,9 +1098,9 @@ class Displayer:
 
         # Add the display item
         if layout.m_type == Layouts.VERTICAL.value:
-            id = layout.display(master_layout["containers"][column], self.g_next_layout)
+            layout.display(master_layout["containers"][column], self.g_next_layout)
             self.g_next_layout += 1
-            return id
+            return self.g_next_layout - 1
             
 
     def add_master_layout(self, layout: DisplayerLayout) -> None:
@@ -941,26 +1108,37 @@ class Displayer:
             self.m_modules[self.m_active_module]["layouts"] = []
 
         self.m_last_layout = layout
-        id = layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
+        layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
         self.g_next_layout += 1
-        return id
+        return self.g_next_layout - 1
 
     def duplicate_master_layout(self) -> None:
         """Add a new layout, identical to the previous one"""
         if self.m_last_layout:
-            return self.m_last_layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
+            self.m_last_layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
+            self.g_next_layout += 1
+            return self.g_next_layout - 1
 
         return None
 
-    def display(self) -> dict:
+    def display(self, bypass_auth: bool = False) -> dict:
         """Return the information to pass to the template
 
         :return: The dictionnary needed for the template to display
         :rtype: dict
         """
-        # Start by adding the modals
-        self.m_modules["modals"] = self.m_modals
-        return self.m_modules
+        serve_modules = {}
+        serve_modules["modals"] = self.m_modals
+
+        for module in self.m_modules:  
+            if not bypass_auth:
+                auth = access_manager.auth_object.authorize_module(module)
+            else: 
+                auth = True
+            if auth:
+                serve_modules[module] = self.m_modules[module]
+
+        return serve_modules
 
     def set_default_layout(self, id: int) -> None:
         """Impose the default layout back to a given one so that for any future item added, if layout is not specified, the layout id will be this one
@@ -968,6 +1146,5 @@ class Displayer:
         :param id: A new layout id
         :type id: int
         """
-        #DisplayerLayout.g_next_layout = id
         self.g_next_layout = id
         return

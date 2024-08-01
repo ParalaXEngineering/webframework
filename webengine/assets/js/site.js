@@ -1,6 +1,64 @@
+function cascaded(data, ids, caller)
+{
+    // Find the level
+    var level = ids.indexOf(caller.id)
+    if(level >= 0 && level < ids.length)
+    {
+        //Start by clearing all the following levels
+        for(var i = level + 1; i < ids.length; i++)
+        {
+            toclear = document.getElementById(ids[i])
+            while (toclear.options.length > 0) {                
+                toclear.remove(0);
+            }
+        }   
+
+        var selected = document.getElementById(ids[level]).value
+        var toUpdate = document.getElementById(ids[level + 1])
+
+        console.log(selected)
+        console.log(toUpdate)
+        console.log(ids)
+
+        // Recover the data for the given level
+        var data_to_parse = data
+        for(var i = 0; i <= level; i++)
+        {
+            console.log("-----")
+            console.log(i)
+            previous_selection = document.getElementById(ids[i]).value
+            console.log(previous_selection)
+            data_to_parse = data_to_parse[previous_selection]
+            console.log(data_to_parse)
+        }
+    
+
+        var data_to_option = Object.keys(data_to_parse)
+        console.log(data_to_option)
+        toUpdate.add(new Option("", ""))
+        for (var element of data_to_option) {
+            toUpdate.add(new Option(element, element))
+        }
+        toUpdate.value
+        
+    }
+}
+
 function setting_add_list(name)
 {
     console.log(name)
+
+    // If the first item in the list is hidden, then it's simply a matter of displaying it
+    var list0 = document.getElementById(name + ".masked");
+    if (list0 && list0.style.display == 'none') 
+    {
+        list0.id = name + ".list0"
+        list0.name = name + ".list0"
+        document.getElementById(name + ".list0").value = "";
+        list0.style.display = ''
+        return
+    }
+
 
      //Find the biggest line
      var max_nb = 0
@@ -60,15 +118,19 @@ function setting_rm_list(name)
          }
      }
 
-     //Add the line
-     var div = document.getElementById(name + ".div")
-     document.getElementById(name + ".list" + (max_nb - 1).toString()).remove();
- 
-     //And repush the user data
-     for (var i = 0; i < max_nb - 1; i++)
+     
+     if(max_nb == 1)
      {
-         document.getElementById(name + ".list" + (i).toString()).value = content_name[i];
-     }   
+        var div = document.getElementById(name + ".list0")
+        div.style.display = 'none'; // Cache le div
+        div.id = name + ".masked"
+        div.name = ""
+     }
+     else
+     {
+        var div = document.getElementById(name + ".div")
+        document.getElementById(name + ".list" + (max_nb - 1).toString()).remove();
+     }
 }
 
 function button_machine_display(info)
@@ -79,6 +141,17 @@ function button_machine_display(info)
 
 function setting_add_mapping(name)
 {
+    // If the first item in the list is hidden, then it's simply a matter of displaying it
+    var maprow0 = document.getElementById(name + ".masked");
+    if (maprow0 && maprow0.style.display == 'none') 
+    {
+        maprow0.id = name + ".maprow0"
+        maprow0.name = name + ".maprow0"
+        document.getElementById(name + ".maprow0").value = "";
+        maprow0.style.display = ''
+        return
+    }
+
      //Find the biggest line
      var max_nb = 0
      var content_left = []
@@ -118,6 +191,42 @@ function setting_add_mapping(name)
          document.getElementById(name + ".mapleft" + (i).toString()).value = content_left[i];
          document.getElementById(name + ".mapright" + (i).toString()).value = content_right[i];
      }   
+}
+
+function setting_rm_mapping(name)
+{
+     //Find the biggest line
+     var max_nb = 0
+     var content_left = []
+     var content_right = []
+     for (var i = 0; i < 100; i++)
+     {
+         var div = document.getElementById(name + ".mapleft" + (i).toString());
+         if(div)
+         {
+             content_left.push(document.getElementById(name + ".mapleft" + (i).toString()).value);
+             content_right.push(document.getElementById(name + ".mapright" + (i).toString()).value);
+             max_nb += 1;
+         }
+         else
+         {
+             i = 100;
+         }
+     }
+
+    if(max_nb == 1)
+    {
+        var div = document.getElementById(name + ".maprow0")
+        div.style.display = 'none'; // Cache le div
+        div.id = name + ".masked"
+        div.name = ""
+    }
+    else
+    {
+        var div = document.getElementById(name + ".div")
+        document.getElementById(name + ".mapleft" + (max_nb - 1).toString()).remove();
+        document.getElementById(name + ".mapright" + (max_nb - 1).toString()).remove();
+    } 
 }
 
 function settings_list_format(name)
@@ -169,10 +278,130 @@ function settings_map_format(name)
     document.getElementById(name).value = JSON.stringify(content)
 }
 
-$(document).ready(function() {
+document.addEventListener('DOMContentLoaded', (event) => {
+    // Sélection de la checkbox
+    const toggleCheckbox = document.getElementById('toggle-dark');
+
+    // Ajout de l'écouteur d'événements sur la checkbox
+    toggleCheckbox.addEventListener('change', function() {
+        console.log("Coucou")
+        // Sélection de tous les éléments avec la classe 'bg-light' ou 'bg-dark'
+        const elements = document.querySelectorAll('.bg-light, .bg-body');
+
+        // Parcourir chaque élément et changer sa classe
+        elements.forEach(element => {
+            if (element.classList.contains('bg-light')) {
+                element.classList.replace('bg-light', 'bg-body');
+            } else {
+                element.classList.replace('bg-body', 'bg-light');
+            }
+        });
+    });
+
+});
+
+function scrollToBottom() {
+    var terminalConsole = document.getElementById("terminal-console");
+    terminalConsole.scrollTop = terminalConsole.scrollHeight;
+}
+
+
+function send_terminal() {
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var inputElement = document.getElementById('terminal_input'); // C'est l'élément d'input lui-même
+    var command = inputElement.value; // C'est la valeur de l'input
+    socket.emit('terminal_cmd', command);
+    inputElement.value = ""; // Réinitialisez l'élément d'input ici
+    
+    // Créez une instance de MutationObserver pour surveiller les changements dans le terminal
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                scrollToBottom();
+            }
+        });
+    });
+
+    // Configuration de l'observer :
+    var config = { childList: true };
+
+    // Ciblez l'élément à observer :
+    var target = document.getElementById('terminal-user-content');
+
+    // Commencez à observer le target pour les mutations configurées
+    observer.observe(target, config);
+}
+
+function saveScrollPosition() {
+    var scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+    localStorage.setItem('scrollPosition', scrollPosition);
+    // Soumettre le formulaire ou faire l'appel AJAX ici
+    document.getElementById('your-form-id').submit();
+}
+
+$(document).ready(function() {    
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     setTimeout(test_connect, 1000)
     function test_connect(){socket.emit("user_connected") }
+
+    // Append overlay to body
+    $('body').append('<div id="overlay" style="display: none;"><img src=""></div>');
+
+    // When any image with class 'zoomable' is clicked
+    $('.zoomable').click(function() {
+        var imageSrc = $(this).attr('src');
+        $('#overlay img').attr('src', imageSrc);
+        $('#overlay').fadeIn();
+    });
+
+    // When overlay is clicked
+    $('#overlay').click(function() {
+        $('#overlay').fadeOut();
+    });
+
+    // Tooltips in selects
+    $('select').each(function() {
+        var select = $(this);
+
+        function addTooltipText() {
+            select.find('option').each(function() {
+                var option = $(this);
+                var tooltip = option.data('tooltip');
+                if (tooltip && !option.data('original-text')) {
+                    var value = option.val();
+                    option.data('original-text', option.text());
+                    option.text(value + ' - ' + tooltip);
+                }
+            });
+        }
+
+        function removeTooltipText() {
+            select.find('option').each(function() {
+                var option = $(this);
+                var originalText = option.data('original-text');
+                if (originalText) {
+                    option.text(originalText);
+                    option.removeData('original-text');
+                }
+            });
+        }
+
+        select.on('focus', function() {
+            addTooltipText();
+        });
+
+        select.on('blur', function() {
+            removeTooltipText();
+        });
+    });
+
+    window.onload = function() {
+        var scrollPosition = localStorage.getItem('scrollPosition');
+        if (scrollPosition) {
+            window.scrollTo(0, scrollPosition);
+            localStorage.removeItem('scrollPosition');
+        }
+    };
 
     socket.on( 'content', function( msg ) {
         for(let id of Object.keys(msg))
@@ -216,6 +445,18 @@ $(document).ready(function() {
         let div = document.getElementById(msg["id"])
         if(div)
             div.innerHTML = msg["content"]
+
+        // When any image with class 'zoomable' is clicked
+        $('.zoomable').click(function() {
+            var imageSrc = $(this).attr('src');
+            $('#overlay img').attr('src', imageSrc);
+            $('#overlay').fadeIn();
+        });
+
+        // When overlay is clicked
+        $('#overlay').click(function() {
+            $('#overlay').fadeOut();
+        });
     })
 
     socket.on( 'result', function( msg ) {
@@ -337,7 +578,6 @@ $(document).ready(function() {
 
 function path_init()
 {
-    console.log("Path init")
     //Search the path results items
     var paths = document.getElementsByClassName('path_result');
     for (var i = 0; i < paths.length; ++i) 
@@ -643,4 +883,15 @@ function path_extend(base_name, base_item, group_to_extend)
 
 document.addEventListener("DOMContentLoaded", function() {
     path_init();
+
+    // Reaply focus
+    function reapplyAutofocus() {
+        // Get all elements with the autofocus attribute
+        var autofocusElements = document.querySelectorAll('[autofocus]');
+        if (autofocusElements.length > 0) {
+            // Set focus to the first autofocus element found
+            autofocusElements[0].focus();
+        }
+    }
+    setTimeout(reapplyAutofocus, 200);
   });

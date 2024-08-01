@@ -1,4 +1,4 @@
-{% macro select(name, options, selected="", generic=false) %}
+{% macro select(name, options, selected="", generic=false, tooltips=false) %}
     {% if options %}
     <select class="form-control" name="{{ name }}" id="{{ name }}">
         {% if options is integer %}
@@ -10,7 +10,7 @@
             <option>Veillez sélectionner</option>
         {% endif %}
         {% for option in options %}
-            <option {% if option == selected %} selected {% endif %}>{{ option }}</option>
+            <option {% if tooltips %} data-tooltip="{{tooltips[loop.index0]}}" {% endif %} {% if option == selected %} selected {% endif %}>{{ option }}</option>
         {% endfor %}
         {% endif %}
     </select>
@@ -21,7 +21,7 @@
 
 {% macro select_js(name, js, options, selected="") %}
     {% if options %}
-    <select class="form-control" name="{{ name }}" id="{{ name }}" onchange="{{ js }}">
+    <select class="form-control" name="{{ name }}" id="{{ name }}" onchange="{{ js|replace('"', "'") }}">
         {% if options is integer %}
             {% for n in range(0, options + 1) %}
                 <option {% if n == selected %} selected {% endif %}>{{ n }}</option>
@@ -46,25 +46,39 @@
 {% endmacro %}
 
 {% macro check(name, default=None) %}
-    <div>
         <input class="form-check-input" type="checkbox" name="{{ name }}" id="{{ name }}" value="1" {% if default %}checked{% endif %}>
-    </div>
 {% endmacro %}
 
 {% macro slider(name, default=None, min=0, max=100) %}
     <input type="range" class="form-range col-sm-2" min="{{ min }}" max="{{ max }}" id="{{ name }}" name="{{ name }}" value="{{ default }}">
 {% endmacro %}
 
-{% macro input(name, default=None) %}
-    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+{% macro inputstring(name, default=None, focus=False) %}
+    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control" {% if focus %} autofocus {% endif %}>
+{% endmacro %}
+
+{% macro inputtext(name, default=None) %}
+    <textarea name="{{ name }}" id="{{ name }}" {% if default %} {% endif %} cols="50" rows="5">{{ default }}</textarea>
 {% endmacro %}
 
 {% macro file(name) %}
-    <input type="file" name="{{ name }}" id="{{ name }}"  class="form-control">
+    <input type="file" class="basic-filepond" name="{{ name }}" id="{{ name }}">
+{% endmacro %}
+
+{% macro folder(name) %}
+    <input type="file" class="folder-filepond" name="{{ name }}" id="{{ name }}">
+{% endmacro %}
+
+{% macro image(name) %}
+    <input type="file" class="image-preview-filepond", id="{{name}}", name="{{name}}">    
 {% endmacro %}
 
 {% macro date(name, default=None) %}
-    <input type="date" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+    {% if default and 'T' in default %}
+        <input type="datetime-local" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+    {% else %}
+        <input type="date" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+    {% endif %}
 {% endmacro %}
 
 {% macro input_js(name, js, default=None) %}
@@ -136,3 +150,4 @@
         {% endif %}
     
 {% endmacro %}
+

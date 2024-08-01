@@ -15,9 +15,14 @@
 
         {# Content #}
         {% if layout["type"] == "VERT" %}
-            {{ disp_layouts.display_vertical_layout(layout["columns"], layout["containers"], layout["align"]) }}
+            {{ disp_layouts.display_vertical_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["height"], layout["background"]) }}
+        {% elif layout["type"] == "HORIZ" %}
+            {{ disp_layouts.display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
         {% elif layout["type"] == "TABLE" %}
-            {{ disp_layouts.display_table_layout(layout["header"], layout["lines"]) }}
+            {{ disp_layouts.display_table_layout(layout["header"], layout["lines"], layout["responsive"]) }}
+        {% elif layout["type"] == "SPACER" %}
+            <div><p style="margin-bottom:1cm;"></p></div>
+            
         {% endif %}
     {% endfor%}
 {% endfor%}

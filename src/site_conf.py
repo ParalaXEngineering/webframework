@@ -1,13 +1,19 @@
 from submodules.framework.src import access_manager
+from submodules.framework.src import scheduler
+
+import os
 
 site_conf_obj = None
+site_conf_app_path = None
 
 
 class Site_conf:
     """Provides a set of function to configure the website"""
 
-    m_app = {"name": "Default", "version": "0", "icon": "home"}
+    m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
     """App information"""
+
+    m_index = "Bienvenue sur la page par défaut du framework ESD"
 
     m_sidebar = []
     """Sidebar content"""
@@ -17,6 +23,16 @@ class Site_conf:
 
     m_javascripts = []
     """Custom javascripts"""
+
+    m_scheduler_lt_functions = []
+    """Functions that can be registered in the long term scheduler. Should be an array of arrays which are [func, period]"""
+
+    def register_scheduler_lt_functions(self):
+        """
+        Register all the functions that are set in the m_scheduler_lt_functions, which must be populated by the child class
+        """
+        for func in self.m_scheduler_lt_functions:
+            scheduler.scheduler_ltobj.register_function(func[0], func[1])
 
     def add_sidebar_title(self, title: str):
         """Add a sidebar title, which can logically seperate several parts of the sidebar
@@ -80,6 +96,33 @@ class Site_conf:
             }
         )
 
+    def add_sidebar_subsubmenu(self, name: str, url: str, submenu: str, parameter: str = None, endpoint: str = None):
+        url_endpoint = url.split(".")[0]
+        if not endpoint:
+            endpoint = url_endpoint
+        for i in range(0, len(self.m_sidebar)):
+            if "submenu" in self.m_sidebar[i]:
+                if "subsubmenu" in self.m_sidebar[i]["submenu"]:
+                    for j in range(0, len(self.m_sidebar[i]["submenu"]["subsubmenu"])):
+                        if self.m_sidebar[i]["submenu"][submenu]["subsubmenu"][j]["name"] == name:
+                            return
+
+            if (
+                "endpoint" in self.m_sidebar[i]
+                and self.m_sidebar[i]["endpoint"] == endpoint
+            ):
+                for j in range(0, len(self.m_sidebar[i]["submenu"])):
+                    if self.m_sidebar[i]["submenu"][j]["name"] == submenu:
+                        if "subsubmenu" not in self.m_sidebar[i]["submenu"][j]:
+                            self.m_sidebar[i]["submenu"][j]["subsubmenu"] = []
+
+                        self.m_sidebar[i]["submenu"][j]["subsubmenu"].append(
+                            {"name": name, "url": url, "cat": ""}
+                        )
+
+                        if parameter:
+                            self.m_sidebar[i]["submenu"][j]["subsubmenu"][-1]["param"] = parameter
+
     def add_sidebar_submenu(
         self, name: str, url: str, parameter: str = None, endpoint: str = None
     ):
@@ -100,9 +143,6 @@ class Site_conf:
         for i in range(0, len(self.m_sidebar)):
             if "submenu" in self.m_sidebar[i]:
                 for j in range(0, len(self.m_sidebar[i]["submenu"])):
-                    # if(self.m_sidebar[i]["submenu"][j]["name"] == name
-                    #     and "endpoint" in self.m_sidebar[i]["submenu"][j]
-                    #     and endpoint in self.m_sidebar[i]["submenu"][j]["endpoint"]):
                     if self.m_sidebar[i]["submenu"][j]["name"] == name:
                         return
 
@@ -284,7 +324,7 @@ class Site_conf:
         access_manager.auth_object.use_login(True)
         return
 
-    def app_details(self, name: str, version: str, icon: str):
+    def app_details(self, name: str, version: str, icon: str, footer: str = None, index: str = None):
         """Set the application details
 
         :param name: The name of the application
@@ -294,15 +334,22 @@ class Site_conf:
         :param icon: The icon of the application, in mdi format
         :type icon: str
         """
+        m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
+    
         self.m_app["name"] = name
         self.m_app["icon"] = icon
         self.m_app["version"] = version
+        if footer:
+            self.m_app["footer"] = footer
+
+        if index:
+            self.m_index = index
 
     def context_processor(self):
         """Function that is called before rendering any page, should be overwritten by the child object"""
         return
 
-    def socketio_event(self, event):
+    def socketio_event(self, event, data):
         """Function called to respond to event, should be overwritten by the child object"""
         return
 
@@ -310,3 +357,8 @@ class Site_conf:
         """Function to create the distribuable package on this plateform, should be overwritten by the child object"""
         raise Exception("Distribuate creation not handled by this website")
         return False
+    
+    def get_statics(self, app_path) -> dict:
+        """Function to store the other endpoints that must be registered by the application, for instance to serve images """
+        return {"images": os.path.join(app_path, "website", "assets", "images"), 
+                "js": os.path.join(app_path, "website", "assets", "js")}
