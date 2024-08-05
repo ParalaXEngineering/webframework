@@ -35,24 +35,27 @@ def download():
 
 @bp.route("/assets/<asset_type>/", methods=["GET"])
 def assets(asset_type):
-    asset_paths = site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path)
+    try:
+        asset_paths = site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path)
 
-    folder_path = None
-    for path_info in asset_paths:
-        if asset_type in path_info:
-            folder_path = asset_paths[asset_type]
-            break
+        folder_path = None
+        for path_info in asset_paths:
+            if asset_type in path_info:
+                folder_path = asset_paths[asset_type]
+                break
 
-    if folder_path is None:
-        return "Invalid folder type", 404
+        if folder_path is None:
+            return "Invalid folder type", 404
 
-    file_name = request.args.get("filename")
-    file_path = os.path.join(folder_path, file_name)
+        file_name = request.args.get("filename")
+        file_path = os.path.join(folder_path, file_name)
 
-    if not os.path.exists(file_path):
-        return "", 200  # Return a blank page with status 200
+        if not os.path.exists(file_path):
+            return "", 200  # Return a blank page with status 200
 
-    return send_file(file_path, as_attachment=True)
+        return send_file(file_path, as_attachment=True)
+    except Exception:
+        return render_template("base.j2")
 
 
 @bp.route("/login", methods=["GET", "POST"])
