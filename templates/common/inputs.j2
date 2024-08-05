@@ -10,7 +10,11 @@
             <option>Veillez sélectionner</option>
         {% endif %}
         {% for option in options %}
-            <option {% if tooltips %} data-tooltip="{{tooltips[loop.index0]}}" {% endif %} {% if option == selected %} selected {% endif %}>{{ option }}</option>
+            {% if generic%}
+                <option {% if tooltips %} data-tooltip="{{tooltips[loop.index0]}}" {% endif %} {% if option == selected %} selected {% endif %}>{{ option }}</option>
+            {% else %}
+            <option {% if tooltips %} data-tooltip="{{tooltips[loop.index0 + 1]}}" {% endif %} {% if option == selected %} selected {% endif %}>{{ option }}</option>
+            {% endif %}
         {% endfor %}
         {% endif %}
     </select>
