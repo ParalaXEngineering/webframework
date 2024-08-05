@@ -103,27 +103,29 @@ def login():
 @bp.route("/help", methods=["GET"])
 def help():
     data_in = request.args.to_dict()
-    topic = data_in["topic"]
+    try:
+        topic = data_in["topic"]
 
-    # Open md file
-    md_file_path = os.path.join("website", "help", topic + ".md")
-    # Vérifiez si le fichier existe pour éviter FileNotFoundError
-    if not os.path.exists(md_file_path):
-        return "Fichier Markdown non trouvé.", 404
-    with open(md_file_path, "r", encoding="utf-8") as text:
-        text_data = text.read()
+        # Open md file
+        md_file_path = os.path.join("website", "help", topic + ".md")
+        # Vérifiez si le fichier existe pour éviter FileNotFoundError
+        if not os.path.exists(md_file_path):
+            return "Fichier Markdown non trouvé.", 404
+        with open(md_file_path, "r", encoding="utf-8") as text:
+            text_data = text.read()
 
-    content = markdown.markdown(text_data, extensions=["sane_lists", "toc", "tables"])
-    disp = displayer.Displayer()
-    # disp.add_generic("Changelog", display=False)
-    User_defined_module.User_defined_module.m_default_name = "Help"
-    disp.add_module(User_defined_module.User_defined_module)
-    disp.add_master_layout(
-        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
-    )
+        content = markdown.markdown(text_data, extensions=["sane_lists", "toc", "tables"])
+        disp = displayer.Displayer()
+        # disp.add_generic("Changelog", display=False)
+        User_defined_module.User_defined_module.m_default_name = "Help"
+        disp.add_module(User_defined_module.User_defined_module)
+        disp.add_master_layout(
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
+        )
 
-    disp.add_display_item(
-        displayer.DisplayerItemAlert(content, displayer.BSstyle.NONE), 0
-    )
-
-    return render_template("base_content.j2", content=disp.display(), target="")
+        disp.add_display_item(
+            displayer.DisplayerItemAlert(content, displayer.BSstyle.NONE), 0
+        )
+        return render_template("base_content.j2", content=disp.display(), target="")
+    except Exception:
+        return render_template("base.j2")
