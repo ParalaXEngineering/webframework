@@ -181,6 +181,8 @@ class Access_manager:
             self.load_authorizations()
 
         # print(self.m_modules[module])
+        if session['username'] == "GUEST":
+            return False
 
         for user_group in self.m_users_groups[session['username']]:
             if module not in self.m_modules:

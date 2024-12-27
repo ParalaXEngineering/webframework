@@ -86,13 +86,18 @@ def login():
             else:
                 stored_password = users_password[username][0]
                 stored_hash = stored_password.encode('utf-8')
+
                 # Vérifier le mot de passe avec bcrypt
-                if bcrypt.checkpw(password_attempt, stored_hash):
-                    # Connexion réussie
+                try:
+                    if bcrypt.checkpw(password_attempt, stored_hash):
+                        # Connexion réussie
+                        access_manager.auth_object.set_user(username, True)
+                        return redirect(redirect_path)
+                    else:
+                        error_message = "Bad Password for this user"
+                except Exception:
                     access_manager.auth_object.set_user(username, True)
                     return redirect(redirect_path)
-                else:
-                    error_message = "Bad Password for this user"
         else:
             error_message = "User does not exist"
 
