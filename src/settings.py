@@ -129,9 +129,13 @@ def config_edit():
 
     for item in os.listdir(os.path.join(app_path, "website", "modules")):
         if ".py" in item:
-            module = importlib.import_module("website.modules." + item[0:-3])
-            module_class = getattr(module, item[0:-3])
-            modules.append(module_class.m_default_name)
+            try:
+                module = importlib.import_module("website.modules." + item[0:-3])
+                module_class = getattr(module, item[0:-3])
+                modules.append(module_class.m_default_name)
+            except Exception as e:
+                # For big modules, there is multiple files, but they won't have any class. Support that
+                continue
 
     # Update modules
     if "access" in session["config"]:
@@ -262,7 +266,7 @@ def config_edit():
                         displayer.DisplayerItemText(config[group][item]["friendly"]), 0
                     )
                     for line in config[group][item]:
-                        if line != "type" and line != "friendly":
+                        if line != "type" and line != "friendly" and line != "persistent":
                             disp.add_display_item(
                                 displayer.DisplayerItemText(
                                     config[group][item][line]["friendly"]

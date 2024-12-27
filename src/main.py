@@ -1,8 +1,9 @@
-from flask import Flask, render_template, session, request
+from flask import Flask, render_template, session, request, g
 from flask_session import Session
 
 from submodules.framework.src import utilities
 
+import time
 import os
 import webbrowser
 import logging
@@ -11,6 +12,7 @@ from flask_socketio import SocketIO
 import importlib
 import sys
 import threading
+import traceback
 from submodules.framework.src import scheduler
 from submodules.framework.src import threaded_manager
 from submodules.framework.src import access_manager
@@ -28,6 +30,7 @@ def setup_app(app):
     app.config["SESSION_TYPE"] = "filesystem"
     app.config['TEMPLATES_AUTO_RELOAD'] = False
     app.config["SECRET_KEY"] = "super secret key"
+    app.config["PROPAGATE_EXCEPTIONS"] = False
     app.config.from_object(__name__)
     Session(app)
 
@@ -42,27 +45,45 @@ def setup_app(app):
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         )
 
-    # Automatically import all pages
-    for item in os.listdir(os.path.join(app_path, "website", "pages")):
-        if ".py" in item:
-            module = importlib.import_module("website.pages." + item[0:-3])
-            app.register_blueprint(module.bp)
+    # Get all Python files in the "pages" directory
+    files = [f for f in os.listdir(os.path.join(app_path, "website", "pages")) if f.endswith(".py")]
+    
+    # Dictionary to store the modules that need to be imported first
+    modules_to_load_first = {}
 
-    # Some pages are present in all websites
-    from submodules.framework.src import settings
+    # Identify files with the same base name (e.g., "xxx" and "xxx_abcdef")
+    for file in files:
+        module_name = file[:-3]  # Remove the ".py" extension
+        base_name = module_name.split('_')[0]  # Get the base name (before the first "_")
 
+        # Organize the modules with the same base name
+        if base_name not in modules_to_load_first:
+            modules_to_load_first[base_name] = []
+        if module_name != base_name:
+            modules_to_load_first[base_name].append(module_name)
+
+    # Import all modules and register the blueprint from the main module (e.g., "xxx.py")
+    for base_name, module_names in modules_to_load_first.items():
+        # Import all related modules first (e.g., "xxx_abcdef.py")
+        for module_name in sorted(module_names):
+            print(f"Importing module: {module_name}")
+            importlib.import_module(f"website.pages.{module_name}")
+
+        # Finally, import and register the blueprint from the main module (e.g., "xxx.py")
+        print(f"Importing main module: {base_name}")
+        main_module = importlib.import_module(f"website.pages.{base_name}")
+
+        # Register the blueprint if it exists in the main module
+        if hasattr(main_module, 'bp'):
+            print(f"Registering blueprint from main module: {base_name}")
+            app.register_blueprint(main_module.bp)
+
+    # Register other common blueprints
+    from submodules.framework.src import settings, common, updater, packager, bug_tracker
     app.register_blueprint(settings.bp)
-    from submodules.framework.src import common
-
     app.register_blueprint(common.bp)
-    from submodules.framework.src import updater
-
     app.register_blueprint(updater.bp)
-    from submodules.framework.src import packager
-
     app.register_blueprint(packager.bp)
-    from submodules.framework.src import bug_tracker
-
     app.register_blueprint(bug_tracker.bp)
 
     # Register access manager
@@ -91,8 +112,6 @@ def setup_app(app):
     site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
     site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj
     site_conf.site_conf_app_path = app_path
-
-    # Register long term functions from the site confi
     site_conf.site_conf_obj.register_scheduler_lt_functions()
 
     @socketio_obj.on("user_connected")
@@ -138,14 +157,15 @@ def setup_app(app):
     # Error handling to log errors
     @app.errorhandler(Exception)
     def handle_exception(e):
-        app.logger.error("An error occurred", exc_info=e)
         if e.code == 404:
             return render_template("404.j2")
 
-        return render_template("error.j2", content=str(e))
+        return render_template("error.j2", error=str(e), traceback=str(traceback.format_exc()))
 
     @app.before_request
     def before_request():
+        g.start_time = time.time()
+
         scheduler.scheduler_obj.m_user_connected = False
         if request.endpoint == "static":
             return
@@ -154,6 +174,14 @@ def setup_app(app):
         session["config"] = utilities.util_read_parameters()
 
         inject_bar()
+
+    @app.after_request
+    def log_request_time(response):
+        if hasattr(g, 'start_time'):
+            elapsed_time = time.time() - g.start_time
+            if elapsed_time > 0.5:
+                print(f"Rendered in {elapsed_time:.4f} seconds")
+        return response
 
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         webbrowser.open("http://127.0.0.1:5000/common/login")

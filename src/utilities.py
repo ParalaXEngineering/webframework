@@ -1,18 +1,20 @@
-from submodules.framework.src import displayer
 import json
 import os
 import sys
 import glob
 import math
-from jinja2 import Environment, FileSystemLoader
 import serial
 import zlib
 import tarfile
+import time
+import re
 
-from submodules.framework.src import access_manager
-from flask import current_app
+from jinja2 import Environment, FileSystemLoader
+from submodules.framework.src import displayer
 
-config_global = {}
+CONFIG_GLOBAL = {}
+LAST_ACCESS_CONFIG = None
+
 
 def util_list_serial() -> list:
     """Return the list of the serial ports on the machine
@@ -22,7 +24,7 @@ def util_list_serial() -> list:
     :rtype: list
     """
     if sys.platform.startswith("win"):
-        ports = ["COM%s" % (i + 1) for i in range(256)]
+        ports = [f"COM{i + 1}" for i in range(256)]
     elif sys.platform.startswith("linux") or sys.platform.startswith("cygwin"):
         # this excludes your current terminal "/dev/tty"
         ports = glob.glob("/dev/tty[A-Za-z]*")
@@ -63,16 +65,13 @@ def util_post_unmap(data: dict) -> dict:
     """
     # Take care of the mappings
     for module in data:
-        if type(data[module]) is str:
+        if isinstance(data[module], str):
             continue
         for item in data[module]:
             for cat in data[module][item]:
-                if (
-                    type(data[module][item][cat]) is list
-                    or type(data[module][item][cat]) is dict
-                ):
+                if isinstance(data[module][item][cat], (list, dict)):
                     # We need enough levels
-                    if type(data[module][item][cat]) is not dict:
+                    if not isinstance(data[module][item][cat], dict):
                         continue
 
                     # Simple map
@@ -137,6 +136,7 @@ def util_post_to_json(data: dict) -> dict:
     :rtype: dict
     """
     formated = {}
+    list_pattern = re.compile(r'^[a-zA-Z]*list\d+$')
 
     # For each item given, we will parse level by level
     for item in data:
@@ -168,15 +168,21 @@ def util_post_to_json(data: dict) -> dict:
                         if "#" in item_split[0]:
                             item_split[0] = item_split[0].split("#")[1]
 
-                        if "list" not in item_split[0]:
+                        if not list_pattern.match(item_split[0]):
                             current[item_split[0]] = data[item]
                         elif isinstance(current, list):
                             current.append(data[item])
 
                 # Prepare for next level
                 else:
-                    # Next item is a list, we need to add it
-                    if "list" in item_split[1]:
+                    # Next item is a list, we need to add it.
+                    # This is implemented in list-select.j2.
+                    # However, lists are alwayis acompagned with a prefix and a number after, so filter with that.
+                    # We don't want to misinterpret user input.
+
+                    # Regular expression pattern to match strings like "xxxxlistnn" where "xxxx" is any characters and "nn" is a number.
+                    
+                    if list_pattern.match(item_split[1]):
                         if not item_split[0] in current:
                             current[item_split[0]] = []
                         # Create only the list, the "final element" par will add the next items
@@ -201,7 +207,7 @@ def util_post_to_json(data: dict) -> dict:
                         if "#" in item_split[0]:
                             item_split[0] = item_split[0].split("#")[1]
 
-                        if "list" not in item_split[0]:
+                        if not list_pattern.match(item_split[0]):
                             current[item_split[0]] = data[item]
                         elif isinstance(current, list):
                             current.append(data[item])
@@ -210,7 +216,7 @@ def util_post_to_json(data: dict) -> dict:
             if data[item] == "on":
                 current = current[item_split[0].split("_")[0]]
             else:
-                if "list" not in item_split[0]:
+                if not list_pattern.match(item_split[0]):
                     current = current[item_split[0]]
                 else:
                     current = [data[item]]
@@ -220,19 +226,34 @@ def util_post_to_json(data: dict) -> dict:
 
 
 def util_read_parameters() -> dict:
-    """Read the parameters of the application
+    """Read the parameters of the application, and reload the configuration
+    if it hasn't been accessed in the last 10 seconds.
 
     :return: The parameters of the application
     :rtype: dict
     """
-    global config_global
-    try:
-        f = open("website/config.json")
-        config_data = json.load(f)
-        config_global = config_data
-        f.close()
-    except Exception as e:
-        config_data = config_global
+    global CONFIG_GLOBAL
+    global LAST_ACCESS_CONFIG
+    config_file_path = "website/config.json"
+    reload_interval = 10  # seconds
+
+    # If it's the first access or more than 10 seconds have passed, reload the config
+    if not LAST_ACCESS_CONFIG or time.time() - LAST_ACCESS_CONFIG > reload_interval:
+        try:
+            with open(config_file_path, 'r', encoding="utf-8") as f:
+                config_data = json.load(f)
+            CONFIG_GLOBAL = config_data
+        except Exception as e:
+            # If there's an error, fall back to the last known configuration
+            print(f"Error reading config: {e}")
+            config_data = CONFIG_GLOBAL
+    else:
+        # If accessed recently, use the cached config
+        config_data = CONFIG_GLOBAL
+
+    # Update the last access time
+    LAST_ACCESS_CONFIG = time.time()
+
     return config_data
 
 
@@ -242,8 +263,8 @@ def util_write_parameters(data: dict):
     :param data: The new parameters to write
     :type data: dict
     """
-    f = open("website/config.json", "w")
-    json.dump(data, f)
+    f = open("website/config.json", "w", encoding="utf-8")
+    json.dump(data, f, indent=4)
     f.close()
 
 
@@ -260,30 +281,31 @@ def util_view_reload_displayer(id: str, disp: displayer) -> dict:
     # And update display
     env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
     template = env.get_template("base_content_reloader.j2")
-    reloader = template.render(content=disp.display(True)) # Bypass authentification here
+    reloader = template.render(content=disp.display(True))  # Bypass authentification here
 
     to_render = [{"id": id, "content": reloader}]
     return to_render
 
 
-def util_view_reload_text(id: str, input: str) -> dict:
+def util_view_reload_text(index: str, content: str) -> dict:
     """Reload a multi-user input with new data
 
-    :param id: The id of the div text
-    :type id: str
-    :param input: The new text to display
-    :type input: str
+    :param index: The id of the div text
+    :type index: str
+    :param content: The new text to display
+    :type content: str
     :return: The object that can be passed for rendering
     :rtype: dict
     """
-    to_render = [{"id": id, "content": input}]
+    to_render = [{"id": index, "content": content}]
     return to_render
 
-def util_view_create_modal(id: str, modal_displayer: displayer, base_displayer: displayer, header: str = None) -> str:
+
+def util_view_create_modal(index: str, modal_displayer: displayer, base_displayer: displayer, header: str = None) -> str:
     """Add the content of a displayer as a modal in a second displayer. Return the link to use to access the modal
 
-    :param id: The id of the modal to use
-    :type id: str
+    :param index: The id of the modal to use
+    :type index: str
     :param modal_displaer: The displayer that contains the information to show in the modal
     :type modal_displayer: displayer
     :param base_displayer: The displayer where the modal is inserted
@@ -293,18 +315,19 @@ def util_view_create_modal(id: str, modal_displayer: displayer, base_displayer: 
     :return: The link to access the modal
     :rtype: dict
     """
-    id = id.replace(" ", "_").replace(".", "_").replace('/', '_')
-    base_displayer.add_modal("modal_" + id, modal_displayer, header)
-    
-    return id
+    index = index.replace(" ", "_").replace(".", "_").replace('/', '_')
+    base_displayer.add_modal("modal_" + index, modal_displayer, header)
 
-def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
+    return index
+
+
+def util_view_reload_multi_input(index: str, inputs: dict) -> dict:
     """Reload a multi-user input with new data
 
-    :param id: The id of the form
-    :type id: str
+    :param index: The id of the form
+    :type index: str
     :param inputs: a list of dictionnary representing the inputs in the form
-    :param [{id: id, type: "text, number, select", value: "", label: ""}]
+    :param [{id: index, type: "text, number, select", value: "", label: ""}]
     :type inputs: dict
     :return: The rendered form to be displayed
     :rtype: dict
@@ -317,9 +340,9 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
             template = env.get_template("reload/select.j2")
             to_render.append(
                 {
-                    "id": id + "." + processing["id"],
+                    "id": index + "." + processing["id"],
                     "content": template.render(
-                        name=processing["id"] + "." + id,
+                        name=processing["id"] + "." + index,
                         options=processing["data"],
                         selected=processing["value"],
                     ),
@@ -330,9 +353,9 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
             template = env.get_template("reload/text.j2")
             to_render.append(
                 {
-                    "id": id + "." + processing["id"],
+                    "id": index + "." + processing["id"],
                     "content": template.render(
-                        name=processing["id"] + "." + id, default=processing["value"]
+                        name=processing["id"] + "." + index, default=processing["value"]
                     ),
                 }
             )
@@ -341,9 +364,9 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
             template = env.get_template("reload/slider.j2")
             to_render.append(
                 {
-                    "id": id + "." + processing["id"],
+                    "id": index + "." + processing["id"],
                     "content": template.render(
-                        name=processing["id"] + "." + id,
+                        name=processing["id"] + "." + index,
                         default=processing["value"],
                         min=processing["range"][0],
                         max=processing["range"][1],
@@ -355,9 +378,9 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
             template = env.get_template("reload/int.j2")
             to_render.append(
                 {
-                    "id": id + "." + processing["id"],
+                    "id": index + "." + processing["id"],
                     "content": template.render(
-                        name=processing["id"] + "." + id, default=processing["value"]
+                        name=processing["id"] + "." + index, default=processing["value"]
                     ),
                 }
             )
@@ -366,9 +389,9 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
             template = env.get_template("reload/select-text.j2")
             to_render.append(
                 {
-                    "id": id + "." + processing["id"] + ".div",
+                    "id": index + "." + processing["id"] + ".div",
                     "content": template.render(
-                        item={"id": id},
+                        item={"id": index},
                         current={
                             "id": processing["id"],
                             "value": processing["value"],
@@ -382,9 +405,9 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
             template = env.get_template("reload/text-text.j2")
             to_render.append(
                 {
-                    "id": id + "." + processing["id"] + ".div",
+                    "id": index + "." + processing["id"] + ".div",
                     "content": template.render(
-                        item={"id": id},
+                        item={"id": index},
                         current={"id": processing["id"], "value": processing["value"]},
                     ),
                 }
@@ -394,9 +417,9 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
             template = env.get_template("reload/list-select.j2")
             to_render.append(
                 {
-                    "id": id + "." + processing["id"] + ".div",
+                    "id": index + "." + processing["id"] + ".div",
                     "content": template.render(
-                        item={"id": id},
+                        item={"id": index},
                         current={
                             "id": processing["id"],
                             "value": processing["value"],
@@ -410,9 +433,9 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
             template = env.get_template("reload/list-text.j2")
             to_render.append(
                 {
-                    "id": id + "." + processing["id"] + ".div",
+                    "id": index + "." + processing["id"] + ".div",
                     "content": template.render(
-                        item={"id": id},
+                        item={"id": index},
                         current={"id": processing["id"], "value": processing["value"]},
                     ),
                 }
@@ -423,7 +446,7 @@ def util_view_reload_multi_input(id: str, inputs: dict) -> dict:
 
 def util_view_reload_input_file_manager(
     name: str,
-    id: str,
+    index: str,
     files: list = [],
     title: list = [],
     icons: list = [],
@@ -434,8 +457,8 @@ def util_view_reload_input_file_manager(
 
     :param name: The name of the calling module
     :type name: str
-    :param id: The id of the form
-    :type id: str
+    :param index: The id of the form
+    :type index: str
     :param files: A list of the files that should be already in the file manager, defaults to []
     :type files: list, optional
     :param title: A list of the titles of the file explorers, defaults to []
@@ -453,14 +476,14 @@ def util_view_reload_input_file_manager(
     env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
     template = env.get_template("reload/files.j2")
     to_render = []
-    for i in range(0, len(files)):
+    for i, file in enumerate(files):
         to_render.append(
             {
-                "id": name.replace(" ", "_") + "_" + id + "_files" + str(i),
+                "id": f"{name.replace(' ', '_')}_{index}_files{i}",
                 "content": template.render(
-                    file_id=id + "_files" + str(i),
-                    name=id,
-                    files=files[i],
+                    file_id=f"{index}_files{i}",
+                    name=index,
+                    files=file,
                     title=title[i],
                     icon=icons[i],
                     classes=classes[i],
@@ -534,8 +557,8 @@ def util_find_files(root: str, inclusion: list = None) -> list:
             else:
                 current_results.append(os.path.join(root, item))
         else:
-            dir = util_find_files(os.path.join(root, item), inclusion=inclusion)
-            current_results += dir
+            directory = util_find_files(os.path.join(root, item), inclusion=inclusion)
+            current_results += directory
 
     return current_results
 
@@ -581,19 +604,26 @@ def util_dir_structure(
                         else:
                             current_dir[item] = os.path.join(root, item)
         else:
-            dir = util_dir_structure(
+            directory = util_dir_structure(
                 os.path.join(root, item), inclusion=inclusion, modifier=modifier
             )
             if clean:
-                if len(dir) > 0:
-                    current_dir[item] = dir
+                if len(directory) > 0:
+                    current_dir[item] = directory
             else:
-                current_dir[item] = dir
+                current_dir[item] = directory
 
     return current_dir
 
 
 def utils_keep_number(number: str) -> float:
+    """Transform a string in a float, support "," and "." as decimal indicator
+
+    :param number: The string to convert
+    :type number: str
+    :return: The float number
+    :rtype: float
+    """
     number_string = ""
     number = number.replace(",", ".")
     for s in number:
@@ -687,9 +717,8 @@ def utils_format_unit(cpnt: dict) -> dict:
 
         # Set the unit
         new_unit = expected_units["default"]
-        for eu in expected_units:
+        for eu, new_unit in expected_units.items():
             if eu in value:
-                new_unit = expected_units[eu]
                 break
 
         # We have the number and unit, see if we can change the unit
@@ -722,20 +751,23 @@ def utils_format_unit(cpnt: dict) -> dict:
 
     return cpnt
 
+
 def utils_calculate_crc32(filepath):
     """Calcule le CRC32 d'un fichier donné."""
     with open(filepath, 'rb') as file:
         content = file.read()
         return zlib.crc32(content)
 
+
 def utils_get_directory_crc32(directory_path):
     """Génère un dictionnaire des CRC32 pour tous les fichiers dans un répertoire."""
     crc32_dict = {}
-    for root, dirs, files in os.walk(directory_path):
+    for root, _, files in os.walk(directory_path):
         for file in files:
             filepath = os.path.join(root, file)
             crc32_dict[filepath] = utils_calculate_crc32(filepath)
     return crc32_dict
+
 
 def utils_create_backup(backup_folders, backup_name):
     """Crée un fichier .tar.gz contenant les dossiers spécifiés."""
