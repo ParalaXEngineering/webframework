@@ -42,6 +42,24 @@
     </style>
     
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <style>
+        /* Centrage et dimensionnement de l'image */
+        #seasonal-image {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+
+        #seasonal-image img {
+            max-width: 500px;
+            width: auto; /* Conserve les proportions */
+            height: auto; /* Conserve les proportions */
+        }
+    </style>
+
 </head>
 
 {# Modal content is always present. In our case we are displaying it here, juste before the real content #}
@@ -269,7 +287,7 @@
             <footer>
                 <div class="footer clearfix p-5 text-muted float-end">
                     <div class="float-start">
-                        <p>{{footer}}</p><p>Template by Mazer</p>
+                        <p>{{footer}}<br>Framework by ESD<br>Template by Mazer</p>
                     </div>
                 </div>
             </footer>
@@ -401,6 +419,177 @@
         <script src="{{ url_for('common.assets', asset_type="js", filename= script) }}"></script>
     {% endfor %}
     {% block js %}{% endblock %}
+
+<script>
+    // Tableau pour stocker les touches du Konami Code
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    let konamiIndex = 0;
+
+    // État pour savoir si l'animation est active
+    let animationActive = sessionStorage.getItem('konamiActivated') === 'true';
+
+    if (animationActive) {
+        console.log("Animation déjà activée dans cette session.");
+        activateThemeForCurrentMonth(); // Continue l'animation si déjà activée
+    }
+
+    // Écoute des touches clavier
+    document.addEventListener('keydown', (event) => {
+        if (event.key === konamiCode[konamiIndex]) {
+            konamiIndex++; // Passe à la prochaine touche
+            if (konamiIndex === konamiCode.length) {
+                // Konami Code validé
+                konamiCodeActivated();
+                konamiIndex = 0; // Réinitialise le compteur
+            }
+        } else {
+            konamiIndex = 0; // Réinitialise si la séquence est brisée
+        }
+    });
+
+    function konamiCodeActivated() {
+        console.log("Konami Code activé !");
+        // Marquer le Konami Code comme activé pour cette session
+        sessionStorage.setItem('konamiActivated', 'true');
+        animationActive = true;
+        // Déclencher le thème basé sur le mois
+        activateThemeForCurrentMonth();
+    }
+
+    function activateThemeForCurrentMonth() {
+        const month = new Date().getMonth() + 1; // Les mois commencent à 0 en JavaScript
+        let theme = 'default'; // Thème par défaut
+        let imageFilename = ''; // Nom de l'image
+
+        // Déterminer le thème en fonction du mois
+        if (month === 12 || month === 1) {
+            theme = 'winter';
+            imageFilename = 'winter.jpg';
+        } else if (month === 4 || month === 5) {
+            theme = 'easter';
+            imageFilename = 'easter.jpg';
+        } else if (month === 10 || month === 11) {
+            theme = 'autumn';
+            imageFilename = 'autumn.jpg';
+        } else if (month >= 6 && month <= 8) {
+            theme = 'summer';
+            imageFilename = 'summer.jpg';
+        } else if (month == 2 || month == 3) {
+            theme = 'carnival';
+            imageFilename = 'carnival.jpg';
+        } else if (month == 9) {
+            theme = 'harvest';
+            imageFilename = 'harvest.jpg';
+        }
+
+        // Ajouter l'image saisonnière et les flocons
+        addSeasonalImage(imageFilename);
+        startSnowflakes(theme);
+    }
+
+    function addSeasonalImage(imageFilename) {
+        if (window.location.href === "http://127.0.0.1:5000/") {
+            // Vérifier si une ancienne image existe, la supprimer si nécessaire
+            const existingImageDiv = document.getElementById('seasonal-image');
+            if (existingImageDiv) {
+                existingImageDiv.remove();
+            }
+
+            // Créer dynamiquement l'élément div pour contenir l'image
+            const seasonalImageDiv = document.createElement('div');
+            seasonalImageDiv.id = 'seasonal-image';
+
+            // Ajouter l'image
+            const seasonalImage = document.createElement('img');
+            seasonalImage.src = "{{ url_for('static', filename='images/site/') }}" + imageFilename;
+            seasonalImage.alt = "Seasonal Image";
+
+            // Ajouter l'image dans la div, puis la div dans le body
+            seasonalImageDiv.appendChild(seasonalImage);
+            document.body.appendChild(seasonalImageDiv);
+        }
+    }
+
+    function startSnowflakes(theme) {
+        // Fonction pour créer un flocon
+        function createSnowflake(theme) {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+
+            // Choisir les emojis selon le thème
+            let emojis = [];
+            switch (theme) {
+                case 'easter': // Pâques
+                    emojis = ['🥚', '🐣', '🐰', '🌸'];
+                    break;
+                case 'autumn': // Automne
+                    emojis = ['🍂', '🍁', '🌰', '🎃'];
+                    break;
+                case 'summer': // Été
+                    emojis = ['☀️', '🏖️', '🍉', '🌴', '🦀', '🌊'];
+                    break;
+                case 'carnival': // Carnaval
+                    emojis = ['🎭', '🎉', '🤹‍♂️', '🎺', '🎡'];
+                    break;
+                case 'harvest': // Fête des moissons
+                    emojis = ['🌽', '🌾', '🍇', '🥖', '🍷'];
+                    break;
+                default: // Hiver par défaut
+                    emojis = ['❄'];
+                    break;
+            }
+
+            // Sélection aléatoire de l'emoji
+            snowflake.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+            // Position aléatoire
+            snowflake.style.left = Math.random() * window.innerWidth + 'px';
+
+            // Taille aléatoire
+            const size = Math.random() * 20 + 10; // Entre 10px et 30px
+            snowflake.style.fontSize = size + 'px';
+
+            // Durée d'animation aléatoire
+            const duration = Math.random() * 5 + 3; // Entre 3s et 8s
+            snowflake.style.animationDuration = duration + 's';
+
+            // Opacité aléatoire
+            snowflake.style.opacity = Math.random();
+
+            // Ajouter à la page
+            document.body.appendChild(snowflake);
+
+            // Supprimer après l'animation
+            setTimeout(() => {
+                snowflake.remove();
+            }, duration * 1000);
+        }
+
+        setInterval(() => createSnowflake(theme), 200);
+    }
+</script>
+
+<style>
+    .snowflake {
+        position: fixed;
+        top: -50px;
+        z-index: 9999;
+        pointer-events: none;
+        color: white;
+        opacity: 0.8;
+        animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+        0% {
+            transform: translateY(0) rotate(0deg);
+        }
+        100% {
+            transform: translateY(100vh) rotate(360deg);
+        }
+    }
+</style>
+
 </body>
 
 </html>
