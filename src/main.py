@@ -112,6 +112,8 @@ def setup_app(app):
     site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
     site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj
     site_conf.site_conf_app_path = app_path
+
+    # Register long term functions from the site confi
     site_conf.site_conf_obj.register_scheduler_lt_functions()
 
     @socketio_obj.on("user_connected")
@@ -157,6 +159,7 @@ def setup_app(app):
     # Error handling to log errors
     @app.errorhandler(Exception)
     def handle_exception(e):
+        app.logger.error("An error occurred", exc_info=e)
         if e.code == 404:
             return render_template("404.j2")
 

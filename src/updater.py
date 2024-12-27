@@ -242,7 +242,7 @@ class SETUP_Updater(threaded_action.Threaded_action):
                 pass
 
             self.m_scheduler.emit_status(
-                self.get_name(), "Creation of the update package", 103
+                self.get_name(), f"Creation of the update package for {self.m_distribution}", 103
             )
             # Create the package with pyinstaller
             try:
@@ -253,7 +253,7 @@ class SETUP_Updater(threaded_action.Threaded_action):
                 self.m_logger.info("Traceback was: " + traceback_str)
                 self.m_scheduler.emit_status(
                     self.get_name(),
-                    "Creation of the update package",
+                    f"Creation of the update package for {self.m_distribution}",
                     101,
                     supplement=str(e),
                 )
@@ -280,7 +280,7 @@ class SETUP_Updater(threaded_action.Threaded_action):
                                 file_path, arcname=file_path.relative_to(directory)
                             )
             self.m_scheduler.emit_status(
-                self.get_name(), "Creation of the update package", 100
+                self.get_name(), f"Creation of the update package for {self.m_distribution}", 100
             )
 
         elif self.m_action == "upload":
