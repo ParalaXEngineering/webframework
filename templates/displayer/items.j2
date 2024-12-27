@@ -6,7 +6,7 @@
     {% if "itemId" in item %}
     <span id="{{item["itemId"]}}">
     {% else %}
-    {# <span> #}
+    <span>
     {% endif %}
 
     {% if item["type"] == "TEXT" %}
@@ -83,7 +83,7 @@
         {{path(item["id"], item["value"], item["data"], item["possibles"])}}
     {% endif %}
 
-    {# </span> #}
+    </span>
 {% endmacro %}
 
 
@@ -364,7 +364,6 @@
     {% if text %}
         {{ text }}
     {% endif %}
-
     {% if value %}
         {{ common_input.select(id, data, value, false, tooltips)}}
     {% else %}

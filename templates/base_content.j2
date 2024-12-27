@@ -1,13 +1,113 @@
 {% extends 'base.j2' %}
 
 {% block js %}
+    <script>
+
+    let elements_advanced = document.querySelectorAll('[id^="advanced_"]');
+    elements_advanced.forEach(element => {
+        let checkAll = true;
+
+        // Initialisation de DataTables
+        let table = new DataTable(`#${element.id}`, {
+            colReorder: true,
+            layout: {
+                top1: {
+                    searchPanes: {
+                        cascadePanes: true
+                        {% if "responsive_addon" in content["all_layout"]%}
+                        , columns: {{content["all_layout"]["responsive_addon"]["columns"]}}
+                        {% endif %}
+                    }
+                },
+                topStart: {
+                    buttons: [
+                        {
+                            text: 'Check All',
+                            action: function (e, dt, node, config) {
+                                if (checkAll) {
+                                    $(`#${element.id} input[type="checkbox"]`).prop('checked', true);
+                                    $(node).text('Uncheck All');
+                                    checkAll = false;
+                                } else {
+                                    $(`#${element.id} input[type="checkbox"]`).prop('checked', false);
+                                    $(node).text('Check All');
+                                    checkAll = true;
+                                }
+                            }
+                        },
+                        {
+                            text: 'Export',
+                            action: function (e, dt, node, config) {
+                                // Ne fait rien lorsque "Export" est cliqué
+                            },
+                            split: ['pdf', 'excel', 'print', 'copy']
+                        },
+                        {
+                            text: 'View',
+                            action: function (e, dt, node, config) {
+                                // Ne fait rien lorsque "Export" est cliqué
+                            },
+                            split: [
+                                {
+                                    text: 'Show 10 items',
+                                    action: function (e, dt, node, config) {
+                                        dt.page.len(10).draw();
+                                    }
+                                },
+                                {
+                                    text: 'Show 25 items',
+                                    action: function (e, dt, node, config) {
+                                        dt.page.len(25).draw();
+                                    }
+                                },
+                                {
+                                    text: 'Show 50 items',
+                                    action: function (e, dt, node, config) {
+                                        dt.page.len(50).draw();
+                                    }
+                                },
+                                {
+                                    text: 'Show 100 items',
+                                    action: function (e, dt, node, config) {
+                                        dt.page.len(100).draw();
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            columnDefs: [
+                {
+                    targets: '_all', // Cibler la colonne par son index
+                    render: function (data, type, row) {
+                        if (type === 'sp') {
+                            let cleanData = data
+                            .replace(/<\/?[^>]+(>|$)/g, '') // Supprime toutes les balises HTML
+                            .replace(/(<br\s*\/?>)/gi, '') // Supprime les <br> et espaces supplémentaires
+                            .normalize('NFKD') // Normalise les caractères Unicode
+                            .replace(/[^\x00-\x7F]/g, '') // Supprime les caractères non-ASCII
+                            .split(',')
+                            .map(item => item.trim()); // Nettoie les espaces autour des éléments
+                            return cleanData;
+                        }
+                        return data;
+                    },
+                    searchPanes: {
+                        orthogonal:'sp'
+                    }
+                }
+            ]
+        });
+    });
+    </script>
 
 {% endblock %}
 
 {% block title %}
 {% endblock %}
 
-{% block content %}
+{% block main_page %}
 
 {% if history is not defined %}
     {% set history = None %}
@@ -63,7 +163,7 @@
 
     {# Each module is displayed in its block #}
     {% for module in content %}
-        {% if module != "modals" %}
+        {% if module != "modals" and module != "all_layout"%}
             <div class="card">
                 {# Possibility to add a header to the card #}
                 <div class="card-header">
@@ -81,7 +181,7 @@
 
                     {# Form information #}
                     {% if target %}
-                        <form action="{{ url_for(target) }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ url_for(target) }}" method="POST" enctype="multipart/form-data" onkeydown="return event.key !== 'Enter'">
                     {% endif %}
                     {# Module layouts #}
                     {% for layout in content[module]["layouts"] %}
@@ -106,7 +206,7 @@
                     <div class="card-footer alert-light-secondary">
                         <h4>Action progress</h4>
                         <div class="table-responsive">
-                            <table style="--bs-table-bg: transparent; --bs-table-striped-bg: transparent; --bs-table-hover-bg: transparent; --bs-table-active-bg: transparent; --bs-table-border-color: rgb(220, 220, 220); --bs-table-color: rgb(96, 112, 128);" class="table-light table table-striped mb-0" id="{{module}}_result">
+                            <table style="--bs-table-bg: transparent; --bs-table-striped-bg: transparent; --bs-table-hover-bg: transparent; --bs-table-active-bg: transparent; --bs-table-border-color: rgb(220, 220, 220);" class="table-light table table-striped mb-0" id="{{module}}_result">
                                 <thead>
                                     <tr>
                                         <th>Task</th>

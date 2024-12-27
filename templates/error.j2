@@ -4,10 +4,12 @@
 Internal server error
 {% endblock %}
 
-{% block content %}
+{% block main_page %}
     <div class="card bg-danger text-white shadow">
         <div class="card-body">
             <div class="text-white-50 small">The server encountered an error. Please go to the error reporting page, and describe what you did while the error occured. Log files have been completed and will be sent with your bug entry.</div>
+
+            <div class="text-white-50 small"><pre>Traceback: {{traceback}} </pre></div>
         </div>
     </div>
 

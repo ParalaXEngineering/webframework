@@ -21,6 +21,7 @@ class DisplayerItems(Enum):
     INHIDDEN = "INHIDDEN"
     INTEXT = "INTEXT"
     INSTRING = "INSTRING"
+    INSTRINGICON = "INSTRINGICON"
     INMULTITEXT = "INMULTITEXT"
     INFILE = "INFILE"
     INFOLDER = "INFOLDER"
@@ -75,6 +76,7 @@ class MAZERStyles(Enum):
 class DisplayerLayout:
     #g_next_layout = 0
     g_last_layout = None
+    g_all_layout = {}
 
     """Generic class to store information about a layout"""
 
@@ -105,6 +107,15 @@ class DisplayerLayout:
         :type spacing: int, optional
         :param height: A height value. This value will correspond to the height of a default line, and can be used to align divs with several lines that are next to each other
         :type height: int, optional
+        :param background: A background style for the layout (in the form of a BSstyle color)
+        :type background: BSstyle, optional
+        :param responsive: If set, will use datatables to display the table. Input shall be a dictionnary, in the form {"tableName": {"type": "simple/advanced", "columns": [1, 2, 3]}}. The "type" value will set a simple 
+        datatable, while the advanced one will gives a one with searchpanes. Other variables can be added to tune the datables
+        :type: dict
+        :param userid: A forced id that can be used to analyse the answers
+        :type: string
+        :param style: if set, overwrite the default style of the layout
+        :type: MAZERStyles
         """
         self.m_type = layoutType.value
         self.m_column = columns
@@ -115,6 +126,7 @@ class DisplayerLayout:
         self.m_responsive = responsive
         self.m_userid = userid
         self.m_style = style
+        
 
         if spacing <= 5:
             self.m_spacing = spacing
@@ -140,7 +152,19 @@ class DisplayerLayout:
 
         if self.m_type == Layouts.TABLE.value:
             current_layout["header"] = self.m_column
-            current_layout["responsive"] = self.m_responsive
+            if isinstance(self.m_responsive, dict):
+                current_layout["responsive"] = list(self.m_responsive.keys())[0]
+                responsive_info = self.m_responsive[current_layout["responsive"]]
+                if "type" in responsive_info:
+                    current_layout["responsive_type"] = responsive_info["type"]
+                else:
+                    current_layout["responsive_type"] = "basic"
+            
+                self.g_all_layout["responsive_addon"] = {}
+                for item in responsive_info:
+                    if item != "type":
+                        self.g_all_layout["responsive_addon"][item] = responsive_info[item]
+
             current_layout["lines"] = None
     
         else:
@@ -839,6 +863,16 @@ class DisplayerItemInputString(DisplayerItem):
         self.m_id = id
         self.m_focus = focus
         return
+    
+class DisplayerItemInputStringIcon(DisplayerItem):
+    """Specialized display to display an input string that also displays an associated mdi icon if valid"""
+
+    def __init__(self, id: str, text: str = None, value: str = None) -> None:
+        super().__init__(DisplayerItems.INSTRINGICON)
+        self.m_text = text
+        self.m_value = value
+        self.m_id = id
+        return
 
 
 class DisplayerItemInputMultiText(DisplayerItem):
@@ -902,32 +936,38 @@ class Displayer:
         self.m_modules = {}
         self.m_modals = []
         self.g_next_layout = 0
+        self.m_all_layout = {}
 
         self.m_active_module = None
         return
 
     def add_module(self, module: dict, name_override: str = None, display: bool = True):
-        """Prepare a new module for displaying. An optionnal ID can be affected to this module
+        """Prepare a new module for displaying. An optional ID can be assigned to this module.
         The module is then set to active, which means that everything will be added on it.
 
         :param module: A module
-        :type module: list
-        :param name_override: An optionnal name overriding, instead of the default name
+        :type module: dict
+        :param name_override: An optional name overriding, instead of the default name
         :type name_override: str
         :param display: Display the title
         :type display: bool
         """
 
-        self.m_modules[module.m_default_name] = {
-            "id": module.m_default_name,
+        # Safely get m_default_name, or use "Generic" if it doesn't exist
+        default_name = getattr(module, 'm_default_name', 'Generic')
+
+        self.m_modules[default_name] = {
+            "id": default_name,
             "type": module.m_type,
             "display": display,
         }
         if name_override:
-            self.m_modules[module.m_default_name]["name_override"] = name_override
+            self.m_modules[default_name]["name_override"] = name_override
 
-        self.m_active_module = module.m_default_name
+        self.m_active_module = default_name
         return
+
+
 
     def add_generic(self, name: str, display: bool = True):
         """Prepare a generic item for displaying
@@ -972,11 +1012,17 @@ class Displayer:
                 if potential_layout["id"] == layout_id:
                     return potential_layout
                 else:
-                    if "containers" in potential_layout:
+                    if "containers" in potential_layout and potential_layout["containers"]:
                         for item in potential_layout["containers"]:
                             sublayouts = self.find_layout(item, layout_id)
                             if sublayouts:
                                 return sublayouts
+                    if "lines" in potential_layout and potential_layout["lines"]:
+                        for line in potential_layout["lines"]:
+                            for column in line:
+                                sublayouts = self.find_layout(column, layout_id)
+                                if sublayouts:
+                                    return sublayouts
 
         return []
 
@@ -1093,12 +1139,38 @@ class Displayer:
 
         if layout.m_type == Layouts.VERTICAL.value:
             # Check that there is enought columns
-            if column >= len(master_layout["containers"]):
+            if "header" in master_layout and column >= len(master_layout["header"]):
+                return -1 
+            if "containers" in master_layout and column >= len(master_layout["containers"]):
                 return -1
+            
+        # Setup the all layout variable
+        for item in layout.g_all_layout:
+            self.m_all_layout[item] = layout.g_all_layout[item]
 
         # Add the display item
         if layout.m_type == Layouts.VERTICAL.value:
-            layout.display(master_layout["containers"][column], self.g_next_layout)
+            if "lines" in master_layout:
+                # Do we have at least a line?
+                if not master_layout["lines"]:
+                    master_layout["lines"] = [[[] for _ in range(len(master_layout["header"]))]]
+
+                if line == -1:
+                    # Check if we need to create a new line
+                    if master_layout["lines"][-1][column]:
+                        master_layout["lines"].append([[] for _ in range(len(master_layout["header"]))])
+                elif line == -2:
+                    # Check if we need to create a new line
+                    if master_layout["lines"][-1][column] and len(master_layout["lines"][-1][column]) == 0:
+                        master_layout["lines"].append([[] for _ in range(len(master_layout["header"]))])
+                    line = -1
+                else:
+                    if len(master_layout["lines"]) <= line:
+                        for i in range(len(master_layout["lines"]), line + 1):
+                            master_layout["lines"].append([[] for _ in range(len(master_layout["header"]))])
+                layout.display(master_layout["lines"][line][column], self.g_next_layout)
+            else:
+                layout.display(master_layout["containers"][column], self.g_next_layout)
             self.g_next_layout += 1
             return self.g_next_layout - 1
             
@@ -1106,6 +1178,10 @@ class Displayer:
     def add_master_layout(self, layout: DisplayerLayout) -> None:
         if "layouts" not in self.m_modules[self.m_active_module]:
             self.m_modules[self.m_active_module]["layouts"] = []
+
+        # Setup the all layout variable
+        for item in layout.g_all_layout:
+            self.m_all_layout[item] = layout.g_all_layout[item]
 
         self.m_last_layout = layout
         layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
@@ -1129,6 +1205,7 @@ class Displayer:
         """
         serve_modules = {}
         serve_modules["modals"] = self.m_modals
+        serve_modules["all_layout"] = self.m_all_layout
 
         for module in self.m_modules:  
             if not bypass_auth:

@@ -1,0 +1,21 @@
+Downloaded via datatables.net, and configured with
+
+Bootstrap 5 styling
+
+jQuery3
+DataTables
+
+Buttons
+  Column visibility
+  HTML5 export
+    JSZip
+    pdfmake
+  Print view
+colReorder
+Scroller
+Select
+SearchPanes
+
+Warning! Css has been modified from source by changing the background from "div.dts div.dt-scroll-body table, div.dts div.dataTables_scrollBody table": It is now commented out:
+
+div.dts div.dt-scroll-body table,div.dts div.dataTables_scrollBody table{/*background-color:white*/;z-index:2}

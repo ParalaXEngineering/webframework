@@ -6,7 +6,7 @@
     {% elif layout["type"] == "HORIZ" %}
         {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["user_id"]) }}
     {% elif layout["type"] == "TABLE" %}
-        {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"]) }}
+        {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"]) }}
     {% elif layout["type"] == "SPACER" %}
         <div><p style="margin-bottom:1cm;"></p></div>
           
@@ -49,11 +49,20 @@
 
 {% endmacro %}
 
-{% macro display_table_layout(header=[], lines = [], responsive = None) %}
-    
+{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None) %}    
     <div class="row m-1">
     <div class="table-responsive">
-        <table class="table table-striped mb-0" {% if responsive %} id="responsive_{{responsive}}" {% endif %}>
+        <table class="table table-striped mb-0" 
+                   {% if responsive %}
+                        {% if responsive_type == "basic" %}
+                        id="basic_{{ responsive }}"
+                        {% elif responsive_type == "advanced" %}
+                        id="advanced_{{ responsive }}"
+                        {% else %}
+                        id="unsuported_{{ responsive }}"
+                        {% endif %}
+                       
+                   {% endif %}>
             <thead>
                 <tr>
                     {% for head in header %}
