@@ -1,107 +1,155 @@
 {% extends 'base.j2' %}
 
 {% block js %}
-    <script>
-
-    let elements_advanced = document.querySelectorAll('[id^="advanced_"]');
-    elements_advanced.forEach(element => {
-        let checkAll = true;
-
-        // Initialisation de DataTables
-        let table = new DataTable(`#${element.id}`, {
-            colReorder: true,
-            layout: {
-                top1: {
-                    searchPanes: {
-                        cascadePanes: true
-                        {% if "responsive_addon" in content["all_layout"]%}
-                        , columns: {{content["all_layout"]["responsive_addon"]["columns"]}}
-                        {% endif %}
+<script>
+    // Function to create common buttons
+    function getCommonButtons(checkAll, elementId) {
+        return [
+            {
+                text: checkAll ? 'Check All' : 'Check All',
+                action: function (e, dt, node, config) {
+                    if (checkAll) {
+                        const isChecked = $(node).text() === 'Check All';
+                        
+                        // Use an attribute selector to select checkboxes within the table
+                        $(`#${elementId} input[type="checkbox"]`).prop('checked', isChecked);
+                        
+                        $(node).text(isChecked ? 'Uncheck All' : 'Check All');
                     }
-                },
-                topStart: {
-                    buttons: [
-                        {
-                            text: 'Check All',
-                            action: function (e, dt, node, config) {
-                                if (checkAll) {
-                                    $(`#${element.id} input[type="checkbox"]`).prop('checked', true);
-                                    $(node).text('Uncheck All');
-                                    checkAll = false;
-                                } else {
-                                    $(`#${element.id} input[type="checkbox"]`).prop('checked', false);
-                                    $(node).text('Check All');
-                                    checkAll = true;
-                                }
-                            }
-                        },
-                        {
-                            text: 'Export',
-                            action: function (e, dt, node, config) {
-                                // Ne fait rien lorsque "Export" est cliqué
-                            },
-                            split: ['pdf', 'excel', 'print', 'copy']
-                        },
-                        {
-                            text: 'View',
-                            action: function (e, dt, node, config) {
-                                // Ne fait rien lorsque "Export" est cliqué
-                            },
-                            split: [
-                                {
-                                    text: 'Show 10 items',
-                                    action: function (e, dt, node, config) {
-                                        dt.page.len(10).draw();
-                                    }
-                                },
-                                {
-                                    text: 'Show 25 items',
-                                    action: function (e, dt, node, config) {
-                                        dt.page.len(25).draw();
-                                    }
-                                },
-                                {
-                                    text: 'Show 50 items',
-                                    action: function (e, dt, node, config) {
-                                        dt.page.len(50).draw();
-                                    }
-                                },
-                                {
-                                    text: 'Show 100 items',
-                                    action: function (e, dt, node, config) {
-                                        dt.page.len(100).draw();
-                                    }
-                                }
-                            ]
-                        }
-                    ]
                 }
             },
-            columnDefs: [
-                {
-                    targets: '_all', // Cibler la colonne par son index
-                    render: function (data, type, row) {
-                        if (type === 'sp') {
-                            let cleanData = data
-                            .replace(/<\/?[^>]+(>|$)/g, '') // Supprime toutes les balises HTML
-                            .replace(/(<br\s*\/?>)/gi, '') // Supprime les <br> et espaces supplémentaires
-                            .normalize('NFKD') // Normalise les caractères Unicode
-                            .replace(/[^\x00-\x7F]/g, '') // Supprime les caractères non-ASCII
-                            .split(',')
-                            .map(item => item.trim()); // Nettoie les espaces autour des éléments
-                            return cleanData;
-                        }
-                        return data;
-                    },
-                    searchPanes: {
-                        orthogonal:'sp'
-                    }
-                }
-            ]
-        });
-    });
-    </script>
+            {
+                text: 'Export',
+                action: function () {},
+                split: ['pdf', 'excel', 'print', 'copy']
+            },
+            {
+                text: 'View',
+                action: function () {},
+                split: [
+                    { text: 'Show 10 items', action: (e, dt) => dt.page.len(10).draw() },
+                    { text: 'Show 25 items', action: (e, dt) => dt.page.len(25).draw() },
+                    { text: 'Show 50 items', action: (e, dt) => dt.page.len(50).draw() },
+                    { text: 'Show 100 items', action: (e, dt) => dt.page.len(100).draw() }
+                ]
+            }
+        ];
+    }
 
+    function initializeDataTable(selector, customOptions) {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+            const tableId = element.id;
+            const tableOptions = {
+                colReorder: true,
+                layout: {
+                    topStart: {
+                        buttons: getCommonButtons(selector.includes('advanced'), tableId)
+                    }
+                },
+                pageLength: 25
+            };
+
+            // Merge custom options with the default tableOptions
+            const finalOptions = { ...tableOptions, ...customOptions };
+            new DataTable(`#${tableId}`, finalOptions);
+        });
+    }
+
+    // Basic Table Initialization
+    initializeDataTable('[id^="basic_"]', {});
+
+    {% if 'responsive_addon' in content['all_layout'] and "columns" in content["all_layout"]["responsive_addon"]%}
+    // Advanced Table Initialization
+    initializeDataTable('[id^="advanced_"]', {
+        layout: {
+            top1: {
+                searchPanes: {
+                    cascadePanes: true,
+                    {% if "responsive_addon" in content["all_layout"] %}
+                    columns: {{ content["all_layout"]["responsive_addon"]["columns"] }}
+                    {% endif %}
+                }
+            }
+        },
+        columnDefs: [
+            {
+                targets: '_all',
+                render: function (data, type) {
+                    if (type === 'sp') {
+                        return data
+                            .replace(/<\/?[^>]+(>|$)/g, '')
+                            .replace(/(<br\s*\/?>)/gi, '')
+                            .normalize('NFKD')
+                            .replace(/[^\x00-\x7F]/g, '')
+                            .split(',')
+                            .map(item => item.trim());
+                    }
+                    return data;
+                },
+                searchPanes: { orthogonal: 'sp' }
+            }
+        ]
+    });
+    {% endif %}
+
+    
+    {% if 'responsive_addon' in content['all_layout'] and 'ajax' in content['all_layout']['responsive_addon'] %}
+    // Optimized Table Initialization (Using AJAX)
+    const tableData = {{ content['all_layout']['responsive_addon']['ajax'] | safe }};
+    initializeDataTable('[id^="optimized_"]', {
+        data: tableData,
+        columns: [{% for column in content['all_layout']['responsive_addon']['ajax_columns'] %}
+            { data: '{{ column["data"] }}', defaultContent: '' },
+        {% endfor %}]
+    });
+
+    // Advanced Table Initialization
+    initializeDataTable('[id^="optimadvanced_"]', {
+        data: tableData,
+        columns: [{% for column in content['all_layout']['responsive_addon']['ajax_columns'] %}
+            { data: '{{ column["data"] }}', defaultContent: '' },
+        {% endfor %}],
+        layout: {
+            topStart: {
+                buttons: getCommonButtons(true, 'optimadvanced_') // Include your buttons here
+            },
+            top1: {
+                searchPanes: {
+                    cascadePanes: true,
+                    {% if "responsive_addon" in content["all_layout"] %}
+                    columns: {{ content["all_layout"]["responsive_addon"]["columns"] }}
+                    {% endif %}
+                }
+            }
+        },
+        columnDefs: [
+            {
+                targets: '_all',
+                render: function (data, type) {
+                    // Check if data is undefined or null
+                    if (!data) {
+                        return ''; // Return an empty string if data is undefined or null
+                    }
+
+                    if (type === 'sp') {
+                        return data
+                            .replace(/<\/?[^>]+(>|$)/g, '') // Strip HTML tags
+                            .replace(/(<br\s*\/?>)/gi, '') // Remove <br> tags
+                            .normalize('NFKD') // Normalize Unicode characters
+                            .replace(/[^\x00-\x7F]/g, '') // Remove non-ASCII characters
+                            .split(',')
+                            .map(item => item.trim()); // Trim whitespace
+                    }
+                    return data;
+                },
+                searchPanes: { orthogonal: 'sp' }
+            }
+        ]
+    });
+    {% endif %}
+
+</script>
 {% endblock %}
 
 {% block title %}

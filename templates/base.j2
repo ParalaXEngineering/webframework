@@ -295,6 +295,7 @@
         
     </div>
     <script src="{{ url_for('static', filename= 'vendors/tinymce/tinymce.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/fullcalendar/fullcalendar.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'vendors/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'vendors/datatables.net/datatables.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.js') }}"></script>
@@ -356,59 +357,6 @@
         toolbar: "undo redo | blocks fontsizeinput | bold italic | align numlist | bullist numlist outdent indent", // Note: if a toolbar item requires a plugin, the item will not present in the toolbar if the plugin is not also loaded.
         });
 
-    let elements_basic = document.querySelectorAll('[id^="basic_"]');
-    elements_basic.forEach(element => {
-        new DataTable(`#${element.id}`, {
-            colReorder: true,
-            layout: {
-                topStart: {
-                    buttons: [
-                        {
-                            text: 'Export',
-                            action: function (e, dt, node, config) {
-                                // Ne fait rien lorsque "Export" est cliqué
-                            },
-                            split: ['pdf', 'excel', 'print', 'copy']
-                        },
-                        {
-                            text: 'View',
-                            action: function (e, dt, node, config) {
-                                // Ne fait rien lorsque "Export" est cliqué
-                            },
-                            split: [
-                                {
-                                    text: 'Show 10 items',
-                                    action: function (e, dt, node, config) {
-                                        dt.page.len(10).draw();
-                                    }
-                                },
-                                {
-                                    text: 'Show 25 items',
-                                    action: function (e, dt, node, config) {
-                                        dt.page.len(25).draw();
-                                    }
-                                },
-                                {
-                                    text: 'Show 50 items',
-                                    action: function (e, dt, node, config) {
-                                        dt.page.len(50).draw();
-                                    }
-                                },
-                                {
-                                    text: 'Show 100 items',
-                                    action: function (e, dt, node, config) {
-                                        dt.page.len(100).draw();
-                                    }
-                                }
-                            ]
-                        }
-                    ]
-                }
-            },
-            pageLength: 25
-        });
-    });
-    
     </script>
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>

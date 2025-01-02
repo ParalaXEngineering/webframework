@@ -159,10 +159,14 @@ def setup_app(app):
     # Error handling to log errors
     @app.errorhandler(Exception)
     def handle_exception(e):
-        app.logger.error("An error occurred", exc_info=e)
-        if e.code == 404:
-            return render_template("404.j2")
+        
+        if hasattr(e, 'code') and e.code == 404:    
+            requested_url = request.path
+            query_parameters = request.args.to_dict()
+            app.logger.error(f"A 404 was generated at the following path: {requested_url}. Get arguments: {query_parameters}")
+            return render_template("404.j2", requested=requested_url)
 
+        app.logger.error("An error occurred", exc_info=e)
         return render_template("error.j2", error=str(e), traceback=str(traceback.format_exc()))
 
     @app.before_request

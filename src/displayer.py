@@ -48,6 +48,7 @@ class DisplayerItems(Enum):
     ICONLINK = "ICONLINK"
     PLACEHOLDER = "PLACEHOLDER"
     INPATH = "INPATH"
+    CALENDAR = "CALENDAR"
 
 
 class BSstyle(Enum):
@@ -922,6 +923,23 @@ class DisplayerItemInputImage(DisplayerItem):
         self.m_id = id
         return
 
+class DisplayerItemCalendar(DisplayerItem):
+    """Specialized display to display a full size calendar
+    :param id: The id of the calendar
+    :type id: str
+    :param view: The view of the calendar as defined in FullCalendar, defaults to dayGridMonth
+    :type view: str, optional
+    :param events: The events to display in the calendar, formated for FullCalendar, defaults to {}
+    :type param: dict, optional
+    """
+
+    def __init__(self, id: str, view: str = "dayGridMonth", events: dict = {}) -> None:
+        super().__init__(DisplayerItems.CALENDAR)
+        self.m_value = view
+        self.m_id = id
+        self.m_data = events
+        return
+
 
 class Displayer:
     """Main displayer class to construct the information displayed on the screen.
@@ -1144,10 +1162,6 @@ class Displayer:
             if "containers" in master_layout and column >= len(master_layout["containers"]):
                 return -1
             
-        # Setup the all layout variable
-        for item in layout.g_all_layout:
-            self.m_all_layout[item] = layout.g_all_layout[item]
-
         # Add the display item
         if layout.m_type == Layouts.VERTICAL.value:
             if "lines" in master_layout:
@@ -1172,6 +1186,11 @@ class Displayer:
             else:
                 layout.display(master_layout["containers"][column], self.g_next_layout)
             self.g_next_layout += 1
+
+            # Setup the all layout variable
+            for item in layout.g_all_layout:
+                self.m_all_layout[item] = layout.g_all_layout[item]
+
             return self.g_next_layout - 1
             
 
@@ -1179,13 +1198,15 @@ class Displayer:
         if "layouts" not in self.m_modules[self.m_active_module]:
             self.m_modules[self.m_active_module]["layouts"] = []
 
-        # Setup the all layout variable
-        for item in layout.g_all_layout:
-            self.m_all_layout[item] = layout.g_all_layout[item]
 
         self.m_last_layout = layout
         layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
         self.g_next_layout += 1
+
+        # Setup the all layout variable
+        for item in layout.g_all_layout:
+            self.m_all_layout[item] = layout.g_all_layout[item]
+
         return self.g_next_layout - 1
 
     def duplicate_master_layout(self) -> None:

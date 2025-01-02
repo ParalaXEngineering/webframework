@@ -81,9 +81,57 @@
         {{graph(item["id"], item["text"], item["graph_x"], item["graph_y"], item["graph_type"])}}
     {% elif item["type"] == "INPATH" %}
         {{path(item["id"], item["value"], item["data"], item["possibles"])}}
+    {% elif item["type"] == "CALENDAR" %}
+        {{calendar(item["id"], item["value"], item["data"])}}
     {% endif %}
 
     </span>
+{% endmacro %}
+
+{% macro calendar(id, view, events) %}
+
+<div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalTitle"></h5>
+            </div>
+            <div class="modal-body" id="eventModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<div id='calendar'></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+    timeZone: 'UTC',
+    initialView: '{{view}}',
+    events: {{events}},
+    editable: false,
+    selectable: true,
+    eventClick: function(info) {
+        // Inject event data into modal
+        var modalBody = document.getElementById('eventModalBody');
+        modalBody.innerHTML = info.event.extendedProps.description
+
+        var modalTitle = document.getElementById('eventModalTitle');
+        modalTitle.innerHTML = info.event.title
+
+        // Show the modal
+        $('#eventModal').modal('show');
+    }
+    });
+
+    calendar.render();
+});
+
+</script>
+    
+    
 {% endmacro %}
 
 
@@ -312,14 +360,14 @@
 {% endmacro %}
 
 {% macro inbox(id, value, text) %}
-    {% if text %}
-        {{ text }}
-    {% endif %}
-
     {% if value %}
         {{ common_input.check(id, value)}}
     {% else %}
         {{ common_input.check(id, history[id] if history is defined else None)}}
+    {% endif %}
+
+    {% if text %}
+        {{ text }}
     {% endif %}
 {% endmacro %}
 

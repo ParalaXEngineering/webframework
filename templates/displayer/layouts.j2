@@ -58,6 +58,10 @@
                         id="basic_{{ responsive }}"
                         {% elif responsive_type == "advanced" %}
                         id="advanced_{{ responsive }}"
+                        {% elif responsive_type == "optimized" %}
+                        id="optimized_{{ responsive }}"
+                        {% elif responsive_type == "optimadvanced" %}
+                        id="optimadvanced_{{ responsive }}"
                         {% else %}
                         id="unsuported_{{ responsive }}"
                         {% endif %}
