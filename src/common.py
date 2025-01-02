@@ -70,6 +70,12 @@ def login():
 
     error_message = None
 
+    # Sort users
+    users.sort()
+    if "GUEST" in users:
+        users.remove("GUEST")
+    users = ["GUEST"] + users
+
     if request.method == "POST":
         data_in = utilities.util_post_to_json(request.form.to_dict())
 
@@ -100,12 +106,6 @@ def login():
                     return redirect(redirect_path)
         else:
             error_message = "User does not exist"
-
-    # Sort users
-    users.sort()
-    if "GUEST" in users:
-        users.remove("GUEST")
-    users = ["GUEST"] + users
 
     return render_template("login.j2", target="common.login", users=users, message=error_message)
 
