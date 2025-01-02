@@ -13,6 +13,8 @@ class Site_conf:
     m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
     """App information"""
 
+    m_include_tar_gz_dirs = []
+
     m_index = "Bienvenue sur la page par défaut du framework ESD"
 
     m_sidebar = []
@@ -344,6 +346,10 @@ class Site_conf:
 
         if index:
             self.m_index = index
+
+    def add_tar_gz(self, list_tar_gz: []):
+        if self.m_app["name"] == "OuFNis_DFDIG":
+            self.m_include_tar_gz_dirs = list_tar_gz
 
     def context_processor(self):
         """Function that is called before rendering any page, should be overwritten by the child object"""

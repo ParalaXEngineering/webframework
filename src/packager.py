@@ -10,10 +10,12 @@ import shutil
 import socket
 import datetime
 import sys
+import time
 from submodules.framework.src import threaded_action
 
 import os
 import ftplib
+import tempfile
 
 
 class SETUP_Packager(threaded_action.Threaded_action):
@@ -40,6 +42,7 @@ class SETUP_Packager(threaded_action.Threaded_action):
                 self.get_name(), "Creating archive, this might take a while", 103
             )
             today = datetime.datetime.now()
+
             try:
                 with open(os.path.join("ressources", "version.txt"), 'r') as file:
                     package_version = file.read()
@@ -47,11 +50,33 @@ class SETUP_Packager(threaded_action.Threaded_action):
                     with open(os.path.join("ressources", "version.txt"), 'w') as file:
                         file.write(site_conf_obj.m_app["version"])
 
-                shutil.make_archive(
-                    os.path.join("packages", today.strftime("%y%m%d_" + self.m_file)),
-                    "zip",
-                    os.path.join("ressources"),
-                )
+                # Create a temporary directory to hold the archive content
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    # Liste des dossiers spécifiques pour inclure tous les fichiers, y compris les .tar.gz
+                    include_tar_gz_dirs = site_conf_obj.m_include_tar_gz_dirs
+
+                    # Parcourir les fichiers dans 'ressources'
+                    for root, dirs, files in os.walk("ressources"):
+                        relative_path = os.path.relpath(root, "ressources")
+                        dest_dir = os.path.join(temp_dir, relative_path)
+                        os.makedirs(dest_dir, exist_ok=True)
+
+                        for file in files:
+                            source_path = os.path.join(root, file)
+                            dest_path = os.path.join(dest_dir, file)
+
+                            # Vérifier si le dossier actuel est un dossier spécifique
+                            if any(os.path.commonpath([root, include_dir]) == include_dir for include_dir in include_tar_gz_dirs):
+                                # Copier tous les fichiers des dossiers spécifiques
+                                shutil.copy(source_path, dest_path)
+                            elif not file.endswith(".tar.gz"):
+                                # Copier uniquement les fichiers non .tar.gz pour les autres dossiers
+                                shutil.copy(source_path, dest_path)
+
+                    # Créer l'archive à partir du répertoire temporaire
+                    archive_path = os.path.join("packages", today.strftime("%y%m%d_" + self.m_file))
+                    shutil.make_archive(archive_path, "zip", temp_dir)
+
                 self.m_scheduler.emit_status(
                     self.get_name(), "Creating archive, this might take a while", 100
                 )
@@ -148,6 +173,7 @@ class SETUP_Packager(threaded_action.Threaded_action):
         elif (
             self.m_action == "download_package" or self.m_action == "load_package_file"
         ):
+            path_to_file = self.m_file
             if self.m_action == "download_package":
                 self.m_scheduler.emit_status(
                     self.get_name(), "Downloading package, this might take a while", 103
@@ -165,7 +191,7 @@ class SETUP_Packager(threaded_action.Threaded_action):
 
                 # Folder mode
                 config = utilities.util_read_parameters()
-                path_to_file = self.m_file
+                # path_to_file = self.m_file
                 if config["updates"]["source"]["value"] == "Folder":
                     shutil.copyfile(
                         os.path.join(
@@ -215,22 +241,36 @@ class SETUP_Packager(threaded_action.Threaded_action):
                     )
                     return
 
-            # # Remove old binaries folder and add the new one
-            # self.m_scheduler.emit_status(self.get_name(), "Deleting old content", 0)
-            # try:
-            #     shutil.rmtree(os.path.join("ressources"))
-            # except Exception:
-            #     # Will except if it doesn't already exists
-            #     pass
-            # os.mkdir(os.path.join("ressources"))
+            # Remove only .tar.gz files in the "ressources" folder and its subfolders, excluding specific directories
+            self.m_scheduler.emit_status(self.get_name(), "Deleting old tar.gz content", 103)
 
-            # self.m_scheduler.emit_status(self.get_name(), "Deleting old content", 100)
+            ressources_path = os.path.join("ressources")
 
-            self.m_scheduler.emit_status(
-                self.get_name(), "Unpacking archive, this might take a while", 103
-            )
+            # Dossiers spécifiques où les .tar.gz ne doivent pas être supprimés
+            exclude_tar_gz_dirs = site_conf_obj.m_include_tar_gz_dirs
+
+            if os.path.exists(ressources_path):
+                for root, dirs, files in os.walk(ressources_path):
+                    # Vérifier si le répertoire actuel doit être exclu
+                    if any(os.path.commonpath([root, exclude_dir]) == exclude_dir for exclude_dir in exclude_tar_gz_dirs):
+                        continue
+
+                    for file in files:
+                        if file.endswith(".tar.gz"):
+                            file_path = os.path.join(root, file)
+                            try:
+                                os.remove(file_path)
+                            except Exception as e:
+                                self.m_scheduler.emit_status(self.get_name(), f"Failed to delete {file_path}: {str(e)}", 50)
+            else:
+                os.mkdir(ressources_path)
+
+            self.m_scheduler.emit_status(self.get_name(), "Deleting old tar.gz content", 100)
 
             try:
+                self.m_scheduler.emit_status(
+                    self.get_name(), "Unpacking archive, this might take a while", 103
+                )
                 shutil.unpack_archive(
                     path_to_file,
                     os.path.join("ressources"),
@@ -239,6 +279,20 @@ class SETUP_Packager(threaded_action.Threaded_action):
                 self.m_scheduler.emit_status(
                     self.get_name(), "Unpacking archive, this might take a while", 100
                 )
+
+                # Émettre un statut avec une balise meta pour rafraîchir la page
+                # Statut final avec balise meta pour rafraîchir la page
+                message = (
+                    "<meta http-equiv='refresh' content='5'>"
+                    "<p>Unpacking completed successfully. The page will reload shortly.</p>"
+                )
+                self.m_scheduler.emit_status(self.get_name(), message, 103)
+
+                time.sleep(7)
+                self.m_scheduler.emit_status(
+                    self.get_name(), "Unpacking archive success", 100
+                )
+
             except Exception as e:
                 self.m_logger.info("Unpacking failed: " + str(e))
                 self.m_scheduler.emit_status(
