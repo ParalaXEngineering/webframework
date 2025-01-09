@@ -443,6 +443,12 @@
                 existingImageDiv.remove();
             }
 
+            // Vérifier si l'élément avec l'ID "fnh_image" existe, le supprimer si nécessaire
+            const existingFnhImage = document.getElementById('fnh_image');
+            if (existingFnhImage) {
+                existingFnhImage.remove();
+            }
+
             // Créer dynamiquement l'élément div pour contenir l'image
             const seasonalImageDiv = document.createElement('div');
             seasonalImageDiv.id = 'seasonal-image';
@@ -537,6 +543,103 @@
         }
     }
 </style>
+
+<script>
+    // Créer une boîte de dialogue personnalisée
+    function showCustomAlert(message, imageUrl) {
+        // Vérifier si une boîte de dialogue existe déjà pour éviter les duplications
+        if (document.getElementById("custom-alert")) {
+            return;
+        }
+
+        // Récupérer le thème actuel
+        const isLightTheme = document.documentElement.getAttribute("data-bs-theme") === "light";
+
+        // Styles dynamiques selon le thème
+        const backgroundColor = isLightTheme ? "#fff" : "#333";
+        const textColor = isLightTheme ? "#000" : "#fff";
+        const borderColor = isLightTheme ? "#007BFF" : "#FFD700"; // Bordure bleue pour clair, or pour sombre
+        const buttonBackgroundColor = isLightTheme ? "#007BFF" : "#444";
+        const buttonTextColor = isLightTheme ? "#fff" : "#fff";
+
+        // Conteneur de l'alerte
+        const alertContainer = document.createElement("div");
+        alertContainer.id = "custom-alert";
+        alertContainer.style.position = "fixed";
+        alertContainer.style.top = "50%";
+        alertContainer.style.left = "50%";
+        alertContainer.style.transform = "translate(-50%, -50%)";
+        alertContainer.style.zIndex = "9999";
+        alertContainer.style.backgroundColor = backgroundColor;
+        alertContainer.style.color = textColor;
+        alertContainer.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+        alertContainer.style.textAlign = "center";
+        alertContainer.style.borderRadius = "8px";
+        alertContainer.style.padding = "10px"; // Marges internes
+        alertContainer.style.maxWidth = "90%";
+        alertContainer.style.overflow = "hidden";
+
+        // Image
+        const image = document.createElement("img");
+        image.src = imageUrl;
+        image.alt = "Alert Image";
+        image.style.border = `3px solid ${borderColor}`; // Bordure dynamique selon le thème
+        image.style.borderRadius = "8px"; // Coins arrondis pour la bordure
+        image.style.marginBottom = "10px";
+
+        // Message
+        const text = document.createElement("p");
+        text.textContent = message;
+        text.style.marginBottom = "20px"; // Ajout d'espace entre le message et le bouton
+
+        // Bouton de fermeture
+        const closeButton = document.createElement("button");
+        closeButton.textContent = "OK";
+        closeButton.style.padding = "10px 20px";
+        closeButton.style.border = "none";
+        closeButton.style.borderRadius = "5px";
+        closeButton.style.backgroundColor = buttonBackgroundColor;
+        closeButton.style.color = buttonTextColor;
+        closeButton.style.cursor = "pointer";
+        closeButton.style.marginBottom = "20px"; // Ajout d'espace en bas du bouton
+        closeButton.onclick = function () {
+            document.body.removeChild(alertContainer);
+        };
+
+        // Ajouter les éléments à la boîte
+        alertContainer.appendChild(image);
+        alertContainer.appendChild(text);
+        alertContainer.appendChild(closeButton);
+
+        // Ajuster dynamiquement la taille de l'image après son chargement
+        image.onload = function () {
+            const reducedWidth = image.naturalWidth / 2; // Largeur réduite de moitié
+            const reducedHeight = image.naturalHeight / 2; // Hauteur réduite de moitié
+
+            // Appliquer les dimensions réduites
+            image.style.width = `${reducedWidth}px`;
+            image.style.height = `${reducedHeight}px`;
+
+            // Ajuster la taille du conteneur
+            alertContainer.style.width = `${reducedWidth + 40}px`; // Ajout de marges
+            alertContainer.style.height = `${reducedHeight + 120}px`; // Inclure le texte, bouton, et espace supplémentaire
+        };
+
+        // Ajouter la boîte au corps de la page
+        document.body.appendChild(alertContainer);
+    }
+
+    // Désactiver le rechargement et afficher l'alerte personnalisée
+    document.addEventListener("keydown", function (event) {
+        if ((event.ctrlKey && event.key === "r") || event.key === "F5" || event.keyCode === 116) {
+            event.preventDefault();
+            showCustomAlert(
+                "Reloading the page is disabled.",
+                "{{ url_for('static', filename='images/site/refresh.jpg') }}"
+            );
+        }
+    });
+</script>
 
 </body>
 
