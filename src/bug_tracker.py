@@ -76,6 +76,7 @@ def bugtracker():
                 "Subject",
                 "Description",
                 "Updated Time",
+                "Details"
             ],
             subtitle="Current issues",
         )
@@ -87,6 +88,7 @@ def bugtracker():
         disp.add_display_item(displayer.DisplayerItemText(issue.subject), column=2, line=index)
         disp.add_display_item(displayer.DisplayerItemText(issue.description), column=3, line=index)
         disp.add_display_item(displayer.DisplayerItemText(issue.updated_on.strftime("%Y-%m-%d %H:%M:%S")), column=4, line=index)
+        disp.add_display_item(displayer.DisplayerItemIconLink("", "", "eye", issue.url, color=displayer.BSstyle.SUCCESS), column=5, line=index)
     
     # Display closed issues in a table
     disp.add_master_layout(
@@ -98,6 +100,7 @@ def bugtracker():
                 "Subject",
                 "Description",
                 "Updated Time",
+                "Details"
             ],
             subtitle="Closed issues",
         )
@@ -109,6 +112,7 @@ def bugtracker():
         disp.add_display_item(displayer.DisplayerItemText(issue.subject), column=2, line=index)
         disp.add_display_item(displayer.DisplayerItemText(issue.description), column=3, line=index)
         disp.add_display_item(displayer.DisplayerItemText(issue.updated_on.strftime("%Y-%m-%d %H:%M:%S")), column=4, line=index)
+        disp.add_display_item(displayer.DisplayerItemIconLink("", "", "eye", issue.url, color=displayer.BSstyle.SUCCESS), column=5, line=index)
 
     # Display rejected issues in a table
     disp.add_master_layout(
@@ -120,6 +124,7 @@ def bugtracker():
                 "Subject",
                 "Description",
                 "Updated Time",
+                "Details"
             ],
             subtitle="Rejected issues",
         )
@@ -131,5 +136,6 @@ def bugtracker():
         disp.add_display_item(displayer.DisplayerItemText(issue.subject), column=2, line=index)
         disp.add_display_item(displayer.DisplayerItemText(issue.description), column=3, line=index)
         disp.add_display_item(displayer.DisplayerItemText(issue.updated_on.strftime("%Y-%m-%d %H:%M:%S")), column=4, line=index)
+        disp.add_display_item(displayer.DisplayerItemIconLink("", "", "eye", issue.url, color=displayer.BSstyle.SUCCESS), column=5, line=index)
 
     return render_template("base_content.j2", content=disp.display(), target="bug.bugtracker")
