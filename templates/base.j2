@@ -524,15 +524,62 @@
 </script>
 
 <style>
-    .snowflake {
-        position: fixed;
-        top: -50px;
-        z-index: 9999;
-        pointer-events: none;
-        color: white;
-        opacity: 0.8;
-        animation: fall linear infinite;
+    /* Effet Pixel Art - Thème Clair */
+    html[data-bs-theme="light"] body.pixel-art-mode {
+        image-rendering: pixelated;
+        background-color: #fff; /* Fond blanc */
+        color: #000; /* Texte noir */
+        filter: contrast(200%) brightness(90%);
     }
+
+    body.pixel-art-mode img {
+        image-rendering: pixelated;
+        transform-origin: center;
+    }
+
+    body.pixel-art-mode * {
+        font-family: "Press Start 2P", monospace; /* Police rétro */
+        box-shadow: none;
+        border-radius: 0;
+        text-transform: uppercase; /* Texte en majuscules pour un effet rétro */
+        letter-spacing: 2px; /* Espacement des lettres */
+    }
+
+    /* Boutons et Formulaires - Thème Clair */
+    html[data-bs-theme="light"] body.pixel-art-mode input,
+    html[data-bs-theme="light"] body.pixel-art-mode select,
+    html[data-bs-theme="light"] body.pixel-art-mode textarea {
+        background-color: #ddd; /* Fond gris clair */
+        color: #000; /* Texte noir */
+        border: 2px solid #000; /* Bordures noires */
+    }
+
+    /* Effet Pixel Art - Thème Sombre */
+    html[data-bs-theme="dark"] body.pixel-art-mode {
+        image-rendering: pixelated;
+        background-color: #000; /* Fond noir */
+        color: #0f0; /* Texte vert */
+        filter: contrast(150%) brightness(70%);
+    }
+
+    /* Boutons et Formulaires - Thème Sombre */
+    html[data-bs-theme="dark"] body.pixel-art-mode input,
+    html[data-bs-theme="dark"] body.pixel-art-mode select,
+    html[data-bs-theme="dark"] body.pixel-art-mode textarea {
+        background-color: #333; /* Fond gris foncé */
+        color: #0f0; /* Texte vert */
+        border: 2px solid #0f0; /* Bordures vertes */
+    }
+
+    /* Liens */
+    html[data-bs-theme="light"] body.pixel-art-mode a {
+        color: #0000ff; /* Liens bleus */
+    }
+
+    html[data-bs-theme="dark"] body.pixel-art-mode a {
+        color: #00ffff; /* Liens cyan */
+    }
+
 
     @keyframes fall {
         0% {
@@ -542,6 +589,15 @@
             transform: translateY(100vh) rotate(360deg);
         }
     }
+
+    .snowflake {
+        position: fixed;
+        top: -50px;
+        z-index: 9999;
+        pointer-events: none;
+        color: white;
+        opacity: 0.8;
+        animation: fall linear infinite;
 </style>
 
 <script>
