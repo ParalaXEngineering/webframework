@@ -20,6 +20,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css') }}">
     <link rel="shortcut icon" href="{{ url_for('common.assets', asset_type="images", filename= 'logo/favicon.png') }}" type="image/png">
 
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <style>
         #overlay {
             position: fixed; /* Cover the whole screen */
@@ -39,11 +41,90 @@
             max-height: 80%;
             margin: auto; /* Center the image within the flex container */
         }
-    </style>
-    
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-    <style>
+        /* Par défaut (fallback) */
+        html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) .theme-aware {
+            background-color: #e9edf4; /* Couleur claire par défaut */
+            color: #4a4a4a; /* Texte gris foncé */
+        }
+
+        html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) .alert-light-secondary {
+            background-color: #e4eaf0; /* Couleur claire par défaut */
+            color: #376a84; /* Texte bleu-vert */
+            border: 1px solid #dde2e8; /* Bordure claire */
+        }
+
+        /* Light theme styles */
+        html[data-bs-theme="light"] .theme-aware {
+            background-color: #e4eaf0; /* Couleur claire pour le thème light */
+            color: #4a4a4a; /* Texte gris foncé */
+        }
+
+        html[data-bs-theme="light"] .alert-light-secondary {
+            background-color: #e4eaf0; /* Couleur claire pour le thème light */
+            color: #376a84; /* Texte bleu-vert */
+            border: 1px solid #dde2e8; /* Bordure claire */
+        }
+
+        /* Dark theme styles */
+        html[data-bs-theme="dark"] .theme-aware {
+            background-color: #2b3a42; /* Couleur sombre pour le thème dark */
+            color: #c2c2d9; /* Texte blanc */
+        }
+
+        html[data-bs-theme="dark"] .alert-light-secondary {
+            background-color: #2b3a42; /* Couleur sombre pour le thème dark */
+            color: #c2c2d9; /* Texte clair */
+            border: 1px solid #1e1e2d; /* Bordure bleu foncé */
+        }
+
+        /* Par défaut pour les tables */
+        html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) .theme-aware table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #4a4a4a;
+        }
+
+        /* Light Theme pour les tables */
+        html[data-bs-theme="light"] .theme-aware table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #4a4a4a;
+        }
+
+        /* Dark Theme pour les tables */
+        html[data-bs-theme="dark"] .theme-aware table {
+            width: 100%;
+            border-collapse: collapse;
+            color: rgb(180, 180, 216);
+        }
+
+        /* Styles généraux */
+        .theme-aware table th,
+        .theme-aware table td {
+            text-align: left;
+            padding: 8px;
+        }
+
+        .theme-aware table th {
+            font-weight: bold;
+            border-bottom: 1px solid var(--theme-border-color);
+            padding-bottom: 8px;
+        }
+
+        /* Variables pour les bordures */
+        html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) {
+            --theme-border-color: #b3b3b3; /* Gris moyen */
+        }
+
+        html[data-bs-theme="light"] {
+            --theme-border-color: #b3b3b3; /* Gris moyen */
+        }
+
+        html[data-bs-theme="dark"] {
+            --theme-border-color: #1e1e2d; /* Bleu foncé */
+        }
+
         /* Centrage et dimensionnement de l'image */
         #seasonal-image {
             position: fixed;
