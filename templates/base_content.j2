@@ -1,6 +1,92 @@
 {% extends 'base.j2' %}
 
 {% block js %}
+<style>
+/* Par défaut (fallback) */
+html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) .theme-aware {
+    background-color: #e9edf4; /* Couleur claire par défaut */
+    color: #4a4a4a; /* Texte gris foncé */
+}
+
+html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) .alert-light-secondary {
+    background-color: #e4eaf0; /* Couleur claire par défaut */
+    color: #376a84; /* Texte bleu-vert */
+    border: 1px solid #dde2e8; /* Bordure claire */
+}
+
+/* Light theme styles */
+html[data-bs-theme="light"] .theme-aware {
+    background-color: #e4eaf0; /* Couleur claire pour le thème light */
+    color: #4a4a4a; /* Texte gris foncé */
+}
+
+html[data-bs-theme="light"] .alert-light-secondary {
+    background-color: #e4eaf0; /* Couleur claire pour le thème light */
+    color: #376a84; /* Texte bleu-vert */
+    border: 1px solid #dde2e8; /* Bordure claire */
+}
+
+/* Dark theme styles */
+html[data-bs-theme="dark"] .theme-aware {
+    background-color: #2b3a42; /* Couleur sombre pour le thème dark */
+    color: #c2c2d9; /* Texte blanc */
+}
+
+html[data-bs-theme="dark"] .alert-light-secondary {
+    background-color: #2b3a42; /* Couleur sombre pour le thème dark */
+    color: #c2c2d9; /* Texte clair */
+    border: 1px solid #1e1e2d; /* Bordure bleu foncé */
+}
+
+/* Par défaut pour les tables */
+html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) .theme-aware table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #4a4a4a;
+}
+
+/* Light Theme pour les tables */
+html[data-bs-theme="light"] .theme-aware table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #4a4a4a;
+}
+
+/* Dark Theme pour les tables */
+html[data-bs-theme="dark"] .theme-aware table {
+    width: 100%;
+    border-collapse: collapse;
+    color: rgb(180, 180, 216);
+}
+
+/* Styles généraux */
+.theme-aware table th,
+.theme-aware table td {
+    text-align: left;
+    padding: 8px;
+}
+
+.theme-aware table th {
+    font-weight: bold;
+    border-bottom: 1px solid var(--theme-border-color);
+    padding-bottom: 8px;
+}
+
+/* Variables pour les bordures */
+html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) {
+    --theme-border-color: #b3b3b3; /* Gris moyen */
+}
+
+html[data-bs-theme="light"] {
+    --theme-border-color: #b3b3b3; /* Gris moyen */
+}
+
+html[data-bs-theme="dark"] {
+    --theme-border-color: #1e1e2d; /* Bleu foncé */
+}
+</style>
+
+
 <script>
     // Function to create common buttons
     function getCommonButtons(checkAll, elementId) {
@@ -8,14 +94,14 @@
             {
                 text: checkAll ? 'Check All' : 'Check All',
                 action: function (e, dt, node, config) {
-                    const isChecked = $(node).text() === 'Check All';
-                    
-                    // Use DataTables' API to get all rows (visible and non-visible)
-                    const checkboxes = dt.table().node().querySelectorAll(`input[type="checkbox"]`);
-                    checkboxes.forEach(checkbox => checkbox.checked = isChecked);
-
-                    // Update the button text
-                    $(node).text(isChecked ? 'Uncheck All' : 'Check All');
+                    if (checkAll) {
+                        const isChecked = $(node).text() === 'Check All';
+                        
+                        // Use an attribute selector to select checkboxes within the table
+                        $(`#${elementId} input[type="checkbox"]`).prop('checked', isChecked);
+                        
+                        $(node).text(isChecked ? 'Uncheck All' : 'Check All');
+                    }
                 }
             },
             {
@@ -255,7 +341,7 @@
                     <div class="card-footer alert-light-secondary theme-aware">
                         <h4 class="theme-text">Action progress</h4>
                         <div class="table-responsive">
-                            <table class="table-light table table-striped mb-0 theme-aware" id="{{module}}_result">
+                            <table class="table-light table-striped mb-0 theme-aware" id="{{module}}_result">
                                 <thead>
                                     <tr>
                                         <th style="width: 50%;">Task</th> <!-- Largeur explicite pour équilibrer -->
@@ -263,12 +349,11 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    
+                                    <!-- Vos lignes ici -->
                                 </tbody>
                             </table>
                         </div>
-                        <div id="progress_result">
-                        </div>
+                        <div id="progress_result"></div>
                     </div>
                 {% endif %}
             </div>
