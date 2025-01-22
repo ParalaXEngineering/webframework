@@ -94,14 +94,14 @@ html[data-bs-theme="dark"] {
             {
                 text: checkAll ? 'Check All' : 'Check All',
                 action: function (e, dt, node, config) {
-                    if (checkAll) {
-                        const isChecked = $(node).text() === 'Check All';
-                        
-                        // Use an attribute selector to select checkboxes within the table
-                        $(`#${elementId} input[type="checkbox"]`).prop('checked', isChecked);
-                        
-                        $(node).text(isChecked ? 'Uncheck All' : 'Check All');
-                    }
+                    const isChecked = $(node).text() === 'Check All';
+                    
+                    // Use DataTables' API to get all rows (visible and non-visible)
+                    const checkboxes = dt.table().node().querySelectorAll(`input[type="checkbox"]`);
+                    checkboxes.forEach(checkbox => checkbox.checked = isChecked);
+
+                    // Update the button text
+                    $(node).text(isChecked ? 'Uncheck All' : 'Check All');
                 }
             },
             {
