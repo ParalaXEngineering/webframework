@@ -1,0 +1,27 @@
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const PIXEL_MODE_KEY = "pixelArtMode";
+
+    // Vérifier si le mode Pixel Art est actif dans localStorage
+    if (localStorage.getItem(PIXEL_MODE_KEY) === "true") {
+        document.body.classList.add("pixel-art-mode");
+    }
+
+    // Détecter le mot "pixel"
+    const secretWord = "pixel";
+    let typedKeys = [];
+
+    document.addEventListener("keydown", (event) => {
+        typedKeys.push(event.key.toLowerCase());
+        typedKeys = typedKeys.slice(-secretWord.length);
+
+        if (typedKeys.join("") === secretWord) {
+            const isActive = document.body.classList.toggle("pixel-art-mode");
+
+            // Enregistrer l'état dans localStorage
+            localStorage.setItem(PIXEL_MODE_KEY, isActive.toString());
+        }
+    });
+});
+
+</script>
