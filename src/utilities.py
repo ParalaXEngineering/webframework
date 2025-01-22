@@ -15,6 +15,28 @@ from submodules.framework.src import displayer
 CONFIG_GLOBAL = {}
 LAST_ACCESS_CONFIG = None
 
+def util_list_to_html(input_list):
+    """
+    Transforms a Python list into an HTML unordered list.
+    
+    :param input_list: List of strings or nested lists to convert.
+    :return: A string containing the HTML unordered list.
+    """
+    if not isinstance(input_list, list):
+        raise ValueError("Input must be a list.")
+    
+    def create_list(items):
+        html = '<ul class="list-group list-group-flush">'
+        for item in items:
+            if isinstance(item, list):
+                # Recursively create nested lists
+                html += f'<li class="list-group-item">{create_list(item)}</li>'
+            else:
+                html += f'<li class="list-group-item">{item}</li>'
+        html += "</ul>"
+        return html
+    
+    return create_list(input_list)
 
 def util_list_serial() -> list:
     """Return the list of the serial ports on the machine
