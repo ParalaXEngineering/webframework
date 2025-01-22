@@ -400,32 +400,10 @@
     }
 
     function addSeasonalImage(imageFilename) {
-        if (window.location.href === "http://127.0.0.1:5000/") {
-            // Vérifier si une ancienne image existe, la supprimer si nécessaire
-            const existingImageDiv = document.getElementById('seasonal-image');
-            if (existingImageDiv) {
-                existingImageDiv.remove();
-            }
 
-            // Vérifier si l'élément avec l'ID "fnh_image" existe, le supprimer si nécessaire
-            const existingFnhImage = document.getElementById('fnh_image');
-            if (existingFnhImage) {
-                existingFnhImage.remove();
-            }
-
-            // Créer dynamiquement l'élément div pour contenir l'image
-            const seasonalImageDiv = document.createElement('div');
-            seasonalImageDiv.id = 'seasonal-image';
-
-            // Ajouter l'image
-            const seasonalImage = document.createElement('img');
-            seasonalImage.src = "{{ url_for('static', filename='images/site/') }}" + imageFilename;
-            seasonalImage.alt = "Seasonal Image";
-
-            // Ajouter l'image dans la div, puis la div dans le body
-            seasonalImageDiv.appendChild(seasonalImage);
-            document.body.appendChild(seasonalImageDiv);
-        }
+        // Ajouter l'image
+        const seasonalImage = document.getElementById('home_image');
+        seasonalImage.src = "{{ url_for('static', filename='images/site/') }}" + imageFilename;
     }
 
     function startSnowflakes(theme) {
