@@ -1,0 +1,18 @@
+{% extends 'base.j2' %}
+
+{% block title %}
+No refresh is allowed
+{% endblock %}
+
+{% block main_page %}
+    <div class="card bg-danger text-white shadow">
+        <div class="card-body">
+            <div class="text-white-50 small">Refresh is not allowed on this part of the website, as it could re-execute an unwanted action</div>
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-center">
+        <img src="{{ url_for('static', filename= 'images/site/norefresh.jpg')}}" width="500vw">
+    </div>
+    
+{% endblock %}

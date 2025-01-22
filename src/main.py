@@ -7,12 +7,16 @@ import time
 import os
 import webbrowser
 import logging
+import uuid
 
 from flask_socketio import SocketIO
 import importlib
 import sys
 import threading
 import traceback
+
+from functools import wraps
+
 from submodules.framework.src import scheduler
 from submodules.framework.src import threaded_manager
 from submodules.framework.src import access_manager
@@ -24,6 +28,10 @@ app = Flask(
         static_folder=os.path.join("..", "webengine", "assets"),
         template_folder=os.path.join("..", "templates")
     )
+
+def authorize_refresh(f):
+    f._disable_csrf = True  # Ajouter un attribut personnalisé
+    return f
 
 
 def setup_app(app):
@@ -150,6 +158,16 @@ def setup_app(app):
             endpoint=request.endpoint, page_info=session["page_info"], user=user
         )
 
+    
+    @app.context_processor
+    def inject_csrf_token():
+        # Fonction pour générer un jeton unique
+        def generate_csrf_token():
+            session['csrf_token'] = str(uuid.uuid4())
+            return session['csrf_token']
+        
+        return dict(csrf_token=generate_csrf_token())
+
     # Index page
     @app.route("/")
     def index():
@@ -171,6 +189,15 @@ def setup_app(app):
 
     @app.before_request
     def before_request():
+        if request.method == 'POST':
+            token = request.form.get('csrf_token')
+            print(f"Token is {token} and session is {session.get('csrf_token')}")
+            view_func = app.view_functions.get(request.endpoint)
+            if not getattr(view_func, '_disable_csrf', False):
+                if not token or token != session.get('csrf_token'):
+                    # Rediriger l'utilisateur en cas de jeton invalide
+                    return render_template("norefresh.j2")
+            
         g.start_time = time.time()
 
         scheduler.scheduler_obj.m_user_connected = False
