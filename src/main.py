@@ -193,7 +193,7 @@ def setup_app(app):
             token = request.form.get('csrf_token')
             print(f"Token is {token} and session is {session.get('csrf_token')}")
             view_func = app.view_functions.get(request.endpoint)
-            if not getattr(view_func, '_disable_csrf', False):
+            if token and not getattr(view_func, '_disable_csrf', False):
                 if not token or token != session.get('csrf_token'):
                     # Rediriger l'utilisateur en cas de jeton invalide
                     return render_template("norefresh.j2")
