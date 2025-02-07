@@ -149,6 +149,9 @@ html[data-bs-theme="dark"] {
     // Advanced Table Initialization
     initializeDataTable('[id^="advanced_"]', {
         layout: {
+            topStart: {
+                buttons: getCommonButtons(true, 'advanced_') // Include your buttons here
+            },
             top1: {
                 searchPanes: {
                     cascadePanes: true,
