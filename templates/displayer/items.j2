@@ -209,9 +209,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         name: "{{ serie }}",
                         data: [
                             {% for i in range(0, graphx | length - 1)%}
-                                [{{graphx[i]}}, {{graphy[serie][i]}} ],
+                                ["{{graphx[i]}}", {{graphy[serie][i]}} ],
                             {% endfor %}
-                                [{{graphx[-1]}}, {{graphy[serie][-1]}} ]
+                                ["{{graphx[-1]}}", {{graphy[serie][-1]}} ]
                         ]
                     }                
                 {% endfor %}
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {% if data_type == "date" %}
         xaxis: {
             type: 'datetime',
-            format: 'dd/MM hh:mm:ss',
+            format: 'yyyy-MM-dd',
             labels: {
                 datetimeUTC: false
             }
