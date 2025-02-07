@@ -58,9 +58,15 @@ class Threaded_action:
 
         logging.config.fileConfig("submodules/framework/log_config.ini")
         self.m_logger = logging.getLogger("website")
-        self.m_logger.info("Scheduler started")
+        self.m_logger.info("Threaded action started")
 
         self.m_scheduler = scheduler.scheduler_obj
+
+    def __del__(self):
+        logging.config.fileConfig("submodules/framework/log_config.ini")
+        self.m_logger = logging.getLogger("website")
+        self.m_logger.info("Threaded action finished")
+
 
     def command_close(self):
         """For compatiblity
@@ -226,7 +232,6 @@ class Threaded_action:
             self.m_logger.warning("Thread failed: " + str(e))
             self.m_logger.info("Traceback was: " + traceback_str)
         self.m_running = False
-
         if not self.m_background:
             # Wait a bit to finish all the reading, we are not in a hurry anyway...
             self.delete()
