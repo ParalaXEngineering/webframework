@@ -1,4 +1,17 @@
 <script>
+// Désactiver le rechargement et afficher l'alerte personnalisée
+    document.addEventListener("keydown", function (event) {
+        if ((event.ctrlKey && event.key === "r") || event.key === "F5" || event.keyCode === 116) {
+            event.preventDefault();
+            showCustomAlert(
+                "Reloading the page is disabled.",
+                "{{ url_for('static', filename='images/site/norefresh.jpg') }}"
+            );
+        }
+    });
+</script>
+ 
+<script>
 document.addEventListener("DOMContentLoaded", () => {
     const PIXEL_MODE_KEY = "pixelArtMode";
 
