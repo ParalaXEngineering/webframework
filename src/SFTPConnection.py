@@ -1,5 +1,6 @@
 import paramiko
 
+
 class SFTPConnection:
     def __init__(self, host, username, password, port=22):
         self.host = host

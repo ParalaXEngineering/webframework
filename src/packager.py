@@ -5,6 +5,7 @@ from submodules.framework.src import access_manager
 from submodules.framework.src import site_conf
 from submodules.framework.src import displayer
 from submodules.framework.src import scheduler
+from submodules.framework.src import SFTPConnection
 
 import shutil
 import socket
@@ -14,7 +15,6 @@ import time
 from submodules.framework.src import threaded_action
 
 import os
-import ftplib
 import tempfile
 
 
@@ -29,6 +29,14 @@ class SETUP_Packager(threaded_action.Threaded_action):
         self.m_action = action
 
     def action(self):
+        # Création d'une seule instance de connexion
+        config = utilities.util_read_parameters()
+        sftp_conn = SFTPConnection.SFTPConnection(
+            config["updates"]["address"]["value"],
+            config["updates"]["user"]["value"],
+            config["updates"]["password"]["value"]
+        )
+
         site_conf_obj = site_conf.site_conf_obj
 
         if self.m_action == "create_package":
@@ -106,7 +114,6 @@ class SETUP_Packager(threaded_action.Threaded_action):
             )
 
             # Folder mode
-            config = utilities.util_read_parameters()
             if config["updates"]["source"]["value"] == "Folder":
                 try:
                     os.mkdir(
@@ -139,33 +146,30 @@ class SETUP_Packager(threaded_action.Threaded_action):
             # FTP mode
             elif config["updates"]["source"]["value"] == "FTP":
                 try:
-                    session = ftplib.FTP(
-                        config["updates"]["address"]["value"],
-                        config["updates"]["user"]["value"],
-                        config["updates"]["password"]["value"],
-                    )
+                    # Définition du dossier distant
+                    remote_dir = os.path.join(
+                        config["updates"]["path"]["value"],
+                        "packages",
+                        site_conf_obj.m_app["name"]
+                    ).replace("\\", "/")  # Compatibilité Windows/Linux
+                    # Vérification et création du dossier distant si nécessaire
+                    try:
+                        sftp_conn.listdir(remote_dir)
+                    except FileNotFoundError:
+                        sftp_conn.mkdir(remote_dir)
 
-                    file = open(self.m_file, "rb")  # file to send
-                    session.storbinary(
-                        "STOR "
-                        + config["updates"]["path"]["value"]
-                        + "/packages/"
-                        + site_conf_obj.m_app["name"]
-                        + "/"
-                        + self.m_file.split(os.path.sep)[-1],
-                        file,
-                    )  # send the file
-                    file.close()  # close file and FTP
-                    session.quit()
+                    # Définition du chemin distant du fichier
+                    remote_file_path = os.path.join(remote_dir, os.path.basename(self.m_file)).replace("\\", "/")
+                    # Envoi du fichier
+                    sftp_conn.upload_file(self.m_file, remote_file_path)
+
                 except Exception as e:
-                    self.m_logger.info("Package uploading failed: " + str(e))
+                    self.m_logger.info(f"Package uploading failed: {e}")
                     self.m_scheduler.emit_status(
                         self.get_name(),
                         "Uploading package, this might take a while",
                         101,
                     )
-                    return
-
             self.m_scheduler.emit_status(
                 self.get_name(), "Uploading package, this might take a while", 100
             )
@@ -205,26 +209,25 @@ class SETUP_Packager(threaded_action.Threaded_action):
 
                 # FTP mode
                 elif config["updates"]["source"]["value"] == "FTP":
-                    path_to_file = os.path.join("downloads", self.m_file)
+                    path_to_file = os.path.join("downloads", self.m_file).replace("\\", "/")  # Assure la compatibilité Windows/Linux
+
                     try:
-                        session = ftplib.FTP(
-                            config["updates"]["address"]["value"],
-                            config["updates"]["user"]["value"],
-                            config["updates"]["password"]["value"],
-                        )
-                        session.retrbinary(
-                            "RETR "
-                            + config["updates"]["path"]["value"]
-                            + "/packages/"
-                            + site_conf_obj.m_app["name"]
-                            + "/"
-                            + self.m_file,
-                            open(path_to_file, "wb").write,
-                        )  # send the file
-                        session.quit()
+                        # Définition du chemin distant
+                        remote_file_path = os.path.join(
+                            config["updates"]["path"]["value"],
+                            "packages",
+                            site_conf_obj.m_app["name"],
+                            self.m_file
+                        ).replace("\\", "/")  # Compatibilité Windows/Linux
+
+                        # Création du dossier local "downloads" s'il n'existe pas
+                        os.makedirs(os.path.dirname(path_to_file), exist_ok=True)
+
+                        # Téléchargement du fichier
+                        sftp_conn.download_file(remote_file_path, path_to_file)
 
                     except Exception as e:
-                        self.m_logger.info("Download package failed: " + str(e))
+                        self.m_logger.info(f"Download package failed: {e}")
                         self.m_scheduler.emit_status(
                             self.get_name(),
                             "Downloading package, this might take a while",
@@ -492,18 +495,27 @@ def packager():
     # FTP mode
     elif config["updates"]["source"]["value"] == "FTP":
         try:
-            session = ftplib.FTP(
+            sftp_conn = SFTPConnection.SFTPConnection(
                 config["updates"]["address"]["value"],
                 config["updates"]["user"]["value"],
-                config["updates"]["password"]["value"],
+                config["updates"]["password"]["value"]
             )
 
-            session.cwd(
-                config["updates"]["path"]["value"]
-                + "/packages/"
-                + site_conf_obj.m_app["name"]
-            )
-            content = session.nlst()
+            # Définition du chemin distant
+            remote_dir = os.path.join(
+                config["updates"]["path"]["value"],
+                "packages",
+                site_conf_obj.m_app["name"]
+            ).replace("\\", "/")  # Compatibilité Windows/Linux
+
+            # Récupération de la liste des fichiers
+            try:
+                content = sftp_conn.listdir(remote_dir)
+            except FileNotFoundError:
+                content = []
+
+            # Fermeture de la connexion SFTP
+            sftp_conn.close()
 
             disp.add_master_layout(
                 displayer.DisplayerLayout(
