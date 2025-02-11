@@ -131,6 +131,8 @@ function setting_rm_list(name)
         var div = document.getElementById(name + ".div")
         document.getElementById(name + ".list" + (max_nb - 1).toString()).remove();
      }
+
+     settings_list_format(name)
 }
 
 function button_machine_display(info)
