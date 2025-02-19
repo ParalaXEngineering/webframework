@@ -1,12 +1,19 @@
 <script>
+    let refreshAttempts = 0;  // Compteur de tentatives de rafraîchissement
 // Désactiver le rechargement et afficher l'alerte personnalisée
     document.addEventListener("keydown", function (event) {
         if ((event.ctrlKey && event.key === "r") || event.key === "F5" || event.keyCode === 116) {
             event.preventDefault();
-            showCustomAlert(
-                "Reloading the page is disabled.",
-                "{{ url_for('static', filename='images/site/norefresh.jpg') }}"
-            );
+            refreshAttempts++;
+            if (refreshAttempts === 1) {
+                showCustomAlert(
+                    "Reloading the page is disabled.",
+                    "{{ url_for('static', filename='images/site/norefresh.jpg') }}"
+                );
+            } else {
+                triggerDeathScreen(event, "Reloading the page is disabled !");
+                refreshAttempts = 0;
+            }
         }
     });
 </script>
@@ -56,6 +63,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    @keyframes subTextFade {
+        0% {
+            opacity: 0;
+            font-size: 5px;
+        }
+        50% {
+            opacity: 1;
+            font-size: 30px;
+        }
+        100% {
+            opacity: 1;
+            font-size: 50px; /* Taille finale du sous-texte */
+        }
+    }
+
     .death-screen {
         display: none;
         position: fixed;
@@ -93,6 +115,32 @@ document.addEventListener("DOMContentLoaded", () => {
         font-size: 10px;
         text-shadow: 2px 2px 10px black; /* Ajoute un effet dramatique */
     }
+
+    /* Sous-texte (phrase plus petite, centré et grandissant) */
+    .death-subtext {
+        font-size: 5px; /* Taille initiale plus petite */
+        margin-top: 10px; /* Espacement entre YOU DIED et le sous-texte */
+        opacity: 0;
+        text-transform: none; /* Garde la casse normale */
+        font-weight: normal;
+        font-style: italic;
+        animation: subTextFade 2s ease-out forwards;
+    }
+
+    .death-text-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .death-text-wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center; /* Assure l'alignement du texte */
+    }
 </style>
 {% endblock %}
 
@@ -101,6 +149,60 @@ document.addEventListener("DOMContentLoaded", () => {
     let typed = "";
     let targetPhrase = "YOU DIED";
     let audio = new Audio("{{ url_for('static', filename='sounds/site/you_died.mp3') }}");
+    let deathTriggered = false;  // Pour éviter le double déclenchement
+
+    function triggerDeathScreen(event, phrase) {
+        if (deathTriggered) return; // Évite le double déclenchement
+        deathTriggered = true;
+
+        // Crée l'élément seulement s'il n'existe pas déjà
+        // Crée l'élément seulement s'il n'existe pas déjà
+        if (!document.querySelector(".death-screen")) {
+            let deathScreen = document.createElement("div");
+            deathScreen.classList.add("death-screen");
+
+            // Conteneur pour centrer les textes
+            let textContainer = document.createElement("div");
+            textContainer.classList.add("death-text-container");
+
+            // Sous-conteneur pour assurer l'alignement des deux textes
+            let textWrapper = document.createElement("div");
+            textWrapper.classList.add("death-text-wrapper");
+
+            // Ajoute le texte principal
+            let mainText = document.createElement("p");
+            mainText.textContent = "YOU DIED";
+            mainText.classList.add("death-text");
+
+            textWrapper.appendChild(mainText);
+
+            // Ajoute le sous-texte SEULEMENT s'il y en a un
+            if (phrase) {
+                let subText = document.createElement("p");
+                subText.textContent = phrase;
+                subText.classList.add("death-subtext");
+                textWrapper.appendChild(subText);
+            }
+
+            // Assemble les éléments
+            textContainer.appendChild(textWrapper);
+            deathScreen.appendChild(textContainer);
+            document.body.appendChild(deathScreen);
+        }
+
+
+        let deathScreen = document.querySelector(".death-screen");
+        document.body.style.backgroundColor = "black";
+        deathScreen.classList.add("show-death");
+
+        audio.play(); // Joue le son
+
+        setTimeout(() => {
+            document.body.style.backgroundColor = "";
+            deathScreen.remove();
+            deathTriggered = false;  // Réinitialise pour autoriser un nouveau déclenchement
+        }, 9000);
+    }
 
     document.addEventListener("keydown", function(event) {
         typed += event.key.toUpperCase();
@@ -109,25 +211,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (typed === targetPhrase) {
-            // Crée l'élément seulement s'il n'existe pas déjà
-            if (!document.querySelector(".death-screen")) {
-                let deathScreen = document.createElement("div");
-                deathScreen.classList.add("death-screen");
-                deathScreen.textContent = "YOU DIED";
-                document.body.appendChild(deathScreen);
-            }
-
-            let deathScreen = document.querySelector(".death-screen");
-            document.body.style.backgroundColor = "black";
-            deathScreen.classList.add("show-death");
-
-            audio.play(); // 🔥 Joue le son
-            setTimeout(() => {
-                deathScreen.remove();  // ❌ Supprime le div après la fin de l'effet
-                document.body.style.backgroundColor = ""; // Rétablit le fond normal
-                window.location.reload();
-            }, 9000);
+            triggerDeathScreen(event,"");
         }
     });
+
 </script>
 {% endblock %}
