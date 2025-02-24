@@ -397,6 +397,7 @@ $(document).ready(function() {
         });
     });
 
+    // Restore scroll position
     window.onload = function() {
         var scrollPosition = localStorage.getItem('scrollPosition');
         if (scrollPosition) {
@@ -405,6 +406,7 @@ $(document).ready(function() {
         }
     };
 
+    // Update top bar
     socket.on( 'content', function( msg ) {
         for(let id of Object.keys(msg))
         {
@@ -610,17 +612,6 @@ function path_init()
         var level0 = document.getElementById(item.id + "_level0")
         var symbol_source;
         console.log(level0.getAttribute("source"))
-        //if(level0.getAttribute("source") == "1") 
-        //{
-        //    symbol_source = symbols;
-        //    is_symbol = true;
-        //}
-        //else
-        //{
-        //    symbol_source = footprints;
-        //    is_symbol = false
-        //}
-        //console.log(is_symbol)
         var path_variable = level0.getAttribute("source")
         symbol_source = window[path_variable]
         console.log(symbol_source)
@@ -791,11 +782,6 @@ function path_add_level(id, path_variable, current_level)
         for (i = 0; i <= current_level; i++)
         {
             document.getElementById(id + "_level" + (i).toString()).value = selected[i];
-            // console.log(id + "_level" + (i).toString())
-            // console.log(col_width)
-            // document.getElementById(id + "_level" + (i).toString()).removeAttribute("class");
-            // document.getElementById(id + "_level" + (i).toString()).classList.add("form-control");
-            // document.getElementById(id + "_level" + (i).toString()).classList.add("col-md-" + (col_width).toString());
         }
 
         //Updated the path variable that will be transmited
@@ -806,17 +792,6 @@ function path_add_level(id, path_variable, current_level)
         }
 
         document.getElementById(id).value = current_path;
-
-        // if (is_symbol)
-        // {
-        //     console.log("Is symbol")
-        //     document.getElementById(id).value = "Symbols" + current_path;
-        // }
-        // else
-        // {
-        //     console.log("Is footprint")
-        //     document.getElementById(id).value = "Footprints" + current_path;
-        // }
     }
 }
 

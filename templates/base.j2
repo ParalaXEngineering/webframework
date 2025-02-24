@@ -148,7 +148,7 @@
                                             {% elif item["type"] == "modal" %}
                                                 <button type="button" class="btn btn-{{item["color"]}} mx-1" data-bs-toggle="modal" data-bs-target="#modal_{{item["id"]}}" id="{{item["id"]}}">
                                                     <h2><i class="mdi mdi-{{item["icon"]}} text-light mx-1">{{item["text"]}}</i></h2>
-                                                </button>
+                                                </button>                                                
                                             {% elif item["type"] == "thread" %}
                                                 <button class="btn btn-{{item["color"]}} mx-1" id="thread_status">
                                                     <div class="row">
@@ -157,6 +157,7 @@
                                                     </div>
                                                 </button>                            
                                             {% endif %}
+
                                         {% endfor %}
                                 </ul>
 
@@ -172,6 +173,48 @@
                                             <button type="button" class="btn btn-{{item["color"]}} mx-1" data-bs-toggle="modal" data-bs-target="#modal_{{item["id"]}}" id="{{item["id"]}}">
                                                 <h2><i class="mdi mdi-{{item["icon"]}} text-light mx-1"></i></h2>{{item["text"]}}
                                             </button>
+                                        {% elif item["type"] == "field" %}
+                                            <div class="input-group mx-1">
+                                                <!-- Text input field -->
+                                                <input type="text" class="form-control" id="{{ item["id"] }}_input" placeholder="Enter value">
+                                                <!-- Button as a link, including an icon -->
+                                                <a href="{{ item["link"]|replace('$$$', '') }}" role="button" class="btn btn-{{ item["color"] }}" id="{{ item["id"] }}_button">
+                                                    <h2>
+                                                        <i class="mdi mdi-{{ item["icon"] }} text-light mx-1"></i>
+                                                    </h2>
+                                                    {{ item["text"] }}
+                                                </a>
+                                            </div>
+                                            <script>
+                                                // Define the function to update the link by replacing $$$ with the input value.
+                                                function getUpdatedLink() {
+                                                    var inputValue = document.getElementById("{{ item["id"] }}_input").value;
+                                                    if (inputValue.trim() !== "") {
+                                                        return "{{ item["link"] }}".replace("$$$", inputValue);
+                                                    }
+                                                    return null;
+                                                }
+
+                                                // Attach the click event listener to update the href before navigation.
+                                                document.getElementById("{{ item["id"] }}_button").addEventListener("click", function(e) {
+                                                    var newLink = getUpdatedLink();
+                                                    if (newLink) {
+                                                        this.href = newLink;
+                                                    }
+                                                });
+
+                                                // Listen for the Enter key on the input field.
+                                                document.getElementById("{{ item["id"] }}_input").addEventListener("keydown", function(e) {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();  // Prevent the form's default submission.
+                                                        var newLink = getUpdatedLink();
+                                                        if (newLink) {
+                                                            window.location.href = newLink;
+                                                        }
+                                                    }
+                                                });
+                                            </script>
+
                                         {% elif item["type"] == "thread" %}
                                             <button class="btn btn-{{item["color"]}} mx-1" id="thread_status">
                                                 <div class="row">

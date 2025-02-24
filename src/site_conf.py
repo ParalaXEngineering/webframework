@@ -159,6 +159,38 @@ class Site_conf:
                 if parameter:
                     self.m_sidebar[i]["submenu"][-1]["param"] = parameter
 
+    def add_topbar_textfield(self, id: str, icon: str, text: str, area: str, link: str = None, color: str = "primary"
+    ):
+        """Add a new button to the topbar
+
+        :param id: The id (of the div) of the button
+        :type id: str
+        :param icon: The icon, from the mdi library
+        :type icon: str
+        :param text: The text of the button
+        :type text: str
+        :param area: The area of the topbar where the button lives (left, center or right)
+        :type area: str
+        :param link: Optional link where the button will point, defaults to None
+        :type link: str, optional
+        """
+        self.m_topbar["display"] = True
+        if area in self.m_topbar:
+            for i in range(0, len(self.m_topbar[area])):
+                if self.m_topbar[area][i]["id"] == id:
+                    return
+
+            self.m_topbar[area].append(
+                {
+                    "type": "field",
+                    "icon": icon,
+                    "text": text,
+                    "id": id,
+                    "color": color,
+                    "link": link,
+                }
+            )
+
     def add_topbar_button(
         self, id: str, icon: str, text: str, area: str, link: str = None
     ):
