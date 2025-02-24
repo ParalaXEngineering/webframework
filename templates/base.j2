@@ -30,7 +30,7 @@
     {% for item in topbarItems["left"] + topbarItems["center"] + topbarItems["right"] %}
         {% if item["type"] == "modal" %}
             <div class="modal fade" id="modal_{{item["id"]}}" tabindex="-1" aria-labelledby="{{item["modal_title"]}}" aria-hidden="true" style="display: none;">
-                <div class="modal-dialog modal-dialog-scrollable modal-full" role="document">
+                <div class="modal-dialog modal-dialog-scrollable" style="max-height: 80vh;" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="{{item["modal_title"]}}">{{item["modal_title"]}}</h5>
@@ -373,6 +373,47 @@
         <script src="{{ url_for('common.assets', asset_type="js", filename= script) }}"></script>
     {% endfor %}
     {% block js %}{% endblock %}
+
+<script>
+function showCustomAlert(message, imageUrl) {
+    // Supprime le modal existant s'il existe
+    const existingModal = document.getElementById("customAlertModal");
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // Création du code HTML du modal Bootstrap
+    const modalHTML = `
+        <div class="modal fade" id="customAlertModal" tabindex="-1" aria-labelledby="customAlertModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-height: 80vh;">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="customAlertModalLabel">Alert</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                ${imageUrl ? `<img src="${imageUrl}" alt="Alert Image" class="img-fluid mb-3" style="max-width: 50%;">` : ""}
+                <p>${message}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+            </div>
+        </div>
+        </div>
+    `;
+
+    // Ajout du modal dans le body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Initialisation et affichage du modal via Bootstrap
+    const alertModal = new bootstrap.Modal(document.getElementById("customAlertModal"), {
+        backdrop: 'static',
+        keyboard: false
+    });
+    alertModal.show();
+}
+</script>
 
 <script>
     // Tableau pour stocker les touches du Konami Code
