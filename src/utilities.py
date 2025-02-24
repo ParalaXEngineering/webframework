@@ -15,6 +15,21 @@ from submodules.framework.src import displayer
 CONFIG_GLOBAL = {}
 LAST_ACCESS_CONFIG = None
 
+def util_drill_dict(input: dict) -> str:
+    """
+    Drills into a dictionary in order to get the ultimate string value. If a dictionary has multiple keys, only the value of the first key is drilled into.
+
+    :param input: The dictionary to drill into
+    :type input: dict
+    :return: The ultimate string value found
+    :rtype: str
+    """
+    current = input
+    while isinstance(current, dict):
+        key = next(iter(current))
+        current = current[key]
+    return current
+
 def util_list_to_html(input_list):
     """
     Transforms a Python list into an HTML unordered list.
