@@ -173,23 +173,27 @@
                                                 <h2><i class="mdi mdi-{{item["icon"]}} text-light mx-1"></i></h2>{{item["text"]}}
                                             </button>
                                         {% elif item["type"] == "field" %}
+                                            {% set parts = item.link.split('?') %}
+                                            {% set key, value = parts[1].split('=') %}
                                             <div class="input-group mx-1">
                                                 <!-- Text input field -->
                                                 <input type="text" class="form-control" id="{{ item["id"] }}_input" placeholder="Enter value">
                                                 <!-- Button as a link, including an icon -->
-                                                <a href="{{ item["link"]|replace('$$$', '') }}" role="button" class="btn btn-{{ item["color"] }}" id="{{ item["id"] }}_button">
+                                                
+                                                <a href="{{ url_for(parts[0], **{ key: value }) }}"
+                                                role="button" class="btn btn-{{ item.color }}" id="{{ item.id }}_button">
                                                     <h2>
-                                                        <i class="mdi mdi-{{ item["icon"] }} text-light mx-1"></i>
+                                                        <i class="mdi mdi-{{ item.icon }} text-light mx-1"></i>
                                                     </h2>
-                                                    {{ item["text"] }}
+                                                    {{ item.text }}
                                                 </a>
                                             </div>
                                             <script>
                                                 // Define the function to update the link by replacing $$$ with the input value.
                                                 function getUpdatedLink() {
-                                                    var inputValue = document.getElementById("{{ item["id"] }}_input").value;
+                                                    var inputValue = document.getElementById("{{ item.id }}_input").value;
                                                     if (inputValue.trim() !== "") {
-                                                        return "{{ item["link"] }}".replace("$$$", inputValue);
+                                                        return "{{ url_for(parts[0], **{ key: value }) }}".replace("$$$", inputValue);
                                                     }
                                                     return null;
                                                 }
