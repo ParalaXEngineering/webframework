@@ -4,7 +4,6 @@
 {% import 'common/inputs.j2' as common_input %}
 {% import 'common/controls.j2' as common_controls %}
 {% import 'displayer/layouts.j2' as disp_layouts %}
-{% include 'easter_egg.j2' %}
 
 <head>
     <meta charset="UTF-8">
@@ -374,260 +373,44 @@
     {% endfor %}
     {% block js %}{% endblock %}
 
-<script>
-function showCustomAlert(message, imageUrl) {
-    // Supprime le modal existant s'il existe
-    const existingModal = document.getElementById("customAlertModal");
-    if (existingModal) {
-        existingModal.remove();
-    }
+    <script>
+    function showCustomAlert(message, imageUrl) {
+        // Supprime le modal existant s'il existe
+        const existingModal = document.getElementById("customAlertModal");
+        if (existingModal) {
+            existingModal.remove();
+        }
 
-    // Création du code HTML du modal Bootstrap
-    const modalHTML = `
-        <div class="modal fade" id="customAlertModal" tabindex="-1" aria-labelledby="customAlertModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-height: 80vh;">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="customAlertModalLabel">Alert</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                ${imageUrl ? `<img src="${imageUrl}" alt="Alert Image" class="img-fluid mb-3" style="max-width: 50%;">` : ""}
-                <p>${message}</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+        // Création du code HTML du modal Bootstrap
+        const modalHTML = `
+            <div class="modal fade" id="customAlertModal" tabindex="-1" aria-labelledby="customAlertModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" style="max-height: 80vh;">
+                <div class="modal-content">
+                <div class="modal-body text-center">
+                    ${imageUrl ? `<img src="${imageUrl}" alt="Alert Image" class="img-fluid mb-3" style="max-width: 50%;">` : ""}
+                    <p>${message}</p>
+                </div>
+                <div class="modal-body text-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+                </div>
             </div>
             </div>
-        </div>
-        </div>
-    `;
+        `;
 
-    // Ajout du modal dans le body
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
+        // Ajout du modal dans le body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-    // Initialisation et affichage du modal via Bootstrap
-    const alertModal = new bootstrap.Modal(document.getElementById("customAlertModal"), {
-        backdrop: 'static',
-        keyboard: false
-    });
-    alertModal.show();
-}
-</script>
-
-<script>
-    // Tableau pour stocker les touches du Konami Code
-    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
-    let konamiIndex = 0;
-
-    // État pour savoir si l'animation est active
-    let animationActive = sessionStorage.getItem('konamiActivated') === 'true';
-
-    if (animationActive) {
-        console.log("Animation déjà activée dans cette session.");
-        activateThemeForCurrentMonth(); // Continue l'animation si déjà activée
+        // Initialisation et affichage du modal via Bootstrap
+        const alertModal = new bootstrap.Modal(document.getElementById("customAlertModal"), {
+            backdrop: 'static',
+            keyboard: false
+        });
+        alertModal.show();
     }
+    </script>
 
-    // Écoute des touches clavier
-    document.addEventListener('keydown', (event) => {
-        if (event.key === konamiCode[konamiIndex]) {
-            konamiIndex++; // Passe à la prochaine touche
-            if (konamiIndex === konamiCode.length) {
-                // Konami Code validé
-                konamiCodeActivated();
-                konamiIndex = 0; // Réinitialise le compteur
-            }
-        } else {
-            konamiIndex = 0; // Réinitialise si la séquence est brisée
-        }
-    });
-
-    function konamiCodeActivated() {
-        console.log("Konami Code activé !");
-        // Marquer le Konami Code comme activé pour cette session
-        sessionStorage.setItem('konamiActivated', 'true');
-        animationActive = true;
-        // Déclencher le thème basé sur le mois
-        activateThemeForCurrentMonth();
-    }
-
-    function activateThemeForCurrentMonth() {
-        const month = new Date().getMonth() + 1; // Les mois commencent à 0 en JavaScript
-        let theme = 'default'; // Thème par défaut
-        let imageFilename = ''; // Nom de l'image
-
-        // Déterminer le thème en fonction du mois
-        if (month === 12 || month === 1) {
-            theme = 'winter';
-            imageFilename = 'winter.jpg';
-        } else if (month === 4 || month === 5) {
-            theme = 'easter';
-            imageFilename = 'easter.jpg';
-        } else if (month === 10 || month === 11) {
-            theme = 'autumn';
-            imageFilename = 'autumn.jpg';
-        } else if (month >= 6 && month <= 8) {
-            theme = 'summer';
-            imageFilename = 'summer.jpg';
-        } else if (month == 2 || month == 3) {
-            theme = 'carnival';
-            imageFilename = 'carnival.jpg';
-        } else if (month == 9) {
-            theme = 'harvest';
-            imageFilename = 'harvest.jpg';
-        }
-
-        // Ajouter l'image saisonnière et les flocons
-        addSeasonalImage(imageFilename);
-        startSnowflakes(theme);
-    }
-
-    function addSeasonalImage(imageFilename) {
-
-        // Ajouter l'image
-        const seasonalImage = document.getElementById('home_image');
-        if (!seasonalImage) {
-            console.warn("Warning : l'élément #home_image n'existe pas.");
-            return;
-        }
-        seasonalImage.src = "{{ url_for('static', filename='images/site/') }}" + imageFilename;
-    }
-
-    function startSnowflakes(theme) {
-        // Fonction pour créer un flocon
-        function createSnowflake(theme) {
-            const snowflake = document.createElement('div');
-            snowflake.classList.add('snowflake');
-
-            // Choisir les emojis selon le thème
-            let emojis = [];
-            switch (theme) {
-                case 'easter': // Pâques
-                    emojis = ['🥚', '🐣', '🐰', '🌸'];
-                    break;
-                case 'autumn': // Automne
-                    emojis = ['🍂', '🍁', '🌰', '🎃'];
-                    break;
-                case 'summer': // Été
-                    emojis = ['☀️', '🏖️', '🍉', '🌴', '🦀', '🌊'];
-                    break;
-                case 'carnival': // Carnaval
-                    emojis = ['🎭', '🎉', '🤹‍♂️', '🎺', '🎡'];
-                    break;
-                case 'harvest': // Fête des moissons
-                    emojis = ['🌽', '🌾', '🍇', '🥖', '🍷'];
-                    break;
-                default: // Hiver par défaut
-                    emojis = ['❄'];
-                    break;
-            }
-
-            // Sélection aléatoire de l'emoji
-            snowflake.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-
-            // Position aléatoire
-            snowflake.style.left = Math.random() * window.innerWidth + 'px';
-
-            // Taille aléatoire
-            const size = Math.random() * 20 + 10; // Entre 10px et 30px
-            snowflake.style.fontSize = size + 'px';
-
-            // Durée d'animation aléatoire
-            const duration = Math.random() * 5 + 3; // Entre 3s et 8s
-            snowflake.style.animationDuration = duration + 's';
-
-            // Opacité aléatoire
-            snowflake.style.opacity = Math.random();
-
-            // Ajouter à la page
-            document.body.appendChild(snowflake);
-
-            // Supprimer après l'animation
-            setTimeout(() => {
-                snowflake.remove();
-            }, duration * 1000);
-        }
-
-        setInterval(() => createSnowflake(theme), 200);
-    }
-</script>
-
-<style>
-    /* Effet Pixel Art - Thème Clair */
-    html[data-bs-theme="light"] body.pixel-art-mode {
-        image-rendering: pixelated;
-        background-color: #fff; /* Fond blanc */
-        color: #000; /* Texte noir */
-        filter: contrast(200%) brightness(90%);
-    }
-
-    body.pixel-art-mode img {
-        image-rendering: pixelated;
-        transform-origin: center;
-    }
-
-    body.pixel-art-mode * {
-        font-family: "Press Start 2P", monospace; /* Police rétro */
-        box-shadow: none;
-        border-radius: 0;
-        text-transform: uppercase; /* Texte en majuscules pour un effet rétro */
-        letter-spacing: 2px; /* Espacement des lettres */
-    }
-
-    /* Boutons et Formulaires - Thème Clair */
-    html[data-bs-theme="light"] body.pixel-art-mode input,
-    html[data-bs-theme="light"] body.pixel-art-mode select,
-    html[data-bs-theme="light"] body.pixel-art-mode textarea {
-        background-color: #ddd; /* Fond gris clair */
-        color: #000; /* Texte noir */
-        border: 2px solid #000; /* Bordures noires */
-    }
-
-    /* Effet Pixel Art - Thème Sombre */
-    html[data-bs-theme="dark"] body.pixel-art-mode {
-        image-rendering: pixelated;
-        background-color: #000; /* Fond noir */
-        color: #0f0; /* Texte vert */
-        filter: contrast(150%) brightness(70%);
-    }
-
-    /* Boutons et Formulaires - Thème Sombre */
-    html[data-bs-theme="dark"] body.pixel-art-mode input,
-    html[data-bs-theme="dark"] body.pixel-art-mode select,
-    html[data-bs-theme="dark"] body.pixel-art-mode textarea {
-        background-color: #333; /* Fond gris foncé */
-        color: #0f0; /* Texte vert */
-        border: 2px solid #0f0; /* Bordures vertes */
-    }
-
-    /* Liens */
-    html[data-bs-theme="light"] body.pixel-art-mode a {
-        color: #0000ff; /* Liens bleus */
-    }
-
-    html[data-bs-theme="dark"] body.pixel-art-mode a {
-        color: #00ffff; /* Liens cyan */
-    }
-
-
-    @keyframes fall {
-        0% {
-            transform: translateY(0) rotate(0deg);
-        }
-        100% {
-            transform: translateY(100vh) rotate(360deg);
-        }
-    }
-
-    .snowflake {
-        position: fixed;
-        top: -50px;
-        z-index: 9999;
-        pointer-events: none;
-        color: white;
-        opacity: 0.8;
-        animation: fall linear infinite;
-</style>
+    {% include 'easter_egg.j2' %}
 
 </body>
 
