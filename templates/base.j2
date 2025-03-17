@@ -29,7 +29,8 @@
     {% for item in topbarItems["left"] + topbarItems["center"] + topbarItems["right"] %}
         {% if item["type"] == "modal" %}
             <div class="modal fade" id="modal_{{item["id"]}}" tabindex="-1" aria-labelledby="{{item["modal_title"]}}" aria-hidden="true" style="display: none;">
-                    <div class="modal-dialog modal-dialog-scrollable modal-xl" style="max-height: 80vh;" role="document">                    <div class="modal-content">
+                <div class="modal-dialog modal-dialog-scrollable modal-xl" style="max-height: 80vh;" role="document">
+                    <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="{{item["modal_title"]}}">{{item["modal_title"]}}</h5>
                             <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
@@ -191,8 +192,9 @@
                                                 // Define the function to update the link by replacing $$$ with the input value.
                                                 function getUpdatedLink() {
                                                     var inputValue = document.getElementById("{{ item.id }}_input").value;
+                                                    var href = document.getElementById("{{ item.id }}_button").href;
                                                     if (inputValue.trim() !== "") {
-                                                        return "{{ url_for(parts[0], **{ key: value }) }}".replace("$$$", inputValue);
+                                                        return href.replace("$$$", inputValue);
                                                     }
                                                     return null;
                                                 }
@@ -276,14 +278,56 @@
                     </div>                 
                 </nav>
             </header>
+            
             {% endif %}
 
-		
             <div id="main-content">
                 <div class="page-title">
+                {% if "breadcrumbs" in content %}
+
+                    <div class="card">
+                        <div class="card-header py-1"></div>
+                        <div class="card-body py-1">
+                            <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                {% for label, crumb in content["breadcrumbs"].items() %}
+                                {% set ns = namespace(params={}) %}
+                                {# Only process parameters if they exist #}
+                                {% if crumb.parameters %}
+                                    {% for p in crumb.parameters %}
+                                    {% set kv = p.split('=') %}
+                                    {% set _ = ns.params.update({kv[0]: kv[1]}) %}
+                                    {% endfor %}
+                                {% endif %}
+                                {# If a style is provided, add the corresponding text color class #}
+                                {% set style_class = "" %}
+                                {% if crumb.style %}
+                                    {% set style_class = " text-" ~ crumb.style %}
+                                {% endif %}
+                                {% if loop.last %}
+                                    <li class="breadcrumb-item active{{ style_class }}" aria-current="page">{{ label }}</li>
+                                {% else %}
+                                    <li class="breadcrumb-item{{ style_class }}">
+                                    {% if crumb.url %}
+                                        <a href="{{ url_for(crumb.url, **ns.params) }}">{{ label }}</a>
+                                    {% else %}
+                                        {{ label }}
+                                    {% endif %}
+                                    </li>
+                                {% endif %}
+                                {% endfor %}
+                            </ol>
+                            </nav>
+                    </div>
+                    </div>
+
+                    {% endif %}
+
+
+                
                     <div class="row">
-                        <div class="col-12 col-md-6 order-md-1 order-last">
-                            <h3>{% block title %}{% endblock %}</h3>
+                        <div class="col-12 order-md-1 order-last">
+                            <h2>{% block title %}{% endblock %}</h2>
                             <p class="text-subtitle text-muted">{% block subtitle %}{% endblock %}</p>
                         </div>
                     </div>

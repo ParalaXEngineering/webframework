@@ -678,11 +678,20 @@ class DisplayerItemInputSelect(DisplayerItem):
         self.m_text = text
         self.m_value = value
         self.m_id = id
-        if isinstance(choices, list):
+        
+        # Ensure choices and tooltips have the same length before zipping
+        if isinstance(choices, list) and isinstance(tooltips, list) and len(choices) == len(tooltips):
+            # Zip the choices and tooltips together and sort them by the choice value
+            combined = sorted(zip(choices, tooltips), key=lambda pair: pair[0])
+            # Unzip back to separate lists
+            choices, tooltips = map(list, zip(*combined))
+        elif isinstance(choices, list):
             choices.sort()
+        
         self.m_data = choices
         self.m_tooltips = tooltips
         return
+
 
 
 class DisplayerItemInputPath(DisplayerItem):
@@ -955,6 +964,8 @@ class Displayer:
         self.m_modals = []
         self.g_next_layout = 0
         self.m_all_layout = {}
+        self.m_breadcrumbs = {}
+        self.m_title = None
 
         self.m_active_module = None
         return
@@ -1043,6 +1054,27 @@ class Displayer:
                                     return sublayouts
 
         return []
+    
+    def set_title(self, title: str):
+        self.m_title = title
+    
+    def add_breadcrumb(
+            self, 
+            name: str,
+            url: str,
+            parameters: list,
+            style: str = None
+    ):
+        """
+        Add a new item in the breadcrumbs menu
+        
+        :param name: The name displayed for the current link in the breadcrumbs
+        :type name: str
+        :param url: The url endpoint (in the format used by url_for in jinja)
+        :type url: str
+        :param parameters: The list of parameters for the get link
+        :type parameters: list"""
+        self.m_breadcrumbs[name] = {"url": url, "parameters": parameters, "style": style}
 
     def add_display_item(
         self,
@@ -1227,6 +1259,9 @@ class Displayer:
         serve_modules = {}
         serve_modules["modals"] = self.m_modals
         serve_modules["all_layout"] = self.m_all_layout
+        if self.m_breadcrumbs:
+            serve_modules["breadcrumbs"] = self.m_breadcrumbs
+        serve_modules["title"] = self.m_title
 
         for module in self.m_modules:  
             if not bypass_auth:
