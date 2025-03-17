@@ -274,11 +274,16 @@ class SETUP_Packager(threaded_action.Threaded_action):
                 self.m_scheduler.emit_status(
                     self.get_name(), "Unpacking archive, this might take a while", 103
                 )
-                shutil.unpack_archive(
-                    path_to_file,
-                    os.path.join("ressources"),
-                    "zip",
-                )
+                try:
+                    shutil.unpack_archive(
+                        path_to_file,
+                        os.path.join("ressources"),
+                        "zip",
+                    )
+                except FileNotFoundError as e:
+                    self.m_logger.warning(f"Skipping missing file: {e}")
+                    pass
+
                 self.m_scheduler.emit_status(
                     self.get_name(), "Unpacking archive, this might take a while", 100
                 )
