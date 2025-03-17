@@ -180,7 +180,6 @@ class Access_manager:
         if session['username'] not in self.m_users_groups:
             self.load_authorizations()
 
-        # print(self.m_modules[module])
         if session['username'] == "GUEST":
             return False
 

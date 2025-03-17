@@ -19,7 +19,6 @@ class SFTPConnection:
                 self.transport.connect(username=self.username, password=self.password)
                 self.sftp = paramiko.SFTPClient.from_transport(self.transport)
             except Exception as e:
-                print(f"Erreur de connexion SFTP: {e}")
                 self.sftp = None
 
     def listdir(self, remote_path):

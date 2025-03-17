@@ -241,6 +241,9 @@ html[data-bs-theme="dark"] {
 {% endblock %}
 
 {% block title %}
+{% if content["title"]%}
+    {{content["title"]}}
+{% endif %}
 {% endblock %}
 
 {% block main_page %}
@@ -299,10 +302,10 @@ html[data-bs-theme="dark"] {
 
     {# Each module is displayed in its block #}
     {% for module in content %}
-        {% if module != "modals" and module != "all_layout"%}
+        {% if module != "modals" and module != "all_layout" and module != "breadcrumbs" and module != "title" %}
             <div class="card">
                 {# Possibility to add a header to the card #}
-                <div class="card-header">
+                <div class="card-header py-1">
                 </div>
 
                 {# Module content #}

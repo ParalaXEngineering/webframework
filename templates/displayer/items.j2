@@ -325,7 +325,12 @@ document.addEventListener('DOMContentLoaded', function() {
         <a href="{{link}}">
         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
         {{text}}
-    </a>
+        </a>
+        {% elif "#" in link%}
+        <a id="{{id}}" href="{{link}}">
+        <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+        {{text}}
+        </a>
         {% else %}
             {% if '/' in link %}
                 {% if parameters %}

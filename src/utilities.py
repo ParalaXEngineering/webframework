@@ -15,6 +15,27 @@ from submodules.framework.src import displayer
 CONFIG_GLOBAL = {}
 LAST_ACCESS_CONFIG = None
 
+def utils_remove_letter(text: str) -> int:
+    """
+    Extracts and returns the first integer (including negative numbers) found in a given text.
+    
+    Parameters:
+        text (str): The input string containing numbers and letters.
+        
+    Returns:
+        int: The extracted integer. If no number is found, returns 0.
+    
+    Example:
+        >>> utils_remove_letter("-55°C")
+        -55
+        >>> utils_remove_letter("Temperature: +42 degrees")
+        42
+        >>> utils_remove_letter("No numbers here")
+        0
+    """
+    match = re.search(r'-?\d+', text)  # Looks for a number, including negatives
+    return int(match.group()) if match else 0
+
 def util_drill_dict(input: dict) -> str:
     """
     Drills into a dictionary in order to get the ultimate string value. If a dictionary has multiple keys, only the value of the first key is drilled into.
@@ -282,7 +303,6 @@ def util_read_parameters() -> dict:
             CONFIG_GLOBAL = config_data
         except Exception as e:
             # If there's an error, fall back to the last known configuration
-            print(f"Error reading config: {e}")
             config_data = CONFIG_GLOBAL
     else:
         # If accessed recently, use the cached config
@@ -572,32 +592,17 @@ def util_find_files(root: str, inclusion: list = None) -> list:
     :rtype: list
 
     """
-    # In case of misuse of the function and that just a string is given...
+    # return current_results
     if isinstance(inclusion, str):
         inclusion = [inclusion]
-
-    current_results = []
-    try:
-        items = os.listdir(root)
-    except FileNotFoundError:
-        return current_results
-
-    for item in items:
-        if os.path.isfile(os.path.join(root, item)):
-            if inclusion:
-                for inclu in inclusion:
-                    if (
-                        inclu in item
-                        and os.path.join(root, item) not in current_results
-                    ):  # Avoid duplicate if one line correspond to several criteria
-                        current_results.append(os.path.join(root, item))
-            else:
-                current_results.append(os.path.join(root, item))
-        else:
-            directory = util_find_files(os.path.join(root, item), inclusion=inclusion)
-            current_results += directory
-
-    return current_results
+    found_files = []
+    for dirpath, _, filenames in os.walk(root):
+        for filename in filenames:
+            # If inclusion criteria is provided, check if any criteria is in the filename.
+            if inclusion and not any(inc in filename for inc in inclusion):
+                continue
+            found_files.append(os.path.join(dirpath, filename))
+    return found_files
 
 
 def util_dir_structure(
@@ -690,101 +695,112 @@ def utils_format_unit(cpnt: dict) -> dict:
     unit_order = ["f", "p", "n", "µ", "m", "default", "K", "M", "G"]
 
     for item in cpnt:
-        unit = item.split("[")[1][:-1]
-        value = cpnt[item]
-        new_unit = "default"
+        try:
+            if "["  in item:        
+                unit = item.split("[")[1][:-1]
+            else:
+                unit = item
+                
+            value = cpnt[item]
+            new_unit = "default"
 
-        if not value:
-            continue
+            if not value:
+                continue
 
-        # We might have stuff in () after the value, for instance (x4 channels)
-        if "(" in value:
-            value = value.split("(")[0]
+            # We might have stuff in () after the value, for instance (x4 channels)
+            if "(" in value:
+                value = value.split("(")[0]
+            # Sometimes there is also @ and we don't want that either
+            if '@' in value:
+                value = value.split('@')[0]
 
-        # Start by recovering the unit
-        if unit == "R":
-            unwanted = ["ohm", "Ohm", "ohms", "Ohms", "Ω", " "]
-            expected_units = {
-                "m": "m",
-                "k": "K",
-                "K": "K",
-                "G": "G",
-                "M": "M",
-                "default": "R",
-            }
+            # Start by recovering the unit
+            if unit == "R":
+                unwanted = ["ohm", "Ohm", "ohms", "Ohms", "Ω", " "]
+                expected_units = {
+                    "m": "m",
+                    "k": "K",
+                    "K": "K",
+                    "G": "G",
+                    "M": "M",
+                    "default": "R",
+                }
 
-        elif unit == "F":
-            unwanted = [" "]
-            expected_units = {
-                "f": "f",
-                "p": "p",
-                "n": "n",
-                "u": "µ",
-                "µ": "µ",
-                "m": "m",
-                "default": "",
-            }
+            elif unit == "F":
+                unwanted = [" "]
+                expected_units = {
+                    "f": "f",
+                    "p": "p",
+                    "n": "n",
+                    "u": "µ",
+                    "µ": "µ",
+                    "m": "m",
+                    "default": "",
+                }
 
-        elif unit == "V/µs":
-            unwanted = [" "]
-            expected_units = {"default": ""}
+            elif unit == "V/µs":
+                unwanted = [" "]
+                expected_units = {"default": ""}
 
-        else:
-            unwanted = [" "]
-            expected_units = {
-                "f": "f",
-                "p": "p",
-                "n": "n",
-                "u": "µ",
-                "µ": "µ",
-                "m": "m",
-                "M": "M",
-                "default": "",
-            }
+            else:
+                unwanted = [" "]
+                expected_units = {
+                    "f": "f",
+                    "p": "p",
+                    "n": "n",
+                    "u": "µ",
+                    "µ": "µ",
+                    "m": "m",
+                    "M": "M",
+                    "default": "",
+                }
 
-        if new_unit == "default":
+            if new_unit == "default":
+                new_unit = expected_units["default"]
+
+            unit_order[5] = expected_units["default"]
+
+            # Remove unwanted bits
+            for current_unwanted in unwanted:
+                if current_unwanted in value:
+                    value = value.replace(current_unwanted, "")
+
+            # Set the unit
             new_unit = expected_units["default"]
+            for eu, new_unit in expected_units.items():
+                if eu in value:
+                    break
 
-        unit_order[5] = expected_units["default"]
+            # We have the number and unit, see if we can change the unit
+            value_float = utils_keep_number(value)
+            if math.isnan(value_float):
+                continue
+            unit_index = unit_order.index(new_unit)
 
-        # Remove unwanted bits
-        for current_unwanted in unwanted:
-            if current_unwanted in value:
-                value = value.replace(current_unwanted, "")
+            negative = False
+            if value_float < 0:
+                negative = True
+                value_float = -value_float
 
-        # Set the unit
-        new_unit = expected_units["default"]
-        for eu, new_unit in expected_units.items():
-            if eu in value:
-                break
+            if value_float < 1:
+                value_float = value_float * 1000
+                new_unit = unit_order[unit_index - 1]
+            elif value_float >= 1000:
+                value_float = value_float / 1000
+                new_unit = unit_order[unit_index + 1]
 
-        # We have the number and unit, see if we can change the unit
-        value_float = utils_keep_number(value)
-        if math.isnan(value_float):
+            if round(value_float) - value_float == 0:
+                value_float = int(value_float)
+
+            value_float = round(value_float, 2)
+
+            if negative:
+                value_float = -value_float
+
+            cpnt[item] = str(value_float) + new_unit
+        except Exception:
+            # Don't change it
             continue
-        unit_index = unit_order.index(new_unit)
-
-        negative = False
-        if value_float < 0:
-            negative = True
-            value_float = -value_float
-
-        if value_float < 1:
-            value_float = value_float * 1000
-            new_unit = unit_order[unit_index - 1]
-        elif value_float >= 1000:
-            value_float = value_float / 1000
-            new_unit = unit_order[unit_index + 1]
-
-        if round(value_float) - value_float == 0:
-            value_float = int(value_float)
-
-        value_float = round(value_float, 2)
-
-        if negative:
-            value_float = -value_float
-
-        cpnt[item] = str(value_float) + new_unit
 
     return cpnt
 

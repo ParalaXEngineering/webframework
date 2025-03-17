@@ -74,16 +74,13 @@ def setup_app(app):
     for base_name, module_names in modules_to_load_first.items():
         # Import all related modules first (e.g., "xxx_abcdef.py")
         for module_name in sorted(module_names):
-            print(f"Importing module: {module_name}")
             importlib.import_module(f"website.pages.{module_name}")
 
         # Finally, import and register the blueprint from the main module (e.g., "xxx.py")
-        print(f"Importing main module: {base_name}")
         main_module = importlib.import_module(f"website.pages.{base_name}")
 
         # Register the blueprint if it exists in the main module
         if hasattr(main_module, 'bp'):
-            print(f"Registering blueprint from main module: {base_name}")
             app.register_blueprint(main_module.bp)
 
     # Register other common blueprints
@@ -188,16 +185,7 @@ def setup_app(app):
         return render_template("error.j2", error=str(e), traceback=str(traceback.format_exc()))
 
     @app.before_request
-    def before_request():
-        # if request.method == 'POST':
-        #     token = request.form.get('csrf_token')
-        #     print(f"Token is {token} and session is {session.get('csrf_token')}")
-        #     view_func = app.view_functions.get(request.endpoint)
-        #     if token and not getattr(view_func, '_disable_csrf', False):
-        #         if not token or token != session.get('csrf_token'):
-        #             # Rediriger l'utilisateur en cas de jeton invalide
-        #             return render_template("norefresh.j2")
-            
+    def before_request():            
         g.start_time = time.time()
 
         scheduler.scheduler_obj.m_user_connected = False
