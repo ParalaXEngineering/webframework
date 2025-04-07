@@ -18,7 +18,8 @@ class SFTPConnection:
                 paramiko.util.logging.getLogger().setLevel(paramiko.util.logging.WARNING)
                 self.transport.connect(username=self.username, password=self.password)
                 self.sftp = paramiko.SFTPClient.from_transport(self.transport)
-            except Exception as e:
+            except Exception:
+                # print(f"Erreur de connexion SFTP: {e}")
                 self.sftp = None
 
     def listdir(self, remote_path):

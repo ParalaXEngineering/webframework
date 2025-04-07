@@ -89,8 +89,8 @@ def ip_config_apply():
                     else:  # Linux
                         cmd_ip = f"sudo dhclient {data_in['network_interface']}"
                     subprocess.run(cmd_ip, shell=True, check=True)
-            except Exception:
-                return render_template("failure.j2", message="You need admin authorization !!! Run OuFNis_DFDIG.exe with admin privileges")
+            except Exception as e:
+                return render_template("failure.j2", message=f"You need admin authorization !!! Run OuFNis_DFDIG.exe with admin privileges, error : {e}")
 
         # Reload authorization
         access_manager.auth_object.load_authorizations()
@@ -133,7 +133,7 @@ def config_edit():
                 module = importlib.import_module("website.modules." + item[0:-3])
                 module_class = getattr(module, item[0:-3])
                 modules.append(module_class.m_default_name)
-            except Exception as e:
+            except Exception:
                 # For big modules, there is multiple files, but they won't have any class. Support that
                 continue
 
