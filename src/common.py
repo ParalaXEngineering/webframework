@@ -50,7 +50,10 @@ def assets(asset_type):
             return "Invalid folder type", 404
 
         file_name = request.args.get("filename")
+        if file_name[0] == ".":
+            file_name = file_name[2:]
         file_path = os.path.join(folder_path, file_name)
+        print(file_path)
 
         if not os.path.exists(file_path):
             return "", 200  # Return a blank page with status 200
@@ -72,9 +75,8 @@ def login():
 
     # Sort users
     users.sort()
-    if "GUEST" in users:
-        users.remove("GUEST")
-    users = ["GUEST"] + users
+    if "GUEST" not in users:
+        users = ["GUEST"] + users
 
     if request.method == "POST":
         data_in = utilities.util_post_to_json(request.form.to_dict())
@@ -128,7 +130,8 @@ def help():
         disp = displayer.Displayer()
         # disp.add_generic("Changelog", display=False)
         User_defined_module.User_defined_module.m_default_name = "Help"
-        disp.add_module(User_defined_module.User_defined_module)
+        disp.add_module(User_defined_module.User_defined_module, display=False)
+        disp.set_title(f"Documentation: {topic.capitalize().replace("_", " ")}")
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
         )

@@ -180,9 +180,6 @@ class Access_manager:
         if session['username'] not in self.m_users_groups:
             self.load_authorizations()
 
-        if session['username'] == "GUEST":
-            return False
-
         for user_group in self.m_users_groups[session['username']]:
             if module not in self.m_modules:
                 # Core modules are always in admin mode
