@@ -10,8 +10,9 @@ class Site_conf:
     """Provides a set of function to configure the website"""
     
     m_globals = {
-            "on_target": False
-        }
+        "on_target": False,
+        "PORT": 5000
+    }
 
     m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
     """App information"""
