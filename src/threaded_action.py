@@ -8,6 +8,7 @@ import traceback
 
 from submodules.framework.src import threaded_manager
 from submodules.framework.src import scheduler
+from submodules.framework.src import access_manager
 
 
 class Threaded_action:
@@ -24,8 +25,11 @@ class Threaded_action:
 
     m_type = "threaded_action"
     """The type of the module"""
+
+    m_error = None
+    """A possible error that can be appended to the module for display option"""
     
-    def __init__(self):
+    def __init__(self):       
         self.m_name = None
 
         """Constructor"""

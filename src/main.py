@@ -185,19 +185,10 @@ def setup_app(app):
         return render_template("error.j2", error=str(e), traceback=str(traceback.format_exc()))
 
     @app.before_request
-    def before_request():
-        # if request.method == 'POST':
-            # token = request.form.get('csrf_token')
-            # print(f"Token is {token} and session is {session.get('csrf_token')}")
-            # view_func = app.view_functions.get(request.endpoint)
-            # if not getattr(view_func, '_disable_csrf', False):
-            #     if not token or token != session.get('csrf_token'):
-            #         # Rediriger l'utilisateur en cas de jeton invalide
-            #         return render_template("norefresh.j2")
-            
+    def before_request():            
         g.start_time = time.time()
 
-        scheduler.scheduler_obj.m_user_connected = False
+        # scheduler.scheduler_obj.m_user_connected = False
         if request.endpoint == "static":
             return
 
@@ -205,14 +196,6 @@ def setup_app(app):
         session["config"] = utilities.util_read_parameters()
 
         inject_bar()
-
-    # @app.after_request
-    # def log_request_time(response):
-        # if hasattr(g, 'start_time'):
-        #     elapsed_time = time.time() - g.start_time
-        #     if elapsed_time > 0.5:
-        #         print(f"Rendered in {elapsed_time:.4f} seconds")
-        # return response
 
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         webbrowser.open("http://127.0.0.1:5000/common/login")

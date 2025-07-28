@@ -235,29 +235,114 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const PIXEL_MODE_KEY = "pixelArtMode";
+    const BROL_MODE_KEY = "brolMode";
+    const secretWord = "pixel";
+    let typedKeys = [];
 
-    // Vérifier si le mode Pixel Art est actif dans localStorage
+    const tagsToScramble = ['h1', 'h3', 'h4', 'h5', 'h6', 'input'];
+
+    function shuffleCambridgeWord(word) {
+        if (word.length <= 3) return word;
+        const first = word[0];
+        const last = word[word.length - 1];
+        let middle = word.slice(1, -1).split('');
+        for (let i = middle.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [middle[i], middle[j]] = [middle[j], middle[i]];
+        }
+        return first + middle.join('') + last;
+    }
+
+    function shuffleCambridgeString(str) {
+        return str.replace(/\w+/g, shuffleCambridgeWord);
+    }
+
+    function shuffleString(str) {
+        return shuffleCambridgeString(str);
+    }
+
+    function scrambleSelectedTags(scramble) {
+        tagsToScramble.forEach(tag => {
+            document.querySelectorAll(tag).forEach(el => {
+                if (scramble) {
+                    if (!el.dataset.originalText) el.dataset.originalText = el.textContent;
+                    el.textContent = shuffleString(el.dataset.originalText);
+                } else if (el.dataset.originalText) {
+                    el.textContent = el.dataset.originalText;
+                }
+            });
+        });
+    }
+
+    function scrambleLooseTextNodes(parent, scramble) {
+        for (let node of parent.childNodes) {
+            if (node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0) {
+                if (!tagsToScramble.includes(node.parentNode.tagName?.toLowerCase())) {
+                    if (scramble) {
+                        if (!node.parentNode.dataset['originalText']) node.parentNode.dataset['originalText'] = node.textContent;
+                        node.textContent = shuffleString(node.parentNode.dataset['originalText']);
+                    } else if (node.parentNode.dataset['originalText']) {
+                        node.textContent = node.parentNode.dataset['originalText'];
+                    }
+                }
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+                scrambleLooseTextNodes(node, scramble);
+            }
+        }
+    }
+
+    function scrambleAllTexts(scramble) {
+        scrambleSelectedTags(scramble);
+        scrambleLooseTextNodes(document.body, scramble);
+    }
+
+    // Restaure les modes à l'initialisation
     if (localStorage.getItem(PIXEL_MODE_KEY) === "true") {
         document.body.classList.add("pixel-art-mode");
     }
-
-    // Détecter le mot "pixel"
-    const secretWord = "pixel";
-    let typedKeys = [];
+    if (localStorage.getItem(BROL_MODE_KEY) === "true") {
+        document.body.classList.add("brol-mode");
+        scrambleAllTexts(true);
+    }
 
     document.addEventListener("keydown", (event) => {
         typedKeys.push(event.key.toLowerCase());
         typedKeys = typedKeys.slice(-secretWord.length);
 
-        if (typedKeys.join("") === secretWord) {
-            const isActive = document.body.classList.toggle("pixel-art-mode");
+        let pixelWord = (typedKeys.join("") === secretWord);
+        let brolCombo = (event.ctrlKey && event.altKey && event.key.toLowerCase() === "b");
 
-            // Enregistrer l'état dans localStorage
-            localStorage.setItem(PIXEL_MODE_KEY, isActive.toString());
+        // 1. Mode pixel-art
+        if (pixelWord) {
+            // Désactive brol mode si actif
+            document.body.classList.remove("brol-mode");
+            localStorage.setItem(BROL_MODE_KEY, "false");
+            scrambleAllTexts(false);
+
+            const isPixelActive = document.body.classList.toggle("pixel-art-mode");
+            localStorage.setItem(PIXEL_MODE_KEY, isPixelActive.toString());
+        }
+
+        // 2. Mode brol (shuffle)
+        if (brolCombo) {
+            // Désactive pixel-art mode si actif
+            document.body.classList.remove("pixel-art-mode");
+            localStorage.setItem(PIXEL_MODE_KEY, "false");
+
+            // Toggle brol mode (shuffle)
+            const isBrolActive = document.body.classList.toggle("brol-mode");
+            localStorage.setItem(BROL_MODE_KEY, isBrolActive.toString());
+            scrambleAllTexts(isBrolActive);
+
+            if (isBrolActive) {
+                showCustomAlert(
+                    '✨ Mode "Brol codé sur un coin de table" activé !',
+                    "{{ url_for('static', filename='images/site/noob.jpg') }}"
+                );
+            }
         }
     });
 });
-
 </script>
 
 {% block extra_css %}

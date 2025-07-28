@@ -176,7 +176,8 @@ def config_edit():
 
     # And now, display!
     disp = displayer.Displayer()
-    disp.add_generic("Configuration")
+    disp.add_generic("Configuration", display=False)
+    disp.set_title(f"Settings")
     config = session["config"]
 
     for group in config:
@@ -495,6 +496,7 @@ def logs():
     """Log pages"""
     disp = displayer.Displayer()
     disp.add_generic("Log", display=False)
+    disp.set_title(f"Logs display")
 
     log_files = ["website.log", "root.log"]
     for log_file in log_files:

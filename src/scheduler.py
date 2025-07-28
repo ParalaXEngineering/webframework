@@ -209,9 +209,12 @@ class Scheduler:
         :type id: str
         :param content: The new text
         :type content: str
+
+        :notes: modal might be big, and having a lot of them can use a vast amount of memory if the user don't consume them. So only the last 5 ones are kept.
         """
 
         self.m_modals.append([id, content])
+        self.m_modals = self.m_modals[-5:] 
 
     def start(self):
         """Start the scheduler"""

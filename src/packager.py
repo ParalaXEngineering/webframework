@@ -54,9 +54,9 @@ class SETUP_Packager(threaded_action.Threaded_action):
             try:
                 with open(os.path.join("ressources", "version.txt"), 'r') as file:
                     package_version = file.read()
-                if site_conf_obj.m_app["version"] != package_version:
+                if site_conf_obj.m_app["version"].split("_")[0] != package_version:
                     with open(os.path.join("ressources", "version.txt"), 'w') as file:
-                        file.write(site_conf_obj.m_app["version"])
+                        file.write(site_conf_obj.m_app["version"].split("_")[0])
 
                 # Create a temporary directory to hold the archive content
                 with tempfile.TemporaryDirectory() as temp_dir:
@@ -73,12 +73,22 @@ class SETUP_Packager(threaded_action.Threaded_action):
                             source_path = os.path.join(root, file)
                             dest_path = os.path.join(dest_dir, file)
 
+                            abs_root = os.path.abspath(root)
+                            abs_tools_root = os.path.abspath("ressources/binaries/tools")
+
                             # Vérifier si le dossier actuel est un dossier spécifique
-                            if any(os.path.commonpath([root, include_dir]) == include_dir for include_dir in include_tar_gz_dirs):
+                            # if any(os.path.commonpath([root, include_dir]) == include_dir for include_dir in include_tar_gz_dirs):
+                            if any(os.path.abspath(root).startswith(os.path.abspath(include_dir)) for include_dir in include_tar_gz_dirs):
                                 # Copier tous les fichiers des dossiers spécifiques
                                 shutil.copy(source_path, dest_path)
                             elif not file.endswith(".tar.gz"):
                                 # Copier uniquement les fichiers non .tar.gz pour les autres dossiers
+                                shutil.copy(source_path, dest_path)
+                            elif (
+                                file.endswith(".tar.gz")
+                                and not abs_root == abs_tools_root  # <- exclut ceux à la racine de tools
+                                and abs_root.startswith(abs_tools_root)  # <- mais garde ceux dans ses sous-dossiers
+                            ):
                                 shutil.copy(source_path, dest_path)
 
                     # Créer l'archive à partir du répertoire temporaire
@@ -250,12 +260,15 @@ class SETUP_Packager(threaded_action.Threaded_action):
             ressources_path = os.path.join("ressources")
 
             # Dossiers spécifiques où les .tar.gz ne doivent pas être supprimés
-            exclude_tar_gz_dirs = site_conf_obj.m_include_tar_gz_dirs
+            exclude_dirs_abs = [os.path.abspath(p) for p in site_conf_obj.m_include_tar_gz_dirs]
+            # exclude_tar_gz_dirs = site_conf_obj.m_include_tar_gz_dirs
 
             if os.path.exists(ressources_path):
                 for root, dirs, files in os.walk(ressources_path):
-                    # Vérifier si le répertoire actuel doit être exclu
-                    if any(os.path.commonpath([root, exclude_dir]) == exclude_dir for exclude_dir in exclude_tar_gz_dirs):
+                    root_abs = os.path.abspath(root)
+                    # Vérifie si root est dans un des dossiers exclus
+                    if any(root_abs.startswith(exclude_dir) for exclude_dir in exclude_dirs_abs):
+                        self.m_logger.info(f"Skipping excluded dir for .tar.gz deletion: {root_abs}")
                         continue
 
                     for file in files:
@@ -263,7 +276,9 @@ class SETUP_Packager(threaded_action.Threaded_action):
                             file_path = os.path.join(root, file)
                             try:
                                 os.remove(file_path)
+                                self.m_logger.info(f"Deleted .tar.gz: {file_path}")
                             except Exception as e:
+                                self.m_logger.warning(f"Failed to delete {file_path}: {str(e)}")
                                 self.m_scheduler.emit_status(self.get_name(), f"Failed to delete {file_path}: {str(e)}", 50)
             else:
                 os.mkdir(ressources_path)
@@ -360,7 +375,8 @@ def packager():
             packager.start()
 
     disp = displayer.Displayer()
-    disp.add_module(SETUP_Packager)
+    disp.add_module(SETUP_Packager, display=False)
+    disp.set_title(f"Binaries Package Manager")
 
     # Packager
     if access_manager.auth_object.authorize_group("admin") and not ((getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"))):

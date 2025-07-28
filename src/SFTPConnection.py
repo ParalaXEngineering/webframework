@@ -1,5 +1,5 @@
 import paramiko
-
+import socket
 
 class SFTPConnection:
     def __init__(self, host, username, password, port=22):
@@ -14,9 +14,17 @@ class SFTPConnection:
         """Établit une connexion SFTP si elle n'est pas déjà active."""
         if self.sftp is None:
             try:
-                self.transport = paramiko.Transport((self.host, self.port))
+                # Étape 1 : Créer un socket avec un timeout
+                sock = socket.create_connection((self.host, self.port), timeout=0.5)  # timeout en secondes
+
+                # Étape 2 : Créer le transport avec le socket
+                self.transport = paramiko.Transport(sock)
                 paramiko.util.logging.getLogger().setLevel(paramiko.util.logging.WARNING)
+
+                # Étape 3 : Connexion
                 self.transport.connect(username=self.username, password=self.password)
+
+                # Étape 4 : Créer le client SFTP
                 self.sftp = paramiko.SFTPClient.from_transport(self.transport)
             except Exception:
                 # print(f"Erreur de connexion SFTP: {e}")

@@ -347,20 +347,29 @@ $(document).ready(function() {
     function test_connect(){socket.emit("user_connected") }
 
     // Append overlay to body
-    $('body').append('<div id="overlay" style="display: none;"><img src=""></div>');
+    $('body').append(`
+        <div id="overlay" style="
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            ">
+            <img src="" style="max-width: 90%; max-height: 90%; box-shadow: 0 0 15px #000;">
+        </div>
+    `);
 
-    // When any image with class 'zoomable' is clicked
     $('.zoomable').click(function() {
         var imageSrc = $(this).attr('src');
         $('#overlay img').attr('src', imageSrc);
-        $('#overlay').fadeIn();
+        $('#overlay').css('display', 'flex').hide().fadeIn(200);
     });
 
-    // When overlay is clicked
     $('#overlay').click(function() {
-        $('#overlay').fadeOut();
+        $('#overlay').fadeOut(200);
     });
-
     // Tooltips in selects
     $('select').each(function() {
         var select = $(this);
@@ -444,7 +453,6 @@ $(document).ready(function() {
             div.innerHTML = content
         }
     })
-
     socket.on( 'reload', function( msg ) {
         let div = document.getElementById(msg["id"])
         if(div)
@@ -866,17 +874,17 @@ function path_extend(base_name, base_item, group_to_extend)
     }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    path_init();
+function settings_update_icon(elementId) {
+    var input = document.getElementById(elementId);
+    var div   = document.getElementById(elementId + '.div');
+    if (!input || !div) return;
 
-    // Reaply focus
-    function reapplyAutofocus() {
-        // Get all elements with the autofocus attribute
-        var autofocusElements = document.querySelectorAll('[autofocus]');
-        if (autofocusElements.length > 0) {
-            // Set focus to the first autofocus element found
-            autofocusElements[0].focus();
-        }
+    var iconName = input.value.trim() || 'help'; 
+    // grab the first <i> inside the div
+    var iconEl   = div.getElementsByTagName('i')[0];
+
+    if (iconEl) {
+      // reset its classes to "mdi mdi-{your-input-value}"
+      iconEl.className = 'mdi mdi-' + iconName;
     }
-    setTimeout(reapplyAutofocus, 200);
-  });
+  }
