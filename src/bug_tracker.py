@@ -7,7 +7,7 @@ from submodules.framework.src import site_conf
 from submodules.framework.src import User_defined_module
 
 from redminelib import Redmine
-
+print("coucou")
 bp = Blueprint("bug", __name__, url_prefix="/bug")
 
 
