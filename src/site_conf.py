@@ -6,9 +6,12 @@ import os
 site_conf_obj = None
 site_conf_app_path = None
 
-
 class Site_conf:
     """Provides a set of function to configure the website"""
+    
+    m_globals = {
+            "on_target": False
+        }
 
     m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
     """App information"""
@@ -29,6 +32,7 @@ class Site_conf:
     m_scheduler_lt_functions = []
     """Functions that can be registered in the long term scheduler. Should be an array of arrays which are [func, period]"""
 
+    
     def register_scheduler_lt_functions(self):
         """
         Register all the functions that are set in the m_scheduler_lt_functions, which must be populated by the child class

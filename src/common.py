@@ -53,7 +53,6 @@ def assets(asset_type):
         if file_name[0] == ".":
             file_name = file_name[2:]
         file_path = os.path.join(folder_path, file_name)
-        print(file_path)
 
         if not os.path.exists(file_path):
             return "", 200  # Return a blank page with status 200
