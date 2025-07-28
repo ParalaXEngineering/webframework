@@ -253,14 +253,14 @@ class SETUP_Updater(threaded_action.Threaded_action):
                 )
                 return
             directories = [os.path.join("updater", self.m_distribution, "dist")]
-
+            version = site_conf_obj.m_app["version"].split("_")[0]
             if (self.m_distribution == "Windows"):
                 with zipfile.ZipFile(
                     os.path.join(
                         "updates",
                         site_conf_obj.m_app["name"]
                         + "_"
-                        + site_conf_obj.m_app["version"]
+                        + version
                         + "_"
                         + platform.system()
                         + ".zip",
@@ -398,7 +398,8 @@ def update():
                 pass
 
     disp = displayer.Displayer()
-    disp.add_module(SETUP_Updater)
+    disp.add_module(SETUP_Updater, display=False)
+    disp.set_title(f"Website engine update creation")
     config = utilities.util_read_parameters()
 
     if access_manager.auth_object.authorize_group("admin") and not ((getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"))):
