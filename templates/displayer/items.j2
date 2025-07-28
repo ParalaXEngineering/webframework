@@ -24,7 +24,7 @@
     {% elif item["type"] == "ICONLINK" %}
         {{iconlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
     {% elif item["type"] == "FILE" %}
-        {{file(item["id"], item["value"], item["text"], item["endpoint"], item["path"])}}
+        {{file(item["id"], item["value"], item["text"], item["endpoint"], item["path"], item["date"])}}
     {% elif item["type"] == "IMAGE" %}
         {{image(item["id"], item["value"], item["data"], item["endpoint"], item["path"])}}
     {% elif item["type"] == "INBOX" %}
@@ -177,50 +177,30 @@ document.addEventListener('DOMContentLoaded', function() {
     {% if text %}
         {{ text }}
     {% endif %}
-    
+
     <div id="{{ id }}"></div>
     <script type="text/javascript">
-    {% set first_serie = namespace(value=0) %}
     var {{ id }}_Options = {
         chart: {
             type: "{{ 'bar' if data_type == 'bar' else 'line' }}",
             height: 350
         },
         series: [
-                {% if data_type == "bar" %}
-                    {
-                    name: 'Data',
+            {% for serie in graphy %}
+                {% if not loop.first %},{% endif %}
+                {
+                    name: "{{ serie }}",
                     data: [
-                        {% for key, value in graphy.items() %}
-                            {
-                                x: "{{ key }}",
-                                y: {{ value }}
-                            }{% if not loop.last %},{% endif %}
+                        {% for i in range(graphx | length) %}
+                            [{{ graphx[i]|int }}, {{ graphy[serie][i] }}]{% if not loop.last %},{% endif %}
                         {% endfor %}
                     ]
                 }
-                {% else %}
-                {% for serie in  graphy %}
-                        {% if first_serie.value != 0 %}
-                            ,
-                        {% endif %}
-                        {% set first_serie.value = first_serie.value + 1 %}
-                    {
-                        name: "{{ serie }}",
-                        data: [
-                            {% for i in range(0, graphx | length - 1)%}
-                                ["{{graphx[i]}}", {{graphy[serie][i]}} ],
-                            {% endfor %}
-                                ["{{graphx[-1]}}", {{graphy[serie][-1]}} ]
-                        ]
-                    }                
-                {% endfor %}
-                {% endif %}
+            {% endfor %}
         ],
         {% if data_type == "date" %}
         xaxis: {
             type: 'datetime',
-            format: 'yyyy-MM-dd',
             labels: {
                 datetimeUTC: false
             }
@@ -246,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
             x: {
                 format: 'dd/MM hh:mm:ss'
             }
-        },  
+        }
     };
     var {{ id }} = new ApexCharts(document.querySelector("#{{ id }}"), {{ id }}_Options);
     {{ id }}.render();
@@ -289,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 {% endmacro %}
 
-{% macro file(id, src, text, endpoint, path) %}
+{% macro file(id, src, text, endpoint, path, date) %}
     {% if ".docx" in src | lower or ".doc" in src | lower %}
     <i class="mdi mdi-file-word text-primary"></i>
     {% elif ".xlsx" in src | lower or ".xls" in src | lower %}
@@ -312,6 +292,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <a href="{{ url_for('common.assets', asset_type=endpoint, filename=path + '/' + src) }}"> {{ text }}</a>
     {% else %}
     <a href="{{src}}">{{ text }}
+    {% endif %}
+
+    {% if date %}
+    ({{date}})
     {% endif %}
 {% endmacro %}
 
@@ -801,15 +785,10 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endmacro %}
 
 {% macro inttexticon(id, value) %}
-    {% for cat in value %}
-        <div class="form-group row">
-            <div class="col-sm-3">{{cat}}:</div>
-            <div class="col-sm-4">{{ common_input.inputstring(id + "." + cat + ".alias" , value[cat]["alias"])}}</div>
-            <div class="col-sm-4">{{ common_input.input_js(id + "." + cat + ".icon" , "settings_update_icon('" + id + "." + cat + ".icon')", value[cat]["icon"])}}</div>
-            <div class="col-sm-1" id="{{id + ".icondiv"}}"><i class="mdi {{value[cat]["icon"]}}" ></i></div>
-        </div>
-    {% endfor %}
-    TODO: propose to add an icon
+    <div class="form-group row">
+        <div class="col-sm-4">{{ common_input.input_js(id , "settings_update_icon('" + id + "')", value)}}</div>
+        <div class="col-sm-1" id="{{id + ".div"}}"><i class="mdi mdi-{{value}}" ></i></div>
+    </div>
 {% endmacro %}
 
 {% macro inhidden(id, value) %}

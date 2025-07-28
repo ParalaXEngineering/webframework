@@ -6,7 +6,9 @@
     {% elif layout["type"] == "HORIZ" %}
         {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["user_id"]) }}
     {% elif layout["type"] == "TABLE" %}
-        {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"]) }}
+        {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"], layout["user_id"]) }}
+    {% elif layout["type"] == "TABS" %}
+        {{ display_tabs_layout(layout["header"], layout["lines"]) }}
     {% elif layout["type"] == "SPACER" %}
         <div><p style="margin-bottom:1cm;"></p></div>
           
@@ -18,7 +20,7 @@
 {% endmacro %}
 
 {% macro display_vertical_layout(columns=[], containers = [], align = [], spacing = 0, height = 0, background = none, user_id = none, style = none) %}
-    <div class="row my-1 py-{{spacing}} align-items-center {% if background %}bg-{{background}}{% endif %} {% if style %}{{style}}{% endif %}" {% if user_id %} id="{{user_id}}"{% endif %} >
+    <div class="row my-1 {{spacing}} align-items-center {% if background %}bg-{{background}}{% endif %} {% if style %}{{style}}{% endif %}" {% if user_id %} id="{{user_id}}"{% endif %} >
     {# For each columns #}
     {% for col in columns %}
         <div class="col-{{col}} text-{{align[loop.index0]}}">
@@ -49,23 +51,12 @@
 
 {% endmacro %}
 
-{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None) %}    
-    <div class="row m-1">
+{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None, user_id = none) %}    
+    <div class="row m-1" {% if user_id %} id="{{user_id}}"{% endif %}>
     <div class="table-responsive">
         <table class="table table-striped mb-0" 
                    {% if responsive %}
-                        {% if responsive_type == "basic" %}
-                        id="basic_{{ responsive }}"
-                        {% elif responsive_type == "advanced" %}
-                        id="advanced_{{ responsive }}"
-                        {% elif responsive_type == "optimized" %}
-                        id="optimized_{{ responsive }}"
-                        {% elif responsive_type == "optimadvanced" %}
-                        id="optimadvanced_{{ responsive }}"
-                        {% else %}
-                        id="unsuported_{{ responsive }}"
-                        {% endif %}
-                       
+                        id="{{ responsive_type }}_{{ responsive }}"                       
                    {% endif %}>
             <thead>
                 <tr>
@@ -98,5 +89,42 @@
 
             </table>
         </div>
+    </div>
+{% endmacro %}
+
+{% macro display_tabs_layout(header=[], lines=[]) %}
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+    {% for head in header %}
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if loop.first %}active{% endif %}" 
+        id="tab{{ loop.index }}-tab" 
+        data-bs-toggle="tab" 
+        href="#tab{{ loop.index }}" 
+        role="tab" 
+        aria-controls="tab{{ loop.index }}" 
+        aria-selected="{{ 'true' if loop.first else 'false' }}">
+        {{ head }}
+        </a>
+    </li>
+    {% endfor %}
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+    {% for items in lines[0] %}
+        <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+            id="tab{{ loop.index }}" 
+            role="tabpanel" 
+            aria-labelledby="tab{{ loop.index }}-tab">
+            {% for element in items %}
+                {% if element["object"] == "item" %}
+                    {{ disp_item.display_item(element) }}
+                {% elif element["object"] == "layout" %}
+                    {{ display_layout(element) }}
+                {% else %}
+                    NOT SUPPORTED IN TABS for {{ element["object"] }}
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endfor %}
     </div>
 {% endmacro %}

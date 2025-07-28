@@ -9,7 +9,7 @@
     {% for layout in content[module]["layouts"] %}
 
         {# Subtitle #}
-        {% if layout["subtitle"] %}
+        {% if layout["subtitle"] and layout["type"] != "SPACER"%}
             <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
         {% endif %}
 
@@ -19,9 +19,15 @@
         {% elif layout["type"] == "HORIZ" %}
             {{ disp_layouts.display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
         {% elif layout["type"] == "TABLE" %}
-            {{ disp_layouts.display_table_layout(layout["header"], layout["lines"], layout["responsive"]) }}
+            {{ disp_layouts.display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"]) }}
+        {% elif layout["type"] == "TABS" %}
+            {{ disp_layouts.display_tabs_layout(layout["header"], layout["lines"]) }}
         {% elif layout["type"] == "SPACER" %}
-            <div><p style="margin-bottom:1cm;"></p></div>
+              {% if layout["subtitle"] %}
+                <div class="divider"><div class="divider-text"><h6>{{layout["subtitle"]}}</h6></div></div>
+              {% else %}
+                <hr>
+              {% endif %}
             
         {% endif %}
     {% endfor%}

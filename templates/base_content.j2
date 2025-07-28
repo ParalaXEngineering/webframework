@@ -94,12 +94,8 @@ html[data-bs-theme="dark"] {
                 text: checkAll ? 'Check All' : 'Check All',
                 action: function (e, dt, node, config) {
                     const isChecked = $(node).text() === 'Check All';
-                    
-                    // Use DataTables' API to get all rows (visible and non-visible)
                     const checkboxes = dt.table().node().querySelectorAll(`input[type="checkbox"]`);
                     checkboxes.forEach(checkbox => checkbox.checked = isChecked);
-
-                    // Update the button text
                     $(node).text(isChecked ? 'Uncheck All' : 'Check All');
                 }
             },
@@ -121,123 +117,108 @@ html[data-bs-theme="dark"] {
         ];
     }
 
-    function initializeDataTable(selector, customOptions) {
+    function initializeDataTable(selector, customOptions, ajax) {
         const elements = document.querySelectorAll(selector);
         elements.forEach(element => {
             const tableId = element.id;
             const tableOptions = {
                 colReorder: true,
-                layout: {
-                    topStart: {
-                        buttons: getCommonButtons(selector.includes('advanced'), tableId)
-                    }
-                },
+                buttons: getCommonButtons(selector.includes('advanced'), tableId),
+                dom: 'BPlfrtip',
                 pageLength: 25
             };
-
-            // Merge custom options with the default tableOptions
             const finalOptions = { ...tableOptions, ...customOptions };
-            new DataTable(`#${tableId}`, finalOptions);
+            const table = new DataTable(`#${tableId}`, finalOptions);
+            if (ajax) {
+                setInterval(function () {
+                    fetch('/status/logs_api')
+                        .then(response => response.json())
+                        .then(newData => {
+                            table.clear();
+                            table.rows.add(newData);
+                            table.draw(false);
+                            if (table.searchPanes) {
+                                table.searchPanes.rebuildPane();
+                            }
+                        });
+                }, 3000);
+            }
         });
     }
 
     // Basic Table Initialization
-    initializeDataTable('[id^="basic_"]', {});
 
-    {% if 'responsive_addon' in content['all_layout'] and "columns" in content["all_layout"]["responsive_addon"]%}
-    // Advanced Table Initialization
-    initializeDataTable('[id^="advanced_"]', {
-        layout: {
-            topStart: {
-                buttons: getCommonButtons(true, 'advanced_') // Include your buttons here
-            },
-            top1: {
-                searchPanes: {
-                    cascadePanes: true,
-                    {% if "responsive_addon" in content["all_layout"] %}
-                    columns: {{ content["all_layout"]["responsive_addon"]["columns"] }}
-                    {% endif %}
-                }
-            }
-        },
-        columnDefs: [
-            {
-                targets: '_all',
-                render: function (data, type) {
-                    if (type === 'sp') {
-                        return data
-                            .replace(/<\/?[^>]+(>|$)/g, '')
-                            .replace(/(<br\s*\/?>)/gi, '')
-                            .normalize('NFKD')
-                            .replace(/[^\x00-\x7F]/g, '')
-                            .split(',')
-                            .map(item => item.trim());
+    {% if 'responsive_addon' in content['all_layout'] %}
+        {% for table_id, addon in content['all_layout']['responsive_addon'].items() %}
+            {% if addon.get('data') %}
+                const tableData_{{ table_id }} = {{ addon['data'] | safe }};
+            {% endif %}
+            initializeDataTable('#{{addon.get('type')}}_{{ table_id }}', {
+                {% if addon.get('data') %}
+                data: tableData_{{ table_id }},
+                {% endif %}
+
+                {% if 'ajax' in addon.get('type') %}
+                    ajax: {
+                        url: '{{url_for(addon.get('api'))}}',
+                        dataSrc: ''
+                    },
+                {% endif %}
+
+                {% if 'advanced' in addon.get('type') or 'ajax' in addon.get('type') %}
+                    {% set all_indices = range(0, addon['ajax_columns']|length) %}
+                    {% set pane_indices = addon.get('columns') if addon.get('columns') is not none else range(0, addon['ajax_columns']|length) %}
+                    {% set non_pane_indices = [] %}
+                    {% for i in all_indices %}
+                        {% if i not in pane_indices %}
+                            {% set _ = non_pane_indices.append(i) %}
+                        {% endif %}
+                    {% endfor %}
+
+                    columns: [
+                        {% for column in addon['ajax_columns'] %}
+                            { data: '{{ column["data"] }}', defaultContent: '' },
+                        {% endfor %}
+                    ],
+                    columnDefs: [
+                        {
+                            targets: {{ addon['columns'] }},
+                            render: function (data, type) {
+                                if (!data) return '';
+                                if (type === 'sp') {
+                                    if (Array.isArray(data)) data = data.join(',');
+                                    else if (typeof data !== 'string') data = String(data);
+                                    return data
+                                        .replace(/<\/?[^>]+(>|$)/g, '')
+                                        .replace(/(<br\s*\/?>)/gi, '')
+                                        .normalize('NFKD')
+                                        .replace(/[^\x00-\x7F]/g, '')
+                                        .split(',')
+                                        .map(item => item.trim());
+                                }
+                                return data;
+                            },
+                            searchPanes: { orthogonal: 'sp' }
+                        },
+                        {
+                            searchPanes: { show: false },
+                            targets: {{ non_pane_indices }}
+                        },
+                    ],
+                    stateSave: true,
+                    searchPanes: {
+                        cascadePanes: true,
+                        {% if addon.get("columns") %}
+                        columns: {{ addon["columns"] }}
+                        {% endif %}
                     }
-                    return data;
-                },
-                searchPanes: { orthogonal: 'sp' }
-            }
-        ]
-    });
+                {% endif %}
+            }, {%if 'ajax' in addon.get('type') %} true {% else %} false {%endif%});
+        {% endfor %}
     {% endif %}
-
-    
-    {% if 'responsive_addon' in content['all_layout'] and 'ajax' in content['all_layout']['responsive_addon'] %}
-    // Optimized Table Initialization (Using AJAX)
-    const tableData = {{ content['all_layout']['responsive_addon']['ajax'] | safe }};
-    initializeDataTable('[id^="optimized_"]', {
-        data: tableData,
-        columns: [{% for column in content['all_layout']['responsive_addon']['ajax_columns'] %}
-            { data: '{{ column["data"] }}', defaultContent: '' },
-        {% endfor %}]
-    });
-
-    // Advanced Table Initialization
-    initializeDataTable('[id^="optimadvanced_"]', {
-        data: tableData,
-        columns: [{% for column in content['all_layout']['responsive_addon']['ajax_columns'] %}
-            { data: '{{ column["data"] }}', defaultContent: '' },
-        {% endfor %}],
-        layout: {
-            topStart: {
-                buttons: getCommonButtons(true, 'optimadvanced_') // Include your buttons here
-            },
-            top1: {
-                searchPanes: {
-                    cascadePanes: true,
-                    {% if "responsive_addon" in content["all_layout"] %}
-                    columns: {{ content["all_layout"]["responsive_addon"]["columns"] }}
-                    {% endif %}
-                }
-            }
-        },
-        columnDefs: [
-            {
-                targets: '_all',
-                render: function (data, type) {
-                    // Check if data is undefined or null
-                    if (!data) {
-                        return ''; // Return an empty string if data is undefined or null
-                    }
-
-                    if (type === 'sp') {
-                        return data
-                            .replace(/<\/?[^>]+(>|$)/g, '') // Strip HTML tags
-                            .replace(/(<br\s*\/?>)/gi, '') // Remove <br> tags
-                            .normalize('NFKD') // Normalize Unicode characters
-                            .replace(/[^\x00-\x7F]/g, '') // Remove non-ASCII characters
-                            .split(',')
-                            .map(item => item.trim()); // Trim whitespace
-                    }
-                    return data;
-                },
-                searchPanes: { orthogonal: 'sp' }
-            }
-        ]
-    });
-    {% endif %}
-
 </script>
+
+
 {% endblock %}
 
 {% block title %}
@@ -255,7 +236,7 @@ html[data-bs-theme="dark"] {
 {% set submenu_count = namespace(value=0) %}
 {% set path_count = namespace(value=0) %}
 
-{%if content|length <= 2 %} 
+{%if content|length <= 3 %} 
     {# This is size of 1 because the modals are always here #}
     <div class="text-center">
         <img src="{{ url_for('static', filename= 'images/status/unauthorized.svg')}}" width="500vw">
@@ -281,7 +262,7 @@ html[data-bs-theme="dark"] {
                         {% for layout in modal["content"][module]["layouts"] %}
 
                             {# Subtitle #}
-                            {% if layout["subtitle"] %}
+                            {% if layout["subtitle"] and layout["type"] != "SPACER" %}
                                 <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
                             {% endif %}
 
@@ -302,6 +283,7 @@ html[data-bs-theme="dark"] {
 
     {# Each module is displayed in its block #}
     {% for module in content %}
+        
         {% if module != "modals" and module != "all_layout" and module != "breadcrumbs" and module != "title" %}
             <div class="card">
                 {# Possibility to add a header to the card #}
@@ -318,48 +300,57 @@ html[data-bs-theme="dark"] {
                         {% endif %}
                     {% endif %}
 
-                    {# Form information #}
-                    {% if target %}
-                        <form action="{{ url_for(target) }}" method="POST" enctype="multipart/form-data" onkeydown="return event.key !== 'Enter'">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    {% endif %}
-                    {# Module layouts #}
-                    {% for layout in content[module]["layouts"] %}
+                    {% if "error" in content[module] and content[module]["error"]%}
+                        <div class="text-center">
+                            <img src="{{ url_for('static', filename='images/status/error.svg')}}" style="width: 500px; max-width: 100%;">
+                            <h3 class="error-title mt-3">This page can't be displayed with the current configuration</h3>
+                            <p class="fs-5 text-gray-600">{{content[module]["error"]}}</p>
+                        </div>
+                    {% else %}
 
-                        {# Subtitle #}
-                        {% if layout["subtitle"] %}
-                            <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
+                        {# Form information #}
+                        {% if target %}
+                            <form action="{{ url_for(target) }}" method="POST" enctype="multipart/form-data" onkeydown="return event.key !== 'Enter'">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        {% endif %}
+                        {# Module layouts #}
+                        {% for layout in content[module]["layouts"] %}
+
+                            {# Subtitle #}
+                            {% if layout["subtitle"] and layout["type"] != "SPACER" %}
+                                <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
+                            {% endif %}
+
+                            {# Content #}
+                            {{ disp_layouts.display_layout(layout) }}
+                        {% endfor%}
+
+                        {% if target %}
+                        </form>
                         {% endif %}
 
-                        {# Content #}
-                        {{ disp_layouts.display_layout(layout) }}
-                    {% endfor%}
-
-                    {% if target %}
-                    </form>
-                    {% endif %}
-
-                </div>
-
-                {# Module footer #}
-                {% if content[module]["type"] == "threaded_action" or content[module]["type"] == "worfklow" %}
-                    <div class="card-footer alert-light-secondary theme-aware">
-                        <h4 class="theme-text">Action progress</h4>
-                        <div class="table-responsive">
-                            <table class="table-light table-striped mb-0 theme-aware" id="{{module}}_result">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 50%;">Task</th> <!-- Largeur explicite pour équilibrer -->
-                                        <th style="width: 50%;">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Vos lignes ici -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="progress_result"></div>
                     </div>
+
+                    {# Module footer #}
+                    {% if content[module]["type"] == "threaded_action" or content[module]["type"] == "worfklow" %}
+                        <div class="card-footer alert-light-secondary theme-aware">
+                            <h4 class="theme-text">Action progress</h4>
+                            <div class="table-responsive">
+                                <table class="table-light table-striped mb-0 theme-aware" id="{{module}}_result">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 50%;">Task</th> <!-- Largeur explicite pour équilibrer -->
+                                            <th style="width: 50%;">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Vos lignes ici -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="progress_result"></div>
+                        </div>
+                    {% endif %}
                 {% endif %}
             </div>
         {% endif %}

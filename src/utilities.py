@@ -10,10 +10,41 @@ import time
 import re
 
 from jinja2 import Environment, FileSystemLoader
+from flask import session
 from submodules.framework.src import displayer
 
 CONFIG_GLOBAL = {}
 LAST_ACCESS_CONFIG = None
+
+def update_breadcrumbs(disp, level, title, endpoint, params=None, style=None):
+    """
+    Manage the breadcrumb trail in session and render via disp.
+    level: integer breadcrumb depth (0-based)
+    title: label for the crumb
+    endpoint: Flask endpoint name for URL generation
+    params: list of query-string fragments like 'key=value'
+    style: a bootstrap style
+    """
+    # initialize or retrieve existing trail
+    breadcrumbs = session.get('breadcrumbs', [])
+    new = {'title': title, 'endpoint': endpoint, 'params': params, 'style': style}
+
+    if level == -1:
+        level = len(breadcrumbs)
+    # maintain or truncate trail
+    if len(breadcrumbs) > level:
+        if breadcrumbs[level] == new:
+            breadcrumbs = breadcrumbs[:level + 1]
+        else:
+            breadcrumbs = breadcrumbs[:level] + [new]
+    elif len(breadcrumbs) == level:
+        breadcrumbs.append(new)
+    else:
+        breadcrumbs.append(new)
+    session['breadcrumbs'] = breadcrumbs
+    # render breadcrumbs
+    for crumb in breadcrumbs:
+        disp.add_breadcrumb(crumb['title'], crumb['endpoint'], crumb['params'], crumb['style'])
 
 def utils_remove_letter(text: str) -> int:
     """
