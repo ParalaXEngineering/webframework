@@ -47,6 +47,7 @@ class DisplayerItems(Enum):
     GRAPH = "GRAPH"
     DOWNLOAD = "DOWNLOAD"
     ICONLINK = "ICONLINK"
+    BUTTONLINK = "BUTTONLINK"
     PLACEHOLDER = "PLACEHOLDER"
     INPATH = "INPATH"
     CALENDAR = "CALENDAR"
@@ -71,7 +72,7 @@ class BSalign(Enum):
 
 
 class MAZERStyles(Enum):
-    CARD = "card"
+    CARD = "rounded-3"
     HEADER = ""
     BODY = ""
 
@@ -393,6 +394,38 @@ class DisplayerItemIconLink(DisplayerItem):
         :type parameters: list
         """
         super().__init__(DisplayerItems.ICONLINK)
+        self.m_text = text
+        self.m_id = id
+        self.m_data = link
+        self.m_icon = icon
+        self.m_parameters = parameters
+        self.m_style = color.value
+        return
+    
+class DisplayerItemButtonLink(DisplayerItem):
+    """Specialized display item to display a link icon"""
+
+    def __init__(
+        self,
+        id: str,
+        text: str,
+        icon: str,
+        link: str = "",
+        parameters: list = None,
+        color: BSstyle = BSstyle.PRIMARY,
+    ) -> None:
+        """Initialize with the text content
+
+        :param text: The text content
+        :type text: str
+        :param icon: The icon name of the mdi icons. Do not prefix with mdi-
+        :type icon: str
+        :param link: the link (in the flask terms) to point to. Can be set to empty to only have an icon
+        :type link: str
+        :param parameters: a list of text line with the parameters after the link, that is after a "?". Those will be passed with a GET method
+        :type parameters: list
+        """
+        super().__init__(DisplayerItems.BUTTONLINK)
         self.m_text = text
         self.m_id = id
         self.m_data = link

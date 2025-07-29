@@ -23,6 +23,8 @@
         {{download(item["id"], item["text"], item["data"])}}
     {% elif item["type"] == "ICONLINK" %}
         {{iconlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
+    {% elif item["type"] == "BUTTONLINK" %}
+        {{buttonlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
     {% elif item["type"] == "FILE" %}
         {{file(item["id"], item["value"], item["text"], item["endpoint"], item["path"], item["date"])}}
     {% elif item["type"] == "IMAGE" %}
@@ -344,6 +346,51 @@ document.addEventListener('DOMContentLoaded', function() {
         {% endif %}
     {% else %}
     <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+    {{text}}
+    {% endif %}
+{% endmacro %}
+
+{% macro buttonlink(id, text, link, icon, style, parameters) %}
+    {% if link %}
+        {% if "http" in link%}
+        <a href="{{link}}" class="btn btn-{{style}}">
+        <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+        {{text}}
+        </a>
+        {% elif "#" in link%}
+        <a id="{{id}}" href="{{link}}" class="btn btn-{{style}}">
+        <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+        {{text}}
+        </a>
+        {% else %}
+            {% if '/' in link %}
+                {% if parameters %}
+                    <a href="{{link}}?{{parameters | join('&')}}" class="btn btn-{{style}}">
+                        <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+                        {{text}}
+                    </a>
+                {% else %}
+                    <a href="{{link}}" class="btn btn-{{style}}">
+                        <h2><i class="mdi mdi-{{icon}} text-light" ></i></h2>
+                        {{text}}
+                    </a>
+                {% endif %}
+            {% else %}
+                {% if parameters %}
+                    <a href="{{url_for(link)}}?{{parameters | join('&')}}" class="btn btn-{{style}}">
+                        <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+                        {{text}}
+                    </a>
+                {% else %}
+                    <a href="{{url_for(link)}}" class="btn btn-{{style}}">
+                        <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+                        {{text}}
+                    </a>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    {% else %}
+    <h2><i class="mdi mdi-{{icon}} text-{{style}}"></i></h2>
     {{text}}
     {% endif %}
 {% endmacro %}
