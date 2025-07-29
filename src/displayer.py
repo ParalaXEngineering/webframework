@@ -262,6 +262,8 @@ class DisplayerItem:
             item["header"] = self.m_header
         if hasattr(self, "m_possibles"):
             item["possibles"] = self.m_possibles
+        if hasattr(self, "m_parameters"):
+            item["parameters"] = self.m_parameters
         if hasattr(self, "m_path"):
             item["path"] = self.m_path
         if hasattr(self, "m_icon"):
