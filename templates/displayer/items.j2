@@ -6,7 +6,7 @@
     {% if "itemId" in item %}
     <span id="{{item["itemId"]}}">
     {% else %}
-    <span>
+
     {% endif %}
 
     {% if item["type"] == "TEXT" %}
@@ -87,7 +87,11 @@
         {{calendar(item["id"], item["value"], item["data"])}}
     {% endif %}
 
+    {% if "itemId" in item %}
     </span>
+    {% else %}
+
+    {% endif %}
 {% endmacro %}
 
 {% macro calendar(id, view, events) %}
@@ -516,7 +520,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     {% set displayed = namespace(value=0) %}
     <div class="row align-items-center">
-        <div id="{{id}}.div" class="col-sm-11">
+        <div id="{{id}}.div" class="col-sm-10">
         {# Special case: we were given an empty list, that means that we need to display an empty field, but with a masked item so we can add items #}
         {% if values == [None]%}
             <div class="row" id="{{id + ".div0" }}">
@@ -542,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {% endif %}
         {% endif %}
         </div>
-        <div class="col-sm-1">
+        <div class="col-sm-2">
             <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
             <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
         </div>
@@ -556,7 +560,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     {% set displayed = namespace(value=0) %}
     <div class="row align-items-center">
-        <div id="{{id}}.div" class="col-sm-11">
+        <div id="{{id}}.div" class="col-sm-10">
         {% for subitem in values %}
                 <div class="row" id="{{id + ".div" + loop.index0 | string }}">
                     <div class="col-sm-12">{{common_input.inputstring(id + ".list" + loop.index0 | string, values[loop.index0]) }} </div>
@@ -569,7 +573,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         {% endif %}
         </div>
-        <div class="col-sm-1">
+        <div class="col-sm-2">
             <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
             <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
         </div>
@@ -747,15 +751,20 @@ document.addEventListener('DOMContentLoaded', function() {
         {{ text }}
     {% endif %}
 
-
-    <div id="{{id}}.div">
-    {% for list_item in value%}
-        {{ common_input.select_js(id + ".list" + loop.index0 | string, "settings_list_format('" + id + "')", data, list_item)}}
-    {% endfor %}
-    {{ common_input.hidden(id, value | join('#')) }}
+    <div class="col-sm-12" id="{{id}}.div">
+        <div class="row">
+            <div class="col-sm-10">
+            {% for list_item in value%}
+                {{ common_input.select_js(id + ".list" + loop.index0 | string, "settings_list_format('" + id + "')", data, list_item)}}
+            {% endfor %}
+            {{ common_input.hidden(id, value | join('#')) }}
+            </div>
+            <div class="col-sm-2">
+                <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+                <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+            </div>
+        </div>
     </div>
-    <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
-    <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
 
 {% endmacro %}
 
