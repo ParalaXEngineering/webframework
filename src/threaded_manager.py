@@ -7,10 +7,8 @@ thread_manager_obj = None
 class Threaded_manager:
     """Manage the different threads of the framework"""
 
-    m_running_threads = []
-    """List of the currently running threads"""
-
     def __init__(self):
+        self.m_running_threads = []  # ✅ déplacement ici : variable d'instance
         logging.config.fileConfig("submodules/framework/log_config.ini")
         self.m_logger = logging.getLogger("website")
         self.m_logger.info("Scheduler started")
@@ -23,8 +21,7 @@ class Threaded_manager:
         """
         if thread in self.m_running_threads:
             return
-        else:
-            self.m_running_threads.append(thread)
+        self.m_running_threads.append(thread)
 
     def del_thread(self, thread: threading.Thread):
         """Delete a thread from the pool
@@ -45,6 +42,18 @@ class Threaded_manager:
             self.m_logger.info("Thread removal failed: " + str(e))
             pass
 
+    def get_all_threads(self) -> list:
+        """Return all threads currently managed"""
+        return self.m_running_threads.copy()
+
+    def get_threads_by_name(self, name: str) -> list:
+        """Return all threads matching a given name"""
+        return [t for t in self.m_running_threads if t.m_default_name == name]
+
+    def get_unique_names(self) -> list:
+        """Return the list of unique thread names"""
+        return list(set(t.m_default_name for t in self.m_running_threads))
+    
     def get_names(self) -> list:
         """Return the list of all the threads, by name
 

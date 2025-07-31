@@ -269,14 +269,15 @@ class Scheduler:
             for item in self.m_reload:
                 self.socket_obj.emit("reload", {"id": item[0], "content": item[1]})
 
-            threads_names = threaded_manager.thread_manager_obj.get_names()
+            threads_names = threaded_manager.thread_manager_obj.get_unique_names()
             thread_info = []
             for name in threads_names:
-                current_thread = threaded_manager.thread_manager_obj.get_thread(name)
-                if current_thread:
-                    thread_info.append(
-                        {"name": name, "state": current_thread.m_running_state}
-                    )
+                current_thread = threaded_manager.thread_manager_obj.get_threads_by_name(name)
+                for i, thread in enumerate(current_thread):
+                    thread_info.append({
+                        "name": f"{name} #{i+1}" if len(current_thread) > 1 else name,
+                        "state": thread.m_running_state
+                    })
 
             self.socket_obj.emit("threads", thread_info)
 
