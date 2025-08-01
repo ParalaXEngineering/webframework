@@ -75,3 +75,17 @@ class SFTPConnection:
         if self.transport:
             self.transport.close()
             self.transport = None
+            
+    def exists(self, remote_path):
+        """Vérifie si un fichier ou dossier existe sur le serveur distant."""
+        self.connect()
+        if self.sftp:
+            try:
+                self.sftp.stat(remote_path)
+                return True
+            except FileNotFoundError:
+                return False
+            except Exception as e:
+                print(f"Erreur lors du test d'existence de {remote_path}: {e}")
+                return False
+        return False
