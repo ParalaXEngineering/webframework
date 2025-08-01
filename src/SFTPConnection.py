@@ -1,5 +1,7 @@
 import paramiko
 import socket
+import os
+import stat
 
 class SFTPConnection:
     def __init__(self, host, username, password, port=22):
@@ -89,3 +91,23 @@ class SFTPConnection:
                 print(f"Erreur lors du test d'existence de {remote_path}: {e}")
                 return False
         return False
+
+    def download_dir(self, remote_dir, local_dir):
+        """Télécharge récursivement un dossier depuis le SFTP."""
+        self.connect()
+        if self.sftp is None:
+            return
+
+        os.makedirs(local_dir, exist_ok=True)
+
+        for item in self.sftp.listdir_attr(remote_dir):
+            remote_path = f"{remote_dir}/{item.filename}"
+            local_path = os.path.join(local_dir, item.filename)
+
+            if stat.S_ISDIR(item.st_mode):
+                self.download_dir(remote_path, local_path)
+            else:
+                try:
+                    self.sftp.get(remote_path, local_path)
+                except Exception as e:
+                    print(f"Erreur lors du téléchargement de {remote_path}: {e}")
