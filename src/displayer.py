@@ -737,13 +737,14 @@ class DisplayerItemInputSelect(DisplayerItem):
         self.m_id = id
         
         # Ensure choices and tooltips have the same length before zipping
-        if isinstance(choices, list) and isinstance(tooltips, list) and len(choices) == len(tooltips) and len(choices) > 0:
-            # Zip the choices and tooltips together and sort them by the choice value
-            combined = sorted(zip(choices, tooltips), key=lambda pair: pair[0])
-            # Unzip back to separate lists
-            choices, tooltips = map(list, zip(*combined))
-        elif isinstance(choices, list):
-            choices.sort()
+        if isinstance(choices, list) and isinstance(tooltips, list):
+            if len(choices) == len(tooltips) and len(choices) > 0:
+                combined = list(zip(choices, tooltips))
+                combined.sort(key=lambda pair: pair[0])
+                # Unzip safely
+                choices, tooltips = map(list, zip(*combined))
+            elif len(choices) > 0:
+                choices.sort()
         
         self.m_data = choices
         self.m_tooltips = tooltips
