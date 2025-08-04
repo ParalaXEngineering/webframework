@@ -16,6 +16,12 @@ from submodules.framework.src import displayer
 CONFIG_GLOBAL = {}
 LAST_ACCESS_CONFIG = None
 
+def get_breadcrumbs():
+    """
+    Return the breadcrumbs"""
+    breadcrumbs = session.get('breadcrumbs', [])
+    return breadcrumbs
+
 def update_breadcrumbs(disp, level, title, endpoint, params=None, style=None):
     """
     Manage the breadcrumb trail in session and render via disp.
