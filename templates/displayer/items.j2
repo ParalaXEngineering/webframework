@@ -192,17 +192,35 @@ document.addEventListener('DOMContentLoaded', function() {
             height: 350
         },
         series: [
-            {% for serie in graphy %}
-                {% if not loop.first %},{% endif %}
-                {
-                    name: "{{ serie }}",
+                {% if data_type == "bar" %}
+                    {
+                    name: 'Data',
                     data: [
-                        {% for i in range(graphx | length) %}
-                            [{{ graphx[i]|int }}, {{ graphy[serie][i] }}]{% if not loop.last %},{% endif %}
+                        {% for key, value in graphy.items() %}
+                            {
+                                x: "{{ key }}",
+                                y: {{ value }}
+                            }{% if not loop.last %},{% endif %}
                         {% endfor %}
                     ]
                 }
-            {% endfor %}
+                {% else %}
+                {% for serie in  graphy %}
+                        {% if first_serie.value != 0 %}
+                            ,
+                        {% endif %}
+                        {% set first_serie.value = first_serie.value + 1 %}
+                    {
+                        name: "{{ serie }}",
+                        data: [
+                            {% for i in range(0, graphx | length - 1)%}
+                                ["{{graphx[i]}}", {{graphy[serie][i]}} ],
+                            {% endfor %}
+                                ["{{graphx[-1]}}", {{graphy[serie][-1]}} ]
+                        ]
+                    }                
+                {% endfor %}
+                {% endif %}
         ],
         {% if data_type == "date" %}
         xaxis: {
