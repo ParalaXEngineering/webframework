@@ -328,7 +328,7 @@ html[data-bs-theme="dark"] {
 
                         {# Form information #}
                         {% if target %}
-                            <form action="{{ url_for(target) }}" method="POST" enctype="multipart/form-data" onkeydown="return event.key !== 'Enter'">
+                            <form action="{{ url_for(target) }}" method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         {% endif %}
                         {# Module layouts #}

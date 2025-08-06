@@ -14,7 +14,7 @@
     {% elif item["type"] == "PLACEHOLDER" %}
         {{placeholder(item["id"], item["data"])}}
     {% elif item["type"] == "BUTTON" %}
-        {{button(item["id"], item["text"], item["disabled"])}}
+        {{button(item["id"], item["text"], item["disabled"], item["focus"])}}
     {% elif item["type"] == "MODALBUTTON" %}
         {{modalbutton(item["path"], item["text"], item["disabled"])}}
     {% elif item["type"] == "MODALLINK" %}
@@ -40,7 +40,7 @@
     {% elif item["type"] == "INTEXT" %}
         {{intext(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INTEXTJS" %}
-        {{intextjs(item["id"], item["value"], item["text"], item["data"])}}
+        {{intextjs(item["id"], item["value"], item["text"], item["data"], item["focus"])}}
     {% elif item["type"] == "INMULTITEXT" %}
         {{inmultitext(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INTEXTICON" %}
@@ -267,8 +267,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="{{id}}">{{data}}</div>
 {% endmacro %}
 
-{% macro button(id, text, disabled = false) %}
-    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn btn-primary {%if disabled %} disabled {%endif%}">
+{% macro button(id, text, disabled = false, focus = false) %}
+    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn btn-primary {%if disabled %} disabled {%endif%} {%if focus %} focusable {%endif%}" </button>
         {{text}}
     </button>
 {% endmacro %}
@@ -840,15 +840,15 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 {% endmacro %}
 
-{% macro intextjs(id, value, text, data) %}
+{% macro intextjs(id, value, text, data, focus) %}
     {% if text %}
         {{ text }}
     {% endif %}
 
     {% if value %}
-        {{ common_input.input_js(id, data, value)}}
+        {{ common_input.input_js(id, data, value, focus)}}
     {% else %}
-        {{ common_input.input_js(id, data, history[id] if history is defined else None)}}
+        {{ common_input.input_js(id, data, history[id] if history is defined else None, focus)}}
     {% endif %}
 {% endmacro %}
 

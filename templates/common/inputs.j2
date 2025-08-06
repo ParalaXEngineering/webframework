@@ -58,7 +58,7 @@
 {% endmacro %}
 
 {% macro inputstring(name, default=None, focus=False) %}
-    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control" {% if focus %} autofocus {% endif %}>
+    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control {% if focus %}focusable{% endif %}" {% if focus %} autofocus {% endif %}>
 {% endmacro %}
 
 {% macro inputtext(name, default=None) %}
@@ -85,8 +85,8 @@
     {% endif %}
 {% endmacro %}
 
-{% macro input_js(name, js, default=None) %}
-    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control" onchange="{{ js }}">
+{% macro input_js(name, js, default=None, focus=False) %}
+    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control {% if focus %}focusable{% endif %}" onchange="{{ js }}">
 {% endmacro %}
 
 {% macro path(name, path_variable, default=None) %}

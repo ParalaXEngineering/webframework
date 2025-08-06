@@ -281,12 +281,44 @@ function settings_map_format(name)
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
+    // Focus order on enter
+    const focusables = [...document.querySelectorAll('.focusable')];
+
+    focusables.forEach((el, idx) => {
+        el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const next = focusables[idx + 1];
+            if (next) {
+            next.focus();
+            } else {
+            el.blur(); // optional: remove focus on last element
+            }
+        }
+        });
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            const isFocusable = event.target.classList.contains('focusable');
+
+            // If not focusable, block Enter to prevent accidental submit
+            if (!isFocusable) {
+                event.preventDefault();
+            }
+            // If focusable and it's a button, manually trigger click
+            else if (event.target.tagName === 'BUTTON') {
+                event.preventDefault();
+                event.target.click();
+            }
+        }
+    });
+
     // Sélection de la checkbox
     const toggleCheckbox = document.getElementById('toggle-dark');
 
     // Ajout de l'écouteur d'événements sur la checkbox
     toggleCheckbox.addEventListener('change', function() {
-        console.log("Coucou")
         // Sélection de tous les éléments avec la classe 'bg-light' ou 'bg-dark'
         const elements = document.querySelectorAll('.bg-light, .bg-body');
 
@@ -594,6 +626,29 @@ $(document).ready(function() {
         }
         
     })
+
+    // Delay the focus slightly to ensure rendering is complete
+    const focusables = [...document.querySelectorAll('.focusable')];
+    setTimeout(() => {
+        const focusables = [...document.querySelectorAll('.focusable')];
+        for (const el of focusables) {
+            if (
+                !el.disabled &&
+                el.offsetParent !== null && // visible in layout
+                el.tagName === "INPUT" &&
+                el.type === "text"
+            ) {
+                el.focus();
+                el.select(); // also select text to make typing more intuitive
+                console.log("Focused on:", el);
+                break;
+            }
+        }
+    }, 300); // delay longer than before
+
+    setTimeout(() => {
+        console.log("Final active element:", document.activeElement);
+    }, 500);
 })
 
 function path_init()

@@ -454,7 +454,7 @@ class DisplayerItemButtonLink(DisplayerItem):
 class DisplayerItemButton(DisplayerItem):
     """Specialized display item to display a simple button"""
 
-    def __init__(self, id: str, text: str) -> None:
+    def __init__(self, id: str, text: str, focus: bool =  False) -> None:
         """Initialize with the text content
 
         :param text: The text content
@@ -463,6 +463,7 @@ class DisplayerItemButton(DisplayerItem):
         super().__init__(DisplayerItems.BUTTON)
         self.m_text = text
         self.m_id = id
+        self.m_focus = focus
         return
     
 class DisplayerItemModalButton(DisplayerItem):
@@ -892,11 +893,12 @@ class DisplayerItemInputListText(DisplayerItem):
 class DisplayerItemInputNumeric(DisplayerItem):
     """Specialized display to display an input number"""
 
-    def __init__(self, id: str, text: str = None, value: float = None) -> None:
+    def __init__(self, id: str, text: str = None, value: float = None, focus: bool =  False) -> None:
         super().__init__(DisplayerItems.INNUM)
         self.m_text = text
         self.m_value = value
         self.m_id = id
+        self.m_focus = focus
         return
 
 
@@ -925,12 +927,13 @@ class DisplayerItemInputText(DisplayerItem):
 class DisplayerItemInputTextJS(DisplayerItem):
     """Specialized display to display an input text with a JS function execution on change"""
 
-    def __init__(self, id: str, text: str = None, value: str = None, js: str = None) -> None:
+    def __init__(self, id: str, text: str = None, value: str = None, js: str = None, focus = False) -> None:
         super().__init__(DisplayerItems.INTEXTJS)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_data = js
+        self.m_focus = focus
         return
     
 class DisplayerItemInputString(DisplayerItem):
