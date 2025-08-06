@@ -61,7 +61,7 @@ class BSstyle(Enum):
     WARNING = "warning"
     ERROR = "danger"
     DARK = "dark"
-    LIGHT = "light"
+    LIGHT = "light-secondary"
     ULTRALIGHT = "body"
     NONE = "none"
 
