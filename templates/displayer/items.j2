@@ -39,6 +39,8 @@
         {{instring(item["id"], item["value"], item["text"], item["focus"])}}
     {% elif item["type"] == "INTEXT" %}
         {{intext(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INTEXTJS" %}
+        {{intextjs(item["id"], item["value"], item["text"], item["data"])}}
     {% elif item["type"] == "INMULTITEXT" %}
         {{inmultitext(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INTEXTICON" %}
@@ -835,6 +837,18 @@ document.addEventListener('DOMContentLoaded', function() {
         {{ common_input.inputtext(id, value)}}
     {% else %}
         {{ common_input.inputtext(id, history[id] if history is defined else None)}}
+    {% endif %}
+{% endmacro %}
+
+{% macro intextjs(id, value, text, data) %}
+    {% if text %}
+        {{ text }}
+    {% endif %}
+
+    {% if value %}
+        {{ common_input.input_js(id, data, value)}}
+    {% else %}
+        {{ common_input.input_js(id, data, history[id] if history is defined else None)}}
     {% endif %}
 {% endmacro %}
 

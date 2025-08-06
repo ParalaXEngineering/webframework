@@ -888,3 +888,38 @@ function settings_update_icon(elementId) {
       iconEl.className = 'mdi mdi-' + iconName;
     }
   }
+
+function split_attribute(sourceFieldId, ...targetSuffixes) {
+    try {
+        // Get the source field element
+        const sourceInput = document.getElementById(sourceFieldId + ".scan");
+        if (!sourceInput) {
+            console.warn("Source input not found:", sourceFieldId);
+            return;
+        }
+    
+        // Get the prefix for derived fields
+        const prefix = sourceFieldId;
+
+        // Find the separator from the corresponding select element
+        const separatorSelectId = `${prefix}.separator`;
+        const separatorSelect = document.getElementById(separatorSelectId);
+        const separator = separatorSelect ? separatorSelect.value : "_"; // default "_"
+
+        // Get value and split
+        const parts = sourceInput.value.split(separator);
+
+        // For each target, fill the corresponding input field
+        for (let i = 0; i < targetSuffixes.length; i++) {
+            const targetSuffix = targetSuffixes[i];
+            const targetFieldId = `${prefix}.${targetSuffix}`;
+            const targetField = document.getElementById(targetFieldId);
+
+            if (targetField) {
+                targetField.value = parts[i] !== undefined ? parts[i] : "";
+            }
+        }
+    } catch (e) {
+        console.error("Error in split function:", e);
+    }
+}

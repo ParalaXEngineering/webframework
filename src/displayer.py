@@ -21,6 +21,7 @@ class DisplayerItems(Enum):
     INNUM = "INNUM"
     INHIDDEN = "INHIDDEN"
     INTEXT = "INTEXT"
+    INTEXTJS = "INTEXTJS"
     INSTRING = "INSTRING"
     INSTRINGICON = "INSTRINGICON"
     INMULTITEXT = "INMULTITEXT"
@@ -919,6 +920,17 @@ class DisplayerItemInputText(DisplayerItem):
         self.m_text = text
         self.m_value = value
         self.m_id = id
+        return
+    
+class DisplayerItemInputTextJS(DisplayerItem):
+    """Specialized display to display an input text with a JS function execution on change"""
+
+    def __init__(self, id: str, text: str = None, value: str = None, js: str = None) -> None:
+        super().__init__(DisplayerItems.INTEXTJS)
+        self.m_text = text
+        self.m_value = value
+        self.m_id = id
+        self.m_data = js
         return
     
 class DisplayerItemInputString(DisplayerItem):
