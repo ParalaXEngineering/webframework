@@ -11,7 +11,46 @@ class Site_conf:
     
     m_globals = {
         "on_target": False,
-        "PORT": 5000
+        "PORT": 5000,
+        "version": "0.0.1",
+        "APP_ID_TO_PROGRAM": {
+            0x4ca4: "FN-CORE",
+            0xbce1: "COME",
+            0x4365: "MILREM",
+            0xff7b: "MarketingConfiguration1",
+            0xeff9: "CAMO",
+            0xca7c: "CROSS",
+            0x08dd: "SMBE",
+            0xaa6c: "NMCM",
+            0xd3fb: "ADS",
+            0xf205: "HD",
+            0x4082: "CLRV",
+            0x7390: "HDKM",
+            0x95e2: "HDF",
+            0x7fbb: "BCCT",
+            0x6ab5: "Vanilla",
+            0xf9ee: "VANILLA",
+            0x6c5f: "MARSEUS",
+            0x42e5: "MEPAC",
+            0x712b: "MPI2",
+            0x4b9b: "no_aiz_no_limit",
+            0xffb9: "lux",
+            0x12be: "LUXEMBOURG",
+            0xe8ba: "IVECO",
+            0x399b: "HUNGARIAN",
+            0x792a: "FRGN",
+            0x0286: "NEO",
+            0x8d85: "DEMO_30MM",
+            0x6b30: "SEA"
+        },
+        "VID_MASTID": {
+            "LUX": (33, 28),
+            "HUN": (57, 6),
+            "SEA_P": (17, 1),
+            "SEA_S": (34, 22),
+            "CAMO": (49, 17),
+            "DEV": (1, 1)
+        }
     }
 
     m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
