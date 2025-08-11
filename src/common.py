@@ -130,7 +130,7 @@ def help():
         # disp.add_generic("Changelog", display=False)
         User_defined_module.User_defined_module.m_default_name = "Help"
         disp.add_module(User_defined_module.User_defined_module, display=False)
-        disp.set_title(f"Documentation: {topic.capitalize().replace("_", " ")}")
+        disp.set_title(f"Documentation: {topic.capitalize().replace('_', ' ')}")
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
         )
