@@ -304,6 +304,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <i class="mdi mdi-file-powerpoint text-warning"></i>
     {% elif ".pdf" in src | lower %}
     <i class="mdi mdi-file-document text-danger"></i>
+    {% elif ".html" in src | lower%}
+    <i class="mdi mdi-file-view text-primary"></i>
     {% elif ".c" in src | lower or ".cpp" in src | lower or ".h" in src | lower or ".py" in src | lower%}
     <i class="mdi mdi-file-code text-primary"></i>
     {% elif ".zip" in src | lower or ".rar" in src | lower or ".tar" in src | lower or ".7z" in src | lower%}
