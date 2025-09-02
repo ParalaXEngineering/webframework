@@ -64,7 +64,13 @@
             </div>
             <div class="col-lg-7 d-none d-lg-block text-center">
                 <div id="auth-right" class="d-flex align-items-center">
-                        <img class="rounded-circle mx-auto" id="avatar" src="{{ url_for('common.assets', asset_type='images', filename='users/' + users[0] + '.jpg') }}" width="512px">
+                    {% set suffix = '_4target' if on_target else '' %}
+                    <img class="rounded-circle mx-auto"
+                        id="avatar"
+                        src="{{ url_for('common.assets',
+                                        asset_type='images',
+                                        filename='users/' + users[0] + suffix + '.jpg') }}"
+                        width="512px">
                 </div>
             </div>
 
@@ -72,39 +78,41 @@
 
     </div>
     <script src="{{ url_for('static', filename= 'vendors/jquery/jquery.min.js') }}"></script>
-     <script src="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.js') }}"></script>
     <script>
-        // Fonction pour mettre à jour l'image en fonction de la valeur sélectionnée
-        function updateImage() {
-            // Récupérer la référence de l'élément select
-            var selectElement = document.getElementById("user");
+        // Variable globale injectée depuis Jinja
+        var onTarget = {{ 'true' if on_target else 'false' }};
 
-            // Récupérer la référence de l'élément image
+        function updateImage() {
+            var selectElement = document.getElementById("user");
             var avatarElement = document.getElementById("avatar");
 
-            // Récupérer la valeur sélectionnée dans le select
             var selectedUser = selectElement.value;
 
-            // Ajouter une classe avec une opacité réduite
+            // Déterminer le suffix
+            var suffix = onTarget ? "_4target" : "";
+
             avatarElement.classList.add("fade-out");
 
-            // Définir un délai pour permettre à l'animation de se dérouler
             setTimeout(function() {
-                // Mettre à jour l'attribut src de l'image avec la nouvelle valeur
-                avatarElement.src = "/common/assets/images/?filename=users/" + selectedUser + ".jpg";
+                avatarElement.src = "/common/assets/images/?filename=users/" + selectedUser + suffix + ".jpg";
 
-                // Retirer la classe pour réinitialiser l'opacité
+                // fallback automatique si l'image n'existe pas
+                avatarElement.onerror = function() {
+                    this.onerror = null; // éviter boucle infinie
+                    this.src = "/common/assets/images/?filename=users/" + selectedUser + ".jpg";
+                };
+
                 avatarElement.classList.remove("fade-out");
-            }, 500); // Délai correspondant à la durée de la transition CSS (0.5s)
+            }, 500);
         }
 
-        // Appeler la fonction au démarrage de la page
         document.addEventListener("DOMContentLoaded", updateImage);
 
-        // Ajouter un écouteur d'événements sur le changement de valeur du select
         var selectElement = document.getElementById("user");
         selectElement.addEventListener("change", updateImage);
     </script>
+
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>

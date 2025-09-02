@@ -258,9 +258,16 @@
                                         <div id="topbar_target" class="float-end align-items-center">
                                             <div class="col avatar avatar-lg">
                                                 {% if user %}
-                                                    <img src="{{ url_for('common.assets', asset_type="images", filename='users/' + user + '.jpg') }}" width="48px">
-                                                    {% else %}
-                                                    <img src="{{ url_for('common.assets', asset_type="images", filename='users/GUEST.jpg') }}" width="48px">
+                                                {% set suffix = '_4target' if on_target else '' %}
+                                                <img src="{{ url_for('common.assets',
+                                                                    asset_type='images',
+                                                                    filename='users/' + user + suffix + '.jpg') }}"
+                                                    width="48px">
+                                                {% else %}
+                                                <img src="{{ url_for('common.assets',
+                                                                    asset_type='images',
+                                                                    filename='users/GUEST.jpg') }}"
+                                                    width="48px">
                                                 {% endif %}
                                             </div>
                                             <div class="col">
