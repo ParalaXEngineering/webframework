@@ -20,6 +20,9 @@ def bugtracker():
     disp.add_module(User_defined_module.User_defined_module)
 
     if not site_conf.Site_conf.m_globals["on_target"]:
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
         try:
             redmine = Redmine(param["redmine"]["address"]["value"], username=param["redmine"]["user"]["value"], password=param["redmine"]["password"]["value"], requests={"verify": False})
         except Exception as e:
@@ -90,7 +93,7 @@ def bugtracker():
             disp.add_display_item(displayer.DisplayerItemText(str(issue.id)), column=0, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.status.name), column=1, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.subject), column=2, line=index)
-            disp.add_display_item(displayer.DisplayerItemText(issue.description), column=3, line=index)
+            disp.add_display_item(displayer.DisplayerItemText(f'<div style="max-width:40vw; white-space:normal; word-break:break-word;">{issue.description}</div>'), column=3, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.updated_on.strftime("%Y-%m-%d %H:%M:%S")), column=4, line=index)
             disp.add_display_item(displayer.DisplayerItemIconLink("", "", "eye", issue.url, color=displayer.BSstyle.SUCCESS), column=5, line=index)
         
@@ -114,8 +117,8 @@ def bugtracker():
             disp.add_display_item(displayer.DisplayerItemText(str(issue.id)), column=0, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.status.name), column=1, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.subject), column=2, line=index)
-            disp.add_display_item(displayer.DisplayerItemText(issue.description), column=3, line=index)
-            disp.add_display_item(displayer.DisplayerItemText(issue.updated_on.strftime("%Y-%m-%d %H:%M:%S")), column=4, line=index)
+            disp.add_display_item(displayer.DisplayerItemText(f'<div style="max-width:40vw; white-space:normal; word-break:break-word;">{issue.description}</div>'), column=3, line=index)
+            disp.add_display_item(displayer.DisplayerItemText(issue.closed_on.strftime("%Y-%m-%d %H:%M:%S")), column=4, line=index)
             disp.add_display_item(displayer.DisplayerItemIconLink("", "", "eye", issue.url, color=displayer.BSstyle.SUCCESS), column=5, line=index)
 
         # Display rejected issues in a table
@@ -138,8 +141,8 @@ def bugtracker():
             disp.add_display_item(displayer.DisplayerItemText(str(issue.id)), column=0, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.status.name), column=1, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.subject), column=2, line=index)
-            disp.add_display_item(displayer.DisplayerItemText(issue.description), column=3, line=index)
-            disp.add_display_item(displayer.DisplayerItemText(issue.updated_on.strftime("%Y-%m-%d %H:%M:%S")), column=4, line=index)
+            disp.add_display_item(displayer.DisplayerItemText(f'<div style="max-width:40vw; white-space:normal; word-break:break-word;">{issue.description}</div>'), column=3, line=index)
+            disp.add_display_item(displayer.DisplayerItemText(issue.closed_on.strftime("%Y-%m-%d %H:%M:%S")), column=4, line=index)
             disp.add_display_item(displayer.DisplayerItemIconLink("", "", "eye", issue.url, color=displayer.BSstyle.SUCCESS), column=5, line=index)
 
     return render_template("base_content.j2", content=disp.display(), target="bug.bugtracker")

@@ -168,7 +168,7 @@ class Workflow:
                     disabled=False,
                 )
             disp.add_display_item(
-                displayer.DisplayerItemButton("workflow_next", "Next"),
+                displayer.DisplayerItemButton("workflow_next", "Update"),
                 0,
                 disabled=False,
             )

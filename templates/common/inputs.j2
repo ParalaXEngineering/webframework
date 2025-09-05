@@ -1,27 +1,35 @@
+
 {% macro select(name, options, selected="", generic=false, tooltips=false) %}
-    {% if options %}
-    <select class="form-control" name="{{ name }}" id="{{ name }}">
-        {% if options is integer %}
-            {% for n in range(0, options + 1) %}
-                <option {% if n == selected %} selected {% endif %}>{{ n }}</option>
-            {% endfor %}
-        {% else %}
-        {% if generic%}
-            <option>Veillez sélectionner</option>
-        {% endif %}
-        {% for option in options %}
-            {% if generic%}
-                <option {% if tooltips %} data-tooltip="{{tooltips[loop.index0]}}" {% endif %} {% if option == selected %} selected {% endif %}>{{ option }}</option>
-            {% else %}
-                <option {% if tooltips %} data-tooltip="{{tooltips[loop.index0]}}" {% endif %} {% if option == selected %} selected {% endif %}>{{ option }}</option>
-            {% endif %}
-        {% endfor %}
-        {% endif %}
-    </select>
+  {% set sel_norm = (selected|string)|replace('\t',' ')|trim %}
+  {% if options %}
+  <select class="form-control" name="{{ name }}" id="{{ name }}">
+    {# Cas: options = entier → 0..N #}
+    {% if options is integer %}
+      {% for n in range(0, options + 1) %}
+        {% set n_str = n|string %}
+        <option value="{{ n_str }}" {% if n_str == selected|string %}selected{% endif %}>{{ n }}</option>
+      {% endfor %}
     {% else %}
-    <select class="form-control" name="{{ name }}" id="{{ name }}"></select>
+      {% if generic %}
+        <option value="">{{ "Veuillez sélectionner" }}</option>
+      {% endif %}
+      {% for option in options %}
+        {% set opt_val  = option|string %}
+        {% set opt_norm = opt_val|replace('\t',' ')|trim %}
+        {% set has_tip  = tooltips and (loop.index0 < (tooltips|length)) %}
+        <option
+          value="{{ opt_val }}"
+          {% if has_tip %} data-tooltip="{{ tooltips[loop.index0] }}"{% endif %}
+          {% if opt_norm == sel_norm %} selected{% endif %}
+        >{{ opt_val }}</option>
+      {% endfor %}
     {% endif %}
+  </select>
+  {% else %}
+  <select class="form-control" name="{{ name }}" id="{{ name }}"></select>
+  {% endif %}
 {% endmacro %}
+
 
 {% macro select_js(name, js, options, selected="") %}
     {% if options %}
