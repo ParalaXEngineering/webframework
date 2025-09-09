@@ -188,7 +188,7 @@ def setup_app(app):
     def before_request():            
         g.start_time = time.time()
 
-        # scheduler.scheduler_obj.m_user_connected = False
+        scheduler.scheduler_obj.m_user_connected = False
         if request.endpoint == "static":
             return
 
