@@ -17,6 +17,7 @@ import platform
 import shutil
 import traceback
 import subprocess
+import copy
 
 
 class SETUP_Updater(threaded_action.Threaded_action):
@@ -56,48 +57,88 @@ class SETUP_Updater(threaded_action.Threaded_action):
 
     def action(self):
         """Execute the module"""
-        config = utilities.util_read_parameters()
+        config = utilities.util_read_parameters() or {}
         sftp_conn = SFTPConnection.SFTPConnection(
-            config["updates"]["address"]["value"],
-            config["updates"]["user"]["value"],
-            config["updates"]["password"]["value"]
+            config.get("updates", {}).get("address", {}).get("value", ""),
+            config.get("updates", {}).get("user", {}).get("value", ""),
+            config.get("updates", {}).get("password", {}).get("value", "")
         )
-        # Recover the site information
+
         site_conf_obj = site_conf.site_conf_obj
 
-        """Execute the module
-        """
-        if self.m_action == "update" or self.m_action == "load_update_file":
+        if self.m_action in ("update", "load_update_file"):
             self.m_scheduler.emit_status(self.get_name(), "Applying update", 103)
-            current_param = utilities.util_read_parameters()
+            current_param = utilities.util_read_parameters() or {}
 
-            # Unzip or untar archive
+            # --- Unzip / Untar ---
             if platform.system().lower() == "windows":
-                with zipfile.ZipFile(os.path.join(self.m_file), mode="r") as zip:
-                    zip.extractall(path="../")
-            else:  # Assuming Linux for other platforms
-                with tarfile.open(os.path.join(self.m_file), mode="r:gz") as tar:
-                    tar.extractall(path="../")
+                with zipfile.ZipFile(os.path.join(self.m_file), mode="r") as zf:
+                    zf.extractall(path="../")
+            else:
+                # Safe extraction for tar.gz
+                def is_within_directory(directory, target):
+                    abs_directory = os.path.abspath(directory)
+                    abs_target = os.path.abspath(target)
+                    return os.path.commonprefix([abs_directory, abs_target]) == abs_directory
 
-            # config file has been overwritten, we need to reapply current configuration
-            new_param = utilities.util_read_parameters()
+                dest = "../"
+                with tarfile.open(os.path.join(self.m_file), mode="r:gz") as tf:
+                    for member in tf.getmembers():
+                        target_path = os.path.join(dest, member.name)
+                        if not is_within_directory(dest, target_path):
+                            raise Exception(f"Blocked path traversal in tar member: {member.name}")
+                    tf.extractall(path=dest)
 
-            # Add new topics
-            for topic in new_param:
-                if topic not in current_param:
-                    current_param[topic] = new_param[topic]
-                else:
-                    for key in new_param[topic]:
-                        if isinstance(new_param[topic][key], dict) and 'persistent' in new_param[topic][key]:
-                            if new_param[topic][key]['persistent']:
-                                current_param[topic][key]['value'] = new_param[topic][key]['value']
+            # Recharger le nouveau config.json (qui vient d'être écrasé par l'archive)
+            new_param = utilities.util_read_parameters() or {}
 
-            # Remove old ones
-            to_remove = [topic for topic in current_param if topic not in new_param]
-            for topic in to_remove:
-                current_param.pop(topic)
+            # --- MERGE new_param -> current_param ---
+            for topic, topic_data in new_param.items():
+                # Nouveau topic ? Copie complète (deepcopy)
+                if topic not in current_param or not isinstance(topic_data, dict):
+                    current_param[topic] = copy.deepcopy(topic_data)
+                    continue
 
-            # and save
+                cur_topic = current_param[topic]
+
+                # Parcours des clés du topic (ppu, hmi, friendly, etc.)
+                for key, new_item in topic_data.items():
+                    # Clé absente côté courant ? Création (deepcopy)
+                    if key not in cur_topic:
+                        cur_topic[key] = copy.deepcopy(new_item)
+                        continue
+
+                    cur_item = cur_topic[key]
+
+                    # Paramètre "persistable" (dict avec persistent)
+                    if isinstance(new_item, dict) and 'persistent' in new_item:
+                        if new_item.get('persistent'):
+                            # persistent == true -> on remplace TOUT le bloc
+                            cur_topic[key] = copy.deepcopy(new_item)
+                        else:
+                            # persistent == false -> garder la value, maj des métadonnées
+                            if isinstance(cur_item, dict):
+                                for meta in ('type', 'friendly', 'persistent'):
+                                    if meta in new_item:
+                                        cur_item[meta] = new_item[meta]
+                                # NE PAS toucher à cur_item['value']
+                            else:
+                                # Structure incohérente : fallback copie complète
+                                cur_topic[key] = copy.deepcopy(new_item)
+                    else:
+                        # Pas un paramètre persistable (ex: friendly d'un topic)
+                        cur_topic[key] = copy.deepcopy(new_item)
+
+                # Supprimer les anciennes clés absentes du nouveau topic
+                for key in list(cur_topic.keys()):
+                    if key not in topic_data:
+                        cur_topic.pop(key)
+
+            # Supprimer les anciens topics absents du nouveau fichier
+            for topic in list(current_param.keys()):
+                if topic not in new_param:
+                    current_param.pop(topic)
+
             utilities.util_write_parameters(current_param)
 
             # Configuration pour le lancement du bootloader
