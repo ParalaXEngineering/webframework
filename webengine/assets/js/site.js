@@ -617,6 +617,10 @@ $(document).ready(function() {
                 {
                     status = '<div id="' + msg[category][0] + '"></div>' + msg[category][2] 
                 }
+                else if(msg[category][1] == 105)
+                {
+                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-alert text-warning mx-1"></i>Not needed</div>' + msg[category][2] 
+                }
                 else
                 {
                     status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-help text-primary mx-1"></i>Unknown</div>' + msg[category][2] 
