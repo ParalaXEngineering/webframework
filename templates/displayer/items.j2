@@ -207,11 +207,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     ]
                 }
                 {% else %}
+                {% set ns = namespace(count=0) %}
                 {% for serie in  graphy %}
-                        {% if first_serie.value != 0 %}
-                            ,
-                        {% endif %}
-                        {% set first_serie.value = first_serie.value + 1 %}
+                    {{ "," if ns.count > 0 }}
+                    {% set ns.count = ns.count + 1 %}
                     {
                         name: "{{ serie }}",
                         data: [
