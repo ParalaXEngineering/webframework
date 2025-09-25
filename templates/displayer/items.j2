@@ -207,19 +207,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     ]
                 }
                 {% else %}
-                {% set ns = namespace(count=0) %}
-                {% for serie in  graphy %}
-                    {{ "," if ns.count > 0 }}
-                    {% set ns.count = ns.count + 1 %}
+                {% for serie in graphy %}
+                    {% if not loop.first %},{% endif %}
                     {
                         name: "{{ serie }}",
                         data: [
-                            {% for i in range(0, graphx | length - 1)%}
-                                ["{{graphx[i]}}", {{graphy[serie][i]}} ],
+                            {% for i in range(graphx | length) %}
+                                [{{ graphx[i]|int }}, {{ graphy[serie][i] }}]{% if not loop.last %},{% endif %}
                             {% endfor %}
-                                ["{{graphx[-1]}}", {{graphy[serie][-1]}} ]
                         ]
-                    }                
+                    }
                 {% endfor %}
                 {% endif %}
         ],
