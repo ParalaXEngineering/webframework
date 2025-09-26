@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session
+from flask import Blueprint, render_template, request, session, url_for, redirect, flash
 
 from submodules.framework.src import utilities
 from submodules.framework.src import access_manager
@@ -418,7 +418,10 @@ def config_apply():
 
         # Reload authorization
         access_manager.auth_object.load_authorizations()
-        return render_template("success.j2", message="Paramètre modifiés")
+        # return render_template("success.j2", message="Paramètre modifiés")
+        flash("Paramètres modifiés avec succès ✅", "success")
+
+        return redirect(request.referrer or render_template("success.j2", message="Paramètre modifiés"))
     return render_template("base.j2")
 
 

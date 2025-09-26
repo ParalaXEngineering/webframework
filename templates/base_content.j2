@@ -254,6 +254,24 @@ html[data-bs-theme="dark"] {
 {% set submenu_count = namespace(value=0) %}
 {% set path_count = namespace(value=0) %}
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      {% set bs = category if category in ['primary','secondary','success','danger','warning','info','light','dark'] else 'secondary' %}
+      <div class="alert alert-{{ bs }} alert-dismissible fade show mt-2" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<script>
+  document.querySelectorAll('.alert').forEach(a=>{
+    setTimeout(()=>{ a.classList.remove('show'); a.addEventListener('transitionend',()=>a.remove()); }, 3500);
+  });
+</script>
+
 {%if content|length <= 3 %} 
     {# This is size of 1 because the modals are always here #}
     <div class="text-center">
