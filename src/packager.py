@@ -12,6 +12,7 @@ import socket
 import datetime
 import sys
 import time
+import errno
 from submodules.framework.src import threaded_action
 
 import os
@@ -298,6 +299,11 @@ class SETUP_Packager(threaded_action.Threaded_action):
                 except FileNotFoundError as e:
                     self.m_logger.warning(f"Skipping missing file: {e}")
                     pass
+                except OSError as e:
+                    if e.errno == errno.ENAMETOOLONG:
+                        self.m_logger.error(f"Skipping file with too long path: {e}")
+                    else:
+                        raise
 
                 self.m_scheduler.emit_status(
                     self.get_name(), "Unpacking archive, this might take a while", 100
