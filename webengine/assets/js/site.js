@@ -607,7 +607,7 @@ $(document).ready(function() {
                 }
                 else if(msg[category][1] == 102)
                 {
-                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-alert text-warning mx-1"></i>Readme</div>' + msg[category][2] 
+                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-information-outline text-info mx-1"></i>Readme</div>' + msg[category][2] 
                 }
                 else if(msg[category][1] == 103)
                 {
@@ -619,11 +619,11 @@ $(document).ready(function() {
                 }
                 else if(msg[category][1] == 105)
                 {
-                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-alert text-warning mx-1"></i>Not needed</div>' + msg[category][2] 
+                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-minus-circle-outline text-secondary mx-1"></i>Not needed</div>' + msg[category][2] 
                 }
                 else if(msg[category][1] == 106)
                 {
-                    status = '<div id="' + msg[category][0] + '"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Pending</div>' + msg[category][2] 
+                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-timer-sand text-primary mx-1"></i> Pending</div>' + msg[category][2] 
                 }
                 else
                 {
