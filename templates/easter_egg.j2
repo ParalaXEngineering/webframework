@@ -135,66 +135,6 @@
     }
 </script>
 
-<script>
-  // Utilise url_for pour ne pas te tromper d’URL (blueprint/prefix)
-  const RUN_TREX_URL = "{{ url_for('singles.run_trex_game') if url_for else '/run-trex-game' }}";
-
-  // Séquence clavier "trex"
-  const trexCode = ['t','r','e','x'];
-  let trexIndex = 0;
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key.toLowerCase() === trexCode[trexIndex]) {
-      trexIndex++;
-      if (trexIndex === trexCode.length) {
-        launchTrexGame();
-        trexIndex = 0;
-      }
-    } else {
-      trexIndex = 0;
-    }
-  });
-
-  async function launchTrexGame() {
-    try {
-      const res = await fetch(RUN_TREX_URL, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-          // Si tu utilises Flask-WTF CSRF, décommente la ligne suivante et fournis le token depuis un meta
-          // "X-CSRFToken": document.querySelector('meta[name="csrf-token"]')?.content || ""
-        },
-        body: "{}"
-      });
-
-      const ct = res.headers.get("content-type") || "";
-      const raw = await res.text();
-
-      if (!ct.includes("application/json")) {
-        // Réponse HTML → souvent un redirect vers login ou une erreur serveur
-        throw new Error(`Réponse non-JSON (status ${res.status}). Début: ${raw.slice(0, 120)}`);
-      }
-
-      const data = JSON.parse(raw);
-
-      if (res.ok && data.status === "success") {
-        showCustomAlert(
-            '🎮 Jeu du T-Rex lancé, Amuse-toi bien 🦖 ',
-            "{{ url_for('static', filename='images/site/trex.jpg') }}"
-        );
-      } else {
-        throw new Error(data.message || `Erreur serveur (status ${res.status})`);
-      }
-    } catch (err) {
-      console.error(err);
-      // Message propre si ça redevient du HTML
-      alert("Erreur réseau: " + err.message);
-    }
-  }
-</script>
-
 
 <style>
     /* Effet Pixel Art - Thème Clair */
