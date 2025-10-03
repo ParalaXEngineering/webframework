@@ -13,12 +13,60 @@ FLASK_APP=demo.py flask run --port 5001
 ### Running Tests
 ```bash
 source .venv/bin/activate
-pytest tests/ -v  # All tests (97 tests)
-pytest tests/test_displayer_http.py -v  # HTTP & POST tests (10 tests)
-pytest tests/test_displayer_unit.py -v  # Unit tests (52 tests)
+pytest tests/ -v                    # All tests (191 tests)
+pytest tests/core/ -v               # Core module tests (69 tests)
+pytest tests/imports/ -v            # Import tests (26 tests)
+pytest tests/pages/ -v              # Page/HTTP tests (8 tests)
+pytest tests/ --collect-only        # See test discovery
 ```
 
-**Test Status**: ✅ All 97 tests passing (as of 2025-10-03)
+**Test Status**: ✅ All 191 tests passing (as of refactoring 2024)
+
+## Test Suite Architecture
+
+### New Test Structure (191 tests)
+```
+tests/
+├── core/                    # Core framework tests (69 tests)
+│   ├── test_startup.py      # 6 tests - initialization
+│   ├── test_core_modules.py # 11 tests - core classes
+│   ├── test_displayer_unit.py # 52 tests - DisplayerItem unit tests
+│   └── test_displayer_auto.py # 94 tests - Auto-discovery tests ⭐
+│
+├── imports/                 # Import system tests (26 tests)
+│   ├── test_imports.py      # 6 tests - import mechanics
+│   └── test_auto_imports.py # 20 tests - Auto-discovery of all modules ⭐
+│
+└── pages/                   # Page/route tests (8 tests)
+    └── test_http_forms.py   # Form data transformation tests
+```
+
+### Auto-Discovery System ⭐
+
+**NEW**: Tests automatically discover and test new code!
+
+#### 1. DisplayerCategory Decorators (src/displayer.py)
+```python
+@DisplayerCategory.INPUT
+class DisplayerItemNewWidget(DisplayerItem):
+    def __init__(self, id: str, ...):
+        super().__init__(DisplayerItems.NEWWIDGET)
+        # This class is now AUTO-TESTED!
+```
+
+Categories: INPUT (25), DISPLAY (4), BUTTON (6), MEDIA (4)
+
+#### 2. Module Auto-Discovery (tests/imports/test_auto_imports.py)
+- Scans src/ directory automatically
+- Tests all 17 modules
+- New modules in src/ are automatically tested
+
+#### 3. Auto-Generated Tests (tests/core/test_displayer_auto.py)
+- 94 parametrized tests
+- Tests every decorated DisplayerItem class
+- Validates m_type, parameters, instantiation
+
+**Benefits**: Add a class with decorator → automatic test coverage!
 
 ## Architecture Overview
 
@@ -27,11 +75,12 @@ pytest tests/test_displayer_unit.py -v  # Unit tests (52 tests)
 1. **displayer.py** (src/displayer.py)
    - Main display system with 40+ DisplayerItem types
    - 4 layout types: VERTICAL, HORIZONTAL, TABLE, TABS
+   - **NEW**: DisplayerCategory decorator system for auto-discovery
    - Key classes:
      - `Displayer`: Main container
-     - `DisplayerLayout`: Layout manager
+     - `DisplayerLayout`: Layout manager (uses `m_column`, not `m_columns`)
      - `DisplayerItem`: Base class for all items
-     - Various `DisplayerItem*` subclasses
+     - Various `DisplayerItem*` subclasses (all decorated)
 
 2. **site_conf.py** (src/site_conf.py)
    - Base configuration class
@@ -40,6 +89,7 @@ pytest tests/test_displayer_unit.py -v  # Unit tests (52 tests)
    - Has `context_processor()` method for Flask template context
 
 3. **access_manager.py** (src/access_manager.py)
+   - Class name: `Access_manager` (NOT AccessManager)
    - Authorization/authentication system
    - Requires initialization with config
 
@@ -244,10 +294,11 @@ Docs location: `docs/build/html/index.html`
 
 ```
 src/
-  displayer.py       - Display system (1723 lines)
-  site_conf.py       - Base config class
-  access_manager.py  - Auth system
-  common.py          - Utilities (util_post_to_json, etc.)
+  displayer.py       - Display system (1857 lines) ⭐ NOW WITH DECORATORS
+  site_conf.py       - Base config class (Site_conf)
+  access_manager.py  - Auth system (Access_manager class)
+  utilities.py       - Utilities (util_post_to_json, etc.)
+  common.py          - Common functions
 
 templates/
   base.j2            - Main template
@@ -257,8 +308,18 @@ templates/
     items.j2         - Item rendering macros
 
 demo.py              - Demo Flask app (511 lines)
-tests/
-  test_displayer_http.py - HTTP & POST tests (10 tests)
+
+tests/               ⭐ REFACTORED STRUCTURE
+  core/
+    test_startup.py         - 6 tests
+    test_core_modules.py    - 11 tests
+    test_displayer_unit.py  - 52 tests (original unit tests)
+    test_displayer_auto.py  - 94 tests (AUTO-DISCOVERY!)
+  imports/
+    test_imports.py         - 6 tests
+    test_auto_imports.py    - 20 tests (AUTO-DISCOVERY!)
+  pages/
+    test_http_forms.py      - 8 tests
 ```
 
 ## Environment
@@ -268,16 +329,47 @@ tests/
 - Jinja2 templates
 - Port 5001 (5000 often in use on Mac)
 
+## Testing Strategy
+
+### Auto-Discovery Pattern
+New code is automatically tested when you:
+1. Add `@DisplayerCategory.INPUT` decorator to new DisplayerItem classes
+2. Add new .py files to src/ directory
+
+### Manual Testing Pattern
+For complex features, add specific tests in:
+- `tests/core/` for core framework features
+- `tests/pages/` for route/page features
+
 ## Remember
 
 - **Always extend Site_conf**, never use directly
-- **Always initialize AccessManager**, even if not using auth
+- **Class name is Access_manager**, NOT AccessManager
+- **Always initialize Access_manager**, even if not using auth
 - **Always register context_processor**
 - **Check DisplayerItem signatures** in displayer.py before use
 - **Use blueprint prefixes** in all url_for() calls
 - **Never use "#" as URL endpoint**
+- **Layout attribute is m_column**, not m_columns
+- **Layout m_type is string**, compare with `Layouts.VERTICAL.value`
+- **util_post_to_json uses . separator**, not __
 - **Test after every change** - Flask errors can cascade
+- **Add decorators to new DisplayerItem classes** for auto-testing
+
+## Recent Major Changes
+
+### Test Suite Refactoring (2024)
+- **Before**: 97 tests in flat structure
+- **After**: 191 tests with auto-discovery
+- **Added**: DisplayerCategory decorator system (40 classes decorated)
+- **Added**: Auto-discovery import tests (17 modules)
+- **Added**: Parametrized tests (94 auto-generated)
+- **See**: TEST_REFACTORING_SUMMARY.md for full details
 
 ---
-Last Updated: 2025-10-03
-Context: Successfully built demo.py with all 5 pages working
+Last Updated: 2024 (Test Refactoring)
+Status: 
+  - ✅ All 191 tests passing
+  - ✅ Demo application working (5/5 pages)
+  - ✅ Documentation complete
+  - ✅ Auto-discovery enabled

@@ -4,6 +4,100 @@ except ImportError:
     import access_manager
 
 from enum import Enum
+from functools import wraps
+
+
+# ============================================================================
+# Displayer Item Category System for Auto-Discovery Testing
+# ============================================================================
+
+class DisplayerCategory:
+    """
+    Category decorator for DisplayerItem classes to enable auto-discovery in tests.
+    
+    Usage:
+        @DisplayerCategory.INPUT
+        @DisplayerCategory.INPUT
+class DisplayerItemInputString(DisplayerItem):
+            ...
+    
+    Categories:
+        - INPUT: Input form elements (text, number, date, select, etc.)
+        - DISPLAY: Display-only elements (text, alert, badge, etc.)
+        - BUTTON: Interactive buttons and links
+        - LAYOUT: Layout-related items
+        - MEDIA: Images, files, graphs, calendars
+        - ADVANCED: Complex composite items
+    """
+    
+    _registry = {
+        'input': [],
+        'display': [],
+        'button': [],
+        'layout': [],
+        'media': [],
+        'advanced': []
+    }
+    
+    @classmethod
+    def _register(cls, category, item_class):
+        """Register a class in a category."""
+        if category not in cls._registry:
+            cls._registry[category] = []
+        if item_class not in cls._registry[category]:
+            cls._registry[category].append(item_class)
+        return item_class
+    
+    @classmethod
+    def get_all(cls, category=None):
+        """Get all registered classes, optionally filtered by category."""
+        if category:
+            return cls._registry.get(category, [])
+        return cls._registry
+    
+    # Decorator methods
+    @classmethod
+    def INPUT(cls, item_class):
+        """Mark class as an input item."""
+        item_class._displayer_category = 'input'
+        return cls._register('input', item_class)
+    
+    @classmethod
+    def DISPLAY(cls, item_class):
+        """Mark class as a display item."""
+        item_class._displayer_category = 'display'
+        return cls._register('display', item_class)
+    
+    @classmethod
+    def BUTTON(cls, item_class):
+        """Mark class as a button/link item."""
+        item_class._displayer_category = 'button'
+        return cls._register('button', item_class)
+    
+    @classmethod
+    def LAYOUT(cls, item_class):
+        """Mark class as a layout item."""
+        item_class._displayer_category = 'layout'
+        return cls._register('layout', item_class)
+    
+    @classmethod
+    def MEDIA(cls, item_class):
+        """Mark class as a media item (image, file, graph, calendar)."""
+        item_class._displayer_category = 'media'
+        return cls._register('media', item_class)
+    
+    @classmethod
+    def ADVANCED(cls, item_class):
+        """Mark class as an advanced/composite item."""
+        item_class._displayer_category = 'advanced'
+        return cls._register('advanced', item_class)
+
+
+# ============================================================================
+# Enums
+# ============================================================================
+
+from enum import Enum
 
 
 class Layouts(Enum):
@@ -318,6 +412,7 @@ class DisplayerItem:
         return
 
 
+@DisplayerCategory.DISPLAY
 class DisplayerItemPlaceholder(DisplayerItem):
     """Specialized display item to set a placeholder with an id which can be filled later"""
 
@@ -334,6 +429,7 @@ class DisplayerItemPlaceholder(DisplayerItem):
         self.m_data = data
 
 
+@DisplayerCategory.DISPLAY
 class DisplayerItemAlert(DisplayerItem):
     """Specialized display item to display a an alert with a bootstrap style"""
 
@@ -354,6 +450,7 @@ class DisplayerItemAlert(DisplayerItem):
         return
 
 
+@DisplayerCategory.DISPLAY
 class DisplayerItemText(DisplayerItem):
     """Specialized display item to display a simple line of text"""
 
@@ -366,6 +463,7 @@ class DisplayerItemText(DisplayerItem):
         super().__init__(DisplayerItems.TEXT)
         self.m_text = text
 
+@DisplayerCategory.INPUT
 class DisplayerItemHidden(DisplayerItem):
     """Specialized display to display a hidden field"""
 
@@ -376,6 +474,7 @@ class DisplayerItemHidden(DisplayerItem):
         return
 
 
+@DisplayerCategory.BUTTON
 class DisplayerItemIconLink(DisplayerItem):
     """Specialized display item to display a link icon"""
 
@@ -408,6 +507,7 @@ class DisplayerItemIconLink(DisplayerItem):
         self.m_style = color.value
         return
     
+@DisplayerCategory.BUTTON
 class DisplayerItemButtonLink(DisplayerItem):
     """Specialized display item to display a link icon"""
 
@@ -454,6 +554,7 @@ class DisplayerItemButtonLink(DisplayerItem):
         return
 
 
+@DisplayerCategory.BUTTON
 class DisplayerItemButton(DisplayerItem):
     """Specialized display item to display a simple button"""
 
@@ -469,6 +570,7 @@ class DisplayerItemButton(DisplayerItem):
         self.m_focus = focus
         return
     
+@DisplayerCategory.BUTTON
 class DisplayerItemModalButton(DisplayerItem):
     """Specialized display item to display a button to show a modal"""
 
@@ -483,6 +585,7 @@ class DisplayerItemModalButton(DisplayerItem):
         self.m_path = link
         return
     
+@DisplayerCategory.BUTTON
 class DisplayerItemModalLink(DisplayerItem):
     """Specialized display item to display a link icon"""
 
@@ -512,6 +615,7 @@ class DisplayerItemModalLink(DisplayerItem):
         return
 
 
+@DisplayerCategory.DISPLAY
 class DisplayerItemBadge(DisplayerItem):
     """Specialized display item to display a badge with a color"""
 
@@ -532,6 +636,7 @@ class DisplayerItemBadge(DisplayerItem):
         return
 
 
+@DisplayerCategory.BUTTON
 class DisplayerItemDownload(DisplayerItem):
     """Specialized display item to display a simple download button"""
 
@@ -551,6 +656,7 @@ class DisplayerItemDownload(DisplayerItem):
         return
 
 
+@DisplayerCategory.MEDIA
 class DisplayerItemImage(DisplayerItem):
     """Specialized display item to display an image"""
 
@@ -574,6 +680,7 @@ class DisplayerItemImage(DisplayerItem):
 
         return
 
+@DisplayerCategory.MEDIA
 class DisplayerItemFile(DisplayerItem):
     """Specialized display item to display an image"""
 
@@ -595,6 +702,7 @@ class DisplayerItemFile(DisplayerItem):
         self.m_endpoint = endpoint
         return
     
+@DisplayerCategory.INPUT
 class DisplayerItemInputBox(DisplayerItem):
     """Specialized display to display an input checkbox"""
 
@@ -606,6 +714,7 @@ class DisplayerItemInputBox(DisplayerItem):
         return
 
 
+@DisplayerCategory.MEDIA
 class DisplayerItemGraph(DisplayerItem):
     """Specialized display to display an input file explorer"""
 
@@ -650,6 +759,7 @@ class DisplayerItemGraph(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputFileExplorer(DisplayerItem):
     """Specialized display to display an input file explorer"""
 
@@ -707,6 +817,7 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
         container[-1]["explorer_hiddens"] = self.m_explorerHiddens
         return
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputCascaded(DisplayerItem):
     """Specialized display to have multiple select choices, where each level depend on the previous one
     :param ids: The ids of each levels of the cascade
@@ -732,6 +843,7 @@ class DisplayerItemInputCascaded(DisplayerItem):
         self.m_level = level
         return
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputSelect(DisplayerItem):
     """Specialized display to display an input select box"""
 
@@ -757,6 +869,7 @@ class DisplayerItemInputSelect(DisplayerItem):
 
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputPath(DisplayerItem):
     """Specialized display to display a path dropdown menu.
 
@@ -780,6 +893,7 @@ class DisplayerItemInputPath(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputMultiSelect(DisplayerItem):
     """Specialized display to display a multiple select with a possibility to add them on the fly"""
 
@@ -793,6 +907,7 @@ class DisplayerItemInputMultiSelect(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputMapping(DisplayerItem):
     """Specialized display to display a mapping with a possibility to add them on the fly"""
 
@@ -806,6 +921,7 @@ class DisplayerItemInputMapping(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputListSelect(DisplayerItem):
     """Specialized display to display a set of list select"""
 
@@ -819,6 +935,7 @@ class DisplayerItemInputListSelect(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputTextSelect(DisplayerItem):
     """Specialized display to display a mapping for a text and a selection for the user"""
 
@@ -832,6 +949,7 @@ class DisplayerItemInputTextSelect(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputSelectText(DisplayerItem):
     """Specialized display to display a mapping for a selection for the user then a text"""
 
@@ -845,6 +963,7 @@ class DisplayerItemInputSelectText(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputDualTextSelect(DisplayerItem):
     """Specialized display to display a mapping for a dual text and a selection for the user"""
 
@@ -858,6 +977,7 @@ class DisplayerItemInputDualTextSelect(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputDualSelectText(DisplayerItem):
     """Specialized display to display a mapping for a dual selection for the user then a text"""
 
@@ -871,6 +991,7 @@ class DisplayerItemInputDualSelectText(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputTextText(DisplayerItem):
     """Specialized display to display a mapping with two texts"""
 
@@ -882,6 +1003,7 @@ class DisplayerItemInputTextText(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputListText(DisplayerItem):
     """Specialized display to display a list of input text"""
 
@@ -893,6 +1015,7 @@ class DisplayerItemInputListText(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputNumeric(DisplayerItem):
     """Specialized display to display an input number"""
 
@@ -905,6 +1028,7 @@ class DisplayerItemInputNumeric(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputDate(DisplayerItem):
     """Specialized display to display an input date.
     Date shall be in format YYYY-MM-DD or YYYY-MM-DDT000:00 if the minute and hour is also needed"""
@@ -917,6 +1041,7 @@ class DisplayerItemInputDate(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputText(DisplayerItem):
     """Specialized display to display an input number"""
 
@@ -927,6 +1052,7 @@ class DisplayerItemInputText(DisplayerItem):
         self.m_id = id
         return
     
+@DisplayerCategory.INPUT
 class DisplayerItemInputTextJS(DisplayerItem):
     """Specialized display to display an input text with a JS function execution on change"""
 
@@ -939,6 +1065,7 @@ class DisplayerItemInputTextJS(DisplayerItem):
         self.m_focus = focus
         return
     
+@DisplayerCategory.INPUT
 class DisplayerItemInputString(DisplayerItem):
     """Specialized display to display an input number"""
 
@@ -950,6 +1077,7 @@ class DisplayerItemInputString(DisplayerItem):
         self.m_focus = focus
         return
     
+@DisplayerCategory.INPUT
 class DisplayerItemInputStringIcon(DisplayerItem):
     """Specialized display to display an input string that also displays an associated mdi icon if valid"""
 
@@ -961,6 +1089,7 @@ class DisplayerItemInputStringIcon(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputMultiText(DisplayerItem):
     """Specialized display to display an input number"""
 
@@ -972,6 +1101,7 @@ class DisplayerItemInputMultiText(DisplayerItem):
         return
 
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputTextIcon(DisplayerItem):
     """Specialized display to display a relation text / icon"""
 
@@ -981,6 +1111,7 @@ class DisplayerItemInputTextIcon(DisplayerItem):
         self.m_id = id
         return
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputFolder(DisplayerItem):
     """Specialized display to display an input number"""
 
@@ -990,6 +1121,7 @@ class DisplayerItemInputFolder(DisplayerItem):
         self.m_id = id
         return
 
+@DisplayerCategory.INPUT
 class DisplayerItemInputFile(DisplayerItem):
     """Specialized display to display an input number"""
 
@@ -999,6 +1131,7 @@ class DisplayerItemInputFile(DisplayerItem):
         self.m_id = id
         return
     
+@DisplayerCategory.INPUT
 class DisplayerItemInputImage(DisplayerItem):
     """Specialized display to display an input image box"""
 
@@ -1008,6 +1141,7 @@ class DisplayerItemInputImage(DisplayerItem):
         self.m_id = id
         return
 
+@DisplayerCategory.MEDIA
 class DisplayerItemCalendar(DisplayerItem):
     """Specialized display to display a full size calendar
     :param id: The id of the calendar
