@@ -3,12 +3,19 @@ import time
 import copy
 import subprocess
 import logging
+import logging.config
 import traceback
+import os
 
 
-from submodules.framework.src import threaded_manager
-from submodules.framework.src import scheduler
-from submodules.framework.src import access_manager
+try:
+    from . import threaded_manager
+    from . import scheduler
+    from . import access_manager
+except ImportError:
+    import threaded_manager
+    import scheduler
+    import access_manager
 
 
 class Threaded_action:
@@ -60,14 +67,40 @@ class Threaded_action:
         # Register the thread
         threaded_manager.thread_manager_obj.add_thread(self)
 
-        logging.config.fileConfig("submodules/framework/log_config.ini")
+        # Try to find log config file in different possible locations
+        log_config_paths = [
+            "log_config.ini",  # For standalone usage
+            "../log_config.ini",  # For when running from src directory
+            "submodules/framework/log_config.ini"  # For submodule usage
+        ]
+        
+        for log_path in log_config_paths:
+            if os.path.exists(log_path):
+                logging.config.fileConfig(log_path)
+                break
+        else:
+            # Fallback to basic logging if no config file found
+            logging.basicConfig(level=logging.INFO)
         self.m_logger = logging.getLogger("website")
         self.m_logger.info("Threaded action started")
 
         self.m_scheduler = scheduler.scheduler_obj
 
     def __del__(self):
-        logging.config.fileConfig("submodules/framework/log_config.ini")
+        # Try to find log config file in different possible locations
+        log_config_paths = [
+            "log_config.ini",  # For standalone usage
+            "../log_config.ini",  # For when running from src directory
+            "submodules/framework/log_config.ini"  # For submodule usage
+        ]
+        
+        for log_path in log_config_paths:
+            if os.path.exists(log_path):
+                logging.config.fileConfig(log_path)
+                break
+        else:
+            # Fallback to basic logging if no config file found
+            logging.basicConfig(level=logging.INFO)
         self.m_logger = logging.getLogger("website")
         self.m_logger.info("Threaded action finished")
 

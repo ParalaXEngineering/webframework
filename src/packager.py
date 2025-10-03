@@ -1,11 +1,11 @@
 from flask import Blueprint, render_template, request
 
-from submodules.framework.src import utilities
-from submodules.framework.src import access_manager
-from submodules.framework.src import site_conf
-from submodules.framework.src import displayer
-from submodules.framework.src import scheduler
-from submodules.framework.src import SFTPConnection
+from . import utilities
+from . import access_manager
+from . import site_conf
+from . import displayer
+from . import scheduler
+from . import SFTPConnection
 
 import shutil
 import socket
@@ -13,7 +13,7 @@ import datetime
 import sys
 import time
 import errno
-from submodules.framework.src import threaded_action
+from . import threaded_action
 
 import os
 import tempfile

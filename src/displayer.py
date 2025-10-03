@@ -1,4 +1,7 @@
-from submodules.framework.src import access_manager
+try:
+    from . import access_manager
+except ImportError:
+    import access_manager
 
 from enum import Enum
 

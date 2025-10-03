@@ -1,5 +1,9 @@
-from submodules.framework.src import access_manager
-from submodules.framework.src import scheduler
+try:
+    from . import access_manager
+    from . import scheduler
+except ImportError:
+    import access_manager
+    import scheduler
 
 import os
 

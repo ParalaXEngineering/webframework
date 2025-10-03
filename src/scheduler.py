@@ -5,7 +5,10 @@ import logging.config
 
 from enum import Enum
 
-from submodules.framework.src import threaded_manager
+try:
+    from . import threaded_manager
+except ImportError:
+    import threaded_manager
 
 scheduler_obj = None
 scheduler_ltobj = None

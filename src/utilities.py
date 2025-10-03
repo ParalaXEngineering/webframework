@@ -3,15 +3,35 @@ import os
 import sys
 import glob
 import math
-import serial
 import zlib
 import tarfile
 import time
 import re
 
-from jinja2 import Environment, FileSystemLoader
-from flask import session
-from submodules.framework.src import displayer
+# Optional dependencies - only import what's available
+try:
+    import serial
+except ImportError:
+    serial = None
+
+try:
+    from jinja2 import Environment, FileSystemLoader
+except ImportError:
+    Environment = None
+    FileSystemLoader = None
+
+try:
+    from flask import session
+except ImportError:
+    session = None
+
+try:
+    from . import displayer
+except ImportError:
+    try:
+        import displayer
+    except ImportError:
+        displayer = None
 
 CONFIG_GLOBAL = {}
 LAST_ACCESS_CONFIG = None

@@ -1,0 +1,24 @@
+# ParalaX Web Framework Dependencies
+# Core web framework
+Flask>=2.0.0
+flask-session>=0.4.0
+flask-socketio>=5.0.0
+
+# Template engine (comes with Flask but listed for clarity)
+Jinja2>=3.0.0
+
+# Optional dependencies for full functionality
+# (Some modules may require these)
+pyserial>=3.5
+psutil>=5.8.0
+bcrypt>=3.2.0
+markdown>=3.3.0
+python-redmine>=2.5.0
+urllib3>=1.26.0
+
+# For packaging and deployment (optional)
+paramiko>=2.8.0  # For SFTP functionality in SFTPConnection
+
+# Development dependencies (optional)
+pytest>=6.0.0
+pytest-flask>=1.2.0

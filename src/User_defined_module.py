@@ -1,4 +1,7 @@
-from submodules.framework.src import threaded_action
+try:
+    from . import threaded_action
+except ImportError:
+    import threaded_action
 
 
 class User_defined_module(threaded_action.Threaded_action):

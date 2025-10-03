@@ -1,7 +1,11 @@
 import threading
 import traceback
-from submodules.framework.src import scheduler
-from submodules.framework.src import displayer
+try:
+    from . import scheduler
+    from . import displayer
+except ImportError:
+    import scheduler
+    import displayer
 
 
 class Workflow:

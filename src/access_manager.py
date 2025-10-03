@@ -1,5 +1,12 @@
-from submodules.framework.src import utilities
-from flask import session
+try:
+    from . import utilities
+except ImportError:
+    import utilities
+
+try:
+    from flask import session
+except ImportError:
+    session = None
 
 auth_object = None
 
