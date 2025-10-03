@@ -1,8 +1,0 @@
-# FRAMEWORK
-
-```{eval_rst}
-.. autoclass:: access_manager.Access_manager
-    :members:
-    :undoc-members:
-    :show-inheritance:
-```

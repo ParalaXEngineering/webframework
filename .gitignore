@@ -3,3 +3,29 @@
 src/flask_session
 /flask_session
 *.log
+
+# Documentation builds
+docs/build/
+docs/source/_static/
+docs/source/_templates/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+__pycache__/
+*.egg-info/
+
+# Package builds
+dist/
+build/
+*.egg

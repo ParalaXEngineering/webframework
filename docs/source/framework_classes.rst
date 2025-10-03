@@ -1,53 +1,97 @@
-Framework classes
-################################
+Framework Classes Reference
+############################
 
-Private
--------
-.. autoclass:: access_manager.Access_manager
+This page provides detailed API documentation for the main classes in the ParalaX Web Framework.
+
+Core Classes
+============
+
+Access Manager
+--------------
+
+.. autoclass:: src.access_manager.Access_manager
     :members:
     :undoc-members:
     :show-inheritance:
 
-Public base
+Site Configuration
+------------------
+
+.. autoclass:: src.site_conf.Site_conf
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Thread Manager
+--------------
+
+.. autoclass:: src.threaded_manager.Threaded_manager
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Action Classes
+==============
+
+Base Action
 -----------
 
-.. autoclass:: site_conf.Site_conf
+.. autoclass:: src.action.Action
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: threaded_manager.Threaded_manager
+Threaded Action
+---------------
+
+.. autoclass:: src.threaded_action.Threaded_action
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: threaded_action.Threaded_action
+Scheduler
+=========
+
+.. autoclass:: src.scheduler.Scheduler
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: action.Action
-    :members:
-    :undoc-members:
-    :show-inheritance:
+Display System
+==============
 
-.. autoclass:: scheduler.Scheduler
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-Utilities
+Displayer
 ---------
-.. automodule:: utilities
+
+.. autoclass:: src.displayer.Displayer
     :members:
     :undoc-members:
     :show-inheritance:
 
-Pages
------------
-.. automodule:: common
+Display Items
+-------------
+
+.. autoclass:: src.displayer.DisplayerItem
     :members:
     :undoc-members:
+    :show-inheritance:
+
+Utility Functions
+=================
+
+.. automodule:: src.utilities
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Common Pages
+============
+
+.. automodule:: src.common
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
     :show-inheritance:
 
 .. automodule:: settings

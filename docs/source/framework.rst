@@ -1,56 +1,301 @@
-Framework
-*********
+Framework Architecture
+**********************
 
 Description
-###########
+===========
 
-The base framework consists mainly of:
+The ParalaX Web Framework is a comprehensive Flask-based system designed for building tool management and monitoring web applications. It provides a solid foundation with built-in support for:
 
-* A webengine, based on flask and jinja templates, generating html code from user functions.
-* A scheduler :meth:`scheduler.Scheduler` , which will run every now and then to provide communication with the user's webclient; through socketio. This scheduler is responsible for refreshing some portions of the website, such as the buttons, the modals, etc.
-* A thread manager :meth:`threaded_manager.Threaded_manager` , which register and maintain in memory a set of thread. It is responsible for registering and deleting them.
-* A set of thread actions :meth:`threaded_action.Threaded_action` , which, once registered in the thread manager, offers a basic framework to do asynchronous work while the user still can use the website. The user can define as many thread as he wants, which can do a variety of work. From nowon, the term **module** will be used.
-* A site conf :meth:`site_conf.Site_conf` which provides the basic site information. It should be overwritten by the child class
+* Real-time updates via WebSocket (SocketIO)
+* Background task management with threading
+* User authentication and authorization
+* Dynamic UI generation
+* Module-based extensibility
 
-In addition, the framework provides different functionalities:
+Core Components
+===============
 
-* An updater, that can check on a FTP server the presence of updates and apply them.
-* An access manager :meth:`access_manager.Access_manager` in order to support login of different users and authorizations. This access manager shall not be access directly by a site handler: everything is configured through the settings of the application
-* A set of helper functions :func:`utilities` . They range from easily listing serial ports to helper function to display stuff in the web engine.
+Web Engine
+----------
 
-Finally, the framework will auto-generate some pages that are always present in a website:
+The web engine is built on **Flask** with **Jinja2** templates. It handles:
 
-* An optional login page
-* A mendatory setting page.
+* HTTP request routing
+* Template rendering
+* Session management (via flask-session)
+* WebSocket connections (via flask-socketio)
+* Static file serving
 
-In addition to the framework, each website can have other items:
-* A ressource folder, where files usefull for the website can be stored (for instance, binary files for different tools)
-* A package folder, which is a compressed version of a base ressource folder, for easy sharing. The framework provide different helpers to generate those packages and manage them
-* A download folder, for user inputs
-* A docs folder, containing this documentation
+The main application is defined in :class:`src.main` and can be initialized with custom configurations.
 
+Scheduler
+---------
 
-File structure
-##############
-The ParalaX's Web basic file structure is:
-::
+The :class:`src.scheduler.Scheduler` class provides periodic task execution and real-time communication:
 
-    | ParalaX's Web
-    | ├── docs (documentation sources)
-    | ├── packages 
-    | │   ├── website1
-    | │   ├── website2
-    | ├── ressources 
-    | ├── packages 
-    | │   ├── website1
-    | │   ├── website2
-    | ├── src (python sources)
-    | │   ├── framework (framework python sources)
-    | │   ├── website1 (First site handler)
-    | │   ├── website2 (second site handler)
-    | │   ├── ... (Any amount of site handlers)
-    | │   ├── ... (Any amount of site handlers)
-    | │   ├── templates (Jinja templates)
-    | │   ├── main.py (Access point)
-    | ├── webengine (website ressources)
-    | │   ├── assets (css, js of the javascript)
+* Runs at configurable intervals
+* Refreshes dynamic page elements (buttons, modals, status indicators)
+* Uses SocketIO for push updates to clients
+* Manages client connections and disconnections
+
+Example usage:
+
+.. code-block:: python
+
+   from src.scheduler import Scheduler
+   
+   scheduler = Scheduler(app, socketio, interval=1.0)
+   scheduler.start()
+
+Thread Manager
+--------------
+
+The :class:`src.threaded_manager.Threaded_manager` maintains a registry of background threads:
+
+* Registers new threads with unique identifiers
+* Tracks thread status (running, stopped, completed)
+* Provides thread lifecycle management
+* Cleans up completed threads
+
+This is essential for long-running operations that shouldn't block the web interface.
+
+Threaded Actions
+----------------
+
+:class:`src.threaded_action.Threaded_action` provides a framework for creating background tasks (modules):
+
+* Extends the base :class:`src.action.Action` class
+* Runs in a separate thread
+* Reports progress updates
+* Handles errors gracefully
+* Integrates with the Thread Manager
+
+Users can create custom modules by inheriting from this class.
+
+Site Configuration
+------------------
+
+:class:`src.site_conf.Site_conf` provides base configuration:
+
+* Site metadata (title, description)
+* Available modules/actions
+* Navigation structure
+* Custom settings
+
+Site handlers should inherit from this class to customize behavior.
+
+Display System
+--------------
+
+The :class:`src.displayer.Displayer` class creates dynamic UI elements:
+
+* **Modules**: Top-level containers (forms, cards)
+* **Layouts**: Organizational structures (vertical, horizontal, grid)
+* **Items**: Individual UI components (buttons, inputs, displays)
+
+All elements are rendered in the order they're added, providing predictable layouts.
+
+Example:
+
+.. code-block:: python
+
+   from src.displayer import Displayer, DisplayerItem
+   
+   disp = Displayer()
+   module = {"id": "main", "title": "Control Panel"}
+   disp.add_module(module)
+   
+   # Add items to the module
+   item = DisplayerItem("btn_start", "Start", "button")
+   disp.add_item(item)
+
+Access Manager
+--------------
+
+The :class:`src.access_manager.Access_manager` handles authentication and authorization:
+
+* User login/logout
+* Password hashing (bcrypt)
+* Role-based access control
+* Session management
+
+Configuration is done through application settings, not directly accessed by site handlers.
+
+Utilities
+---------
+
+The :mod:`src.utilities` module provides helper functions:
+
+* Breadcrumb navigation management
+* Serial port enumeration
+* JSON file I/O
+* Form data processing
+* File system operations
+* Modal and dynamic content creation
+
+Additional Features
+===================
+
+Updater
+-------
+
+The :class:`src.updater.Updater` can check for and apply updates:
+
+* Connects to FTP/SFTP servers
+* Downloads new versions
+* Applies updates automatically
+* Supports rollback on failure
+
+Bug Tracker
+-----------
+
+Integration with issue tracking systems (e.g., Redmine) via :mod:`src.bug_tracker`.
+
+Packager
+--------
+
+Tools for creating and managing resource packages for distribution.
+
+File Structure
+==============
+
+The framework expects the following directory structure:
+
+.. code-block:: text
+
+   Project Root/
+   ├── src/                    # Python source code
+   │   ├── __init__.py        # Package initialization
+   │   ├── main.py            # Flask app and routes
+   │   ├── access_manager.py  # Authentication
+   │   ├── scheduler.py       # Background tasks
+   │   ├── threaded_manager.py
+   │   ├── threaded_action.py
+   │   ├── displayer.py       # UI generation
+   │   ├── utilities.py       # Helper functions
+   │   └── ...
+   ├── templates/              # Jinja2 templates
+   │   ├── base.j2            # Base template
+   │   ├── index.j2           # Home page
+   │   ├── login.j2           # Login page
+   │   └── ...
+   ├── webengine/              # Static assets
+   │   ├── assets/
+   │   │   ├── css/
+   │   │   ├── js/
+   │   │   └── images/
+   │   └── help/              # Help documentation
+   ├── resources/              # Application resources
+   ├── downloads/              # User downloads
+   ├── packages/               # Distribution packages
+   └── docs/                   # Documentation
+
+When used as a submodule, the structure can be adapted to fit within the parent project.
+
+Import Strategy
+===============
+
+The framework supports both standalone and submodule usage through a dual-import pattern:
+
+.. code-block:: python
+
+   # In each module
+   try:
+       from . import utilities  # Relative import (package mode)
+   except ImportError:
+       import utilities         # Absolute import (submodule mode)
+
+This allows the framework to work in both scenarios without modification.
+
+Optional Dependencies
+=====================
+
+Some features require optional dependencies:
+
+* **pyserial**: For serial port communication
+* **paramiko**: For SFTP connections
+* **markdown**: For Markdown rendering
+* **bcrypt**: For password hashing
+* **python-redmine**: For Redmine integration
+
+The framework gracefully handles missing dependencies, disabling related features.
+
+Creating a Site Handler
+=======================
+
+To create a custom site handler:
+
+1. **Inherit from Site_conf**:
+
+   .. code-block:: python
+
+      from src.site_conf import Site_conf
+      
+      class MySiteHandler(Site_conf):
+          def __init__(self):
+              super().__init__()
+              self.site_name = "My Application"
+              self.site_description = "Custom management interface"
+
+2. **Define custom actions**:
+
+   .. code-block:: python
+
+      from src.threaded_action import Threaded_action
+      
+      class MyAction(Threaded_action):
+          def run(self):
+              # Your background task logic
+              pass
+
+3. **Register routes**:
+
+   .. code-block:: python
+
+      from flask import Blueprint
+      
+      my_bp = Blueprint('myapp', __name__)
+      
+      @my_bp.route('/custom')
+      def custom_page():
+          # Your route logic
+          pass
+
+4. **Initialize in main.py**:
+
+   .. code-block:: python
+
+      from my_site_handler import MySiteHandler
+      
+      site = MySiteHandler()
+      app.register_blueprint(my_bp)
+
+Best Practices
+==============
+
+1. **Use the Displayer system** for consistent UI generation
+2. **Leverage Threaded_action** for long-running tasks
+3. **Follow the dual-import pattern** for compatibility
+4. **Handle optional dependencies gracefully**
+5. **Use the scheduler for periodic updates**
+6. **Keep business logic in action classes**
+7. **Use utilities for common operations**
+
+Testing
+=======
+
+The framework includes a comprehensive test suite:
+
+.. code-block:: bash
+
+   pytest tests/ -v
+
+Tests cover:
+
+* Module imports (standalone and submodule modes)
+* Core functionality
+* Class instantiation
+* Integration between components
+
+See :doc:`getting_started` for more information on running tests.
+

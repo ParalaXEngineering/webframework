@@ -155,28 +155,104 @@ The framework uses several configuration mechanisms:
 
 ## Testing
 
-The framework is now designed to be testable. You can:
+The framework includes a comprehensive test suite using pytest.
 
-1. **Run standalone**: Use `python run_standalone.py` for development and testing
-2. **Unit tests**: Create tests that import the framework modules directly
-3. **Integration tests**: Test the complete application flow
+### Running Tests
 
-Example test structure:
-```python
-import pytest
-from src.main import app, setup_app
+```bash
+# Run all tests
+pytest tests/ -v
 
-@pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    setup_app(app)
-    with app.test_client() as client:
-        yield client
+# Run specific test file
+pytest tests/test_startup.py -v
 
-def test_homepage(client):
-    rv = client.get('/')
-    assert rv.status_code == 200
+# Run with coverage (if pytest-cov is installed)
+pytest tests/ --cov=src
 ```
+
+### Test Structure
+
+The test suite covers:
+- **Startup tests**: Basic initialization and module imports
+- **Import tests**: Standalone and submodule import modes
+- **Core module tests**: Functionality of key classes and functions
+
+All tests pass successfully, ensuring the framework works in both standalone and submodule modes.
+
+## Documentation
+
+The framework includes comprehensive Sphinx documentation.
+
+### Building Documentation
+
+#### Quick Start
+
+```bash
+# Setup documentation environment (first time only)
+./setup_docs.sh
+
+# Build the documentation
+./build_docs.sh
+```
+
+The documentation will be generated in `docs/build/html/` and automatically open in your browser on macOS.
+
+#### Manual Build
+
+```bash
+# Install documentation dependencies
+pip install -r requirements-docs.txt
+# or
+pip install -e .[docs]
+
+# Build the docs
+cd docs
+make clean
+make html
+
+# View the documentation
+open build/html/index.html  # macOS
+# or
+xdg-open build/html/index.html  # Linux
+```
+
+#### On Windows
+
+```batch
+# Setup
+setup_docs.bat
+
+# Build
+cd docs
+make.bat clean
+make.bat html
+```
+
+### Documentation Contents
+
+The documentation includes:
+
+- **Getting Started Guide**: Installation, configuration, and quick start
+- **Framework Architecture**: Detailed explanation of core components
+- **API Reference**: Complete API documentation for all modules
+- **Class Reference**: Detailed class documentation with examples
+- **Code Examples**: Practical examples for common use cases
+
+### Updating Documentation
+
+To update the documentation:
+
+1. Edit RST files in `docs/source/`
+2. Add docstrings to your Python code
+3. Run `./build_docs.sh` to rebuild
+4. Review the output in your browser
+
+The documentation uses:
+- **Sphinx**: Documentation generator
+- **Read the Docs theme**: Professional appearance
+- **MyST Parser**: Support for Markdown and reStructuredText
+- **Autodoc**: Automatic API documentation from docstrings
+- **Napoleon**: Google and NumPy style docstring support
 
 ## Development
 

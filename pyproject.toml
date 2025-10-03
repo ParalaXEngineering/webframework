@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paralax-webframework"
+version = "1.0.0"
+description = "A robust Flask-based web framework for display and management applications"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "ParalaX Engineering"}
+]
+keywords = ["flask", "web", "framework", "management"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "Flask>=2.0.0",
+    "flask-session>=0.4.0",
+    "flask-socketio>=5.0.0",
+    "Jinja2>=3.0.0",
+    "pyserial>=3.5",
+    "psutil>=5.8.0",
+    "bcrypt>=3.2.0",
+    "markdown>=3.3.0",
+    "python-redmine>=2.5.0",
+    "urllib3>=1.26.0",
+    "paramiko>=2.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0.0",
+    "pytest-flask>=1.2.0",
+]
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "myst-parser>=2.0.0",
+    "sphinx-autodoc-typehints>=1.24.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ParalaXEngineering/webframework"
+Documentation = "https://github.com/ParalaXEngineering/webframework/docs"
+Repository = "https://github.com/ParalaXEngineering/webframework"
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
