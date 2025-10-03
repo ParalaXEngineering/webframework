@@ -4,7 +4,7 @@
     {% if layout["type"] == "VERT" %}
         {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["height"], layout["background"], layout["user_id"], layout["style"]) }}
     {% elif layout["type"] == "HORIZ" %}
-        {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["user_id"]) }}
+        {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
     {% elif layout["type"] == "TABLE" %}
         {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"], layout["user_id"]) }}
     {% elif layout["type"] == "TABS" %}
