@@ -95,7 +95,8 @@ class DisplayerLayout:
         background: BSstyle = None,
         responsive = None,
         userid = None,
-        style: MAZERStyles = None
+        style: MAZERStyles = None,
+        editable: dict = None
     ) -> None:
         """Constructor
 
@@ -120,6 +121,8 @@ class DisplayerLayout:
         :type: string
         :param style: if set, overwrite the default style of the layout
         :type: MAZERStyles
+        :param editable: If set, will make the table editable with add/remove row buttons. Input shall be a dictionary with keys: enabled (bool), input_types (list), input_prefix (str), placeholders (list), add_button_text (str), remove_button_text (str), min_rows (int), max_rows (int), button_position (str)
+        :type: dict
         """
         self.m_type = layoutType.value
         self.m_column = columns
@@ -130,6 +133,7 @@ class DisplayerLayout:
         self.m_responsive = responsive
         self.m_userid = userid
         self.m_style = style
+        self.m_editable = editable
         
         if isinstance(spacing, int):
             if spacing <= 5:
@@ -188,6 +192,7 @@ class DisplayerLayout:
                 current_layout["lines"] = None
 
             current_layout["user_id"] = self.m_userid
+            current_layout["editable"] = self.m_editable
     
         else:
             # Check column size

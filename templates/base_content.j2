@@ -306,7 +306,7 @@ html[data-bs-theme="dark"] {
                             {% if layout["type"] == "VERT" %}
                                 {{ disp_layouts.display_vertical_layout(layout["columns"], layout["containers"], layout["align"]) }}
                             {% elif layout["type"] == "TABLE" %}
-                                {{ disp_layouts.display_table_layout(layout["header"], layout["lines"]) }}
+                                {{ disp_layouts.display_table_layout(layout["header"], layout["lines"], layout.get("responsive"), layout.get("responsive_type"), layout.get("user_id"), layout.get("editable")) }}
                             {% endif %}
                         {% endfor%}
                     {% endif %}

@@ -6,7 +6,7 @@
     {% elif layout["type"] == "HORIZ" %}
         {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["user_id"]) }}
     {% elif layout["type"] == "TABLE" %}
-        {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"], layout["user_id"]) }}
+        {{ display_table_layout(layout["header"], layout["lines"], layout.get("responsive"), layout.get("responsive_type"), layout.get("user_id"), layout.get("editable")) }}
     {% elif layout["type"] == "TABS" %}
         {{ display_tabs_layout(layout["header"], layout["lines"]) }}
     {% elif layout["type"] == "SPACER" %}
@@ -51,12 +51,38 @@
 
 {% endmacro %}
 
-{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None, user_id = none) %}    
+{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None, user_id = none, editable = None) %}
+    {# Generate unique table ID if editable and no user_id provided #}
+    {% set table_id = user_id or (responsive_type ~ '_' ~ responsive) if responsive else ('editable_table_' ~ range(0, 999999) | random | string) %}
+    
     <div class="row m-1" {% if user_id %} id="{{user_id}}"{% endif %}>
+    
+    {# Boutons d'édition en haut (si activé) #}
+    {% if editable and editable.enabled and editable.button_position in ['top', 'both'] %}
+        <div class="d-flex justify-content-end mb-2">
+            <button type="button" class="btn btn-sm btn-success me-2" 
+                    onclick="addTableRow('{{ table_id }}')">
+                {{ editable.add_button_text or '➕ Add Row' }}
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" 
+                    onclick="removeTableRow('{{ table_id }}')">
+                {{ editable.remove_button_text or '➖ Remove Row' }}
+            </button>
+        </div>
+    {% endif %}
+    
     <div class="table-responsive">
         <table class="table table-striped mb-0" 
                    {% if responsive %}
                         id="{{ responsive_type }}_{{ responsive }}"                       
+                   {% elif editable and editable.enabled %}
+                        id="{{ table_id }}"
+                   {% endif %}
+                   {% if editable and editable.enabled %}
+                        data-editable="true"
+                        data-input-prefix="{{ editable.input_prefix or '' }}"
+                        data-min-rows="{{ editable.min_rows or 0 }}"
+                        data-max-rows="{{ editable.max_rows or '' }}"
                    {% endif %}>
             <thead>
                 <tr>
@@ -89,7 +115,132 @@
 
             </table>
         </div>
+    
+    {# Boutons d'édition en bas (si activé) #}
+    {% if editable and editable.enabled and (not editable.button_position or editable.button_position in ['bottom', 'both']) %}
+        <div class="d-flex justify-content-end mt-2">
+            <button type="button" class="btn btn-sm btn-success me-2" 
+                    onclick="addTableRow('{{ table_id }}')">
+                {{ editable.add_button_text or '➕ Add Row' }}
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" 
+                    onclick="removeTableRow('{{ table_id }}')">
+                {{ editable.remove_button_text or '➖ Remove Row' }}
+            </button>
+        </div>
+    {% endif %}
     </div>
+    
+    {# Script JavaScript pour gérer l'édition #}
+    {% if editable and editable.enabled %}
+        <script>
+        // Initialiser le registre des tables éditables si nécessaire
+        if (!window.editableTables) {
+            window.editableTables = {};
+        }
+        
+        // Enregistrer cette table éditable
+        window.editableTables['{{ table_id }}'] = {
+            inputPrefix: '{{ editable.input_prefix or "" }}',
+            minRows: {{ editable.min_rows or 0 }},
+            maxRows: {{ editable.max_rows or 'null' }},
+            columns: [
+                {% for col_index in range(header|length) %}
+                {
+                    type: '{{ editable.input_types[col_index] if editable.input_types and col_index < editable.input_types|length else "text" }}',
+                    placeholder: '{{ editable.placeholders[col_index] if editable.placeholders and col_index < editable.placeholders|length else "" }}'
+                }{{ ',' if not loop.last else '' }}
+                {% endfor %}
+            ]
+        };
+        
+        // Fonction globale pour ajouter une ligne
+        if (!window.addTableRow) {
+            window.addTableRow = function(tableId) {
+                const config = window.editableTables[tableId];
+                if (!config) {
+                    console.error('Table config not found:', tableId);
+                    return;
+                }
+                
+                const table = document.getElementById(tableId);
+                if (!table) {
+                    console.error('Table element not found:', tableId);
+                    return;
+                }
+                
+                const tbody = table.querySelector('tbody');
+                if (!tbody) {
+                    console.error('Table tbody not found:', tableId);
+                    return;
+                }
+                
+                const currentRows = tbody.querySelectorAll('tr').length;
+                if (config.maxRows && currentRows >= config.maxRows) {
+                    alert('Maximum number of rows reached (' + config.maxRows + ')');
+                    return;
+                }
+                
+                const newRowIndex = currentRows + 1;
+                const newRow = document.createElement('tr');
+                
+                config.columns.forEach((col, colIndex) => {
+                    const cell = document.createElement('td');
+                    const inputName = config.inputPrefix + '_col' + colIndex + '_' + newRowIndex;
+                    cell.innerHTML = '<input type="' + col.type + '" ' +
+                                     'name="' + inputName + '" ' +
+                                     'class="form-control form-control-sm" ' +
+                                     (col.placeholder ? 'placeholder="' + col.placeholder + '" ' : '') +
+                                     'style="width: 100%;">';
+                    newRow.appendChild(cell);
+                });
+                
+                tbody.appendChild(newRow);
+                
+                const firstInput = newRow.querySelector('input, select');
+                if (firstInput) firstInput.focus();
+            };
+        }
+        
+        // Fonction globale pour supprimer une ligne
+        if (!window.removeTableRow) {
+            window.removeTableRow = function(tableId) {
+                const config = window.editableTables[tableId];
+                if (!config) {
+                    console.error('Table config not found:', tableId);
+                    return;
+                }
+                
+                const table = document.getElementById(tableId);
+                if (!table) {
+                    console.error('Table element not found:', tableId);
+                    return;
+                }
+                
+                const tbody = table.querySelector('tbody');
+                if (!tbody) {
+                    console.error('Table tbody not found:', tableId);
+                    return;
+                }
+                
+                const currentRows = tbody.querySelectorAll('tr');
+                
+                if (currentRows.length <= config.minRows) {
+                    alert('Minimum number of rows reached (' + config.minRows + ')');
+                    return;
+                }
+                
+                if (currentRows.length === 0) {
+                    alert('No rows to remove');
+                    return;
+                }
+                
+                const lastRow = currentRows[currentRows.length - 1];
+                lastRow.remove();
+            };
+        }
+        </script>
+    {% endif %}
 {% endmacro %}
 
 {% macro display_tabs_layout(header=[], lines=[]) %}

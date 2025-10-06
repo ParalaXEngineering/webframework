@@ -19,7 +19,7 @@
         {% elif layout["type"] == "HORIZ" %}
             {{ disp_layouts.display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
         {% elif layout["type"] == "TABLE" %}
-            {{ disp_layouts.display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"]) }}
+            {{ disp_layouts.display_table_layout(layout["header"], layout["lines"], layout.get("responsive"), layout.get("responsive_type"), layout.get("user_id"), layout.get("editable")) }}
         {% elif layout["type"] == "TABS" %}
             {{ disp_layouts.display_tabs_layout(layout["header"], layout["lines"]) }}
         {% elif layout["type"] == "SPACER" %}
