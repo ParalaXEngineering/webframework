@@ -17,6 +17,8 @@ def pytest_collection_modifyitems(config, items):
         'test_startup.py': 0,
         'test_imports.py': 1,
         'test_core_modules.py': 2,
+        'test_displayer_auto.py': 10,  # Generate HTML files first
+        'test_resource_loading.py': 11,  # Then verify resources in HTML
     }
     
     def get_order_key(item):

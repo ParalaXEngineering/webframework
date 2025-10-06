@@ -135,6 +135,342 @@ def save_html(filename: str, html: str) -> None:
         f.write(html)
 
 
+def generate_index_page() -> None:
+    """
+    Generate an index.html file that provides a browsable interface to all test HTML files.
+    Creates a single page with iframes showing all generated displayer items and layouts.
+    """
+    import glob
+    
+    # Get all HTML files in output directory (excluding index.html itself)
+    html_files = [
+        os.path.basename(f) for f in glob.glob(os.path.join(TEST_OUTPUT_DIR, "*.html"))
+        if os.path.basename(f) != "index.html"
+    ]
+    
+    # Separate items and layouts
+    item_files = sorted([f for f in html_files if f.startswith("item_")])
+    layout_files = sorted([f for f in html_files if f.startswith("layout_")])
+    
+    # Generate index HTML
+    index_html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Displayer Test Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: #2c3e50;
+            color: white;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            background: #1a252f;
+            border-bottom: 2px solid #34495e;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 12px;
+            color: #95a5a6;
+        }
+        
+        .search-box {
+            padding: 15px;
+            background: #34495e;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .nav-section {
+            padding: 10px 0;
+        }
+        
+        .nav-section-title {
+            padding: 10px 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #95a5a6;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .nav-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: #34495e;
+            border-left-color: #3498db;
+        }
+        
+        .nav-item.active {
+            background: #34495e;
+            border-left-color: #e74c3c;
+        }
+        
+        .nav-item-name {
+            font-size: 14px;
+            word-break: break-word;
+        }
+        
+        .nav-item-category {
+            font-size: 11px;
+            color: #95a5a6;
+            margin-top: 3px;
+        }
+        
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        
+        .content-header {
+            padding: 20px 30px;
+            background: white;
+            border-bottom: 1px solid #ddd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .content-header h2 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .content-header .meta {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .content-header .actions {
+            margin-top: 10px;
+        }
+        
+        .content-header button {
+            padding: 6px 12px;
+            margin-right: 8px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .content-header button:hover {
+            background: #f8f9fa;
+        }
+        
+        .iframe-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .no-selection {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #95a5a6;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>🎨 Displayer Gallery</h1>
+            <p>Auto-generated test components</p>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search components..." />
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">DisplayerItems (""" + str(len(item_files)) + """)</div>
+            <div id="itemsList">"""
+    
+    # Add item links
+    for filename in item_files:
+        item_name = filename.replace("item_", "").replace(".html", "")
+        # Try to extract category from DisplayerItem name
+        category = "Display"
+        if "Input" in item_name:
+            category = "Input"
+        elif "Button" in item_name or "Link" in item_name:
+            category = "Button"
+        elif "Graph" in item_name or "Calendar" in item_name or "Image" in item_name or "File" in item_name:
+            category = "Media"
+        
+        index_html += f"""
+                <div class="nav-item" data-file="{filename}" data-search="{item_name.lower()}">
+                    <div class="nav-item-name">{item_name}</div>
+                    <div class="nav-item-category">{category}</div>
+                </div>"""
+    
+    index_html += """
+            </div>
+        </div>
+        
+        <div class="nav-section">
+            <div class="nav-section-title">Layouts (""" + str(len(layout_files)) + """)</div>
+            <div id="layoutsList">"""
+    
+    # Add layout links
+    for filename in layout_files:
+        layout_name = filename.replace("layout_", "").replace(".html", "")
+        index_html += f"""
+                <div class="nav-item" data-file="{filename}" data-search="{layout_name.lower()}">
+                    <div class="nav-item-name">{layout_name}</div>
+                    <div class="nav-item-category">Layout</div>
+                </div>"""
+    
+    index_html += """
+            </div>
+        </div>
+    </div>
+    
+    <div class="content">
+        <div class="content-header">
+            <h2 id="currentTitle">Select a component</h2>
+            <div class="meta">
+                <span id="currentMeta">Choose an item from the sidebar to preview</span>
+            </div>
+            <div class="actions">
+                <button onclick="openInNewTab()">Open in New Tab</button>
+                <button onclick="refreshIframe()">Refresh</button>
+            </div>
+        </div>
+        
+        <div class="iframe-container">
+            <div class="no-selection" id="noSelection">
+                👈 Select a component from the sidebar
+            </div>
+            <iframe id="previewFrame" style="display: none;"></iframe>
+        </div>
+    </div>
+    
+    <script>
+        let currentFile = null;
+        
+        // Navigation click handler
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const filename = this.getAttribute('data-file');
+                loadFile(filename);
+                
+                // Update active state
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Load file in iframe
+        function loadFile(filename) {
+            currentFile = filename;
+            const iframe = document.getElementById('previewFrame');
+            const noSelection = document.getElementById('noSelection');
+            
+            iframe.src = filename;
+            iframe.style.display = 'block';
+            noSelection.style.display = 'none';
+            
+            // Update header
+            const name = filename.replace('item_', '').replace('layout_', '').replace('.html', '');
+            document.getElementById('currentTitle').textContent = name;
+            document.getElementById('currentMeta').textContent = `File: ${filename}`;
+        }
+        
+        // Open current file in new tab
+        function openInNewTab() {
+            if (currentFile) {
+                window.open(currentFile, '_blank');
+            }
+        }
+        
+        // Refresh iframe
+        function refreshIframe() {
+            const iframe = document.getElementById('previewFrame');
+            if (currentFile) {
+                iframe.src = iframe.src;
+            }
+        }
+        
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const searchText = item.getAttribute('data-search');
+                if (searchText.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+        
+        // Auto-load first item
+        const firstItem = document.querySelector('.nav-item');
+        if (firstItem) {
+            firstItem.click();
+        }
+    </script>
+</body>
+</html>"""
+    
+    # Save index.html
+    index_path = os.path.join(TEST_OUTPUT_DIR, "index.html")
+    with open(index_path, "w", encoding="utf-8") as f:
+        f.write(index_html)
+    
+    print(f"\n✅ Generated index.html with {len(item_files)} items and {len(layout_files)} layouts")
+    print(f"📂 Open: {index_path}")
+
+
 def make_html_standalone(html: str) -> str:
     """
     Convert Flask-rendered HTML to standalone-viewable format.
@@ -148,18 +484,21 @@ def make_html_standalone(html: str) -> str:
     # Map Flask routes to actual file paths
     replacements = [
         # Static vendor files
-        (r'href="/static/vendors/([^"]+)"', r'href="../../webengine/assets/vendors/\1"'),
-        (r'src="/static/vendors/([^"]+)"', r'src="../../webengine/assets/vendors/\1"'),
+        (r'href="/static/vendors/([^"]+)"', r'href="../../../webengine/assets/vendors/\1"'),
+        (r'src="/static/vendors/([^"]+)"', r'src="../../../webengine/assets/vendors/\1"'),
         
         # Static CSS
-        (r'href="/static/css/([^"]+)"', r'href="../../webengine/assets/css/\1"'),
+        (r'href="/static/css/([^"]+)"', r'href="../../../webengine/assets/css/\1"'),
+        
+        # Static JS
+        (r'src="/static/js/([^"]+)"', r'src="../../../webengine/assets/js/\1"'),
         
         # Common assets (favicon, images)
-        (r'href="/common/assets/([^"]+)"', r'href="../../webengine/assets/\1"'),
-        (r'src="/common/assets/([^"]+)"', r'src="../../webengine/assets/\1"'),
+        (r'href="/common/assets/([^"]+)"', r'href="../../../webengine/assets/\1"'),
+        (r'src="/common/assets/([^"]+)"', r'src="../../../webengine/assets/\1"'),
         
         # Static fonts
-        (r'href="/static/fonts/([^"]+)"', r'href="../../webengine/assets/fonts/\1"'),
+        (r'href="/static/fonts/([^"]+)"', r'href="../../../webengine/assets/fonts/\1"'),
     ]
     
     for pattern, replacement in replacements:
@@ -416,3 +755,19 @@ def test_displayer_layouts(test_app: Flask, layout_type: displayer.Layouts) -> N
         # SPACER creates vertical spacing
         # Just check page rendered successfully (specific HTML marker TBD)
         pass
+
+
+# ---------------------------------------------------------------------------
+# Session-level Hook: Generate Index Page After All Tests
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="session", autouse=True)
+def generate_gallery_index():
+    """
+    Auto-generate index.html after all tests complete.
+    This provides a browsable gallery of all generated displayer components.
+    """
+    yield  # Let all tests run first
+    
+    # After all tests complete, generate the index page
+    generate_index_page()
