@@ -145,6 +145,10 @@ html[data-bs-theme="dark"] {
                 dom: 'BPlfrtip',
                 pageLength: 25
             };
+            // Désactive le tri par défaut seulement si customOptions ne spécifie pas 'order'
+            if (!customOptions.hasOwnProperty('order')) {
+                tableOptions.order = [];
+            }
             const finalOptions = { ...tableOptions, ...customOptions };
             const table = new DataTable(`#${tableId}`, finalOptions);
             if (ajax) {
@@ -174,6 +178,10 @@ html[data-bs-theme="dark"] {
             initializeDataTable('#{{addon.get('type')}}_{{ table_id }}', {
                 {% if addon.get('data') %}
                 data: tableData_{{ table_id }},
+                {% endif %}
+
+                {% if addon.get('order') is not none %}
+                order: {{ addon.get('order') | tojson }},
                 {% endif %}
 
                 {% if 'ajax' in addon.get('type') %}
