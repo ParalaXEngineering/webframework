@@ -212,6 +212,15 @@ def setup_app(app):
         
         return dict(csrf_token=generate_csrf_token())
 
+    @app.context_processor
+    def inject_resources():
+        from displayer import ResourceRegistry
+        return dict(
+            required_css=ResourceRegistry.get_required_css(),
+            required_js=ResourceRegistry.get_required_js(),
+            required_cdn=ResourceRegistry.get_required_js_cdn()
+        )
+
     # Index page
     @app.route("/")
     def index():

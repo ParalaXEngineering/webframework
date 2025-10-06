@@ -70,7 +70,19 @@ def build_test_app() -> Flask:
         """Render item page (GET)."""
         disp = app.config.get("current_displayer")
         target = app.config.get("form_target")
-        return render_template("base_content.j2", content=disp.display(True), target=target)
+        content_dict = disp.display(True)
+        
+        # Extract resources from content dict (they were added by disp.display())
+        required_css = content_dict.get('required_css', [])
+        required_js = content_dict.get('required_js', [])
+        required_cdn = content_dict.get('required_cdn', [])
+        
+        return render_template("base_content.j2", 
+                             content=content_dict, 
+                             target=target,
+                             required_css=required_css,
+                             required_js=required_js,
+                             required_cdn=required_cdn)
     
     @test_bp.route("/item", methods=["POST"])
     def item_post():
@@ -94,6 +106,17 @@ def build_test_app() -> Flask:
             "footer": "Test Footer",
             "filename": __file__,
         }
+    
+    # Add resource injection context processor
+    @app.context_processor
+    def inject_resources():
+        """Inject required resources into template context."""
+        from src.displayer import ResourceRegistry
+        return dict(
+            required_css=ResourceRegistry.get_required_css(),
+            required_js=ResourceRegistry.get_required_js(),
+            required_cdn=ResourceRegistry.get_required_js_cdn()
+        )
     
     return app
 

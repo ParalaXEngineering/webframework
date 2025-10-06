@@ -14,13 +14,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/mdi/css/materialdesignicons.min.css') }}">
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app.css') }}">
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app-dark.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/datatables.net/datatables.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond/filepond.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/theme-aware.css') }}">
+    {% for css in required_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename= css) }}">
+    {% endfor %}
     <link rel="shortcut icon" href="{{ url_for('common.assets', asset_type="images", filename= 'logo/favicon.png') }}" type="image/png">
 
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    {% for cdn in required_cdn %}
+    <script src="{{ cdn }}"></script>
+    {% endfor %}
 
 </head>
 
@@ -353,70 +355,10 @@
         </div>
         
     </div>
-    <script src="{{ url_for('static', filename= 'vendors/tinymce/tinymce.min.js') }}"></script>
-    <script src="{{ url_for('static', filename= 'vendors/fullcalendar/fullcalendar.min.js') }}"></script>
-    <script src="{{ url_for('static', filename= 'vendors/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script>
-    <script src="{{ url_for('static', filename= 'vendors/datatables.net/datatables.min.js') }}"></script>
-    <script src="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.js') }}"></script>
-    <script src="{{ url_for('static', filename= 'vendors/filepond/filepond.min.js') }}"></script>
-    <script src="{{ url_for('static', filename= 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js') }}"></script>
-    <script src="{{ url_for('static', filename= 'vendors/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js') }}"></script>
+    {% for js in required_js %}
+    <script src="{{ url_for('static', filename= js) }}"></script>
+    {% endfor %}
     
-    <script>FilePond.registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType);
-
-    // Filepond: Image Preview
-    const filePondImage = document.querySelectorAll(".image-preview-filepond");
-    filePondImage.forEach(element => {
-        FilePond.create(element, {
-            labelIdle: `Drag & Drop image <span class="filepond--label-action">Browse</span>`,
-            credits: null,
-            allowImagePreview: true,
-            allowImageFilter: false,
-            allowImageExifOrientation: false,
-            allowImageCrop: false,
-            acceptedFileTypes: ["image/png", "image/jpg", "image/jpeg"],
-            fileValidateTypeDetectType: (source, type) => new Promise((resolve, reject) => {
-                // Faites la détection de type personnalisée ici et retournez avec une promesse
-                resolve(type);
-            }),
-            storeAsFile: true,
-        });
-    });
-
-    // Filepond: Base
-    filePondBase = document.querySelectorAll(".basic-filepond");
-    filePondBase.forEach(element => {
-        FilePond.create(element, {
-            credits: null,
-            storeAsFile: true,
-        });
-    });
-
-    // Filepond: Folder
-    filePondFolder = document.querySelectorAll(".folder-filepond");
-    filePondFolder.forEach(element => {
-        FilePond.create(element, {
-            credits: null,
-            storeAsFile: true,
-            labelIdle: `Drag & Drop a zip file <span class="filepond--label-action">Browse</span>`,
-            acceptedFileTypes: ['application/x-zip-compressed']
-        });
-    });
-
-
-    tinymce.init({
-        selector: 'textarea',  // change this value according to your HTML
-        plugins: 'lists',
-        a_plugin_option: true,
-        a_configuration_option: 400,
-        promotion:false,
-        height: 250,
-        resize: true,
-        menubar: '',
-        toolbar: "undo redo | blocks fontsizeinput | bold italic | align numlist | bullist numlist outdent indent", // Note: if a toolbar item requires a plugin, the item will not present in the toolbar if the plugin is not also loaded.
-        });
-
-    </script>
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>

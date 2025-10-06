@@ -75,6 +75,16 @@ def inject_template_context():
         'user': None,
     }
 
+@app.context_processor
+def inject_resources():
+    """Inject dynamic resources into all templates."""
+    from src.displayer import ResourceRegistry
+    return {
+        'required_css': ResourceRegistry.get_required_css(),
+        'required_js': ResourceRegistry.get_required_js(),
+        'required_cdn': ResourceRegistry.get_required_js_cdn()
+    }
+
 # Create blueprint for demo routes
 demo_bp = Blueprint('demo', __name__)
 

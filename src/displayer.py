@@ -25,7 +25,7 @@ class ResourceRegistry:
     RESOURCES = {
         'datatables': {
             'css': ['vendors/datatables.net/datatables.min.css'],
-            'js': ['vendors/datatables.net/datatables.min.js']
+            'js': ['vendors/datatables.net/datatables.min.js', 'js/datatables-init.js']
         },
         'sweetalert': {
             'css': ['vendors/sweetalert/sweetalert2.min.css'],
@@ -39,11 +39,12 @@ class ResourceRegistry:
             'js': [
                 'vendors/filepond/filepond.min.js',
                 'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js',
-                'vendors/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js'
+                'vendors/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js',
+                'js/filepond-init.js'
             ]
         },
         'tinymce': {
-            'js': ['vendors/tinymce/tinymce.min.js']
+            'js': ['vendors/tinymce/tinymce.min.js', 'js/tinymce-init.js']
         },
         'fullcalendar': {
             'js': ['vendors/fullcalendar/fullcalendar.min.js']
@@ -344,6 +345,9 @@ class DisplayerLayout:
         if self.m_type == Layouts.TABLE.value or self.m_type == Layouts.TABS.value:
             current_layout["header"] = self.m_column
             if isinstance(self.m_responsive, dict):
+                # Register DataTables resource when table has responsive enabled
+                ResourceRegistry.require('datatables')
+                
                 # Create the dict the first time only
                 current_layout["responsive"] = list(self.m_responsive.keys())[0]
                 responsive_info = self.m_responsive[current_layout["responsive"]]
@@ -1380,6 +1384,11 @@ class DisplayerItemInputText(DisplayerItem):
         return
     
     @classmethod
+    def get_required_resources(cls) -> list:
+        """Text input requires TinyMCE library for rich text editing."""
+        return ['tinymce']
+    
+    @classmethod
     def instantiate_test(cls):
         """Create test instance with sample text input."""
         return cls(id="test_text", text="Enter text", value="Sample text value")
@@ -1521,6 +1530,11 @@ class DisplayerItemInputImage(DisplayerItem):
         return
     
     @classmethod
+    def get_required_resources(cls) -> list:
+        """Image input requires FilePond library."""
+        return ['filepond']
+    
+    @classmethod
     def instantiate_test(cls):
         """Create test instance with sample image input."""
         return cls(id="test_image", text="Select Image")
@@ -1567,6 +1581,9 @@ class Displayer:
     """
 
     def __init__(self):
+        # Reset resource registry for this new page render
+        ResourceRegistry.reset()
+        
         self.m_modules = {}
         self.m_modals = []
         self.g_next_layout = 0
@@ -1714,185 +1731,11 @@ class Displayer:
         :rtype: bool
         """
 
-        # Check that there is at least a module and a layout
-        if not self.m_active_module or "layouts" not in self.m_modules[self.m_active_module]:
-            return False
-
-        # Try to find the layout
-        if layout_id == -1:
-            layout_id = self.g_next_layout - 1
-
-        layout = self.find_layout(self.m_modules[self.m_active_module]["layouts"], layout_id)
-        if not layout:
-            return False
-
-        if layout["type"] == Layouts.VERTICAL.value:
-            # Check that there is enought columns
-            if column >= len(layout["containers"]):
-                return False
-
-        elif layout["type"] == Layouts.TABLE.value or layout["type"] == Layouts.TABS.value:
-            # Do we have at least a line?
-            if not layout["lines"]:
-                layout["lines"] = [[[] for _ in range(len(layout["header"]))]]
-
-            # For TABS, only one row is allowed
-            if layout["type"] == Layouts.TABS.value:
-                line = 0
-            else:
-                if line == -1:
-                    # Check if we need to create a new line
-                    if layout["lines"][-1][column]:
-                        layout["lines"].append([[] for _ in range(len(layout["header"]))])
-                elif line == -2:
-                    # Check if we need to create a new line
-                    if layout["lines"][-1][column] and len(layout["lines"][-1][column]) == 0:
-                        layout["lines"].append([[] for _ in range(len(layout["header"]))])
-                    line = -1
-                else:
-                    if len(layout["lines"]) <= line:
-                        for i in range(len(layout["lines"]), line + 1):
-                            layout["lines"].append([[] for _ in range(len(layout["header"]))])
-
-        if disabled:
-            item.setDisabled(True)
-
-        if id:
-            item.setId(id)
-
-        # Add the display item
-        if layout["type"] == Layouts.VERTICAL.value:
-            item.display(layout["containers"][column], self.m_modules[self.m_active_module]["id"])
-        elif layout["type"] == Layouts.TABLE.value:
-            item.display(
-                layout["lines"][line][column],
-                self.m_modules[self.m_active_module]["id"],
-            )
-        elif layout["type"] == Layouts.TABS.value:
-            # Always line 0 for tabs
-            item.display(
-                layout["lines"][0][column],
-                self.m_modules[self.m_active_module]["id"],
-            )
-
-        return True
-    
-    def add_modal(self, id: str, modal: str, header: str = "") -> None:
-        self.m_modals.append({"id": id, "content": modal.display(), "header": header})
-
-        return
-
-    def add_table_layout(self, header: list = [], subtitle=None) -> int:
-        if "layouts" not in self.m_modules[self.m_active_module]:
-            self.m_modules[self.m_active_module]["layouts"] = []
-
-        current_layout = {"type": Layouts.TABLE.value}
-        current_layout["header"] = header
-        current_layout["lines"] = None
-        current_layout["subtitle"] = subtitle
-        self.m_modules[self.m_active_module]["layouts"].append(current_layout)
-        self.m_current_layout = len(self.m_modules[self.m_active_module]["layouts"]) - 1
-
-        return len(self.m_modules[self.m_active_module]["layouts"]) - 1
-
-    def add_tabs_layout(self, header: list = [], subtitle=None) -> int:
-        """
-        Add a TABS layout, similar to add_table_layout but for tabs.
-        :param header: List of tab titles
-        :param subtitle: Optional subtitle
-        """
-        if "layouts" not in self.m_modules[self.m_active_module]:
-            self.m_modules[self.m_active_module]["layouts"] = []
-
-        current_layout = {"type": Layouts.TABS.value}
-        current_layout["header"] = header
-        # One row, one cell per tab
-        current_layout["lines"] = [[[] for _ in range(len(header))]]
-        current_layout["subtitle"] = subtitle
-        self.m_modules[self.m_active_module]["layouts"].append(current_layout)
-        self.m_current_layout = len(self.m_modules[self.m_active_module]["layouts"]) - 1
-
-        return len(self.m_modules[self.m_active_module]["layouts"]) - 1
-
-    def find_layout(self, searchable_layout=[], layout_id=-1) -> list:
-        """Find a layout recursively and return it, or an empty table if not found
-
-        :param searchable_layout: A list of item that can also be layouts, defaults to []
-        :type searchable_layout: list, optional
-        :param layout_id: The layout to search, defaults to -1
-        :type layout_id: int, optional
-        :return: The found layout, or an empty list
-        :rtype: list
-        """
-        if layout_id == -1:
-            return []
-
-        for potential_layout in searchable_layout:
-            if "object" in potential_layout and potential_layout["object"] == "layout":
-                # We have a layout and not a display item
-                if potential_layout["id"] == layout_id:
-                    return potential_layout
-                else:
-                    if "containers" in potential_layout and potential_layout["containers"]:
-                        for item in potential_layout["containers"]:
-                            sublayouts = self.find_layout(item, layout_id)
-                            if sublayouts:
-                                return sublayouts
-                    if "lines" in potential_layout and potential_layout["lines"]:
-                        for line in potential_layout["lines"]:
-                            for column in line:
-                                sublayouts = self.find_layout(column, layout_id)
-                                if sublayouts:
-                                    return sublayouts
-
-        return []
-    
-    def set_title(self, title: str):
-        self.m_title = title
-    
-    def add_breadcrumb(
-            self, 
-            name: str,
-            url: str,
-            parameters: list,
-            style: str = None
-    ):
-        """
-        Add a new item in the breadcrumbs menu
-        
-        :param name: The name displayed for the current link in the breadcrumbs
-        :type name: str
-        :param url: The url endpoint (in the format used by url_for in jinja)
-        :type url: str
-        :param parameters: The list of parameters for the get link
-        :type parameters: list"""
-        self.m_breadcrumbs[name] = {"url": url, "parameters": parameters, "style": style}
-
-    def add_display_item(
-        self,
-        item: DisplayerItems,
-        column: int = 0,
-        layout_id: int = -1,
-        disabled: bool = False,
-        id: int = None,
-        line: int = -1,
-    ) -> bool:
-        """Add a new display item.
-
-        :param item: The item to add
-        :type item: DisplayerItems
-        :param column: The column of the layout in which it will be added, defaults to 0
-        :type column: int, optional
-        :param layout_id: The layout id of the parent layout, defaults to -1 (last one added)
-        :type layout_id: int, optional
-        :param id: If set, the whole item will have an id, so a javascript can update its content later
-        :type id: str, optional
-        :param line: If set, the line in the layout is forced. Some layout don't have the notion of lines, so it might be skipped. If the line is needed
-        by the layout and it is not specified, either tthere is an item in the column (in which case a new line is created) or not (in which case the column is filled). 
-        If line == -2, a new line will only be created if no oither line already exists
-        :return: True if success, False if the given information are not correct
-        :rtype: bool
-        """
+        # Register required resources for this item
+        if hasattr(item, "get_required_resources"):
+            resources = item.get_required_resources()
+            if resources:
+                ResourceRegistry.require(*resources)
 
         # Check that there is at least a module and a layout
         if not self.m_active_module or "layouts" not in self.m_modules[self.m_active_module]:
@@ -2073,6 +1916,198 @@ class Displayer:
         :return: True if success, False if the given information are not correct
         :rtype: bool
         """
+
+        # Register required resources for this item
+        if hasattr(item, "get_required_resources"):
+            resources = item.get_required_resources()
+            if resources:
+                ResourceRegistry.require(*resources)
+
+        # Check that there is at least a module and a layout
+        if not self.m_active_module or "layouts" not in self.m_modules[self.m_active_module]:
+            return False
+
+        # Try to find the layout
+        if layout_id == -1:
+            layout_id = self.g_next_layout - 1
+
+        layout = self.find_layout(self.m_modules[self.m_active_module]["layouts"], layout_id)
+        if not layout:
+            return False
+
+        if layout["type"] == Layouts.VERTICAL.value:
+            # Check that there is enought columns
+            if column >= len(layout["containers"]):
+                return False
+
+        elif layout["type"] == Layouts.TABLE.value or layout["type"] == Layouts.TABS.value:
+            # Do we have at least a line?
+            if not layout["lines"]:
+                layout["lines"] = [[[] for _ in range(len(layout["header"]))]]
+
+            # For TABS, only one row is allowed
+            if layout["type"] == Layouts.TABS.value:
+                line = 0
+            else:
+                if line == -1:
+                    # Check if we need to create a new line
+                    if layout["lines"][-1][column]:
+                        layout["lines"].append([[] for _ in range(len(layout["header"]))])
+                elif line == -2:
+                    # Check if we need to create a new line
+                    if layout["lines"][-1][column] and len(layout["lines"][-1][column]) == 0:
+                        layout["lines"].append([[] for _ in range(len(layout["header"]))])
+                    line = -1
+                else:
+                    if len(layout["lines"]) <= line:
+                        for i in range(len(layout["lines"]), line + 1):
+                            layout["lines"].append([[] for _ in range(len(layout["header"]))])
+
+        if disabled:
+            item.setDisabled(True)
+
+        if id:
+            item.setId(id)
+
+        # Add the display item
+        if layout["type"] == Layouts.VERTICAL.value:
+            item.display(layout["containers"][column], self.m_modules[self.m_active_module]["id"])
+        elif layout["type"] == Layouts.TABLE.value:
+            item.display(
+                layout["lines"][line][column],
+                self.m_modules[self.m_active_module]["id"],
+            )
+        elif layout["type"] == Layouts.TABS.value:
+            # Always line 0 for tabs
+            item.display(
+                layout["lines"][0][column],
+                self.m_modules[self.m_active_module]["id"],
+            )
+
+        return True
+    
+    def add_modal(self, id: str, modal: str, header: str = "") -> None:
+        self.m_modals.append({"id": id, "content": modal.display(), "header": header})
+
+        return
+
+    def add_table_layout(self, header: list = [], subtitle=None) -> int:
+        if "layouts" not in self.m_modules[self.m_active_module]:
+            self.m_modules[self.m_active_module]["layouts"] = []
+
+        current_layout = {"type": Layouts.TABLE.value}
+        current_layout["header"] = header
+        current_layout["lines"] = None
+        current_layout["subtitle"] = subtitle
+        self.m_modules[self.m_active_module]["layouts"].append(current_layout)
+        self.m_current_layout = len(self.m_modules[self.m_active_module]["layouts"]) - 1
+
+        return len(self.m_modules[self.m_active_module]["layouts"]) - 1
+
+    def add_tabs_layout(self, header: list = [], subtitle=None) -> int:
+        """
+        Add a TABS layout, similar to add_table_layout but for tabs.
+        :param header: List of tab titles
+        :param subtitle: Optional subtitle
+        """
+        if "layouts" not in self.m_modules[self.m_active_module]:
+            self.m_modules[self.m_active_module]["layouts"] = []
+
+        current_layout = {"type": Layouts.TABS.value}
+        current_layout["header"] = header
+        # One row, one cell per tab
+        current_layout["lines"] = [[[] for _ in range(len(header))]]
+        current_layout["subtitle"] = subtitle
+        self.m_modules[self.m_active_module]["layouts"].append(current_layout)
+        self.m_current_layout = len(self.m_modules[self.m_active_module]["layouts"]) - 1
+
+        return len(self.m_modules[self.m_active_module]["layouts"]) - 1
+
+    def find_layout(self, searchable_layout=[], layout_id=-1) -> list:
+        """Find a layout recursively and return it, or an empty table if not found
+
+        :param searchable_layout: A list of item that can also be layouts, defaults to []
+        :type searchable_layout: list, optional
+        :param layout_id: The layout to search, defaults to -1
+        :type layout_id: int, optional
+        :return: The found layout, or an empty list
+        :rtype: list
+        """
+        if layout_id == -1:
+            return []
+
+        for potential_layout in searchable_layout:
+            if "object" in potential_layout and potential_layout["object"] == "layout":
+                # We have a layout and not a display item
+                if potential_layout["id"] == layout_id:
+                    return potential_layout
+                else:
+                    if "containers" in potential_layout and potential_layout["containers"]:
+                        for item in potential_layout["containers"]:
+                            sublayouts = self.find_layout(item, layout_id)
+                            if sublayouts:
+                                return sublayouts
+                    if "lines" in potential_layout and potential_layout["lines"]:
+                        for line in potential_layout["lines"]:
+                            for column in line:
+                                sublayouts = self.find_layout(column, layout_id)
+                                if sublayouts:
+                                    return sublayouts
+
+        return []
+    
+    def set_title(self, title: str):
+        self.m_title = title
+    
+    def add_breadcrumb(
+            self, 
+            name: str,
+            url: str,
+            parameters: list,
+            style: str = None
+    ):
+        """
+        Add a new item in the breadcrumbs menu
+        
+        :param name: The name displayed for the current link in the breadcrumbs
+        :type name: str
+        :param url: The url endpoint (in the format used by url_for in jinja)
+        :type url: str
+        :param parameters: The list of parameters for the get link
+        :type parameters: list"""
+        self.m_breadcrumbs[name] = {"url": url, "parameters": parameters, "style": style}
+
+    def add_display_item(
+        self,
+        item: DisplayerItems,
+        column: int = 0,
+        layout_id: int = -1,
+        disabled: bool = False,
+        id: int = None,
+        line: int = -1,
+    ) -> bool:
+        """Add a new display item.
+
+        :param item: The item to add
+        :type item: DisplayerItems
+        :param column: The column of the layout in which it will be added, defaults to 0
+        :type column: int, optional
+        :param layout_id: The layout id of the parent layout, defaults to -1 (last one added)
+        :type layout_id: int, optional
+        :param id: If set, the whole item will have an id, so a javascript can update its content later
+        :type id: str, optional
+        :param line: If set, the line in the layout is forced. Some layout don't have the notion of lines, so it might be skipped. If the line is needed
+        by the layout and it is not specified, either tthere is an item in the column (in which case a new line is created) or not (in which case the column is filled). 
+        If line == -2, a new line will only be created if no oither line already exists
+        :return: True if success, False if the given information are not correct
+        :rtype: bool
+        """
+
+        # Register required resources for this item
+        if hasattr(item, "get_required_resources"):
+            resources = item.get_required_resources()
+            if resources:
+                ResourceRegistry.require(*resources)
 
         # Check that there is at least a module and a layout
         if not self.m_active_module or "layouts" not in self.m_modules[self.m_active_module]:
@@ -2232,6 +2267,11 @@ class Displayer:
         if self.m_breadcrumbs:
             serve_modules["breadcrumbs"] = self.m_breadcrumbs
         serve_modules["title"] = self.m_title
+        
+        # Include required resources so they're available in template context
+        serve_modules["required_css"] = ResourceRegistry.get_required_css()
+        serve_modules["required_js"] = ResourceRegistry.get_required_js()
+        serve_modules["required_cdn"] = ResourceRegistry.get_required_js_cdn()
 
         for module in self.m_modules:  
             if not bypass_auth:

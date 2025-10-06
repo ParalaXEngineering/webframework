@@ -1,0 +1,105 @@
+/* ============================================================================
+   THEME-AWARE STYLES
+   Dark mode support for framework components
+   ============================================================================ */
+
+/* Default (fallback) theme */
+html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) .theme-aware {
+    background-color: #e9edf4;
+    color: #4a4a4a;
+}
+
+html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) .alert-light-secondary {
+    background-color: #e4eaf0;
+    color: #376a84;
+    border: 1px solid #dde2e8;
+}
+
+html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) .bg-light-secondary {
+    background-color: #e4eaf0;
+    color: #376a84;
+    border: 1px solid #dde2e8;
+}
+
+/* Light theme styles */
+html[data-bs-theme="light"] .theme-aware {
+    background-color: #e4eaf0;
+    color: #4a4a4a;
+}
+
+html[data-bs-theme="light"] .alert-light-secondary {
+    background-color: #e4eaf0;
+    color: #376a84;
+    border: 1px solid #dde2e8;
+}
+
+html[data-bs-theme="light"] .bg-light-secondary {
+    background-color: #e4eaf0;
+    color: #376a84;
+    border: 1px solid #dde2e8;
+}
+
+/* Dark theme styles */
+html[data-bs-theme="dark"] .theme-aware {
+    background-color: #2b3a42;
+    color: #c2c2d9;
+}
+
+html[data-bs-theme="dark"] .alert-light-secondary {
+    background-color: #2b3a42;
+    color: #c2c2d9;
+    border: 1px solid #1e1e2d;
+}
+
+html[data-bs-theme="dark"] .bg-light-secondary {
+    background-color: #2b3a42;
+    color: #c2c2d9;
+    border: 1px solid #1e1e2d;
+}
+
+/* Table styles - Default */
+html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) .theme-aware table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #4a4a4a;
+}
+
+/* Table styles - Light Theme */
+html[data-bs-theme="light"] .theme-aware table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #4a4a4a;
+}
+
+/* Table styles - Dark Theme */
+html[data-bs-theme="dark"] .theme-aware table {
+    width: 100%;
+    border-collapse: collapse;
+    color: rgb(180, 180, 216);
+}
+
+/* General table styles */
+.theme-aware table th,
+.theme-aware table td {
+    text-align: left;
+    padding: 8px;
+}
+
+.theme-aware table th {
+    font-weight: bold;
+    border-bottom: 1px solid var(--theme-border-color);
+    padding-bottom: 8px;
+}
+
+/* Border color variables */
+html:not([data-bs-theme="light"]):not([data-bs-theme="dark"]) {
+    --theme-border-color: #b3b3b3;
+}
+
+html[data-bs-theme="light"] {
+    --theme-border-color: #b3b3b3;
+}
+
+html[data-bs-theme="dark"] {
+    --theme-border-color: #1e1e2d;
+}
