@@ -8,6 +8,94 @@ from functools import wraps
 
 
 # ============================================================================
+# Resource Dependency System for Dynamic Loading
+# ============================================================================
+
+class ResourceRegistry:
+    """
+    Global registry for tracking which CSS/JS resources are needed by displayer items.
+    This allows dynamic loading of only the required assets.
+    """
+    
+    _required_css = set()
+    _required_js = set()
+    _required_vendors = set()
+    
+    # Define available resources
+    RESOURCES = {
+        'datatables': {
+            'css': ['vendors/datatables.net/datatables.min.css'],
+            'js': ['vendors/datatables.net/datatables.min.js']
+        },
+        'sweetalert': {
+            'css': ['vendors/sweetalert/sweetalert2.min.css'],
+            'js': ['vendors/sweetalert/sweetalert2.min.js']
+        },
+        'filepond': {
+            'css': [
+                'vendors/filepond/filepond.min.css',
+                'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css'
+            ],
+            'js': [
+                'vendors/filepond/filepond.min.js',
+                'vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js',
+                'vendors/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js'
+            ]
+        },
+        'tinymce': {
+            'js': ['vendors/tinymce/tinymce.min.js']
+        },
+        'fullcalendar': {
+            'js': ['vendors/fullcalendar/fullcalendar.min.js']
+        },
+        'apexcharts': {
+            'js_cdn': ['https://cdn.jsdelivr.net/npm/apexcharts']
+        }
+    }
+    
+    @classmethod
+    def require(cls, *resource_names):
+        """Mark resources as required. Can be called by displayer items or layouts."""
+        for name in resource_names:
+            if name in cls.RESOURCES:
+                cls._required_vendors.add(name)
+    
+    @classmethod
+    def get_required_css(cls):
+        """Get list of all required CSS files."""
+        css_files = []
+        for vendor in cls._required_vendors:
+            if vendor in cls.RESOURCES and 'css' in cls.RESOURCES[vendor]:
+                css_files.extend(cls.RESOURCES[vendor]['css'])
+        return list(set(css_files))
+    
+    @classmethod
+    def get_required_js(cls):
+        """Get list of all required JS files."""
+        js_files = []
+        for vendor in cls._required_vendors:
+            if vendor in cls.RESOURCES and 'js' in cls.RESOURCES[vendor]:
+                js_files.extend(cls.RESOURCES[vendor]['js'])
+        return list(set(js_files))
+    
+    @classmethod
+    def get_required_js_cdn(cls):
+        """Get list of all required CDN JS files."""
+        js_cdn = []
+        for vendor in cls._required_vendors:
+            if vendor in cls.RESOURCES and 'js_cdn' in cls.RESOURCES[vendor]:
+                js_cdn.extend(cls.RESOURCES[vendor]['js_cdn'])
+        return list(set(js_cdn))
+    
+    @classmethod
+    def reset(cls):
+        """Reset all required resources. Useful for testing or new page renders."""
+        cls._required_css.clear()
+        cls._required_js.clear()
+        cls._required_vendors.clear()
+
+
+# ============================================================================
 # Displayer Item Category System for Auto-Discovery Testing
 # ============================================================================
 
@@ -355,6 +443,22 @@ class DisplayerItem:
         # Default: try to instantiate with minimal parameters
         # Child classes should override this for proper test data
         return cls(DisplayerItems.TEXT)
+
+    @classmethod
+    def get_required_resources(cls) -> list:
+        """
+        Return list of required resources (vendors) for this displayer item.
+        Override in child classes to declare dependencies.
+        
+        Example:
+            @classmethod
+            def get_required_resources(cls):
+                return ['datatables', 'sweetalert']
+        
+        :return: List of resource identifiers
+        :rtype: list
+        """
+        return []
 
     def display(self, container: list, parent_id: str = None) -> None:
         """Add this item to a container view. Should be reimplemented by the child
@@ -840,6 +944,11 @@ class DisplayerItemGraph(DisplayerItem):
         self.m_graphy = y
         self.m_datatype = data_type
         return
+
+    @classmethod
+    def get_required_resources(cls) -> list:
+        """Graph requires ApexCharts library."""
+        return ['apexcharts']
 
     def display(self, container: list, parent_id: str = None) -> None:
         """Add this item to a container view. Should be reimplemented by the child
@@ -1372,6 +1481,11 @@ class DisplayerItemInputFolder(DisplayerItem):
         return
     
     @classmethod
+    def get_required_resources(cls) -> list:
+        """Folder input requires FilePond library."""
+        return ['filepond']
+    
+    @classmethod
     def instantiate_test(cls):
         """Create test instance with sample folder input."""
         return cls(id="test_folder", text="Select Folder")
@@ -1385,6 +1499,11 @@ class DisplayerItemInputFile(DisplayerItem):
         self.m_text = text
         self.m_id = id
         return
+    
+    @classmethod
+    def get_required_resources(cls) -> list:
+        """File input requires FilePond library."""
+        return ['filepond']
     
     @classmethod
     def instantiate_test(cls):
@@ -1425,6 +1544,11 @@ class DisplayerItemCalendar(DisplayerItem):
         return
     
     @classmethod
+    def get_required_resources(cls) -> list:
+        """Calendar requires FullCalendar library."""
+        return ['fullcalendar']
+    
+    @classmethod
     def instantiate_test(cls):
         """Create test instance with sample calendar."""
         return cls(id="test_calendar", view="dayGridMonth", 
@@ -1432,7 +1556,6 @@ class DisplayerItemCalendar(DisplayerItem):
                        {"title": "Event 1", "start": "2024-01-15"},
                        {"title": "Event 2", "start": "2024-01-20", "end": "2024-01-22"}
                    ])
-
 
 class Displayer:
     """Main displayer class to construct the information displayed on the screen.

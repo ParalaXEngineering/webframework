@@ -38,6 +38,17 @@ class Site_conf:
     m_scheduler_lt_functions = []
     """Functions that can be registered in the long term scheduler. Should be an array of arrays which are [func, period]"""
 
+    m_enable_easter_eggs = False
+    """Enable easter eggs (Konami code, pixel mode, death screen, etc.)"""
+
+    
+    def configure_easter_eggs(self) -> bool:
+        """Configure whether easter eggs are enabled. Can be overridden by child classes.
+        
+        :return: True to enable easter eggs, False to disable
+        :rtype: bool
+        """
+        return self.m_enable_easter_eggs
     
     def register_scheduler_lt_functions(self):
         """
@@ -395,7 +406,9 @@ class Site_conf:
 
     def context_processor(self):
         """Function that is called before rendering any page, should be overwritten by the child object"""
-        return
+        return {
+            "enable_easter_eggs": self.configure_easter_eggs()
+        }
 
     def socketio_event(self, event, data):
         """Function called to respond to event, should be overwritten by the child object"""

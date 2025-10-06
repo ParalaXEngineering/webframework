@@ -103,10 +103,46 @@ def build_test_app() -> Flask:
 # ---------------------------------------------------------------------------
 
 def save_html(filename: str, html: str) -> None:
-    """Save HTML to output directory for manual review."""
+    """Save HTML to output directory for manual review with standalone-friendly paths."""
+    # Post-process HTML for standalone viewing
+    html = make_html_standalone(html)
+    
     filepath = os.path.join(TEST_OUTPUT_DIR, filename)
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(html)
+
+
+def make_html_standalone(html: str) -> str:
+    """
+    Convert Flask-rendered HTML to standalone-viewable format.
+    
+    Replaces Flask url_for() generated paths with CDN or relative paths:
+    - /static/... → ../../webengine/assets/...
+    - /common/assets/... → ../../webengine/assets/...
+    """
+    import re
+    
+    # Map Flask routes to actual file paths
+    replacements = [
+        # Static vendor files
+        (r'href="/static/vendors/([^"]+)"', r'href="../../webengine/assets/vendors/\1"'),
+        (r'src="/static/vendors/([^"]+)"', r'src="../../webengine/assets/vendors/\1"'),
+        
+        # Static CSS
+        (r'href="/static/css/([^"]+)"', r'href="../../webengine/assets/css/\1"'),
+        
+        # Common assets (favicon, images)
+        (r'href="/common/assets/([^"]+)"', r'href="../../webengine/assets/\1"'),
+        (r'src="/common/assets/([^"]+)"', r'src="../../webengine/assets/\1"'),
+        
+        # Static fonts
+        (r'href="/static/fonts/([^"]+)"', r'href="../../webengine/assets/fonts/\1"'),
+    ]
+    
+    for pattern, replacement in replacements:
+        html = re.sub(pattern, replacement, html)
+    
+    return html
 
 
 def render_item_page(app: Flask, disp: displayer.Displayer, target: str = None) -> dict:

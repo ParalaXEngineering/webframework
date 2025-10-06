@@ -174,8 +174,8 @@ def setup_app(app):
 
     @app.context_processor
     def inject_bar():
-        site_conf.site_conf_obj.context_processor()
-        return dict(
+        custom_context = site_conf.site_conf_obj.context_processor()
+        base_context = dict(
             sidebarItems=site_conf.site_conf_obj.m_sidebar,
             topbarItems=site_conf.site_conf_obj.m_topbar,
             app=site_conf.site_conf_obj.m_app,
@@ -184,6 +184,10 @@ def setup_app(app):
             title=site_conf.site_conf_obj.m_app["name"],
             footer=site_conf.site_conf_obj.m_app["footer"]
         )
+        # Merge custom context from site_conf (like enable_easter_eggs) with base context
+        if custom_context:
+            base_context.update(custom_context)
+        return base_context
 
     @app.context_processor
     def inject_endpoint():

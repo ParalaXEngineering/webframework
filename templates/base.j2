@@ -464,7 +464,17 @@
     }
     </script>
 
-    {% include 'easter_egg.j2' %}
+    {% if enable_easter_eggs %}
+    <!-- Easter Eggs: Konami code, pixel mode, death screen -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/easter_eggs.css') }}">
+    <script src="{{ url_for('static', filename='js/easter_eggs.js') }}"></script>
+    <!-- Data attributes for easter eggs resource URLs -->
+    <script>
+        document.body.dataset.norefreshImage = "{{ url_for('static', filename='images/site/norefresh.jpg') }}";
+        document.body.dataset.noobImage = "{{ url_for('static', filename='images/site/noob.jpg') }}";
+        document.body.dataset.youDiedSound = "{{ url_for('static', filename='sounds/site/you_died.mp3') }}";
+    </script>
+    {% endif %}
 
 </body>
 
