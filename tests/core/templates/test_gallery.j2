@@ -1,0 +1,166 @@
+{% extends "base.j2" %}
+
+{% block title %}Displayer Test Gallery{% endblock %}
+{% block subtitle %}Auto-generated test components for visual inspection{% endblock %}
+
+{% block styles %}
+<style>
+/* Fix sidebar scrolling */
+#sidebar .sidebar-wrapper {
+    overflow-y: auto !important;
+    max-height: 100vh;
+}
+
+/* Preview container styling */
+#preview-container {
+    min-height: 400px;
+}
+
+#content-display {
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+}
+</style>
+{% endblock %}
+
+{% block main_page %}
+<section class="section">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">
+                <i class="mdi mdi-eye"></i> Test Preview: <span id="current-file-title">Select a component</span>
+            </h4>
+            <div>
+                <button class="btn btn-sm btn-outline-primary" onclick="openInNewTab()">
+                    <i class="mdi mdi-open-in-new"></i> Open Full Page
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-light d-flex align-items-center" role="alert">
+                <i class="mdi mdi-information text-info me-2" style="font-size: 1.5rem;"></i>
+                <div>
+                    <strong>Instructions:</strong> Click on any item in the sidebar to preview it. 
+                    Each test demonstrates a specific DisplayerItem, Layout, or core Displayer feature.
+                </div>
+            </div>
+            
+            <div id="preview-container">
+                <div id="content-display" style="display: none;">
+                    <!-- Test content will be injected here from embedded content_map -->
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Content and filename mapping embedded from Python
+const contentMap = {{ content_map | tojson }};
+const filenameMap = {{ filename_map | tojson }};
+
+let currentComponentName = null;
+
+// Load preview content directly (no iframe, no fetch - content is embedded!)
+function loadPreview(componentName) {
+    console.log('Gallery: loadPreview called with:', componentName);
+    
+    if (!componentName) {
+        const hash = window.location.hash.substring(1);
+        componentName = hash || null;
+        console.log('Gallery: Extracted component from hash:', componentName);
+    }
+    
+    if (componentName && contentMap[componentName]) {
+        currentComponentName = componentName;
+        const contentDisplay = document.getElementById('content-display');
+        const noSelection = document.getElementById('no-selection');
+        const currentFileTitle = document.getElementById('current-file-title');
+        
+        console.log('Gallery: Loading embedded content for:', componentName);
+        
+        // Inject the pre-extracted content
+        contentDisplay.innerHTML = contentMap[componentName];
+        
+        // Show content, hide placeholder
+        contentDisplay.style.display = 'block';
+        noSelection.style.display = 'none';
+        
+        // Update title
+        currentFileTitle.textContent = componentName;
+        
+        // Update hash
+        window.location.hash = componentName;
+        console.log('Gallery: Content loaded successfully');
+    } else {
+        console.warn('Gallery: No content found for:', componentName);
+    }
+}
+
+// Open current component's full HTML file in new tab
+function openInNewTab() {
+    if (currentComponentName && filenameMap[currentComponentName]) {
+        window.open(filenameMap[currentComponentName], '_blank');
+    }
+}
+
+// Override sidebar link behavior for gallery
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Gallery: DOM loaded, setting up sidebar navigation');
+    console.log('Gallery: contentMap has', Object.keys(contentMap).length, 'components');
+    
+    // Add a small delay to ensure framework's sidebar JS is done
+    setTimeout(function() {
+        // Find all sidebar links
+        const sidebarLinks = document.querySelectorAll('.sidebar-item a');
+        console.log('Gallery: Found', sidebarLinks.length, 'sidebar links');
+        
+        sidebarLinks.forEach((link, index) => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Extract component name from link text
+                const span = this.querySelector('span');
+                if (!span) {
+                    console.warn('Gallery: No span found in link', this);
+                    return;
+                }
+                
+                const componentName = span.textContent.trim();
+                
+                console.log('Gallery: Clicked', componentName);
+                
+                if (contentMap[componentName]) {
+                    // Load preview using component name directly
+                    loadPreview(componentName);
+                    
+                    // Update active state
+                    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                    this.closest('.sidebar-item').classList.add('active');
+                } else {
+                    console.error('Gallery: No content found for', componentName);
+                }
+            });
+        });
+        
+        // Auto-load first item if no hash
+        if (!window.location.hash) {
+            const firstItem = document.querySelector('.sidebar-item a');
+            if (firstItem) {
+                console.log('Gallery: Auto-clicking first item');
+                firstItem.click();
+            }
+        } else {
+            // Load from hash
+            console.log('Gallery: Loading from hash:', window.location.hash);
+            loadPreview();
+        }
+    }, 100); // Small delay to let framework initialize
+});
+
+// Listen for hash changes
+window.addEventListener('hashchange', () => loadPreview());
+</script>
+{% endblock %}

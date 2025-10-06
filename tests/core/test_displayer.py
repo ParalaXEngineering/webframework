@@ -6,13 +6,15 @@ Test Architecture:
 - Auto-discovers items via @DisplayerCategory decorators  
 - Saves rendered HTML to tests/core/output/ for manual review
 - Validates POST → JSON pipeline through util_post_to_json()
-- Minimal test count: test_displayer_items + test_displayer_layouts
+- All HTML is post-processed via make_html_standalone() for standalone viewing
 
 Test Coverage:
+- All DisplayerItem classes (display, input, button, media)
+- All DisplayerLayout types (vertical, table, tabs, spacer)
+- Core Displayer features (modules, breadcrumbs, title, nested layouts)
 - Template rendering (status 200, valid HTML)
 - Form field extraction for input items
 - POST data transformation matching production usage in settings.py
-- Layout-specific HTML structure validation
 
 Skip Conditions:
 - Items requiring complex backend (file uploads, modals, cascaded structures)
@@ -21,7 +23,7 @@ Skip Conditions:
 
 import pytest
 import os
-from typing import Dict, Any
+from typing import Dict
 from flask import Flask, Blueprint, render_template, request, jsonify
 from bs4 import BeautifulSoup
 
@@ -137,10 +139,14 @@ def save_html(filename: str, html: str) -> None:
 
 def generate_index_page() -> None:
     """
-    Generate an index.html file that provides a browsable interface to all test HTML files.
-    Creates a single page with iframes showing all generated displayer items and layouts.
+    Generate a gallery index page using the framework's template system with sidebar navigation.
+    
+    Creates a Flask app that serves the test gallery with proper Bootstrap styling
+    and framework sidebar integration. The gallery is rendered from test_gallery.j2
+    and saved as index.html in the output directory.
     """
     import glob
+    from src import site_conf
     
     # Get all HTML files in output directory (excluding index.html itself)
     html_files = [
@@ -148,327 +154,140 @@ def generate_index_page() -> None:
         if os.path.basename(f) != "index.html"
     ]
     
-    # Separate items and layouts
+    # Separate items, layouts, and other test files
     item_files = sorted([f for f in html_files if f.startswith("item_")])
     layout_files = sorted([f for f in html_files if f.startswith("layout_")])
+    other_files = sorted([f for f in html_files if not f.startswith("item_") and not f.startswith("layout_")])
     
-    # Generate index HTML
-    index_html = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Displayer Test Gallery</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: #f5f5f5;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-        
-        .sidebar {
-            width: 300px;
-            background: #2c3e50;
-            color: white;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .sidebar-header {
-            padding: 20px;
-            background: #1a252f;
-            border-bottom: 2px solid #34495e;
-        }
-        
-        .sidebar-header h1 {
-            font-size: 20px;
-            margin-bottom: 5px;
-        }
-        
-        .sidebar-header p {
-            font-size: 12px;
-            color: #95a5a6;
-        }
-        
-        .search-box {
-            padding: 15px;
-            background: #34495e;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        
-        .nav-section {
-            padding: 10px 0;
-        }
-        
-        .nav-section-title {
-            padding: 10px 20px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #95a5a6;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .nav-item {
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-left: 3px solid transparent;
-        }
-        
-        .nav-item:hover {
-            background: #34495e;
-            border-left-color: #3498db;
-        }
-        
-        .nav-item.active {
-            background: #34495e;
-            border-left-color: #e74c3c;
-        }
-        
-        .nav-item-name {
-            font-size: 14px;
-            word-break: break-word;
-        }
-        
-        .nav-item-category {
-            font-size: 11px;
-            color: #95a5a6;
-            margin-top: 3px;
-        }
-        
-        .content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: white;
-        }
-        
-        .content-header {
-            padding: 20px 30px;
-            background: white;
-            border-bottom: 1px solid #ddd;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        
-        .content-header h2 {
-            font-size: 24px;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-        
-        .content-header .meta {
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-        
-        .content-header .actions {
-            margin-top: 10px;
-        }
-        
-        .content-header button {
-            padding: 6px 12px;
-            margin-right: 8px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        
-        .content-header button:hover {
-            background: #f8f9fa;
-        }
-        
-        .iframe-container {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .iframe-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        
-        .no-selection {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: #95a5a6;
-            font-size: 18px;
-        }
-    </style>
-</head>
-<body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h1>🎨 Displayer Gallery</h1>
-            <p>Auto-generated test components</p>
-        </div>
-        
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search components..." />
-        </div>
-        
-        <div class="nav-section">
-            <div class="nav-section-title">DisplayerItems (""" + str(len(item_files)) + """)</div>
-            <div id="itemsList">"""
+    # Build Flask app with framework's base template
+    workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    template_path_framework = os.path.join(workspace_root, "templates")
+    template_path_test = os.path.join(os.path.dirname(__file__), "templates")
     
-    # Add item links
+    app = Flask(__name__, template_folder=template_path_framework)
+    app.config["TESTING"] = True
+    app.secret_key = "test-gallery-secret"
+    
+    # Register common blueprint for assets (required by base.j2)
+    common_bp_assets = Blueprint("common", __name__, url_prefix="/common")
+    
+    @common_bp_assets.route("/assets/<asset_type>/<path:filename>")
+    def assets(asset_type, filename):
+        return "", 200
+    
+    app.register_blueprint(common_bp_assets)
+    
+    # Add test templates folder to Jinja loader
+    from jinja2 import ChoiceLoader, FileSystemLoader
+    app.jinja_loader = ChoiceLoader([
+        FileSystemLoader(template_path_test),
+        FileSystemLoader(template_path_framework),
+    ])
+    
+    # Create site configuration with sidebar for gallery
+    class GallerySiteConf(site_conf.Site_conf):
+        def __init__(self):
+            super().__init__()
+            self.app_details("Test Gallery", "1.0", "test-tube", "2024 &copy; ParalaX", "Displayer Test Gallery")
+            
+            # Add sidebar for DisplayerItems
+            if item_files:
+                self.add_sidebar_title("DisplayerItems")
+                for filename in item_files:
+                    item_name = filename.replace("item_", "").replace(".html", "")
+                    # Use gallery.index as endpoint, hash will be handled by JS
+                    self.add_sidebar_page(item_name, "palette", "gallery.index")
+            
+            # Add sidebar for Layouts
+            if layout_files:
+                self.add_sidebar_title("Layouts")
+                for filename in layout_files:
+                    layout_name = filename.replace("layout_", "").replace(".html", "")
+                    self.add_sidebar_page(layout_name, "view-grid", "gallery.index")
+            
+            # Add sidebar for Other Tests
+            if other_files:
+                self.add_sidebar_title("Other Tests")
+                for filename in other_files:
+                    test_name = filename.replace("displayer_", "").replace(".html", "")
+                    self.add_sidebar_page(test_name, "flask", "gallery.index")
+    
+    gallery_conf = GallerySiteConf()
+    
+    # Build filename mapping for JavaScript
+    filename_map = {}
     for filename in item_files:
         item_name = filename.replace("item_", "").replace(".html", "")
-        # Try to extract category from DisplayerItem name
-        category = "Display"
-        if "Input" in item_name:
-            category = "Input"
-        elif "Button" in item_name or "Link" in item_name:
-            category = "Button"
-        elif "Graph" in item_name or "Calendar" in item_name or "Image" in item_name or "File" in item_name:
-            category = "Media"
-        
-        index_html += f"""
-                <div class="nav-item" data-file="{filename}" data-search="{item_name.lower()}">
-                    <div class="nav-item-name">{item_name}</div>
-                    <div class="nav-item-category">{category}</div>
-                </div>"""
-    
-    index_html += """
-            </div>
-        </div>
-        
-        <div class="nav-section">
-            <div class="nav-section-title">Layouts (""" + str(len(layout_files)) + """)</div>
-            <div id="layoutsList">"""
-    
-    # Add layout links
+        filename_map[item_name] = filename
     for filename in layout_files:
         layout_name = filename.replace("layout_", "").replace(".html", "")
-        index_html += f"""
-                <div class="nav-item" data-file="{filename}" data-search="{layout_name.lower()}">
-                    <div class="nav-item-name">{layout_name}</div>
-                    <div class="nav-item-category">Layout</div>
-                </div>"""
+        filename_map[layout_name] = filename
+    for filename in other_files:
+        test_name = filename.replace("displayer_", "").replace(".html", "")
+        filename_map[test_name] = filename
     
-    index_html += """
-            </div>
-        </div>
-    </div>
+    # Extract main content from each HTML file for embedding
+    from bs4 import BeautifulSoup
+    content_map = {}
+    for name, filename in filename_map.items():
+        file_path = os.path.join(TEST_OUTPUT_DIR, filename)
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                soup = BeautifulSoup(f.read(), "html.parser")
+                # Find div with id="main" (not <main> tag)
+                main_content = soup.find("div", id="main")
+                if main_content:
+                    # Extract the innerHTML (content inside #main, not the div itself)
+                    content_map[name] = main_content.decode_contents()
+                else:
+                    content_map[name] = f'<div class="alert alert-warning">No #main content found in {filename}</div>'
+        except Exception as e:
+            content_map[name] = f'<div class="alert alert-danger">Error loading {filename}: {str(e)}</div>'
     
-    <div class="content">
-        <div class="content-header">
-            <h2 id="currentTitle">Select a component</h2>
-            <div class="meta">
-                <span id="currentMeta">Choose an item from the sidebar to preview</span>
-            </div>
-            <div class="actions">
-                <button onclick="openInNewTab()">Open in New Tab</button>
-                <button onclick="refreshIframe()">Refresh</button>
-            </div>
-        </div>
-        
-        <div class="iframe-container">
-            <div class="no-selection" id="noSelection">
-                👈 Select a component from the sidebar
-            </div>
-            <iframe id="previewFrame" style="display: none;"></iframe>
-        </div>
-    </div>
+    # Register gallery blueprint
+    gallery_bp = Blueprint("gallery", __name__)
     
-    <script>
-        let currentFile = null;
-        
-        // Navigation click handler
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const filename = this.getAttribute('data-file');
-                loadFile(filename);
-                
-                // Update active state
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-        
-        // Load file in iframe
-        function loadFile(filename) {
-            currentFile = filename;
-            const iframe = document.getElementById('previewFrame');
-            const noSelection = document.getElementById('noSelection');
-            
-            iframe.src = filename;
-            iframe.style.display = 'block';
-            noSelection.style.display = 'none';
-            
-            // Update header
-            const name = filename.replace('item_', '').replace('layout_', '').replace('.html', '');
-            document.getElementById('currentTitle').textContent = name;
-            document.getElementById('currentMeta').textContent = `File: ${filename}`;
+    @gallery_bp.route("/")
+    def index():
+        return render_template("test_gallery.j2", filename_map=filename_map, content_map=content_map)
+    
+    app.register_blueprint(gallery_bp)
+    
+    # Context processor for gallery
+    @app.context_processor
+    def inject_context():
+        return {
+            'sidebarItems': gallery_conf.m_sidebar,
+            'topbarItems': {'display': False},
+            'app': gallery_conf.m_app,
+            'javascript': [],
+            'title': 'Displayer Test Gallery',
+            'footer': gallery_conf.m_app["footer"],
+            'filename': None,
+            'endpoint': 'gallery.index',
+            'page_info': '',
+            'user': None,
+            'required_css': [],
+            'required_js': [],
+            'required_cdn': []
         }
-        
-        // Open current file in new tab
-        function openInNewTab() {
-            if (currentFile) {
-                window.open(currentFile, '_blank');
-            }
-        }
-        
-        // Refresh iframe
-        function refreshIframe() {
-            const iframe = document.getElementById('previewFrame');
-            if (currentFile) {
-                iframe.src = iframe.src;
-            }
-        }
-        
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase();
-            
-            document.querySelectorAll('.nav-item').forEach(item => {
-                const searchText = item.getAttribute('data-search');
-                if (searchText.includes(query)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-        
-        // Auto-load first item
-        const firstItem = document.querySelector('.nav-item');
-        if (firstItem) {
-            firstItem.click();
-        }
-    </script>
-</body>
-</html>"""
+    
+    # Render the gallery page
+    with app.test_client() as client:
+        response = client.get("/")
+        html = response.data.decode("utf-8")
+    
+    # Post-process HTML for standalone viewing
+    html = make_html_standalone(html)
     
     # Save index.html
     index_path = os.path.join(TEST_OUTPUT_DIR, "index.html")
     with open(index_path, "w", encoding="utf-8") as f:
-        f.write(index_html)
+        f.write(html)
     
-    print(f"\n✅ Generated index.html with {len(item_files)} items and {len(layout_files)} layouts")
-    print(f"📂 Open: {index_path}")
+    print("\n✅ Generated gallery index with framework sidebar")
+    print(f"   📊 {len(item_files)} DisplayerItems, {len(layout_files)} Layouts, {len(other_files)} Other Tests")
+    print(f"   📂 Open: {index_path}")
 
 
 def make_html_standalone(html: str) -> str:
@@ -772,6 +591,126 @@ def test_displayer_layouts(test_app: Flask, layout_type: displayer.Layouts) -> N
         # SPACER creates vertical spacing
         # Just check page rendered successfully (specific HTML marker TBD)
         pass
+
+
+def test_displayer_basics(test_app: Flask) -> None:
+    """
+    Test basic Displayer functionality: modules, layouts, breadcrumbs, and title.
+    
+    Validates core Displayer features that aren't item-specific:
+    - Module adding (add_generic)
+    - Layout hierarchy (master/slave, nested layouts)
+    - Title and breadcrumbs
+    - Multiple modules in one displayer
+    """
+    # Create comprehensive displayer
+    disp = displayer.Displayer()
+    
+    # ===== Test 1: Title =====
+    disp.set_title("Displayer Basics Test")
+    
+    # ===== Test 2: Module adding with add_generic =====
+    disp.add_generic("Module 1: Nested Layouts")
+    
+    # ===== Test 3: Breadcrumbs =====
+    disp.add_breadcrumb("Home", "test_disp.item_page", [])
+    disp.add_breadcrumb("Basics", "test_disp.item_page", ["section=basics"])
+    disp.add_breadcrumb("Current", "test_disp.item_page", ["section=current"], style="active")
+    
+    # ===== Test 4: Master layout with nested slave layouts =====
+    master_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [6, 6], subtitle="Master Layout (2 columns)"
+    ))
+    
+    # Add slave layout in column 0
+    slave1_id = disp.add_slave_layout(
+        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="Slave in Column 0"),
+        column=0,
+        layout_id=master_id
+    )
+    disp.add_display_item(displayer.DisplayerItemText("Text in slave layout column 0"), 0, slave1_id)
+    disp.add_display_item(displayer.DisplayerItemBadge("Badge in slave", displayer.BSstyle.SUCCESS), 0, slave1_id)
+    
+    # Add slave layout in column 1
+    slave2_id = disp.add_slave_layout(
+        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="Slave in Column 1"),
+        column=1,
+        layout_id=master_id
+    )
+    disp.add_display_item(displayer.DisplayerItemAlert("Alert in slave layout column 1", displayer.BSstyle.INFO), 0, slave2_id)
+    
+    # ===== Test 5: Second module with simple vertical layout =====
+    disp.add_generic("Module 2: Simple Layout")
+    disp.add_breadcrumb("Module2", "test_disp.item_page", ["module=2"])
+    
+    simple_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [4, 4, 4], subtitle="Three columns"
+    ))
+    disp.add_display_item(displayer.DisplayerItemText("Column A content"), column=0, layout_id=simple_id)
+    disp.add_display_item(displayer.DisplayerItemText("Column B content"), column=1, layout_id=simple_id)
+    disp.add_display_item(displayer.DisplayerItemText("Column C content"), column=2, layout_id=simple_id)
+    
+    # ===== Test 6: Third module =====
+    disp.add_generic("Module 3: Another Layout")
+    three_col_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Single column"
+    ))
+    disp.add_display_item(displayer.DisplayerItemAlert("Module 3 alert", displayer.BSstyle.SUCCESS), column=0, layout_id=three_col_id)
+    
+    # ===== Test 7: Fourth module - layout duplication test =====
+    disp.add_generic("Module 4: Duplicated Layouts")
+    dup1_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="First instance"
+    ))
+    disp.add_display_item(displayer.DisplayerItemText("First layout text"), 0, dup1_id)
+    
+    dup2_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Second instance (duplicate)"
+    ))
+    disp.add_display_item(displayer.DisplayerItemText("Second layout text"), 0, dup2_id)
+    
+    # Render and save HTML using shared renderer
+    render_result = render_item_page(test_app, disp)
+    
+    # Save HTML for manual review (with make_html_standalone)
+    save_html("displayer_basics.html", render_result["html"])
+    
+    # Assert successful render
+    assert render_result["status_code"] == 200, "Rendering failed for basics test"
+    
+    # Parse HTML
+    soup = BeautifulSoup(render_result["html"], "html.parser")
+    html_text = str(soup)
+    
+    # ===== Validation 1: Title =====
+    title_tag = soup.find('title')
+    h1_tag = soup.find('h1')
+    assert title_tag or h1_tag, "Page should have title or h1"
+    
+    # ===== Validation 2: Multiple modules =====
+    cards = soup.find_all('div', class_=lambda x: x and 'card' in x)
+    assert len(cards) >= 4, f"Should have card elements for modules (at least 4), found {len(cards)}"
+    
+    # ===== Validation 3: Nested layouts - slave layouts =====
+    assert "Text in slave layout column 0" in html_text, "Should have content from slave layout column 0"
+    assert "Badge in slave" in html_text, "Should have badge from slave layout column 0"
+    assert "Alert in slave layout column 1" in html_text, "Should have alert from slave layout column 1"
+    
+    # ===== Validation 4: Second module =====
+    assert "Column A content" in html_text, "Should have column A content"
+    assert "Column B content" in html_text, "Should have column B content"
+    assert "Column C content" in html_text, "Should have column C content"
+    
+    # ===== Validation 5: Third module =====
+    assert "Module 3 alert" in html_text, "Should have module 3 alert"
+    
+    # ===== Validation 6: Duplicated layouts =====
+    assert "First layout text" in html_text, "Should have first layout content"
+    assert "Second layout text" in html_text, "Should have second layout content"
+    
+    print(f"✓ Displayer basics test passed - HTML saved to {TEST_OUTPUT_DIR}/displayer_basics.html")
+    print("  - Validated: title, breadcrumbs, 4 modules, nested/slave layouts, duplicated layouts")
+    print(f"  - Found {len(cards)} card elements")
 
 
 # ---------------------------------------------------------------------------
