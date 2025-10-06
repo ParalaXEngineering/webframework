@@ -278,6 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% macro modallink(link, text, icon, style) %}
     <p><a  data-bs-toggle="modal" data-bs-target="#modal_{{link}}", id="{{link}}">
         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
+        {% if text %}{{ text }}{% endif %}
     </a></p>
 {% endmacro %}
 
@@ -750,18 +751,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <a  onclick="setting_rm_mapping('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
     </div>
     </div>
-{% endmacro %}
-
-{% macro intextselect(id, data, value, text) %}
-    {% if text %}
-        {{ text }}
-    {% endif %}
-
-    {% if value %}
-        {{ common_input.textselect(id, data, value)}}
-    {% else %}
-        {{ common_input.textselect(id, data, history[id] if history is defined else None)}}
-    {% endif %}
 {% endmacro %}
 
 {% macro inmultiselect(id, data, value, text) %}
