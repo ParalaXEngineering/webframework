@@ -37,14 +37,14 @@
         {{innum(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INSTRING" %}
         {{instring(item["id"], item["value"], item["text"], item["focus"])}}
+    {% elif item["type"] == "INSTRINGICON" %}
+        {{instringicon(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INTEXT" %}
         {{intext(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INTEXTJS" %}
         {{intextjs(item["id"], item["value"], item["text"], item["data"], item["focus"])}}
     {% elif item["type"] == "INMULTITEXT" %}
         {{inmultitext(item["id"], item["value"], item["text"])}}
-    {% elif item["type"] == "INTEXTICON" %}
-        {{inttexticon(item["id"], item["value"])}}
     {% elif item["type"] == "INHIDDEN" %}
         {{inhidden(item["id"], item["value"])}}
     {% elif item["type"] == "INFILE" %}
@@ -83,8 +83,6 @@
         {{infileexplorer(item["id"], item["text"], item["explorer_titles"], item["explorer_files"], item["explorer_classes"], item["explorer_icons"], item["explorer_hiddens"])}}
     {% elif item["type"] == "GRAPH" %}
         {{graph(item["id"], item["text"], item["graph_x"], item["graph_y"], item["graph_type"])}}
-    {% elif item["type"] == "INPATH" %}
-        {{path(item["id"], item["value"], item["data"], item["possibles"])}}
     {% elif item["type"] == "CALENDAR" %}
         {{calendar(item["id"], item["value"], item["data"])}}
     {% endif %}
@@ -142,28 +140,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
 {% endmacro %}
 
-
-{% macro path(id, value, path, possibles,  default=None) %}
-<script type=text/javascript>
-    {% autoescape false %}
-        var path_{{path_count.value}} = {{ possibles }};
-    {% endautoescape %}
-
-</script>
-{{ common_input.hidden(id + " Ref", value) }}
-{{ common_input.path(id + " Path", "path_" + path_count.value|string, path) }}
-{% set path_count.value = path_count.value + 1 %}
-{% endmacro %}
-
-{% macro path_internal(id, path_variable, default=None) %}
-    <div class="row" id="{{ id }}_div">
-        <select class="form-control path-select" id="{{ id }}_level0" source="{{ path_variable }}" class="path" onchange="path_add_level('{{ id }}', '{{path_variable}}', 0)">
-            <option>Veillez sélectionner</option>
-        </select>
-        <input class="path_result" type="hidden" name="{{ id }}" id="{{ id }}" {% if default %} value="{{ default }}" {% endif %} class="form-control"> 
-    
-    </div>
-{% endmacro %}
 
 {% macro badge(text, style) %}
     {% if style != "none" %}
@@ -815,6 +791,25 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 {% endmacro %}
 
+{% macro instringicon(id, value, text) %}
+    {% if text %}
+        <span>{{ text }}</span>
+    {% endif %}
+
+    <div class="form-group row">
+        <div class="col-sm-10">
+            {{ common_input.input_js(id, "settings_update_icon('" + id + "')", value if value else "")}}
+        </div>
+        <div class="col-sm-2" id="{{id}}.div">
+            {% if value %}
+                <i class="mdi mdi-{{value}}" style="font-size: 24px;"></i>
+            {% else %}
+                <i class="mdi mdi-help" style="font-size: 24px;"></i>
+            {% endif %}
+        </div>
+    </div>
+{% endmacro %}
+
 {% macro intext(id, value, text) %}
     {% if text %}
         {{ text }}
@@ -857,13 +852,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
-{% endmacro %}
-
-{% macro inttexticon(id, value) %}
-    <div class="form-group row">
-        <div class="col-sm-4">{{ common_input.input_js(id , "settings_update_icon('" + id + "')", value)}}</div>
-        <div class="col-sm-1" id="{{id + ".div"}}"><i class="mdi mdi-{{value}}" ></i></div>
-    </div>
 {% endmacro %}
 
 {% macro inhidden(id, value) %}

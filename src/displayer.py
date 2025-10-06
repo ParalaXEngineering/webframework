@@ -213,7 +213,6 @@ class DisplayerItems(Enum):
     INMULTITEXT = "INMULTITEXT"
     INFILE = "INFILE"
     INFOLDER = "INFOLDER"
-    INTEXTICON = "INTEXTICON"
     INCASCADED = "INCASCADED"
     INFILEEXPLORER = "INFILEEXPLORER"
     INMULTISELECT = "INMULTISELECT"
@@ -236,7 +235,6 @@ class DisplayerItems(Enum):
     ICONLINK = "ICONLINK"
     BUTTONLINK = "BUTTONLINK"
     PLACEHOLDER = "PLACEHOLDER"
-    INPATH = "INPATH"
     CALENDAR = "CALENDAR"
 
 
@@ -664,7 +662,7 @@ class DisplayerItemIconLink(DisplayerItem):
     def instantiate_test(cls):
         """Create test instance with sample icon link."""
         return cls(id="test_icon_link", text="View Details", icon="information", 
-                   link="", parameters=["id=123", "action=view"], color=BSstyle.PRIMARY)
+                   link="#details", parameters=["id=123", "action=view"], color=BSstyle.PRIMARY)
     
 @DisplayerCategory.BUTTON
 class DisplayerItemButtonLink(DisplayerItem):
@@ -716,7 +714,7 @@ class DisplayerItemButtonLink(DisplayerItem):
     def instantiate_test(cls):
         """Create test instance with sample button link."""
         return cls(id="test_button_link", text="Submit Form", icon="check", 
-                   link="", parameters=["form_id=456"], color=BSstyle.SUCCESS)
+                   link="#action", parameters=["form_id=456"], color=BSstyle.SUCCESS)
 
 
 @DisplayerCategory.BUTTON
@@ -874,7 +872,7 @@ class DisplayerItemImage(DisplayerItem):
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample image."""
-        return cls(height="200px", link="https://via.placeholder.com/200", endpoint=None, path=None)
+        return cls(height="200px", link="https://tse3.mm.bing.net/th/id/OIP.GGAs1O-ZmfBJGBCDcj0KpgHaDd?rs=1&pid=ImgDetMain", endpoint=None, path=None)
 
 @DisplayerCategory.MEDIA
 class DisplayerItemFile(DisplayerItem):
@@ -1125,35 +1123,6 @@ class DisplayerItemInputSelect(DisplayerItem):
 
 
 @DisplayerCategory.INPUT
-class DisplayerItemInputPath(DisplayerItem):
-    """Specialized display to display a path dropdown menu.
-
-    For the moment, this is only supported in AltiumHelper, we need to do something more generic. The path_variable consist of the type of path, symbol or footprint
-    """
-
-    def __init__(
-        self,
-        id: str,
-        text: str = None,
-        value: str = None,
-        path: str = "",
-        possibles: list = [],
-    ) -> None:
-        super().__init__(DisplayerItems.INPATH)
-        self.m_text = text
-        self.m_value = value
-        self.m_id = id
-        self.m_data = path
-        self.m_possibles = possibles
-        return
-    
-    @classmethod
-    def instantiate_test(cls):
-        """Create test instance with sample path selector."""
-        return cls(id="test_path", text="Select Path", value="/home/user", 
-                   path="/home", possibles=["/home/user", "/home/admin", "/var/data"])
-
-
 @DisplayerCategory.INPUT
 class DisplayerItemInputMultiSelect(DisplayerItem):
     """Specialized display to display a multiple select with a possibility to add them on the fly"""
@@ -1191,8 +1160,8 @@ class DisplayerItemInputMapping(DisplayerItem):
     def instantiate_test(cls):
         """Create test instance with sample mapping."""
         return cls(id="test_mapping", text="Key-Value Mapping", 
-                   value={"key1": "value1", "key2": "value2"}, 
-                   choices=["key1", "key2", "key3"])
+                   value={"Section A": ["option1", "option2"], "Section B": ["option3"]}, 
+                   choices=["option1", "option2", "option3"])
 
 
 @DisplayerCategory.INPUT
@@ -1409,8 +1378,10 @@ class DisplayerItemInputTextJS(DisplayerItem):
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample text-JS input."""
-        return cls(id="test_textjs", text="Text with JS", value="Initial value", 
-                   js="console.log('Value changed')", focus=False)
+        # JS function to capitalize input
+        js_code = "this.value = this.value.toUpperCase();"
+        return cls(id="test_textjs", text="Text with JS (auto-capitalize)", value="type here", 
+                   js=js_code, focus=False)
     
 @DisplayerCategory.INPUT
 class DisplayerItemInputString(DisplayerItem):
@@ -1461,24 +1432,10 @@ class DisplayerItemInputMultiText(DisplayerItem):
     def instantiate_test(cls):
         """Create test instance with sample multi-line text input."""
         return cls(id="test_multitext", text="Enter multiple lines", 
-                   value="Line 1\nLine 2\nLine 3")
+                   value=["Line 1", "Line 2", "Line 3"])
 
 
 @DisplayerCategory.INPUT
-class DisplayerItemInputTextIcon(DisplayerItem):
-    """Specialized display to display a relation text / icon"""
-
-    def __init__(self, id: str, value: str = None) -> None:
-        super().__init__(DisplayerItems.INTEXTICON)
-        self.m_value = value
-        self.m_id = id
-        return
-    
-    @classmethod
-    def instantiate_test(cls):
-        """Create test instance with sample text-icon pair."""
-        return cls(id="test_texticon", value={"text": "Icon Label", "icon": "star"})
-
 @DisplayerCategory.INPUT
 class DisplayerItemInputFolder(DisplayerItem):
     """Specialized display to display an input number"""

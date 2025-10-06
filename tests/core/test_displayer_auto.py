@@ -588,6 +588,23 @@ def add_displayer_item(disp: displayer.Displayer, item: displayer.DisplayerItem)
     layout = displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
     disp.add_master_layout(layout)
     disp.add_display_item(item, 0)
+    
+    # Modal buttons/links need actual modal content
+    if isinstance(item, (displayer.DisplayerItemModalButton, displayer.DisplayerItemModalLink)):
+        # Create a simple modal displayer
+        modal_disp = displayer.Displayer()
+        modal_disp.add_generic("ModalContent")
+        modal_layout = displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
+        modal_disp.add_master_layout(modal_layout)
+        modal_disp.add_display_item(displayer.DisplayerItemText("This is the modal content"), 0)
+        modal_disp.add_display_item(displayer.DisplayerItemAlert("Modal works!", displayer.BSstyle.SUCCESS), 0)
+        
+        # Add modal with proper structure (m_modules already contains the built structure)
+        disp.m_modals.append({
+            "id": "modal_" + item.m_path,
+            "header": "Test Modal",
+            "content": modal_disp.m_modules
+        })
 
 
 def add_displayer_layout(disp: displayer.Displayer, layout_type: displayer.Layouts) -> None:
