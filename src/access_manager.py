@@ -1,6 +1,10 @@
 from submodules.framework.src import utilities
+from submodules.framework.src.security_utils import failed_login_manager
 from flask import session
+import bcrypt
+import logging
 
+logger = logging.getLogger("website")
 auth_object = None
 
 
@@ -126,6 +130,73 @@ class Access_manager:
             session['username'] = "GUEST"
             return False
 
+    def check_login_attempt(self, username: str, password: str):
+        """Vérifie les identifiants et gère le verrouillage
+        
+        :param username: Le nom d'utilisateur
+        :type username: str
+        :param password: Le mot de passe à vérifier
+        :type password: str
+        :return: Tuple (succès, message_erreur)
+        :rtype: tuple(bool, str)
+        """
+        config = utilities.util_read_parameters()
+        users = config["access"]["users"]["value"]
+        users_password = config["access"]["users_password"]["value"]
+        
+        # Vérifier si le compte est verrouillé
+        is_locked, locked_until = failed_login_manager.is_locked(username)
+        if is_locked:
+            remaining_time = failed_login_manager.get_lockout_time_remaining(username)
+            minutes = int(remaining_time // 60)
+            seconds = int(remaining_time % 60)
+            error_message = f"Account locked. Try again in {minutes}m {seconds}s"
+            logger.warning(f"Blocked login attempt for locked user '{username}' (locked until {locked_until.strftime('%H:%M:%S')})")
+            return False, error_message
+        
+        # Vérifier si l'utilisateur existe
+        if username not in users:
+            error_message = "User does not exist"
+            logger.warning(f"Failed login attempt for non-existent user '{username}'")
+            return False, error_message
+        
+        # Utilisateur sans mot de passe (accès toujours autorisé)
+        if username not in users_password or users_password[username][0] == "":
+            failed_login_manager.reset_attempts(username)
+            logger.info(f"Successful login for user '{username}' (no password required)")
+            return True, None
+        
+        # Vérifier le mot de passe avec bcrypt
+        try:
+            stored_password = users_password[username][0]
+            stored_hash = stored_password.encode('utf-8')
+            password_bytes = password.encode('utf-8')
+            
+            if bcrypt.checkpw(password_bytes, stored_hash):
+                # Connexion réussie
+                failed_login_manager.reset_attempts(username)
+                logger.info(f"Successful login for user '{username}'")
+                return True, None
+            else:
+                # Mot de passe incorrect
+                count = failed_login_manager.increment_attempts(username)
+                attempts_left = failed_login_manager.get_remaining_attempts(username)
+                
+                if count >= 5:
+                    status = failed_login_manager.get_user_status(username)
+                    error_message = "Too many failed attempts. Account locked for 5 minutes."
+                    logger.warning(f"Account '{username}' LOCKED for 5 minutes (until {status['locked_until'].strftime('%H:%M:%S')})")
+                else:
+                    error_message = f"Bad Password for this user ({attempts_left} attempts remaining)"
+                    logger.warning(f"Failed login attempt for user '{username}' ({attempts_left} attempts remaining)")
+                
+                return False, error_message
+                
+        except Exception as e:
+            logger.error(f"CRITICAL: Exception during password verification for user '{username}': {e}")
+            error_message = "Authentication error. Please contact administrator."
+            return False, error_message
+
     def authorize_group(self, allowed_groups: list = None) -> bool:
         """Indicate if the current user is in an authorized group
 
@@ -190,3 +261,62 @@ class Access_manager:
                 return True
 
         return False
+
+    def check_login_attempt(self, username: str, password: str) -> tuple:
+        """Check login attempt with lockout management
+        
+        :param username: Username to check
+        :type username: str
+        :param password: Password to verify
+        :type password: str
+        :return: (success: bool, error_message: str or None)
+        :rtype: tuple
+        """
+        config = utilities.util_read_parameters()
+        users_password = config["access"]["users_password"]["value"]
+        
+        # Check if user is currently locked
+        is_locked, locked_until = failed_login_manager.is_locked(username)
+        if is_locked:
+            remaining_time = failed_login_manager.get_lockout_time_remaining(username)
+            minutes = int(remaining_time // 60)
+            seconds = int(remaining_time % 60)
+            error_message = f"Account locked. Try again in {minutes}m {seconds}s"
+            logger.warning(f"Blocked login attempt for locked user '{username}' (locked until {locked_until.strftime('%H:%M:%S')})")
+            return (False, error_message)
+        
+        # Check if user has no password (allowed)
+        if username not in users_password:
+            failed_login_manager.reset_attempts(username)
+            logger.info(f"Successful login for user '{username}' (no password required)")
+            return (True, None)
+        
+        # Verify password with bcrypt
+        stored_password = users_password[username][0]
+        stored_hash = stored_password.encode('utf-8')
+        password_bytes = password.encode('utf-8')
+        
+        try:
+            if bcrypt.checkpw(password_bytes, stored_hash):
+                # Successful login - reset failed attempts
+                failed_login_manager.reset_attempts(username)
+                logger.info(f"Successful login for user '{username}'")
+                return (True, None)
+            else:
+                # Failed login attempt
+                count = failed_login_manager.increment_attempts(username)
+                attempts_left = failed_login_manager.get_remaining_attempts(username)
+                
+                if count >= 5:
+                    # Account is now locked for 5 minutes
+                    status = failed_login_manager.get_user_status(username)
+                    error_message = "Too many failed attempts. Account locked for 5 minutes."
+                    logger.warning(f"Account '{username}' LOCKED for 5 minutes (until {status['locked_until'].strftime('%H:%M:%S')})")
+                else:
+                    error_message = f"Bad Password for this user ({attempts_left} attempts remaining)"
+                    logger.warning(f"Failed login attempt for user '{username}' ({attempts_left} attempts remaining)")
+                
+                return (False, error_message)
+        except Exception as e:
+            logger.error(f"CRITICAL: Exception during password verification for user '{username}': {e}")
+            return (False, "Authentication error. Please contact administrator.")
