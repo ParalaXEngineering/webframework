@@ -144,12 +144,10 @@ def login():
                             error_message = f"Bad Password for this user ({attempts_left} attempts remaining)"
                             logger.warning(f"Failed login attempt for user '{username}' ({attempts_left} attempts remaining)")
                 except Exception as e:
-                    logger.error(f"Exception during password verification for user '{username}': {e}")
-                    # If bcrypt fails, allow access (backward compatibility)
-                    if username in failed_login_attempts:
-                        failed_login_attempts[username] = {'count': 0, 'locked_until': None}
-                    access_manager.auth_object.set_user(username, True)
-                    return redirect(redirect_path)
+                    logger.error(f"CRITICAL: Exception during password verification for user '{username}': {e}")
+                    error_message = "Authentication error. Please contact administrator."
+                    # Do NOT allow access on exception - security critical
+                    return render_template("login.j2", target="common.login", users=users, message=error_message)
         else:
             error_message = "User does not exist"
             logger.warning(f"Failed login attempt for non-existent user '{username}'")
