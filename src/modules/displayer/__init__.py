@@ -8,8 +8,8 @@ The displayer system provides a structured way to build web interfaces using:
 - Resources: Automatic CSS/JS dependency management
 
 Example:
-    >>> from src.displayer import Displayer, DisplayerLayout, Layouts
-    >>> from src.displayer import DisplayerItemText, DisplayerItemButton
+    >>> from src.modules.displayer import Displayer, DisplayerLayout, Layouts
+    >>> from src.modules.displayer import DisplayerItemText, DisplayerItemButton
     >>> 
     >>> disp = Displayer()
     >>> disp.add_generic("MyPage")

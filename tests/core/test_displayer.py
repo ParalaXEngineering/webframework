@@ -27,8 +27,8 @@ from typing import Dict
 from flask import Flask, Blueprint, render_template, request, jsonify
 from bs4 import BeautifulSoup
 
-from src import displayer
-from src import utilities
+from src.modules import displayer
+from src.modules import utilities
 
 
 # ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ def build_test_app() -> Flask:
     @app.context_processor
     def inject_resources():
         """Inject required resources into template context."""
-        from src.displayer import ResourceRegistry
+        from src.modules.displayer import ResourceRegistry
         return dict(
             required_css=ResourceRegistry.get_required_css(),
             required_js=ResourceRegistry.get_required_js(),
@@ -146,7 +146,7 @@ def generate_index_page() -> None:
     and saved as index.html in the output directory.
     """
     import glob
-    from src import site_conf
+    from src.modules import site_conf
     
     # Get all HTML files in output directory (excluding index.html itself)
     html_files = [

@@ -14,7 +14,8 @@ Or use VS Code launch configuration (F5)
 """
 
 from flask import Flask, render_template, request, session, Blueprint
-from src import displayer, utilities, access_manager, site_conf
+from src.modules import displayer
+from src.modules import utilities, access_manager, site_conf
 import os
 
 # Create Flask app
@@ -52,6 +53,7 @@ class DemoSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Text & Display", "demo.text_display")
         self.add_sidebar_submenu("Inputs", "demo.inputs")
         self.add_sidebar_submenu("Complete Showcase", "demo.complete_showcase")
+        self.add_sidebar_submenu("Settings Demo", "demo.settings_demo")
 
 # Initialize site configuration
 demo_conf = DemoSiteConf()
@@ -78,7 +80,7 @@ def inject_template_context():
 @app.context_processor
 def inject_resources():
     """Inject dynamic resources into all templates."""
-    from src.displayer import ResourceRegistry
+    from src.modules.displayer import ResourceRegistry
     return {
         'required_css': ResourceRegistry.get_required_css(),
         'required_js': ResourceRegistry.get_required_js(),
@@ -146,6 +148,22 @@ def index():
     disp.add_display_item(displayer.DisplayerItemText(
         "Test all input types with working form submission"
     ), 2)
+    
+    # Settings Demo
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="New: Settings Management Demo"
+    ))
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        "✨ <strong>Featured:</strong> Explore the new SettingsManager API - a clean, three-layer architecture "
+        "for configuration management with full CRUD operations, validation, import/export, and search!",
+        displayer.BSstyle.SUCCESS
+    ), 0)
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_settings", "Settings Manager Demo", "mdi-cog", "/settings-demo", [], displayer.BSstyle.SUCCESS
+    ), 0)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "Interactive demonstration of the SettingsManager API with live examples and full UI"
+    ), 0)
     
     # Interactive demo
     disp.add_master_layout(displayer.DisplayerLayout(
@@ -500,6 +518,107 @@ def complete_showcase():
         "Use this as a visual reference for building your own pages.",
         displayer.BSstyle.SUCCESS
     ), 0)
+    
+    return render_template("base_content.j2", content=disp.display())
+
+
+@demo_bp.route('/settings-demo')
+def settings_demo():
+    """Interactive demo of the SettingsManager functionality."""
+    from src.modules.settings_manager import SettingsManager
+    import tempfile
+    import json
+    
+    disp = displayer.Displayer()
+    disp.add_generic("Settings Demo")
+    disp.set_title("SettingsManager API Demo")
+    
+    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Settings Demo", "demo.settings_demo", [])
+    
+    # Create a temporary settings manager for demonstration
+    temp_config = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json')
+    temp_path = temp_config.name
+    temp_config.close()
+    
+    manager = SettingsManager(temp_path, create_backup=False)
+    manager.load()
+    
+    # Introduction
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Overview"
+    ))
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        "This demo showcases the SettingsManager API - a clean, three-layer architecture for "
+        "managing application configuration. The system provides data persistence, business logic, "
+        "and presentation layers with complete separation of concerns.",
+        displayer.BSstyle.INFO
+    ), 0)
+    
+    # Architecture Diagram
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Three-Layer Architecture"
+    ))
+    architecture_html = """
+    <div class="card">
+        <div class="card-body">
+            <h5>Clean Architecture Layers</h5>
+            <div style="font-family: monospace; background: #f8f9fa; padding: 20px; border-radius: 5px;">
+                <div style="border: 2px solid #0d6efd; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+                    <strong>📱 Presentation Layer</strong> (settings_v2.py)<br>
+                    Flask routes, request/response handling, UI rendering
+                </div>
+                <div style="text-align: center; margin: 10px 0;">⬇️ delegates to ⬇️</div>
+                <div style="border: 2px solid #198754; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+                    <strong>💼 Business Logic Layer</strong> (SettingsManager)<br>
+                    Categories, validation, import/export, search
+                </div>
+                <div style="text-align: center; margin: 10px 0;">⬇️ delegates to ⬇️</div>
+                <div style="border: 2px solid #dc3545; padding: 10px; border-radius: 5px;">
+                    <strong>💾 Data Layer</strong> (SettingsStorage)<br>
+                    JSON file persistence, schema validation, backups
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+    disp.add_display_item(displayer.DisplayerItemText(architecture_html), 0)
+    
+    # Live Demo Section at top
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Live Settings Interface"
+    ))
+    
+    live_demo_html = """
+    <div class="card border-primary">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">🚀 Try the Live Settings Interface</h5>
+        </div>
+        <div class="card-body">
+            <p>Experience the complete settings management interface with all features:</p>
+            <ul>
+                <li>Dashboard with overview and quick actions</li>
+                <li>View all settings grouped by category</li>
+                <li>Edit settings with type-appropriate inputs</li>
+                <li>Import/Export configurations</li>
+                <li>Search functionality</li>
+            </ul>
+            <div class="d-grid gap-2 mt-3">
+                <a href="/settings_v2/" class="btn btn-primary btn-lg">
+                    <i class="mdi mdi-cog"></i> Open Settings Interface
+                </a>
+            </div>
+        </div>
+    </div>
+    """
+    disp.add_display_item(displayer.DisplayerItemText(live_demo_html), 0)
+    
+    # Cleanup temp files
+    import os
+    try:
+        os.unlink(temp_path)
+    except:
+        pass
     
     return render_template("base_content.j2", content=disp.display())
 

@@ -15,7 +15,7 @@ except ImportError:
     FLASK_AVAILABLE = False
 
 try:
-    from . import utilities
+    from .modules import utilities
 except ImportError:
     import utilities
 
@@ -34,10 +34,10 @@ import traceback
 from functools import wraps
 
 try:
-    from . import scheduler
-    from . import threaded_manager
-    from . import access_manager
-    from . import site_conf
+    from .modules import scheduler
+    from .modules import threaded_manager
+    from .modules import access_manager
+    from .modules import site_conf
 except ImportError:
     import scheduler
     import threaded_manager
@@ -125,10 +125,11 @@ def setup_app(app):
 
     # Register other common blueprints
     try:
-        from . import settings, common, updater, packager, bug_tracker
+        from .pages import settings, settings_v2, common, updater, packager, bug_tracker
     except ImportError:
-        import settings, common, updater, packager, bug_tracker
+        from pages import settings, settings_v2, common, updater, packager, bug_tracker
     app.register_blueprint(settings.bp)
+    app.register_blueprint(settings_v2.bp)
     app.register_blueprint(common.bp)
     app.register_blueprint(updater.bp)
     app.register_blueprint(packager.bp)
@@ -214,7 +215,7 @@ def setup_app(app):
 
     @app.context_processor
     def inject_resources():
-        from displayer import ResourceRegistry
+        from .modules.displayer import ResourceRegistry
         return dict(
             required_css=ResourceRegistry.get_required_css(),
             required_js=ResourceRegistry.get_required_js(),

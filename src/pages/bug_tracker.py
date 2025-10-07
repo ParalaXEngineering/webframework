@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, request
 
-from . import utilities
-from . import access_manager
-from . import displayer
-from . import site_conf
-from . import User_defined_module
+from ..modules import utilities
+from ..modules import access_manager
+from ..modules import displayer
+from ..modules import site_conf
+from ..modules import User_defined_module
 
 from redminelib import Redmine
 

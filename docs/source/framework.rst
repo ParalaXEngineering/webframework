@@ -99,7 +99,7 @@ Example:
 
 .. code-block:: python
 
-   from src.displayer import Displayer, DisplayerItem
+   from src.modules.displayer import Displayer, DisplayerItem
    
    disp = Displayer()
    module = {"id": "main", "title": "Control Panel"}

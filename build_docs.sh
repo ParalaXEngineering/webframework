@@ -1,34 +1,52 @@
 #!/bin/bash
-# Build Sphinx documentation on macOS/Linux
+# Comprehensive documentation build script for macOS/Linux
+# This script handles both setup and building in one command
 
 set -e  # Exit on any error
 
-echo "Building Sphinx documentation..."
+echo "========================================"
+echo "Paralax Web Framework - Documentation Builder"
+echo "========================================"
+echo ""
 
-# Determine the project root directory  
+# ========================================
+# STEP 0: Determine Project Root
+# ========================================
 if [ -f "pyproject.toml" ]; then
     PROJECT_ROOT="$(pwd)"
 elif [ -f "../pyproject.toml" ]; then
-    PROJECT_ROOT="$(dirname $(pwd))"
+    PROJECT_ROOT="$(cd .. && pwd)"
 else
     echo "Error: Cannot find project root (looking for pyproject.toml)"
-    echo "Please run this script from the project root or docs directory."
+    echo "Please run this script from the project root directory."
     exit 1
 fi
 
+cd "$PROJECT_ROOT"
 echo "Project root: $PROJECT_ROOT"
+echo ""
 
-# Get the Python executable path
-if [ -f "$PROJECT_ROOT/.venv/bin/python" ]; then
+# ========================================
+# STEP 1: Setup/Verify Environment
+# ========================================
+echo "[1/3] Setting up environment..."
+echo ""
+
+# Check for virtual environment
+if [ -f ".venv/bin/python" ]; then
     PYTHON_CMD="$PROJECT_ROOT/.venv/bin/python"
-    echo "Using virtual environment Python: $PYTHON_CMD"
+    PIP_CMD="$PROJECT_ROOT/.venv/bin/pip"
+    echo "Found virtual environment at .venv"
 elif [ ! -z "$VIRTUAL_ENV" ]; then
     PYTHON_CMD="python"
-    echo "Using active virtual environment Python"
+    PIP_CMD="pip"
+    echo "Using active virtual environment: $VIRTUAL_ENV"
 else
-    echo "Error: No virtual environment found!"
-    echo "Please run setup_docs.sh first or activate your virtual environment."
-    exit 1
+    echo "No virtual environment found. Creating one..."
+    python3 -m venv .venv
+    PYTHON_CMD="$PROJECT_ROOT/.venv/bin/python"
+    PIP_CMD="$PROJECT_ROOT/.venv/bin/pip"
+    echo "Created virtual environment at .venv"
 fi
 
 # Verify Python executable works
@@ -37,17 +55,49 @@ if ! $PYTHON_CMD --version >/dev/null 2>&1; then
     exit 1
 fi
 
+# Check Python version
+python_version=$($PYTHON_CMD -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+echo "Using Python $python_version"
+echo ""
+
+# Install/Update documentation dependencies
+echo "Installing/updating documentation dependencies..."
+$PIP_CMD install -q -e .[docs]
+
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to install dependencies!"
+    echo "Please check your Python environment and try again."
+    exit 1
+fi
+
+echo "Dependencies ready!"
+echo ""
+
+# ========================================
+# STEP 2: Clean Previous Build
+# ========================================
+echo "[2/3] Cleaning previous build..."
+echo ""
+
+if [ -d "$PROJECT_ROOT/docs/build" ]; then
+    echo "Removing old build directory..."
+    rm -rf "$PROJECT_ROOT/docs/build"
+    echo "Previous build cleaned successfully!"
+else
+    echo "No previous build found (clean slate)"
+fi
+echo ""
+
+# ========================================
+# STEP 3: Build Documentation
+# ========================================
+echo "[3/3] Building HTML documentation..."
+echo ""
+
 # Change to docs directory
 cd "$PROJECT_ROOT/docs"
 
-# Clean previous build
-echo "Cleaning previous build..."
-rm -rf build/
-
 # Build documentation with comprehensive warning filtering
-echo "Building HTML documentation..."
-
-# Capture build output and filter warnings
 BUILD_OUTPUT=$($PYTHON_CMD -m sphinx \
     -b html \
     -W --keep-going \
@@ -63,14 +113,15 @@ if [ ! -z "$FILTERED_OUTPUT" ]; then
     echo "⚠️  Remaining warnings/errors:"
     echo "$FILTERED_OUTPUT"
     echo ""
-else
-    echo "✅ Build completed with no significant warnings!"
 fi
 
 # Check if build was successful
-if [ -f "build/html/index.html" ] && [ -z "$BUILD_FAILED" ]; then
+if [ -f "build/html/index.html" ]; then
     echo ""
-    echo "✅ Documentation built successfully!"
+    echo "========================================"
+    echo "Documentation built successfully!"
+    echo "========================================"
+    echo ""
     echo "📍 Location: $PROJECT_ROOT/docs/build/html/index.html"
     echo ""
     
@@ -81,8 +132,17 @@ if [ -f "build/html/index.html" ] && [ -z "$BUILD_FAILED" ]; then
     else
         echo "💡 Open build/html/index.html in your browser to view the documentation."
     fi
+    
+    if [ ! -z "$FILTERED_OUTPUT" ]; then
+        echo ""
+        echo "Note: Build completed with some warnings (see above)"
+    fi
 else
-    echo "❌ Documentation build failed!"
+    echo ""
+    echo "========================================"
+    echo "Documentation build failed!"
+    echo "========================================"
+    echo ""
     echo "Check the output above for errors."
     exit 1
 fi

@@ -22,7 +22,7 @@ Integration:
 import pytest
 import os
 from typing import List, Dict
-from src import displayer
+from src.modules import displayer
 
 
 # ---------------------------------------------------------------------------
@@ -179,7 +179,7 @@ def test_resource_isolation():
     
     This verifies the ResourceRegistry.reset() behavior works correctly.
     """
-    from src.displayer import Displayer, DisplayerLayout, Layouts, ResourceRegistry
+    from src.modules.displayer import Displayer, DisplayerLayout, Layouts, ResourceRegistry
     
     # Get two items with different resource requirements
     items = get_items_with_resources()
