@@ -16,7 +16,7 @@ Or use VS Code launch configuration (F5)
 from flask import Flask, render_template, request, session, Blueprint
 from src.modules import displayer
 from src.modules import utilities, access_manager, site_conf
-from src.pages import settings_v2
+from src.pages import settings
 import os
 
 # Create Flask app
@@ -527,15 +527,15 @@ def complete_showcase():
 def settings_demo():
     """Redirect to settings interface."""
     from flask import redirect
-    return redirect('/settings_v2/')
+    return redirect('/settings/')
 
 
 # Register blueprints
 app.register_blueprint(demo_bp)
 app.register_blueprint(common_bp)
 
-# Register settings_v2 blueprint for live settings interface
-app.register_blueprint(settings_v2.bp)
+# Register settings blueprint for live settings interface
+app.register_blueprint(settings.bp)
 
 if __name__ == '__main__':
     print("=" * 60)
