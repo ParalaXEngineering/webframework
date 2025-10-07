@@ -19,28 +19,19 @@
     "select_example": {
       "friendly": "Select Dropdown",
       "type": "select",
-      "value": "option3",
-      "options": [
-        "option1",
-        "option2",
-        "option3"
-      ]
+      "value": "option2",
+      "options": ["option1", "option2", "option3"]
     },
     "serial_port_example": {
       "friendly": "Serial Port Selection",
       "type": "serial_port",
-      "value": "None",
-      "options": [
-        "COM1",
-        "COM2",
-        "COM3",
-        "COM4"
-      ]
+      "value": "COM3",
+      "options": ["COM1", "COM2", "COM3", "COM4"]
     },
     "icon_example": {
       "friendly": "Icon Selector",
       "type": "icon",
-      "value": "star"
+      "value": "home"
     }
   },
   "complex_types": {
@@ -57,25 +48,13 @@
     "text_list_example": {
       "friendly": "Text List (User-Defined Items)",
       "type": "text_list",
-      "value": [
-        "apple",
-        "banana",
-        "cherry"
-      ]
+      "value": ["apple", "banana", "cherry"]
     },
     "multi_select_example": {
       "friendly": "Multi-Select (Choose Multiple)",
       "type": "multi_select",
-      "value": [
-        "red",
-        "blue"
-      ],
-      "options": [
-        "red",
-        "green",
-        "blue",
-        "yellow"
-      ]
+      "value": ["red", "blue"],
+      "options": ["red", "green", "blue", "yellow"]
     },
     "dropdown_mapping_example": {
       "friendly": "Dropdown Mapping (Predefined Keys + Text Values)",
@@ -85,12 +64,7 @@
         "port": "8080",
         "protocol": "https"
       },
-      "options": [
-        "host",
-        "port",
-        "protocol",
-        "timeout"
-      ]
+      "options": ["host", "port", "protocol", "timeout"]
     }
   }
 }

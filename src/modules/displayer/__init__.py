@@ -138,3 +138,18 @@ __all__ = [
     # Advanced items
     'DisplayerItemCalendar',
 ]
+
+# Backward compatibility aliases for clearer naming
+# These allow old code to work while providing more intuitive names
+DisplayerItemInputCheckbox = DisplayerItemInputBox
+DisplayerItemInputKeyValue = DisplayerItemInputTextText
+DisplayerItemInputTextList = DisplayerItemInputMultiText
+DisplayerItemInputDropdownValue = DisplayerItemInputSelectText
+
+# Add aliases to __all__ for public API
+__all__.extend([
+    'DisplayerItemInputCheckbox',
+    'DisplayerItemInputKeyValue', 
+    'DisplayerItemInputTextList',
+    'DisplayerItemInputDropdownValue',
+])

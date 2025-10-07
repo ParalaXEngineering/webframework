@@ -125,11 +125,10 @@ def setup_app(app):
 
     # Register other common blueprints
     try:
-        from .pages import settings, settings_v2, common, updater, packager, bug_tracker
+        from .pages import settings, common, updater, packager, bug_tracker
     except ImportError:
-        from pages import settings, settings_v2, common, updater, packager, bug_tracker
+        from pages import settings, common, updater, packager, bug_tracker
     app.register_blueprint(settings.bp)
-    app.register_blueprint(settings_v2.bp)
     app.register_blueprint(common.bp)
     app.register_blueprint(updater.bp)
     app.register_blueprint(packager.bp)
