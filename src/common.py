@@ -10,9 +10,11 @@ import os
 import sys
 import markdown
 import bcrypt
+import logging
 from datetime import datetime, timedelta
 
 bp = Blueprint("common", __name__, url_prefix="/common")
+logger = logging.getLogger("website")
 
 # Dictionary to track failed login attempts: {username: {'count': int, 'locked_until': datetime}}
 failed_login_attempts = {}
@@ -89,7 +91,7 @@ def login():
 
         redirect_path = config["core"]["redirect"]["value"] if "core" in config else "/"
 
-        # Check if user is currently locked
+        # Check if user is currently locked - BLOCK EVERYTHING
         if username in failed_login_attempts:
             locked_until = failed_login_attempts[username].get('locked_until')
             if locked_until and datetime.now() < locked_until:
@@ -97,6 +99,7 @@ def login():
                 minutes = int(remaining_time // 60)
                 seconds = int(remaining_time % 60)
                 error_message = f"Account locked. Try again in {minutes}m {seconds}s"
+                logger.warning(f"Blocked login attempt for locked user '{username}' (locked until {locked_until.strftime('%H:%M:%S')})")
                 return render_template("login.j2", target="common.login", users=users, message=error_message)
             elif locked_until and datetime.now() >= locked_until:
                 # Lock expired, reset attempts
@@ -109,6 +112,7 @@ def login():
                 if username in failed_login_attempts:
                     failed_login_attempts[username] = {'count': 0, 'locked_until': None}
                 access_manager.auth_object.set_user(username, True)
+                logger.info(f"Successful login for user '{username}' (no password required)")
                 return redirect(redirect_path)
             else:
                 stored_password = users_password[username][0]
@@ -121,6 +125,7 @@ def login():
                         if username in failed_login_attempts:
                             failed_login_attempts[username] = {'count': 0, 'locked_until': None}
                         access_manager.auth_object.set_user(username, True)
+                        logger.info(f"Successful login for user '{username}'")
                         return redirect(redirect_path)
                     else:
                         # Failed login attempt
@@ -134,9 +139,12 @@ def login():
                             # Lock the account for 5 minutes
                             failed_login_attempts[username]['locked_until'] = datetime.now() + timedelta(minutes=5)
                             error_message = "Too many failed attempts. Account locked for 5 minutes."
+                            logger.warning(f"Account '{username}' LOCKED for 5 minutes (until {failed_login_attempts[username]['locked_until'].strftime('%H:%M:%S')})")
                         else:
                             error_message = f"Bad Password for this user ({attempts_left} attempts remaining)"
-                except Exception:
+                            logger.warning(f"Failed login attempt for user '{username}' ({attempts_left} attempts remaining)")
+                except Exception as e:
+                    logger.error(f"Exception during password verification for user '{username}': {e}")
                     # If bcrypt fails, allow access (backward compatibility)
                     if username in failed_login_attempts:
                         failed_login_attempts[username] = {'count': 0, 'locked_until': None}
@@ -144,6 +152,7 @@ def login():
                     return redirect(redirect_path)
         else:
             error_message = "User does not exist"
+            logger.warning(f"Failed login attempt for non-existent user '{username}'")
 
     return render_template("login.j2", target="common.login", users=users, message=error_message)
 
