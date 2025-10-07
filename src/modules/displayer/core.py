@@ -295,6 +295,7 @@ class BSstyle(Enum):
     ERROR = "danger"
     DARK = "dark"
     LIGHT = "light-secondary"
+    SECONDARY = "secondary"
     ULTRALIGHT = "body"
     NONE = "none"
 

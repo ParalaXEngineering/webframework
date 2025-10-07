@@ -96,38 +96,42 @@ def dashboard():
     )
     
     disp.add_display_item(
-        displayer.DisplayerItemButton(
+        displayer.DisplayerItemButtonLink(
             "view_settings",
             "View All Settings",
-            style=displayer.BSstyle.INFO,
-            link="/settings_v2/view"
+            icon="eye",
+            link="/settings_v2/view",
+            color=displayer.BSstyle.INFO
         ),
         0
     )
     disp.add_display_item(
-        displayer.DisplayerItemButton(
+        displayer.DisplayerItemButtonLink(
             "edit_settings",
             "Edit Settings",
-            style=displayer.BSstyle.PRIMARY,
-            link="/settings_v2/edit"
+            icon="pencil",
+            link="/settings_v2/edit",
+            color=displayer.BSstyle.PRIMARY
         ),
         1
     )
     disp.add_display_item(
-        displayer.DisplayerItemButton(
+        displayer.DisplayerItemButtonLink(
             "export_settings",
             "Export Settings",
-            style=displayer.BSstyle.SUCCESS,
-            link="/settings_v2/export"
+            icon="download",
+            link="/settings_v2/export",
+            color=displayer.BSstyle.SUCCESS
         ),
         2
     )
     disp.add_display_item(
-        displayer.DisplayerItemButton(
+        displayer.DisplayerItemButtonLink(
             "search_settings",
             "Search Settings",
-            style=displayer.BSstyle.WARNING,
-            link="/settings_v2/search"
+            icon="magnify",
+            link="/settings_v2/search",
+            color=displayer.BSstyle.WARNING
         ),
         3
     )
@@ -196,6 +200,9 @@ def view_settings():
             full_key = f"{category}.{key}"
             info = manager.get_setting_info(full_key)
             
+            # Check if modified by comparing current to default
+            is_modified = info['current_value'] != info['default_value']
+            
             # Format value for display
             if isinstance(value, bool):
                 display_value = "✓ Yes" if value else "✗ No"
@@ -223,8 +230,8 @@ def view_settings():
             )
             disp.add_display_item(
                 displayer.DisplayerItemBadge(
-                    "Modified" if info['modified'] else "Default",
-                    displayer.BSstyle.WARNING if info['modified'] else displayer.BSstyle.SECONDARY
+                    "Modified" if is_modified else "Default",
+                    displayer.BSstyle.WARNING if is_modified else displayer.BSstyle.SECONDARY
                 ),
                 3,
                 line=i
@@ -239,11 +246,12 @@ def view_settings():
         )
     )
     disp.add_display_item(
-        displayer.DisplayerItemButton(
+        displayer.DisplayerItemButtonLink(
             "back",
             "← Back to Dashboard",
-            style=displayer.BSstyle.SECONDARY,
-            link="/settings_v2/"
+            icon="arrow-left",
+            link="/settings_v2/",
+            color=displayer.BSstyle.SECONDARY
         ),
         0
     )
@@ -293,8 +301,9 @@ def edit_settings():
             
             # Label with description
             label_html = f"<strong>{key.replace('_', ' ').title()}</strong>"
-            if info.get('description'):
-                label_html += f"<br><small class='text-muted'>{info['description']}</small>"
+            description = info.get('schema', {}).get('description') if isinstance(info.get('schema'), dict) else None
+            if description:
+                label_html += f"<br><small class='text-muted'>{description}</small>"
             disp.add_display_item(displayer.DisplayerItemText(label_html), 0)
             
             # Input field based on type
@@ -337,11 +346,11 @@ def edit_settings():
     )
     
     disp.add_display_item(
-        displayer.DisplayerItemButton("save", "Save Changes", style=displayer.BSstyle.PRIMARY),
+        displayer.DisplayerItemButton("save", "Save Changes"),
         0
     )
     disp.add_display_item(
-        displayer.DisplayerItemButton("cancel", "Cancel", style=displayer.BSstyle.SECONDARY, link="/settings_v2/"),
+        displayer.DisplayerItemButtonLink("cancel", "Cancel", icon="close", link="/settings_v2/", color=displayer.BSstyle.SECONDARY),
         1
     )
     
@@ -349,14 +358,13 @@ def edit_settings():
         disp.add_display_item(
             displayer.DisplayerItemButton(
                 "reset_category",
-                f"Reset {category_filter.title()} to Defaults",
-                style=displayer.BSstyle.WARNING
+                f"Reset {category_filter.title()} to Defaults"
             ),
             2
         )
     else:
         disp.add_display_item(
-            displayer.DisplayerItemButton("reset_all", "Reset All to Defaults", style=displayer.BSstyle.DANGER),
+            displayer.DisplayerItemButton("reset_all", "Reset All to Defaults"),
             3
         )
     
@@ -457,6 +465,9 @@ def view_category(category_name):
             full_key = f"{category_name}.{key}"
             info = manager.get_setting_info(full_key)
             
+            # Check if modified by comparing current to default
+            is_modified = info['current_value'] != info['default_value']
+            
             # Format value
             if isinstance(value, bool):
                 value_str = "✓ Yes" if value else "✗ No"
@@ -480,8 +491,8 @@ def view_category(category_name):
             )
             disp.add_display_item(
                 displayer.DisplayerItemBadge(
-                    "Modified" if info['modified'] else "Default",
-                    displayer.BSstyle.WARNING if info['modified'] else displayer.BSstyle.SECONDARY
+                    "Modified" if is_modified else "Default",
+                    displayer.BSstyle.WARNING if is_modified else displayer.BSstyle.SECONDARY
                 ),
                 3,
                 line=i
@@ -504,20 +515,22 @@ def view_category(category_name):
         )
         
         disp.add_display_item(
-            displayer.DisplayerItemButton(
+            displayer.DisplayerItemButtonLink(
                 "edit",
                 "Edit Category",
-                style=displayer.BSstyle.PRIMARY,
-                link=f"/settings_v2/edit?category={category_name}"
+                icon="pencil",
+                link=f"/settings_v2/edit?category={category_name}",
+                color=displayer.BSstyle.PRIMARY
             ),
             0
         )
         disp.add_display_item(
-            displayer.DisplayerItemButton(
+            displayer.DisplayerItemButtonLink(
                 "back",
                 "← Back",
-                style=displayer.BSstyle.SECONDARY,
-                link="/settings_v2/"
+                icon="arrow-left",
+                link="/settings_v2/",
+                color=displayer.BSstyle.SECONDARY
             ),
             1
         )
@@ -735,11 +748,12 @@ def search_settings():
         )
     )
     disp.add_display_item(
-        displayer.DisplayerItemButton(
+        displayer.DisplayerItemButtonLink(
             "back",
             "← Back to Dashboard",
-            style=displayer.BSstyle.SECONDARY,
-            link="/settings_v2/"
+            icon="arrow-left",
+            link="/settings_v2/",
+            color=displayer.BSstyle.SECONDARY
         ),
         0
     )
@@ -758,6 +772,9 @@ def setting_info(setting_key):
     try:
         info = manager.get_setting_info(setting_key)
         current_value = manager.get_setting(setting_key)
+        
+        # Check if modified by comparing current to default
+        is_modified = info['current_value'] != info['default_value']
         
         # Build displayer
         disp = displayer.Displayer()
@@ -783,23 +800,24 @@ def setting_info(setting_key):
                     <dd class="col-sm-9"><code>{current_value}</code></dd>
                     
                     <dt class="col-sm-3">Default Value</dt>
-                    <dd class="col-sm-9"><code>{info['default']}</code></dd>
+                    <dd class="col-sm-9"><code>{info['default_value']}</code></dd>
                     
                     <dt class="col-sm-3">Type</dt>
                     <dd class="col-sm-9"><span class="badge bg-info">{info['type']}</span></dd>
                     
                     <dt class="col-sm-3">Modified</dt>
                     <dd class="col-sm-9">
-                        <span class="badge bg-{"warning" if info['modified'] else "secondary"}">
-                            {"Yes" if info['modified'] else "No"}
+                        <span class="badge bg-{"warning" if is_modified else "secondary"}">
+                            {"Yes" if is_modified else "No"}
                         </span>
                     </dd>
         '''
         
-        if info.get('description'):
+        description = info.get('schema', {}).get('description') if isinstance(info.get('schema'), dict) else None
+        if description:
             info_html += f'''
                     <dt class="col-sm-3">Description</dt>
-                    <dd class="col-sm-9">{info['description']}</dd>
+                    <dd class="col-sm-9">{description}</dd>
             '''
         
         info_html += '''
@@ -823,20 +841,22 @@ def setting_info(setting_key):
         edit_link = f"/settings_v2/edit?category={category}" if category else "/settings_v2/edit"
         
         disp.add_display_item(
-            displayer.DisplayerItemButton(
+            displayer.DisplayerItemButtonLink(
                 "back",
                 "← Back",
-                style=displayer.BSstyle.SECONDARY,
-                link="/settings_v2/"
+                icon="arrow-left",
+                link="/settings_v2/",
+                color=displayer.BSstyle.SECONDARY
             ),
             0
         )
         disp.add_display_item(
-            displayer.DisplayerItemButton(
+            displayer.DisplayerItemButtonLink(
                 "edit",
                 "Edit Setting",
-                style=displayer.BSstyle.PRIMARY,
-                link=edit_link
+                icon="pencil",
+                link=edit_link,
+                color=displayer.BSstyle.PRIMARY
             ),
             1
         )

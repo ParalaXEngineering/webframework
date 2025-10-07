@@ -1,0 +1,47 @@
+{
+  "application": {
+    "name": "ParalaX Web Framework",
+    "version": "1.0.0",
+    "debug": false,
+    "description": "Web framework for industrial applications"
+  },
+  "logging": {
+    "level": "INFO",
+    "max_file_size_mb": 10,
+    "backup_count": 5,
+    "log_to_file": true,
+    "log_to_console": true
+  },
+  "network": {
+    "host": "0.0.0.0",
+    "port": 5001,
+    "ssl_enabled": false,
+    "ssl_cert_path": "",
+    "ssl_key_path": ""
+  },
+  "authentication": {
+    "enabled": true,
+    "session_timeout_minutes": 30,
+    "max_login_attempts": 3,
+    "require_strong_passwords": false
+  },
+  "interface": {
+    "theme": "light",
+    "language": "en",
+    "items_per_page": 25,
+    "show_sidebar": true
+  },
+  "paths": {
+    "upload_directory": "./uploads",
+    "backup_directory": "./backups",
+    "temp_directory": "./temp"
+  },
+  "Edit Settings": {
+    "paths": {
+      "upload_directory": "./uploads",
+      "backup_directory": "./backups",
+      "temp_directory": "./temp2"
+    },
+    "save": ""
+  }
+}

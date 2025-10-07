@@ -16,6 +16,7 @@ Or use VS Code launch configuration (F5)
 from flask import Flask, render_template, request, session, Blueprint
 from src.modules import displayer
 from src.modules import utilities, access_manager, site_conf
+from src.pages import settings_v2
 import os
 
 # Create Flask app
@@ -527,7 +528,6 @@ def settings_demo():
     """Interactive demo of the SettingsManager functionality."""
     from src.modules.settings_manager import SettingsManager
     import tempfile
-    import json
     
     disp = displayer.Displayer()
     disp.add_generic("Settings Demo")
@@ -539,6 +539,8 @@ def settings_demo():
     # Create a temporary settings manager for demonstration
     temp_config = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json')
     temp_path = temp_config.name
+    # Initialize with empty JSON object
+    temp_config.write('{}')
     temp_config.close()
     
     manager = SettingsManager(temp_path, create_backup=False)
@@ -626,6 +628,9 @@ def settings_demo():
 # Register blueprints
 app.register_blueprint(demo_bp)
 app.register_blueprint(common_bp)
+
+# Register settings_v2 blueprint for live settings interface
+app.register_blueprint(settings_v2.bp)
 
 if __name__ == '__main__':
     print("=" * 60)
