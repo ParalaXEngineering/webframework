@@ -1,19 +1,17 @@
 import time
 import threading
-import logging
-import logging.config
-
 from enum import Enum
 
 try:
-    from . import threaded_manager
-    from .scheduler import MessageQueue, MessageEmitter, MessageType
+    from .. import threaded_manager
+    from ..logger_factory import get_logger
+    from .message_queue import MessageQueue, MessageType
+    from .emitter import MessageEmitter
 except ImportError:
     import threaded_manager
-    from scheduler import MessageQueue, MessageEmitter, MessageType
-
-scheduler_obj = None
-scheduler_ltobj = None
+    from logger_factory import get_logger
+    from message_queue import MessageQueue, MessageType
+    from emitter import MessageEmitter
 
 
 class logLevel(Enum):
@@ -29,9 +27,7 @@ class Scheduler_LongTerm:
         self.functions = []
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.running = False
-
-        logging.config.fileConfig("submodules/framework/log_config.ini")
-        self.m_logger = logging.getLogger("website")
+        self.m_logger = get_logger("scheduler_longterm")
 
     def register_function(self, function, period: int) -> None:
         """Register a nex function
@@ -104,18 +100,6 @@ class Scheduler:
             MessageEmitter(socket_obj) if socket_obj is not None else None
         )
         self.m_logger = None
-        
-        # Legacy support: Keep class-level attributes for backward compatibility
-        # These will be deprecated in favor of the queue/emitter pattern
-        self.m_status = []
-        self.m_reload = []
-        self.m_popups = []
-        self.m_contents = []
-        self.m_buttons = []
-        self.m_results = []
-        self.m_modals = []
-        self.m_button_disable = []
-        self.m_button_enable = []
 
     def user_before(self):
         """Function to be overwritten by specific website, ut is executed at the begning of a scheduler cycle"""
@@ -134,8 +118,6 @@ class Scheduler:
         for item in content:
             data = [item["id"], item["content"]]
             self._queue.add(MessageType.RELOAD, data)
-            # Legacy support
-            self.m_reload.append(data)
 
     def disable_button(self, id: str):
         """Disable a button by its id
@@ -144,8 +126,6 @@ class Scheduler:
         :type id: str
         """
         self._queue.add(MessageType.BUTTON_DISABLE, id)
-        # Legacy support
-        self.m_button_disable.append(id)
 
     def enable_button(self, id: str):
         """Enable a button by its id
@@ -154,8 +134,6 @@ class Scheduler:
         :type id: str
         """
         self._queue.add(MessageType.BUTTON_ENABLE, id)
-        # Legacy support
-        self.m_button_enable.append(id)
 
     def emit_status(
         self, category: str, string: str, status: int = 0, supplement: str = "", status_id: str = None
@@ -175,12 +153,10 @@ class Scheduler:
         line with this ID instead of creating a new one. Defaults to None (creates new line each time)
         :type status_id: str, optional
         """
-        # If status_id provided, use it as the identifier; otherwise generate from string
+        # If status_id provided, use it as the identifier; otherwise use the string
         identifier = status_id if status_id else string
         data = [category, identifier, status, supplement]
         self._queue.add(MessageType.STATUS, data)
-        # Legacy support
-        self.m_status.append(data)
 
     def emit_popup(self, level: logLevel, string: str):
         """ "Emit a a popup that will be displayed to the user
@@ -192,8 +168,6 @@ class Scheduler:
         """
         data = [level, string]
         self._queue.add(MessageType.POPUP, data)
-        # Legacy support
-        self.m_popups.append(data)
 
     def emit_result(self, category: str, content):
         """Add a result information in the bottom of the "Action progress".
@@ -206,8 +180,6 @@ class Scheduler:
         """
         data = [category, content]
         self._queue.add(MessageType.RESULT, data)
-        # Legacy support
-        self.m_results.append(data)
 
     def emit_button(self, id: str, icon: str, text: str, style: str = "primary"):
         """Change the content of a topbar button
@@ -223,8 +195,6 @@ class Scheduler:
         """
         data = [id, icon, text, style]
         self._queue.add(MessageType.BUTTON, data)
-        # Legacy support
-        self.m_buttons.append(data)
 
     def emit_modal(self, id: str, content: str):
         """Change the content of a topbar modal
@@ -237,16 +207,16 @@ class Scheduler:
         :notes: modal might be big, and having a lot of them can use a vast amount of memory if the user don't consume them. So only the last 5 ones are kept.
         """
         data = [id, content]
-        self._queue.add(MessageType.MODAL, data)
-        # Legacy support
-        self.m_modals.append(data)
-        self.m_modals = self.m_modals[-5:] 
+        self._queue.add(MessageType.MODAL, data) 
 
     def start(self):
         """Start the scheduler"""
-        logging.config.fileConfig("submodules/framework/log_config.ini")
-        self.m_logger = logging.getLogger("website")
+        self.m_logger = get_logger("scheduler")
         self.m_logger.info("Scheduler started")
+        
+        # Configure emitter logger if it exists
+        if self._emitter is not None and hasattr(self._emitter, 'logger'):
+            self._emitter.logger = self.m_logger
 
         while 1:
             if not self.m_user_connected:
@@ -255,19 +225,22 @@ class Scheduler:
 
             self.user_before()
 
-            # Use new emitter if available, otherwise fall back to legacy code
-            if self._emitter is not None:
-                # Get all messages from queues
-                buttons = self._queue.get_all(MessageType.BUTTON)
-                popups = self._queue.get_all(MessageType.POPUP)
-                status = self._queue.get_all(MessageType.STATUS)
-                results = self._queue.get_all(MessageType.RESULT)
-                modals = self._queue.get_all(MessageType.MODAL)
-                reloads = self._queue.get_all(MessageType.RELOAD)
-                button_disable = self._queue.get_all(MessageType.BUTTON_DISABLE)
-                button_enable = self._queue.get_all(MessageType.BUTTON_ENABLE)
+            # Get all messages from queues
+            buttons = self._queue.get_all(MessageType.BUTTON)
+            popups = self._queue.get_all(MessageType.POPUP)
+            status = self._queue.get_all(MessageType.STATUS)
+            results = self._queue.get_all(MessageType.RESULT)
+            modals = self._queue.get_all(MessageType.MODAL)
+            reloads = self._queue.get_all(MessageType.RELOAD)
+            button_disable = self._queue.get_all(MessageType.BUTTON_DISABLE)
+            button_enable = self._queue.get_all(MessageType.BUTTON_ENABLE)
 
-                # Emit using new emitter
+            # Debug: Log what we collected
+            if any([buttons, popups, status, results, modals, reloads, button_disable, button_enable]):
+                self.m_logger.info(f"[SCHEDULER] Collected messages - Status: {len(status)}, Popups: {len(popups)}, Results: {len(results)}, Buttons: {len(buttons)}, Reloads: {len(reloads)}")
+
+            # Emit using emitter (handles filtering and errors)
+            if self._emitter is not None:
                 self._emitter.emit_buttons(buttons)
                 self._emitter.emit_popups(popups)
                 self._emitter.emit_status(status)
@@ -287,74 +260,6 @@ class Scheduler:
                             "state": thread.m_running_state
                         })
                 self._emitter.emit_threads(thread_info)
-            else:
-                # Legacy emission code (for backward compatibility)
-                # Send buttons, if any
-                for item in self.m_buttons:
-                    self.socket_obj.emit("button", {item[0]: [item[1], item[2], item[3]]})
-
-                # Send popups if any
-                for item in self.m_popups:
-                    level = item[0].name
-                    self.socket_obj.emit("popup", {level: item[1]})
-
-                # Send content if any
-                for item in self.m_contents:
-                    self.socket_obj.emit("content", {item[0]: item[1]})
-
-                # Send the status if any. Start by filtering the status so we only keep the last important ones
-                previous_status = ""
-                filtered_status = []
-                for item in reversed(self.m_status):
-                    if item[1] != previous_status:
-                        filtered_status.append(item)
-                        previous_status = item[1]
-                    else:
-                        continue
-
-                if len(filtered_status) > 0:
-                    for item in reversed(filtered_status):
-                        self.socket_obj.emit(
-                            "action_status", {item[0]: [item[1], item[2], item[3]]}
-                        )
-
-                # Send result if any
-                for item in self.m_results:
-                    self.socket_obj.emit("result", {"category": item[0], "text": item[1]})
-
-                for item in self.m_modals:
-                    self.socket_obj.emit("modal", {"id": item[0], "text": item[1]})
-
-                # Send new formulaire information
-                for item in self.m_reload:
-                    self.socket_obj.emit("reload", {"id": item[0], "content": item[1]})
-
-                threads_names = threaded_manager.thread_manager_obj.get_unique_names()
-                thread_info = []
-                for name in threads_names:
-                    current_thread = threaded_manager.thread_manager_obj.get_threads_by_name(name)
-                    for i, thread in enumerate(current_thread):
-                        thread_info.append({
-                            "name": f"{name} #{i+1}" if len(current_thread) > 1 else name,
-                            "state": thread.m_running_state
-                        })
-
-                self.socket_obj.emit("threads", thread_info)
-
-                # Send the button disable / enable
-                self.socket_obj.emit("disable_button", self.m_button_disable)
-                self.socket_obj.emit("enable_button", self.m_button_enable)
-
-            # Clear legacy lists
-            self.m_status = []
-            self.m_popups = []
-            self.m_contents = []
-            self.m_results = []
-            self.m_modals = []
-            self.m_buttons = []
-            self.m_reload = []
-            self.m_button_disable = []
-            self.m_button_enable = []
 
             self.user_after()
             time.sleep(0.1)

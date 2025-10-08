@@ -22,8 +22,6 @@ except ImportError:
 import time
 import os
 import webbrowser
-import logging
-import logging.config
 import uuid
 
 import importlib
@@ -34,15 +32,17 @@ import traceback
 from functools import wraps
 
 try:
-    from .modules import scheduler_classes as scheduler
+    from .modules import scheduler
     from .modules import threaded_manager
     from .modules import access_manager
     from .modules import site_conf
+    from .modules.logger_factory import get_logger
 except ImportError:
-    import scheduler_classes as scheduler
+    import scheduler
     import threaded_manager
     import access_manager
     import site_conf
+    from logger_factory import get_logger
 
 # Create Flask app only if Flask is available
 if FLASK_AVAILABLE:
@@ -70,20 +70,8 @@ def setup_app(app):
 
     socketio_obj = SocketIO(app)
     
-    # Try to find log config file in different possible locations
-    log_config_paths = [
-        "log_config.ini",  # For standalone usage
-        "../log_config.ini",  # For when running from src directory
-        "submodules/framework/log_config.ini"  # For submodule usage
-    ]
-    
-    for log_path in log_config_paths:
-        if os.path.exists(log_path):
-            logging.config.fileConfig(log_path)
-            break
-    else:
-        # Fallback to basic logging if no config file found
-        logging.basicConfig(level=logging.INFO)
+    # Initialize logger using centralized factory
+    logger = get_logger("main")
 
     # Detect if we're running from exe
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):

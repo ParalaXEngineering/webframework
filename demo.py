@@ -17,8 +17,7 @@ from flask import Flask, render_template, request, Blueprint
 from flask_socketio import SocketIO
 from src.modules import displayer
 from src.modules import utilities, access_manager, site_conf, threaded_manager
-from src.modules import scheduler_classes as scheduler
-from src.modules import scheduler as scheduler_pkg  # The package for threaded_action
+from src.modules import scheduler
 from src.pages import settings
 from demo_scheduler_action import DemoSchedulerAction
 import os
@@ -44,7 +43,6 @@ threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
 # Initialize scheduler with SocketIO
 scheduler_instance = scheduler.Scheduler(socket_obj=socketio)
 scheduler.scheduler_obj = scheduler_instance
-scheduler_pkg.scheduler_obj = scheduler_instance  # Also set in package for threaded_action
 scheduler_instance.m_user_connected = True  # Enable scheduler for demo
 
 # Start scheduler in background thread

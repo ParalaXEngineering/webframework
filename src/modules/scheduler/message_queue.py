@@ -8,7 +8,11 @@ from collections import deque
 from threading import Lock
 from typing import List, Any, Dict
 from enum import Enum
-import logging
+
+try:
+    from ..logger_factory import get_logger
+except ImportError:
+    from logger_factory import get_logger
 
 
 class MessageType(Enum):
@@ -41,7 +45,7 @@ class MessageQueue:
         """
         self._queues: Dict[MessageType, deque] = {}
         self._locks: Dict[MessageType, Lock] = {}
-        self._logger = logging.getLogger(__name__)
+        self._logger = get_logger("scheduler.message_queue")
         
         # Initialize queues with appropriate size limits
         for msg_type in MessageType:

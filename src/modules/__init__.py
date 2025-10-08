@@ -18,7 +18,6 @@ from . import displayer
 from . import access_manager
 from . import action
 from . import scheduler
-from . import scheduler_classes
 from . import threaded_action
 from . import threaded_manager
 from . import workflow

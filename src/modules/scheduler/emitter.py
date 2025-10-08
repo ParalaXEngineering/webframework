@@ -5,7 +5,11 @@ Handles emission of messages via SocketIO with error handling.
 Decoupled from message queueing for better testability.
 """
 from typing import Protocol, List, Dict, Any
-import logging
+
+try:
+    from ..logger_factory import get_logger
+except ImportError:
+    from logger_factory import get_logger
 
 
 class SocketIOProtocol(Protocol):
@@ -24,16 +28,16 @@ class MessageEmitter:
     Each emission is wrapped in error handling to prevent cascade failures.
     """
     
-    def __init__(self, socket_io: SocketIOProtocol, logger: logging.Logger = None):
+    def __init__(self, socket_io: SocketIOProtocol, logger=None):
         """
         Initialize emitter.
         
         Args:
             socket_io: SocketIO instance (or mock for testing)
-            logger: Optional logger for error reporting
+            logger: Optional logger for error reporting (if None, creates default)
         """
         self.socket = socket_io
-        self.logger = logger or logging.getLogger(__name__)
+        self.logger = logger or get_logger("scheduler.emitter")
     
     def emit_status(self, statuses: List[List]) -> None:
         """

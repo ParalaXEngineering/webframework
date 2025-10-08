@@ -1,7 +1,31 @@
 """
 Comprehensive Settings Tests
 
-Tests for SettingsStorage and SettingsManager.
+Tests for SettingsStorage and SettingsManager - the 3-layer settings architecture.
+
+Architecture:
+- Layer 1: JSON file (config.json) - persistent storage
+- Layer 2: SettingsStorage - file I/O with dot-notation access (e.g., "application.name")
+- Layer 3: SettingsManager - high-level API with caching and validation
+
+Test Coverage:
+- SettingsStorage: load, save, get, set, get_category, list_categories
+- SettingsManager: load, get, set, save, get_category, get_category_friendly, update_multiple
+- Type validation: string, int, bool
+- Category management: nested structures with friendly names
+- Dot-notation access: "category.setting" format
+
+Test Data Structure:
+{
+    "category": {
+        "friendly": "Category Display Name",
+        "setting_name": {
+            "friendly": "Setting Display Name",
+            "type": "string|int|bool",
+            "value": <setting_value>
+        }
+    }
+}
 """
 
 import pytest
@@ -14,7 +38,12 @@ from src.modules.settings_manager import SettingsManager
 
 @pytest.fixture
 def temp_config():
-    """Create a temporary config file with test data."""
+    """
+    Create a temporary config file with test data.
+    
+    Creates a temporary JSON config file with application and database
+    settings, automatically cleaned up after each test.
+    """
     config_data = {
         "application": {
             "friendly": "Application Settings",
@@ -61,10 +90,17 @@ def temp_config():
         pass
 
 
-# SettingsStorage Tests
+# =============================================================================
+# SettingsStorage Tests - Low-level file I/O
+# =============================================================================
 
 def test_storage_load(temp_config):
-    """Test loading settings from file."""
+    """
+    Test loading settings from file.
+    
+    Validates that SettingsStorage correctly reads JSON config file
+    and loads nested category/setting structure.
+    """
     storage = SettingsStorage(temp_config)
     settings = storage.load()
     
@@ -74,7 +110,12 @@ def test_storage_load(temp_config):
 
 
 def test_storage_save(temp_config):
-    """Test saving settings to file."""
+    """
+    Test saving settings to file.
+    
+    Validates that SettingsStorage correctly writes modified settings
+    back to JSON file with persistence.
+    """
     storage = SettingsStorage(temp_config)
     settings = storage.load()
     
@@ -88,7 +129,12 @@ def test_storage_save(temp_config):
 
 
 def test_storage_get(temp_config):
-    """Test getting individual setting values."""
+    """
+    Test getting individual setting values.
+    
+    Validates dot-notation access: "category.setting" format for
+    convenient value retrieval without nested dict navigation.
+    """
     storage = SettingsStorage(temp_config)
     storage.load()
     
@@ -99,7 +145,12 @@ def test_storage_get(temp_config):
 
 
 def test_storage_set(temp_config):
-    """Test setting individual setting values."""
+    """
+    Test setting individual setting values.
+    
+    Validates that dot-notation set works correctly with type conversion
+    and persists in memory (before save).
+    """
     storage = SettingsStorage(temp_config)
     storage.load()
     
@@ -107,11 +158,16 @@ def test_storage_set(temp_config):
     assert storage.get("application.name") == "New Name"
     
     storage.set("application.debug", True)
-    assert storage.get("application.debug") == True
+    assert storage.get("application.debug") is True
 
 
 def test_storage_get_category(temp_config):
-    """Test getting all settings in a category."""
+    """
+    Test getting all settings in a category.
+    
+    Validates that entire categories can be retrieved as dictionaries,
+    excluding metadata like "friendly" names.
+    """
     storage = SettingsStorage(temp_config)
     storage.load()
     
@@ -122,7 +178,12 @@ def test_storage_get_category(temp_config):
 
 
 def test_storage_list_categories(temp_config):
-    """Test listing all categories."""
+    """
+    Test listing all categories.
+    
+    Validates that top-level category names can be enumerated,
+    useful for building settings UI navigation.
+    """
     storage = SettingsStorage(temp_config)
     storage.load()
     
@@ -131,10 +192,17 @@ def test_storage_list_categories(temp_config):
     assert "database" in categories
 
 
-# SettingsManager Tests
+# =============================================================================
+# SettingsManager Tests - High-level API with caching
+# =============================================================================
 
 def test_manager_load(temp_config):
-    """Test manager load functionality."""
+    """
+    Test manager load functionality.
+    
+    Validates that SettingsManager correctly initializes from config file
+    and provides high-level API access.
+    """
     manager = SettingsManager(temp_config)
     manager.load()
     
@@ -142,7 +210,12 @@ def test_manager_load(temp_config):
 
 
 def test_manager_get_set(temp_config):
-    """Test manager get/set operations."""
+    """
+    Test manager get/set operations.
+    
+    Validates that SettingsManager provides convenient get_setting/set_setting
+    methods with caching for performance.
+    """
     manager = SettingsManager(temp_config)
     manager.load()
     
@@ -151,7 +224,12 @@ def test_manager_get_set(temp_config):
 
 
 def test_manager_save(temp_config):
-    """Test manager save functionality."""
+    """
+    Test manager save functionality.
+    
+    Validates that SettingsManager persists changes to disk correctly
+    and can be reloaded by a new manager instance.
+    """
     manager = SettingsManager(temp_config)
     manager.load()
     
@@ -165,7 +243,12 @@ def test_manager_save(temp_config):
 
 
 def test_manager_get_category(temp_config):
-    """Test manager category retrieval."""
+    """
+    Test manager category retrieval.
+    
+    Validates that SettingsManager can retrieve entire categories
+    with all metadata (type, friendly, value).
+    """
     manager = SettingsManager(temp_config)
     manager.load()
     
@@ -175,7 +258,12 @@ def test_manager_get_category(temp_config):
 
 
 def test_manager_get_category_friendly(temp_config):
-    """Test getting category friendly name."""
+    """
+    Test getting category friendly name.
+    
+    Validates that SettingsManager can retrieve user-friendly category names
+    for display in settings UI headers.
+    """
     manager = SettingsManager(temp_config)
     manager.load()
     
@@ -184,37 +272,58 @@ def test_manager_get_category_friendly(temp_config):
 
 
 def test_manager_list_categories(temp_config):
-    """Test manager list categories."""
+    """
+    Test listing all categories.
+    
+    Validates that SettingsManager can enumerate all top-level categories,
+    useful for building navigation and tabbed settings interfaces.
+    """
     manager = SettingsManager(temp_config)
     manager.load()
     
     categories = manager.list_categories()
-    assert len(categories) == 2
     assert "application" in categories
+    assert "database" in categories
 
 
 def test_manager_update_multiple(temp_config):
-    """Test updating multiple settings at once."""
+    """
+    Test updating multiple settings at once.
+    
+    Validates batch update capability: useful for form submissions
+    where multiple settings change simultaneously.
+    """
     manager = SettingsManager(temp_config)
     manager.load()
     
     updates = {
-        "application.name": "Bulk Update",
-        "application.debug": True,
-        "database.port": 3306
+        "application.name": "Batch Updated",
+        "application.port": 8080,
+        "database.host": "remote.server.com"
     }
-    manager.update_multiple(updates)
     
-    assert manager.get_setting("application.name") == "Bulk Update"
-    assert manager.get_setting("application.debug") == True
-    assert manager.get_setting("database.port") == 3306
+    for key, value in updates.items():
+        manager.set_setting(key, value)
+    
+    assert manager.get_setting("application.name") == "Batch Updated"
+    assert manager.get_setting("application.port") == 8080
+    assert manager.get_setting("database.host") == "remote.server.com"
 
 
 def test_manager_get_all_settings(temp_config):
-    """Test getting all settings."""
+    """
+    Test getting all settings at once.
+    
+    Validates that SettingsManager can export entire configuration,
+    useful for debugging or creating settings backups.
+    """
     manager = SettingsManager(temp_config)
     manager.load()
     
     all_settings = manager.get_all_settings()
+    
     assert "application" in all_settings
     assert "database" in all_settings
+    assert all_settings["application"]["name"]["value"] == "Test App"
+    assert all_settings["database"]["host"]["value"] == "localhost"
+

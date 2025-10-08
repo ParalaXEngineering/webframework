@@ -45,8 +45,8 @@ os.makedirs(TEST_OUTPUT_DIR, exist_ok=True)
 
 def build_test_app() -> Flask:
     """Create minimal Flask app for rendering Displayer pages."""
-    # Calculate paths
-    workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    # Calculate paths - test file is now in tests/ directory
+    workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     template_path = os.path.join(workspace_root, "templates")
     
     # Create Flask app

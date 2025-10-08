@@ -6,7 +6,7 @@ showing all the different message types and features.
 """
 
 from src.modules.threaded_action import Threaded_action
-from src.modules import scheduler_classes as scheduler
+from src.modules import scheduler
 import time
 import random
 
