@@ -8,5 +8,10 @@
         "*.md": "vscode.markdown.preview.editor"
     },
     "files.defaultLanguage": "",
-    "markdown.preview.openMarkdownLinks": "inPreview"
+    "markdown.preview.openMarkdownLinks": "inPreview",
+    "github.copilot.chat.codeGeneration.instructions": [
+        {
+        "text": "Always use VS Code built-in tools: F5 debugger (not print statements), Testing UI (not pytest terminal), Problems panel for errors. Don't generate .md file for summurizing your work. Summurize veryy briefly here with a few lines. When writing tests, keep the tests amount minimal.",
+        }
+    ]
 }
