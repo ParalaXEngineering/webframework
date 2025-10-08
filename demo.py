@@ -131,80 +131,35 @@ def index():
     disp.add_generic("Demo Navigation")
     disp.set_title("Displayer Component Demo")
     
-    # Add breadcrumbs
     disp.add_breadcrumb("Home", "demo.index", [])
-    
-    # Introduction
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Welcome"
-    ))
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "This demo application showcases all DisplayerItem types and layouts available in the ParalaX Web Framework.",
-        displayer.BSstyle.INFO
-    ), 0)
     
     # Navigation cards
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 3, 3, 3], subtitle="Choose a Demo Category"
+        displayer.Layouts.VERTICAL, [3, 3, 3, 3]
     ))
     
-    # Layout demos
     disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_layouts", "Layout Demos", "mdi-view-dashboard", "/layouts", [], displayer.BSstyle.PRIMARY
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemText(
-        "Explore different layout types: Vertical, Horizontal, Table, and Tabs"
+        "btn_layouts", "Layouts", "mdi-view-dashboard", "/layouts", [], displayer.BSstyle.PRIMARY
     ), 0)
     
-    # Text & Display demos
     disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_text", "Text & Display Items", "mdi-text", "/text-display", [], displayer.BSstyle.SUCCESS
-    ), 1)
-    disp.add_display_item(displayer.DisplayerItemText(
-        "View text, alerts, badges, and other display elements"
+        "btn_text", "Text & Display", "mdi-text", "/text-display", [], displayer.BSstyle.SUCCESS
     ), 1)
     
-    # Input demos
     disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_inputs", "Input Items", "mdi-form-textbox", "/inputs", [], displayer.BSstyle.WARNING
-    ), 2)
-    disp.add_display_item(displayer.DisplayerItemText(
-        "Test all input types with working form submission"
+        "btn_inputs", "Inputs", "mdi-form-textbox", "/inputs", [], displayer.BSstyle.WARNING
     ), 2)
     
-    # Scheduler Demo
     disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_scheduler", "Scheduler Demo", "mdi-clock-fast", "/scheduler-demo", [], displayer.BSstyle.INFO
-    ), 3)
-    disp.add_display_item(displayer.DisplayerItemText(
-        "See real-time updates, progress tracking, and threaded action management"
+        "btn_scheduler", "Scheduler", "mdi-clock-fast", "/scheduler-demo", [], displayer.BSstyle.INFO
     ), 3)
     
-    # Settings Demo
+    # Complete showcase button
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="New: Settings Management Demo"
-    ))
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "✨ <strong>Featured:</strong> Explore the new SettingsManager API - a clean, three-layer architecture "
-        "for configuration management with full CRUD operations, validation, import/export, and search!",
-        displayer.BSstyle.SUCCESS
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_settings", "Settings Manager Demo", "mdi-cog", "/settings-demo", [], displayer.BSstyle.SUCCESS
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemText(
-        "Interactive demonstration of the SettingsManager API with live examples and full UI"
-    ), 0)
-    
-    # Interactive demo
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Interactive Demo"
+        displayer.Layouts.VERTICAL, [12]
     ))
     disp.add_display_item(displayer.DisplayerItemButtonLink(
         "btn_complete", "Complete Showcase", "mdi-star", "/complete-showcase", [], displayer.BSstyle.PRIMARY
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemText(
-        "View a comprehensive page with ALL displayer features in one place"
     ), 0)
     
     return render_template("base_content.j2", content=disp.display())
@@ -220,56 +175,52 @@ def layouts():
     disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "demo.layouts", [])
     
-    # Vertical Layout Demo
+    # Vertical layouts
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Vertical Layout Example"
+        displayer.Layouts.VERTICAL, [4, 4, 4], subtitle="3 Equal Columns"
     ))
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "Vertical layouts stack content vertically with customizable column widths.",
-        displayer.BSstyle.INFO
-    ), 0)
+    disp.add_display_item(displayer.DisplayerItemText("Column 1"), 0)
+    disp.add_display_item(displayer.DisplayerItemText("Column 2"), 1)
+    disp.add_display_item(displayer.DisplayerItemText("Column 3"), 2)
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
     
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [4, 4, 4], subtitle="Three Equal Columns"
+        displayer.Layouts.VERTICAL, [3, 6, 3], subtitle="Variable Columns (3-6-3)"
     ))
-    disp.add_display_item(displayer.DisplayerItemText("Column 1 content"), 0)
-    disp.add_display_item(displayer.DisplayerItemText("Column 2 content"), 1)
-    disp.add_display_item(displayer.DisplayerItemText("Column 3 content"), 2)
+    disp.add_display_item(displayer.DisplayerItemText("3"), 0)
+    disp.add_display_item(displayer.DisplayerItemText("6"), 1)
+    disp.add_display_item(displayer.DisplayerItemText("3"), 2)
     
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
+    
+    # Horizontal Layout
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 6, 3], subtitle="Variable Width Columns"
+        displayer.Layouts.HORIZONTAL, [6, 6], subtitle="Horizontal"
     ))
-    disp.add_display_item(displayer.DisplayerItemText("Small (3)"), 0)
-    disp.add_display_item(displayer.DisplayerItemText("Medium (6)"), 1)
-    disp.add_display_item(displayer.DisplayerItemText("Small (3)"), 2)
+    disp.add_display_item(displayer.DisplayerItemText("Left"), 0)
+    disp.add_display_item(displayer.DisplayerItemText("Right"), 1)
     
-    # Horizontal Layout Demo
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.HORIZONTAL, [6, 6], subtitle="Horizontal Layout Example"
-    ))
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "Horizontal layouts arrange content side by side.",
-        displayer.BSstyle.SUCCESS
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemText("Second column"), 1)
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
     
-    # Table Layout Demo
+    # Table Layout
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.TABLE, ["Name", "Status", "Actions"], subtitle="Table Layout Example"
+        displayer.Layouts.TABLE, ["Name", "Status", "Actions"], subtitle="Table"
     ))
     disp.add_display_item(displayer.DisplayerItemText("Item 1"), column=0)
     disp.add_display_item(displayer.DisplayerItemBadge("Active", displayer.BSstyle.SUCCESS), column=1)
     disp.add_display_item(displayer.DisplayerItemButton("btn_action1", "View"), column=2)
     
-    # Spacer Demo
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.SPACER, [12]
-    ))
+    # Spacer
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.SPACER, [12]))
     
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12], subtitle="After Spacer"
     ))
-    disp.add_display_item(displayer.DisplayerItemText("Content after a spacer layout"), 0)
+    disp.add_display_item(displayer.DisplayerItemText("Content after spacer"), 0)
     
     return render_template("base_content.j2", content=disp.display())
 
@@ -278,7 +229,7 @@ def layouts():
 def text_display():
     """Demonstrate text and display items."""
     disp = displayer.Displayer()
-    disp.add_generic("Text & Display Items")
+    disp.add_generic("Text & Display")
     disp.set_title("Text & Display Components")
     
     disp.add_breadcrumb("Home", "demo.index", [])
@@ -288,62 +239,60 @@ def text_display():
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12], subtitle="Text Items"
     ))
-    disp.add_display_item(displayer.DisplayerItemText("Simple text item"), 0)
-    disp.add_display_item(displayer.DisplayerItemText("<b>Bold HTML text</b> with <i>formatting</i>"), 0)
-    disp.add_display_item(displayer.DisplayerItemText(
-        '<a href="https://example.com">Link in text</a>'
-    ), 0)
+    disp.add_display_item(displayer.DisplayerItemText("Simple text"), 0)
+    disp.add_display_item(displayer.DisplayerItemText("<b>Bold</b> and <i>italic</i>"), 0)
+    disp.add_display_item(displayer.DisplayerItemText('<a href="https://example.com">Link</a>'), 0)
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
     
     # Alerts
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Alert Styles"
+        displayer.Layouts.VERTICAL, [12], subtitle="Alerts"
     ))
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "Primary alert message", displayer.BSstyle.PRIMARY
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "Success alert message", displayer.BSstyle.SUCCESS
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "Info alert message", displayer.BSstyle.INFO
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "Warning alert message", displayer.BSstyle.WARNING
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "Error/Danger alert message", displayer.BSstyle.ERROR
-    ), 0)
+    for style, name in [(displayer.BSstyle.PRIMARY, "Primary"),
+                        (displayer.BSstyle.SUCCESS, "Success"),
+                        (displayer.BSstyle.INFO, "Info"),
+                        (displayer.BSstyle.WARNING, "Warning"),
+                        (displayer.BSstyle.ERROR, "Error")]:
+        disp.add_display_item(displayer.DisplayerItemAlert(f"{name} alert", style), 0)
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
     
     # Badges
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [2, 2, 2, 2, 2, 2], subtitle="Badge Styles"
+        displayer.Layouts.VERTICAL, [2, 2, 2, 2, 2, 2], subtitle="Badges"
     ))
-    disp.add_display_item(displayer.DisplayerItemBadge("Primary", displayer.BSstyle.PRIMARY), 0)
-    disp.add_display_item(displayer.DisplayerItemBadge("Success", displayer.BSstyle.SUCCESS), 1)
-    disp.add_display_item(displayer.DisplayerItemBadge("Info", displayer.BSstyle.INFO), 2)
-    disp.add_display_item(displayer.DisplayerItemBadge("Warning", displayer.BSstyle.WARNING), 3)
-    disp.add_display_item(displayer.DisplayerItemBadge("Danger", displayer.BSstyle.ERROR), 4)
-    disp.add_display_item(displayer.DisplayerItemBadge("Dark", displayer.BSstyle.DARK), 5)
+    badges = [("Primary", displayer.BSstyle.PRIMARY), ("Success", displayer.BSstyle.SUCCESS),
+              ("Info", displayer.BSstyle.INFO), ("Warning", displayer.BSstyle.WARNING),
+              ("Danger", displayer.BSstyle.ERROR), ("Dark", displayer.BSstyle.DARK)]
+    for idx, (text, style) in enumerate(badges):
+        disp.add_display_item(displayer.DisplayerItemBadge(text, style), idx)
     
-    # Buttons and Links
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
+    
+    # Buttons
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 3, 3, 3], subtitle="Buttons & Links"
+        displayer.Layouts.VERTICAL, [3, 3, 3], subtitle="Buttons"
     ))
     disp.add_display_item(displayer.DisplayerItemButton("btn1", "Button"), 0)
     disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btnlink1", "Button Link", "mdi-link", "/", [], displayer.BSstyle.PRIMARY
+        "btnlink1", "Link Button", "mdi-link", "/", [], displayer.BSstyle.PRIMARY
     ), 1)
     disp.add_display_item(displayer.DisplayerItemIconLink(
         "iconlink1", "Icon Link", "mdi-home", "/", [], displayer.BSstyle.INFO
     ), 2)
     
-    # Placeholder demo
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
+    
+    # Placeholder
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Placeholder Example"
+        displayer.Layouts.VERTICAL, [12], subtitle="Placeholder"
     ))
-    disp.add_display_item(displayer.DisplayerItemText("Content before placeholder"), 0)
-    disp.add_display_item(displayer.DisplayerItemPlaceholder("demo_placeholder", "Placeholder content here"), 0)
-    disp.add_display_item(displayer.DisplayerItemText("Content after placeholder"), 0)
+    disp.add_display_item(displayer.DisplayerItemPlaceholder("demo_placeholder", "Placeholder content"), 0)
     
     return render_template("base_content.j2", content=disp.display())
 
@@ -352,12 +301,11 @@ def text_display():
 def inputs():
     """Demonstrate input items with form submission."""
     if request.method == 'POST':
-        # Process form data
         data = utilities.util_post_to_json(request.form.to_dict())
-        return render_template("success.j2", message=f"Form submitted successfully! Data: {data}")
+        return render_template("success.j2", message=f"Form submitted! Data: {data}")
     
     disp = displayer.Displayer()
-    disp.add_generic("Input Items Demo")
+    disp.add_generic("Inputs")
     disp.set_title("Input Components")
     
     disp.add_breadcrumb("Home", "demo.index", [])
@@ -365,80 +313,60 @@ def inputs():
     
     # Basic Inputs
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 9], subtitle="Basic Text Inputs"
+        displayer.Layouts.VERTICAL, [3, 9], subtitle="Basic Inputs"
     ))
-    disp.add_display_item(displayer.DisplayerItemText("String Input:"), 0)
-    disp.add_display_item(displayer.DisplayerItemInputString(
-        "name", "Enter your name", "John Doe"
-    ), 1)
+    disp.add_display_item(displayer.DisplayerItemText("String:"), 0)
+    disp.add_display_item(displayer.DisplayerItemInputString("name", "Name", "John"), 1)
     
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 9]
-    ))
-    disp.add_display_item(displayer.DisplayerItemText("Text Area:"), 0)
-    disp.add_display_item(displayer.DisplayerItemInputText(
-        "description", "Enter description", "Default text"
-    ), 1)
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9]))
+    disp.add_display_item(displayer.DisplayerItemText("Text:"), 0)
+    disp.add_display_item(displayer.DisplayerItemInputText("desc", "Description", "Text"), 1)
     
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 9]
-    ))
-    disp.add_display_item(displayer.DisplayerItemText("Numeric Input:"), 0)
-    disp.add_display_item(displayer.DisplayerItemInputNumeric(
-        "age", "Enter age", 25
-    ), 1)
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9]))
+    disp.add_display_item(displayer.DisplayerItemText("Numeric:"), 0)
+    disp.add_display_item(displayer.DisplayerItemInputNumeric("age", "Age", 25), 1)
     
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 9]
-    ))
-    disp.add_display_item(displayer.DisplayerItemText("Date Input:"), 0)
-    disp.add_display_item(displayer.DisplayerItemInputDate(
-        "date", "Select date", "2024-01-01"
-    ), 1)
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9]))
+    disp.add_display_item(displayer.DisplayerItemText("Date:"), 0)
+    disp.add_display_item(displayer.DisplayerItemInputDate("date", "Date", "2024-01-01"), 1)
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
     
     # Select Inputs
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 9], subtitle="Select Inputs"
+        displayer.Layouts.VERTICAL, [3, 9], subtitle="Select"
     ))
     disp.add_display_item(displayer.DisplayerItemText("Select:"), 0)
     disp.add_display_item(displayer.DisplayerItemInputSelect(
-        "country", "Select country", "USA", ["USA", "Canada", "UK", "France", "Germany"]
+        "country", "Country", "USA", ["USA", "Canada", "UK", "France"]
     ), 1)
     
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 9]
-    ))
-    disp.add_display_item(displayer.DisplayerItemText("Multi-Select:"), 0)
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9]))
+    disp.add_display_item(displayer.DisplayerItemText("Multi:"), 0)
     disp.add_display_item(displayer.DisplayerItemInputMultiSelect(
-        "languages", "Select languages", ["Python", "JavaScript"], 
-        ["Python", "JavaScript", "Java", "C++", "Ruby", "Go"]
+        "langs", "Languages", ["Python"], ["Python", "JavaScript", "Java", "C++"]
     ), 1)
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
     
     # File Inputs
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 9], subtitle="File & Path Inputs"
+        displayer.Layouts.VERTICAL, [3, 9], subtitle="File Inputs"
     ))
-    disp.add_display_item(displayer.DisplayerItemText("File Input:"), 0)
-    disp.add_display_item(displayer.DisplayerItemInputFile(
-        "upload_file", "Select file"
-    ), 1)
+    disp.add_display_item(displayer.DisplayerItemText("File:"), 0)
+    disp.add_display_item(displayer.DisplayerItemInputFile("file", "File"), 1)
     
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 9]
-    ))
-    disp.add_display_item(displayer.DisplayerItemText("Folder Input:"), 0)
-    disp.add_display_item(displayer.DisplayerItemInputFolder(
-        "folder_path", "Select folder"
-    ), 1)
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [3, 9]))
+    disp.add_display_item(displayer.DisplayerItemText("Folder:"), 0)
+    disp.add_display_item(displayer.DisplayerItemInputFolder("folder", "Folder"), 1)
     
-    # Hidden field
-    disp.add_display_item(displayer.DisplayerItemHidden("hidden_id", "secret_value"), 0)
+    # Hidden + Submit
+    disp.add_display_item(displayer.DisplayerItemHidden("hidden_id", "secret"), 0)
     
-    # Submit button
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12]
-    ))
-    disp.add_display_item(displayer.DisplayerItemButton("submit_form", "Submit Form"), 0)
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemButton("submit_form", "Submit"), 0)
     
     return render_template("base_content.j2", content=disp.display(), target="demo.inputs")
 
@@ -448,107 +376,76 @@ def complete_showcase():
     """A comprehensive page showing ALL displayer features."""
     disp = displayer.Displayer()
     disp.add_generic("Complete Showcase")
-    disp.set_title("Complete Displayer Showcase")
+    disp.set_title("Complete Showcase")
     
     disp.add_breadcrumb("Home", "demo.index", [])
-    disp.add_breadcrumb("Complete Showcase", "demo.complete_showcase", [])
+    disp.add_breadcrumb("Showcase", "demo.complete_showcase", [])
     
-    # Section 1: All Alert Types
+    # All Alert Types
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Section 1: Alert Styles", 
-        spacing=3, background=displayer.BSstyle.LIGHT
+        displayer.Layouts.VERTICAL, [12], subtitle="Alerts"
     ))
-    for style_name, style in [
-        ("Primary", displayer.BSstyle.PRIMARY),
-        ("Success", displayer.BSstyle.SUCCESS),
-        ("Info", displayer.BSstyle.INFO),
-        ("Warning", displayer.BSstyle.WARNING),
-        ("Error", displayer.BSstyle.ERROR),
-        ("Dark", displayer.BSstyle.DARK),
-    ]:
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"{style_name} alert - This demonstrates the {style_name.lower()} style",
-            style
-        ), 0)
+    for style, name in [(displayer.BSstyle.PRIMARY, "Primary"),
+                        (displayer.BSstyle.SUCCESS, "Success"),
+                        (displayer.BSstyle.INFO, "Info"),
+                        (displayer.BSstyle.WARNING, "Warning"),
+                        (displayer.BSstyle.ERROR, "Error")]:
+        disp.add_display_item(displayer.DisplayerItemAlert(f"{name} alert", style), 0)
     
-    # Section 2: Layout Variety
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
+    
+    # Layouts
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Section 2: Layout Examples", spacing=3
+        displayer.Layouts.VERTICAL, [6, 6], subtitle="2-Column"
     ))
+    disp.add_display_item(displayer.DisplayerItemText("Left"), 0)
+    disp.add_display_item(displayer.DisplayerItemText("Right"), 1)
     
-    # 2-column layout
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [6, 6], subtitle="Two Column Layout"
-    ))
-    disp.add_display_item(displayer.DisplayerItemText("Left column content with some text"), 0)
-    disp.add_display_item(displayer.DisplayerItemText("Right column content with different text"), 1)
-    
-    # 3-column layout
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [4, 4, 4], subtitle="Three Column Layout"
+        displayer.Layouts.VERTICAL, [4, 4, 4], subtitle="3-Column"
     ))
     disp.add_display_item(displayer.DisplayerItemBadge("Badge 1", displayer.BSstyle.PRIMARY), 0)
     disp.add_display_item(displayer.DisplayerItemBadge("Badge 2", displayer.BSstyle.SUCCESS), 1)
     disp.add_display_item(displayer.DisplayerItemBadge("Badge 3", displayer.BSstyle.INFO), 2)
     
-    # Table layout
+    # Table
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.TABLE, ["Item", "Status", "Priority", "Action"], 
-        subtitle="Table Layout"
+        displayer.Layouts.TABLE, ["Item", "Status", "Action"], subtitle="Table"
     ))
     disp.add_display_item(displayer.DisplayerItemText("Task 1"), column=0, line=0)
     disp.add_display_item(displayer.DisplayerItemBadge("Active", displayer.BSstyle.SUCCESS), column=1, line=0)
-    disp.add_display_item(displayer.DisplayerItemBadge("High", displayer.BSstyle.ERROR), column=2, line=0)
-    disp.add_display_item(displayer.DisplayerItemButton("action1", "Edit"), column=3, line=0)
+    disp.add_display_item(displayer.DisplayerItemButton("action1", "Edit"), column=2, line=0)
     
     disp.add_display_item(displayer.DisplayerItemText("Task 2"), column=0, line=1)
     disp.add_display_item(displayer.DisplayerItemBadge("Pending", displayer.BSstyle.WARNING), column=1, line=1)
-    disp.add_display_item(displayer.DisplayerItemBadge("Medium", displayer.BSstyle.WARNING), column=2, line=1)
-    disp.add_display_item(displayer.DisplayerItemButton("action2", "View"), column=3, line=1)
+    disp.add_display_item(displayer.DisplayerItemButton("action2", "View"), column=2, line=1)
     
-    # Section 3: Button Variety
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Section 3: Buttons & Links", spacing=3
-    ))
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
     
+    # Buttons
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 3, 3, 3]
+        displayer.Layouts.VERTICAL, [3, 3, 3], subtitle="Buttons"
     ))
-    disp.add_display_item(displayer.DisplayerItemButton("btn_default", "Default Button"), 0)
+    disp.add_display_item(displayer.DisplayerItemButton("btn_default", "Button"), 0)
     disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_link", "Link Button", "mdi-open-in-new", "/", [], displayer.BSstyle.SUCCESS
+        "btn_link", "Link", "mdi-open-in-new", "/", [], displayer.BSstyle.SUCCESS
     ), 1)
     disp.add_display_item(displayer.DisplayerItemIconLink(
-        "icon_link", "Icon Link", "mdi-information", "/", [], displayer.BSstyle.INFO
+        "icon_link", "Icon", "mdi-information", "/", [], displayer.BSstyle.INFO
     ), 2)
-    # Removed DisplayerItemDownload with placeholder "#" link
     
-    # Section 4: Text Formatting
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
+    
+    # Text Formatting
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Section 4: Text Formatting", spacing=3
+        displayer.Layouts.VERTICAL, [12], subtitle="Text"
     ))
     disp.add_display_item(displayer.DisplayerItemText("Regular text"), 0)
-    disp.add_display_item(displayer.DisplayerItemText("<b>Bold text</b>"), 0)
-    disp.add_display_item(displayer.DisplayerItemText("<i>Italic text</i>"), 0)
-    disp.add_display_item(displayer.DisplayerItemText("<u>Underlined text</u>"), 0)
-    disp.add_display_item(displayer.DisplayerItemText(
-        '<span style="color: red;">Colored text</span>'
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemText(
-        '<a href="https://example.com" target="_blank">External Link</a>'
-    ), 0)
-    
-    # Summary section
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Summary", 
-        spacing=3, background=displayer.BSstyle.LIGHT
-    ))
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "This page demonstrates the key features of the Displayer system. "
-        "Each section showcases different components and layouts. "
-        "Use this as a visual reference for building your own pages.",
-        displayer.BSstyle.SUCCESS
-    ), 0)
+    disp.add_display_item(displayer.DisplayerItemText("<b>Bold</b> <i>Italic</i> <u>Underline</u>"), 0)
+    disp.add_display_item(displayer.DisplayerItemText('<a href="https://example.com">Link</a>'), 0)
     
     return render_template("base_content.j2", content=disp.display())
 
@@ -598,27 +495,14 @@ def scheduler_demo():
     
     disp = displayer.Displayer()
     disp.add_module(DemoSchedulerAction)
-    disp.set_title("Scheduler & Threaded Actions Demo")
+    disp.set_title("Scheduler Demo")
     
     disp.add_breadcrumb("Home", "demo.index", [])
-    disp.add_breadcrumb("Scheduler Demo", "demo.scheduler_demo", [])
+    disp.add_breadcrumb("Scheduler", "demo.scheduler_demo", [])
     
-    # Introduction
+    # Status display
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="About This Demo"
-    ))
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "<strong>Scheduler Demo</strong><br>"
-        "This demo showcases the scheduler's ability to communicate with the user interface during long-running operations. "
-        "The scheduler provides real-time updates through status messages, popups, progress bars, and dynamic content updates.<br><br>"
-        "<strong>What you'll see:</strong> Status updates, progress bars, popups, button manipulation, "
-        "error handling, and dynamic content reloading - all managed by the scheduler!",
-        displayer.BSstyle.INFO
-    ), 0)
-    
-    # Status display area (will be updated by scheduler)
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Action Status"
+        displayer.Layouts.VERTICAL, [12], subtitle="Status"
     ))
     disp.add_display_item(
         displayer.DisplayerItemAlert("No action running", displayer.BSstyle.NONE),
@@ -626,282 +510,106 @@ def scheduler_demo():
         id="scheduler_demo_status"
     )
     
-    # Dynamic content area (will be updated via emit_reload)
+    # Dynamic content area
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Dynamic Content Area"
+        displayer.Layouts.VERTICAL, [12], subtitle="Dynamic Content"
     ))
     disp.add_display_item(
         displayer.DisplayerItemPlaceholder(
             "scheduler_demo_dynamic_content",
-            '<div class="alert alert-secondary">This content will be updated dynamically during the "All Features" demo</div>'
+            '<div class="alert alert-secondary">Dynamic content area</div>'
         ),
         0
     )
     
     # Demo buttons
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Demo Types"
+        displayer.Layouts.VERTICAL, [12], subtitle="Demos"
     ))
     
-    # Demo 1: Status ID - Single Line Update
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [9, 3], subtitle=""
+        displayer.Layouts.VERTICAL, [9, 3]
     ))
     disp.add_display_item(
-        displayer.DisplayerItemText(
-            "<strong>1. Single Progress Bar (status_id)</strong><br>"
-            "Shows how <code>status_id</code> updates the SAME line. Progress 0→100% on one line."
-        ),
+        displayer.DisplayerItemText("<strong>1. Single Progress</strong> - Updates one line"),
         0
     )
     disp.add_display_item(
-        displayer.DisplayerItemButton("simple_demo", "Single Progress"),
+        displayer.DisplayerItemButton("simple_demo", "Run"),
         1,
         id="demo_action_btn"
     )
     
-    # Demo 2: Multiple Concurrent Progress Bars
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [9, 3], subtitle=""
+        displayer.Layouts.VERTICAL, [9, 3]
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemText("<strong>2. Parallel Progress</strong> - Multiple concurrent bars"),
+        0
+    )
+    disp.add_display_item(
+        displayer.DisplayerItemButton("multi_step_demo", "Run"),
+        1
+    )
+    
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [9, 3]
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemText("<strong>3. Popups</strong> - All popup types"),
+        0
+    )
+    disp.add_display_item(
+        displayer.DisplayerItemButton("error_demo", "Run"),
+        1
+    )
+    
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [9, 3]
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemText("<strong>4. Button Control</strong> - Disable/enable buttons"),
+        0
+    )
+    disp.add_display_item(
+        displayer.DisplayerItemButton("complex_demo", "Run"),
+        1
+    )
+    
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [9, 3]
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemText("<strong>5. Content Reload</strong> - Dynamic page updates"),
+        0
+    )
+    disp.add_display_item(
+        displayer.DisplayerItemButton("all_features_demo", "Run"),
+        1
+    )
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
+    
+    # Quick reference
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="API Quick Reference"
     ))
     disp.add_display_item(
         displayer.DisplayerItemText(
-            "<strong>2. Multiple Progress Bars (parallel tasks)</strong><br>"
-            "Shows 3 CONCURRENT progress bars using different <code>status_id</code> values."
+            "<strong>emit_status(category, string, status, supplement, status_id)</strong> - Progress updates<br>"
+            "<strong>emit_popup(level, string)</strong> - Toast notifications<br>"
+            "<strong>emit_reload(content)</strong> - Update page elements<br>"
+            "<strong>disable_button(id)</strong> / <strong>enable_button(id)</strong> - Button control"
         ),
         0
     )
-    disp.add_display_item(
-        displayer.DisplayerItemButton("multi_step_demo", "Parallel Progress"),
-        1
-    )
-    
-    # Demo 3: Popups (all 4 types)
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [9, 3], subtitle=""
-    ))
-    disp.add_display_item(
-        displayer.DisplayerItemText(
-            "<strong>3. Popup Messages (success/info/warning/error)</strong><br>"
-            "Demonstrates all 4 popup types with <code>emit_popup()</code>."
-        ),
-        0
-    )
-    disp.add_display_item(
-        displayer.DisplayerItemButton("error_demo", "Show Popups"),
-        1
-    )
-    
-    # Demo 4: Button Control
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [9, 3], subtitle=""
-    ))
-    disp.add_display_item(
-        displayer.DisplayerItemText(
-            "<strong>4. Button Control (disable/enable/update)</strong><br>"
-            "Shows <code>disable_button()</code>, <code>enable_button()</code>, and <code>emit_button()</code>."
-        ),
-        0
-    )
-    disp.add_display_item(
-        displayer.DisplayerItemButton("complex_demo", "Button Control"),
-        1
-    )
-    
-    # Demo 5: Content Reload
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [9, 3], subtitle=""
-    ))
-    disp.add_display_item(
-        displayer.DisplayerItemText(
-            "<strong>5. Dynamic Content Reload (emit_reload)</strong><br>"
-            "Demonstrates <code>emit_reload()</code> - updates page content without refresh. Watch the box below!"
-        ),
-        0
-    )
-    disp.add_display_item(
-        displayer.DisplayerItemButton("all_features_demo", "Content Reload"),
-        1
-    )
-    
-    # Scheduler features explanation
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Scheduler Features Explained"
-    ))
-    
-    # Create a 2-column layout for feature cards
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [6, 6], subtitle=""
-    ))
-    
-    # Left column - emit_status() card
-    disp.add_display_item(
-        displayer.DisplayerItemCard(
-            id="emit_status_card",
-            title="emit_status()",
-            icon="mdi mdi-progress-clock",
-            header_color=displayer.BSstyle.PRIMARY,
-            body="""
-            <p>Updates the status area with progress information.</p>
-            <ul>
-                <li><strong>category:</strong> Task name/identifier</li>
-                <li><strong>string:</strong> Status message</li>
-                <li><strong>status:</strong> Progress (0-100, or 101 for error)</li>
-                <li><strong>supplement:</strong> Additional info</li>
-                <li><strong>status_id:</strong> (Optional) ID to update same line instead of creating new ones</li>
-            </ul>
-            <p class="mb-0 text-muted"><small><strong>Tip:</strong> Use status_id to update the same progress bar, 
-            or omit it to create multiple status lines for parallel tasks!</small></p>
-            """
-        ),
-        0
-    )
-    
-    # Right column - emit_popup() card
-    disp.add_display_item(
-        displayer.DisplayerItemCard(
-            id="emit_popup_card",
-            title="emit_popup()",
-            icon="mdi mdi-message-alert",
-            header_color=displayer.BSstyle.SUCCESS,
-            body="""
-            <p>Shows toast notifications to the user.</p>
-            <ul>
-                <li><strong>level:</strong> success, info, warning, error</li>
-                <li><strong>string:</strong> Message (HTML supported)</li>
-            </ul>
-            """
-        ),
-        1
-    )
-    
-    # Second row of cards
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [6, 6], subtitle=""
-    ))
-    
-    # emit_result() card
-    disp.add_display_item(
-        displayer.DisplayerItemCard(
-            id="emit_result_card",
-            title="emit_result()",
-            icon="mdi mdi-clipboard-text",
-            header_color=displayer.BSstyle.INFO,
-            body="""
-            <p>Adds result information to the action progress area.</p>
-            <ul>
-                <li><strong>category:</strong> Bootstrap style (success, danger, etc.)</li>
-                <li><strong>content:</strong> HTML content to display</li>
-            </ul>
-            """
-        ),
-        0
-    )
-    
-    # emit_reload() card
-    disp.add_display_item(
-        displayer.DisplayerItemCard(
-            id="emit_reload_card",
-            title="emit_reload()",
-            icon="mdi mdi-reload",
-            header_color=displayer.BSstyle.WARNING,
-            body="""
-            <p>Dynamically updates page content without refresh.</p>
-            <ul>
-                <li><strong>content:</strong> List of {id, content} dictionaries</li>
-                <li>Updates specific page elements in real-time</li>
-            </ul>
-            """
-        ),
-        1
-    )
-    
-    # Third row of cards
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [6, 6], subtitle=""
-    ))
-    
-    # Button control card
-    disp.add_display_item(
-        displayer.DisplayerItemCard(
-            id="button_control_card",
-            title="disable_button() / enable_button()",
-            icon="mdi mdi-cursor-pointer",
-            header_color=displayer.BSstyle.SECONDARY,
-            body="""
-            <p>Controls button states during operations.</p>
-            <ul>
-                <li>Prevents multiple simultaneous actions</li>
-                <li>Provides visual feedback during processing</li>
-            </ul>
-            """
-        ),
-        0
-    )
-    
-    # emit_button/modal card
-    disp.add_display_item(
-        displayer.DisplayerItemCard(
-            id="emit_button_card",
-            title="emit_button() / emit_modal()",
-            icon="mdi mdi-button-cursor",
-            header_color=displayer.BSstyle.DARK,
-            body="""
-            <p>Advanced features for UI manipulation.</p>
-            <ul>
-                <li><strong>emit_button:</strong> Changes button content/style</li>
-                <li><strong>emit_modal:</strong> Updates modal content</li>
-            </ul>
-            """
-        ),
-        1
-    )
-    
-    # Add dynamic content demo placeholder
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Dynamic Content Demo"
-    ))
     
     disp.add_display_item(
         displayer.DisplayerItemDynamicContent(
             id="dynamic_content_demo",
-            initial_content="""
-            <div class="alert alert-secondary">
-                <h5><i class="mdi mdi-information-outline"></i> Dynamic Content Area</h5>
-                <p class="mb-0">This content will be <strong>dynamically updated</strong> when you run the 
-                "Content Reload" demo. Watch this space!</p>
-            </div>
-            """,
+            initial_content='<div class="alert alert-secondary">Dynamic content area</div>',
             card=False
-        ),
-        0
-    )
-    
-    # Implementation notes
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Implementation Notes"
-    ))
-    
-    disp.add_display_item(
-        displayer.DisplayerItemAlertBox(
-            id="implementation_notes",
-            style=displayer.BSstyle.INFO,
-            icon="mdi mdi-information",
-            title="How It Works",
-            text="""
-            <p>The scheduler uses a <strong>MessageQueue</strong> and <strong>MessageEmitter</strong> architecture:</p>
-            <ol>
-                <li><strong>Threaded Actions</strong> run in separate threads and queue messages via <code>self.m_scheduler.emit_*()</code></li>
-                <li>The <strong>Scheduler</strong> collects messages from the queue every 100ms</li>
-                <li>The <strong>MessageEmitter</strong> sends messages to the web interface via SocketIO</li>
-                <li>The web interface updates in <strong>real-time</strong> without page refreshes</li>
-            </ol>
-            <p class="mb-0">
-                <strong>Benefits:</strong> Thread-safe communication, error isolation, automatic duplicate filtering, 
-                and memory-safe queue limits (1000 messages max per type).
-            </p>
-            """,
-            dismissible=False
         ),
         0
     )

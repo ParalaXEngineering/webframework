@@ -11,6 +11,8 @@
 
     {% if item["type"] == "TEXT" %}
         {{text(item["text"])}}
+    {% elif item["type"] == "SEPARATOR" %}
+        {{separator()}}
     {% elif item["type"] == "PLACEHOLDER" %}
         {{placeholder(item["id"], item["data"])}}
     {% elif item["type"] == "BUTTON" %}
@@ -243,6 +245,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% macro text(text) %}
     {{text}}
+{% endmacro %}
+
+{% macro separator() %}
+    <hr class="my-3">
 {% endmacro %}
 
 {% macro placeholder(id, data) %}

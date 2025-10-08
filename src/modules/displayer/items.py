@@ -233,6 +233,30 @@ class DisplayerItemText(DisplayerItem):
         """Create test instance with sample text."""
         return cls(text="Sample DisplayerItemText")
 
+
+@DisplayerCategory.DISPLAY
+class DisplayerItemSeparator(DisplayerItem):
+    """
+    Specialized display item to display a visual separator/divider line.
+    
+    Renders a Bootstrap horizontal rule to visually separate content sections.
+    """
+
+    def __init__(self) -> None:
+        """
+        Initialize a separator item.
+        
+        Example:
+            >>> separator = DisplayerItemSeparator()
+        """
+        super().__init__(DisplayerItems.SEPARATOR)
+    
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance of separator."""
+        return cls()
+
+
 @DisplayerCategory.INPUT
 class DisplayerItemHidden(DisplayerItem):
     """

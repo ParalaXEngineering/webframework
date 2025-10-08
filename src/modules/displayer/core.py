@@ -253,6 +253,7 @@ class DisplayerItems(Enum):
     IMAGE = "IMAGE"
     FILE = "FILE"
     BADGE = "BADGE"
+    SEPARATOR = "SEPARATOR"
     INDATE = "INDATE"
     INBOX = "INBOX"
     INNUM = "INNUM"
