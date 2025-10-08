@@ -34,12 +34,12 @@ import traceback
 from functools import wraps
 
 try:
-    from .modules import scheduler
+    from .modules import scheduler_classes as scheduler
     from .modules import threaded_manager
     from .modules import access_manager
     from .modules import site_conf
 except ImportError:
-    import scheduler
+    import scheduler_classes as scheduler
     import threaded_manager
     import access_manager
     import site_conf
@@ -139,11 +139,10 @@ def setup_app(app):
 
     # Start scheduler
     if os.path.isfile(os.path.join(app_path, "website", "scheduler.py")):
-        scheduler_obj = importlib.import_module("website.scheduler").Scheduler()
+        scheduler_obj = importlib.import_module("website.scheduler").Scheduler(socket_obj=socketio_obj)
     else:
-        scheduler_obj = scheduler.Scheduler()
+        scheduler_obj = scheduler.Scheduler(socket_obj=socketio_obj)
 
-    scheduler_obj.socket_obj = socketio_obj
     scheduler_thread = threading.Thread(target=scheduler_obj.start, daemon=True)
     scheduler_thread.start()
 

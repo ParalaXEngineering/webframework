@@ -31,6 +31,9 @@ class ResourceRegistry:
     
     # Define available resources
     RESOURCES = {
+        'jquery': {
+            'js': ['vendors/jquery/jquery.min.js']
+        },
         'datatables': {
             'css': ['vendors/datatables.net/datatables.min.css'],
             'js': ['vendors/datatables.net/datatables.min.js', 'js/datatables-init.js']
@@ -284,6 +287,11 @@ class DisplayerItems(Enum):
     BUTTONLINK = "BUTTONLINK"
     PLACEHOLDER = "PLACEHOLDER"
     CALENDAR = "CALENDAR"
+    CARD = "CARD"
+    ALERTBOX = "ALERTBOX"
+    DYNAMICCONTENT = "DYNAMICCONTENT"
+    BUTTONGROUP = "BUTTONGROUP"
+    ICONTEXT = "ICONTEXT"
 
 
 class BSstyle(Enum):

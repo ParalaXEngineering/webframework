@@ -13,11 +13,16 @@ Usage:
 Or use VS Code launch configuration (F5)
 """
 
-from flask import Flask, render_template, request, session, Blueprint
+from flask import Flask, render_template, request, Blueprint
+from flask_socketio import SocketIO
 from src.modules import displayer
-from src.modules import utilities, access_manager, site_conf
+from src.modules import utilities, access_manager, site_conf, threaded_manager
+from src.modules import scheduler_classes as scheduler
+from src.modules import scheduler as scheduler_pkg  # The package for threaded_action
 from src.pages import settings
+from demo_scheduler_action import DemoSchedulerAction
 import os
+import threading
 
 # Create Flask app
 app = Flask(__name__, 
@@ -29,6 +34,22 @@ app.secret_key = 'demo-secret-key-change-in-production'
 # Configure session
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # Disable caching for development
+
+# Initialize SocketIO for real-time communication
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# Initialize thread manager
+threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
+
+# Initialize scheduler with SocketIO
+scheduler_instance = scheduler.Scheduler(socket_obj=socketio)
+scheduler.scheduler_obj = scheduler_instance
+scheduler_pkg.scheduler_obj = scheduler_instance  # Also set in package for threaded_action
+scheduler_instance.m_user_connected = True  # Enable scheduler for demo
+
+# Start scheduler in background thread
+scheduler_thread = threading.Thread(target=scheduler_instance.start, daemon=True)
+scheduler_thread.start()
 
 # Initialize access manager with a mock configuration
 access_manager.auth_object = access_manager.Access_manager()
@@ -53,6 +74,7 @@ class DemoSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Layouts", "demo.layouts")
         self.add_sidebar_submenu("Text & Display", "demo.text_display")
         self.add_sidebar_submenu("Inputs", "demo.inputs")
+        self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo")
         self.add_sidebar_submenu("Complete Showcase", "demo.complete_showcase")
         self.add_sidebar_submenu("Settings Demo", "demo.settings_demo")
 
@@ -123,7 +145,7 @@ def index():
     
     # Navigation cards
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [4, 4, 4], subtitle="Choose a Demo Category"
+        displayer.Layouts.VERTICAL, [3, 3, 3, 3], subtitle="Choose a Demo Category"
     ))
     
     # Layout demos
@@ -149,6 +171,14 @@ def index():
     disp.add_display_item(displayer.DisplayerItemText(
         "Test all input types with working form submission"
     ), 2)
+    
+    # Scheduler Demo
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_scheduler", "Scheduler Demo", "mdi-clock-fast", "/scheduler-demo", [], displayer.BSstyle.INFO
+    ), 3)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "See real-time updates, progress tracking, and threaded action management"
+    ), 3)
     
     # Settings Demo
     disp.add_master_layout(displayer.DisplayerLayout(
@@ -523,6 +553,362 @@ def complete_showcase():
     return render_template("base_content.j2", content=disp.display())
 
 
+@demo_bp.route('/scheduler-demo', methods=['GET', 'POST'])
+def scheduler_demo():
+    """Demonstrate scheduler functionality with threaded actions."""
+    
+    # Require jQuery for SocketIO functionality in site.js
+    from src.modules.displayer import ResourceRegistry
+    ResourceRegistry.require('jquery')
+    
+    # Handle form submission
+    if request.method == 'POST':
+        data_in = utilities.util_post_to_json(request.form.to_dict())
+        
+        if DemoSchedulerAction.m_default_name in data_in:
+            action_data = data_in[DemoSchedulerAction.m_default_name]
+            
+            # Check if an action is already running
+            thread = threaded_manager.thread_manager_obj.get_thread(
+                DemoSchedulerAction.m_default_name
+            )
+            
+            if thread:
+                # Action already running
+                pass  # The scheduler will show the status
+            else:
+                # Start new action based on button pressed
+                demo_action = DemoSchedulerAction()
+                
+                if "simple_demo" in action_data:
+                    demo_action.set_demo_type("simple")
+                    demo_action.start()
+                elif "complex_demo" in action_data:
+                    demo_action.set_demo_type("complex")
+                    demo_action.start()
+                elif "error_demo" in action_data:
+                    demo_action.set_demo_type("error")
+                    demo_action.start()
+                elif "multi_step_demo" in action_data:
+                    demo_action.set_demo_type("multi_step")
+                    demo_action.start()
+                elif "all_features_demo" in action_data:
+                    demo_action.set_demo_type("all_features")
+                    demo_action.start()
+    
+    disp = displayer.Displayer()
+    disp.add_module(DemoSchedulerAction)
+    disp.set_title("Scheduler & Threaded Actions Demo")
+    
+    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Scheduler Demo", "demo.scheduler_demo", [])
+    
+    # Introduction
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="About This Demo"
+    ))
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        "<strong>Scheduler Demo</strong><br>"
+        "This demo showcases the scheduler's ability to communicate with the user interface during long-running operations. "
+        "The scheduler provides real-time updates through status messages, popups, progress bars, and dynamic content updates.<br><br>"
+        "<strong>What you'll see:</strong> Status updates, progress bars, popups, button manipulation, "
+        "error handling, and dynamic content reloading - all managed by the scheduler!",
+        displayer.BSstyle.INFO
+    ), 0)
+    
+    # Status display area (will be updated by scheduler)
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Action Status"
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemAlert("No action running", displayer.BSstyle.NONE),
+        0,
+        id="scheduler_demo_status"
+    )
+    
+    # Dynamic content area (will be updated via emit_reload)
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Dynamic Content Area"
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemPlaceholder(
+            "scheduler_demo_dynamic_content",
+            '<div class="alert alert-secondary">This content will be updated dynamically during the "All Features" demo</div>'
+        ),
+        0
+    )
+    
+    # Demo buttons
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Demo Types"
+    ))
+    
+    # Demo 1: Status ID - Single Line Update
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [9, 3], subtitle=""
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemText(
+            "<strong>1. Single Progress Bar (status_id)</strong><br>"
+            "Shows how <code>status_id</code> updates the SAME line. Progress 0→100% on one line."
+        ),
+        0
+    )
+    disp.add_display_item(
+        displayer.DisplayerItemButton("simple_demo", "Single Progress"),
+        1,
+        id="demo_action_btn"
+    )
+    
+    # Demo 2: Multiple Concurrent Progress Bars
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [9, 3], subtitle=""
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemText(
+            "<strong>2. Multiple Progress Bars (parallel tasks)</strong><br>"
+            "Shows 3 CONCURRENT progress bars using different <code>status_id</code> values."
+        ),
+        0
+    )
+    disp.add_display_item(
+        displayer.DisplayerItemButton("multi_step_demo", "Parallel Progress"),
+        1
+    )
+    
+    # Demo 3: Popups (all 4 types)
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [9, 3], subtitle=""
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemText(
+            "<strong>3. Popup Messages (success/info/warning/error)</strong><br>"
+            "Demonstrates all 4 popup types with <code>emit_popup()</code>."
+        ),
+        0
+    )
+    disp.add_display_item(
+        displayer.DisplayerItemButton("error_demo", "Show Popups"),
+        1
+    )
+    
+    # Demo 4: Button Control
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [9, 3], subtitle=""
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemText(
+            "<strong>4. Button Control (disable/enable/update)</strong><br>"
+            "Shows <code>disable_button()</code>, <code>enable_button()</code>, and <code>emit_button()</code>."
+        ),
+        0
+    )
+    disp.add_display_item(
+        displayer.DisplayerItemButton("complex_demo", "Button Control"),
+        1
+    )
+    
+    # Demo 5: Content Reload
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [9, 3], subtitle=""
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemText(
+            "<strong>5. Dynamic Content Reload (emit_reload)</strong><br>"
+            "Demonstrates <code>emit_reload()</code> - updates page content without refresh. Watch the box below!"
+        ),
+        0
+    )
+    disp.add_display_item(
+        displayer.DisplayerItemButton("all_features_demo", "Content Reload"),
+        1
+    )
+    
+    # Scheduler features explanation
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Scheduler Features Explained"
+    ))
+    
+    # Create a 2-column layout for feature cards
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [6, 6], subtitle=""
+    ))
+    
+    # Left column - emit_status() card
+    disp.add_display_item(
+        displayer.DisplayerItemCard(
+            id="emit_status_card",
+            title="emit_status()",
+            icon="mdi mdi-progress-clock",
+            header_color=displayer.BSstyle.PRIMARY,
+            body="""
+            <p>Updates the status area with progress information.</p>
+            <ul>
+                <li><strong>category:</strong> Task name/identifier</li>
+                <li><strong>string:</strong> Status message</li>
+                <li><strong>status:</strong> Progress (0-100, or 101 for error)</li>
+                <li><strong>supplement:</strong> Additional info</li>
+                <li><strong>status_id:</strong> (Optional) ID to update same line instead of creating new ones</li>
+            </ul>
+            <p class="mb-0 text-muted"><small><strong>Tip:</strong> Use status_id to update the same progress bar, 
+            or omit it to create multiple status lines for parallel tasks!</small></p>
+            """
+        ),
+        0
+    )
+    
+    # Right column - emit_popup() card
+    disp.add_display_item(
+        displayer.DisplayerItemCard(
+            id="emit_popup_card",
+            title="emit_popup()",
+            icon="mdi mdi-message-alert",
+            header_color=displayer.BSstyle.SUCCESS,
+            body="""
+            <p>Shows toast notifications to the user.</p>
+            <ul>
+                <li><strong>level:</strong> success, info, warning, error</li>
+                <li><strong>string:</strong> Message (HTML supported)</li>
+            </ul>
+            """
+        ),
+        1
+    )
+    
+    # Second row of cards
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [6, 6], subtitle=""
+    ))
+    
+    # emit_result() card
+    disp.add_display_item(
+        displayer.DisplayerItemCard(
+            id="emit_result_card",
+            title="emit_result()",
+            icon="mdi mdi-clipboard-text",
+            header_color=displayer.BSstyle.INFO,
+            body="""
+            <p>Adds result information to the action progress area.</p>
+            <ul>
+                <li><strong>category:</strong> Bootstrap style (success, danger, etc.)</li>
+                <li><strong>content:</strong> HTML content to display</li>
+            </ul>
+            """
+        ),
+        0
+    )
+    
+    # emit_reload() card
+    disp.add_display_item(
+        displayer.DisplayerItemCard(
+            id="emit_reload_card",
+            title="emit_reload()",
+            icon="mdi mdi-reload",
+            header_color=displayer.BSstyle.WARNING,
+            body="""
+            <p>Dynamically updates page content without refresh.</p>
+            <ul>
+                <li><strong>content:</strong> List of {id, content} dictionaries</li>
+                <li>Updates specific page elements in real-time</li>
+            </ul>
+            """
+        ),
+        1
+    )
+    
+    # Third row of cards
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [6, 6], subtitle=""
+    ))
+    
+    # Button control card
+    disp.add_display_item(
+        displayer.DisplayerItemCard(
+            id="button_control_card",
+            title="disable_button() / enable_button()",
+            icon="mdi mdi-cursor-pointer",
+            header_color=displayer.BSstyle.SECONDARY,
+            body="""
+            <p>Controls button states during operations.</p>
+            <ul>
+                <li>Prevents multiple simultaneous actions</li>
+                <li>Provides visual feedback during processing</li>
+            </ul>
+            """
+        ),
+        0
+    )
+    
+    # emit_button/modal card
+    disp.add_display_item(
+        displayer.DisplayerItemCard(
+            id="emit_button_card",
+            title="emit_button() / emit_modal()",
+            icon="mdi mdi-button-cursor",
+            header_color=displayer.BSstyle.DARK,
+            body="""
+            <p>Advanced features for UI manipulation.</p>
+            <ul>
+                <li><strong>emit_button:</strong> Changes button content/style</li>
+                <li><strong>emit_modal:</strong> Updates modal content</li>
+            </ul>
+            """
+        ),
+        1
+    )
+    
+    # Add dynamic content demo placeholder
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Dynamic Content Demo"
+    ))
+    
+    disp.add_display_item(
+        displayer.DisplayerItemDynamicContent(
+            id="dynamic_content_demo",
+            initial_content="""
+            <div class="alert alert-secondary">
+                <h5><i class="mdi mdi-information-outline"></i> Dynamic Content Area</h5>
+                <p class="mb-0">This content will be <strong>dynamically updated</strong> when you run the 
+                "Content Reload" demo. Watch this space!</p>
+            </div>
+            """,
+            card=False
+        ),
+        0
+    )
+    
+    # Implementation notes
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Implementation Notes"
+    ))
+    
+    disp.add_display_item(
+        displayer.DisplayerItemAlertBox(
+            id="implementation_notes",
+            style=displayer.BSstyle.INFO,
+            icon="mdi mdi-information",
+            title="How It Works",
+            text="""
+            <p>The scheduler uses a <strong>MessageQueue</strong> and <strong>MessageEmitter</strong> architecture:</p>
+            <ol>
+                <li><strong>Threaded Actions</strong> run in separate threads and queue messages via <code>self.m_scheduler.emit_*()</code></li>
+                <li>The <strong>Scheduler</strong> collects messages from the queue every 100ms</li>
+                <li>The <strong>MessageEmitter</strong> sends messages to the web interface via SocketIO</li>
+                <li>The web interface updates in <strong>real-time</strong> without page refreshes</li>
+            </ol>
+            <p class="mb-0">
+                <strong>Benefits:</strong> Thread-safe communication, error isolation, automatic duplicate filtering, 
+                and memory-safe queue limits (1000 messages max per type).
+            </p>
+            """,
+            dismissible=False
+        ),
+        0
+    )
+    
+    return render_template("base_content.j2", content=disp.display(), target="demo.scheduler_demo")
+
+
 @demo_bp.route('/settings-demo')
 def settings_demo():
     """Redirect to settings interface."""
@@ -541,9 +927,9 @@ if __name__ == '__main__':
     print("=" * 60)
     print("  Displayer Demo Application")
     print("=" * 60)
-    print(f"  Starting Flask server...")
-    print(f"  Open your browser to: http://localhost:5001")
-    print(f"  Press CTRL+C to stop the server")
+    print("  Starting Flask server with SocketIO...")
+    print("  Open your browser to: http://localhost:5001")
+    print("  Press CTRL+C to stop the server")
     print("=" * 60)
     
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    socketio.run(app, debug=True, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)

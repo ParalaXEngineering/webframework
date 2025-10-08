@@ -226,21 +226,25 @@ def generate_index_page() -> None:
         test_name = filename.replace("displayer_", "").replace(".html", "")
         filename_map[test_name] = filename
     
-    # Extract main content from each HTML file for embedding
+    # Extract main content from each HTML file
     from bs4 import BeautifulSoup
     content_map = {}
+    
     for name, filename in filename_map.items():
         file_path = os.path.join(TEST_OUTPUT_DIR, filename)
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                soup = BeautifulSoup(f.read(), "html.parser")
-                # Find div with id="main" (not <main> tag)
+                html_content = f.read()
+                soup = BeautifulSoup(html_content, "html.parser")
+                
+                # Extract main content
                 main_content = soup.find("div", id="main")
                 if main_content:
                     # Extract the innerHTML (content inside #main, not the div itself)
                     content_map[name] = main_content.decode_contents()
                 else:
                     content_map[name] = f'<div class="alert alert-warning">No #main content found in {filename}</div>'
+                            
         except Exception as e:
             content_map[name] = f'<div class="alert alert-danger">Error loading {filename}: {str(e)}</div>'
     
@@ -267,9 +271,9 @@ def generate_index_page() -> None:
             'endpoint': 'gallery.index',
             'page_info': '',
             'user': None,
-            'required_css': [],
-            'required_js': [],
-            'required_cdn': []
+            'required_css': [],  # Vendor resources loaded directly in template
+            'required_js': [],   # Vendor resources loaded directly in template
+            'required_cdn': []   # Vendor resources loaded directly in template
         }
     
     # Render the gallery page

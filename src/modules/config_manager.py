@@ -7,10 +7,12 @@ Extracted from settings.py to separate business logic from presentation layer.
 
 import subprocess
 import platform
+from typing import Tuple, Optional
 
 
-def apply_network_config(interface: str, ip_type: str, ip_address: str = None, 
-                        subnet_mask: str = None, gateway: str = None, dns: str = None) -> tuple[bool, str]:
+def apply_network_config(interface: str, ip_type: str, ip_address: Optional[str] = None, 
+                        subnet_mask: Optional[str] = None, gateway: Optional[str] = None, 
+                        dns: Optional[str] = None) -> Tuple[bool, str]:
     """
     Apply network configuration to a network interface.
     
@@ -37,8 +39,9 @@ def apply_network_config(interface: str, ip_type: str, ip_address: str = None,
         return False, f"Configuration error: {str(e)}"
 
 
-def _apply_windows_config(interface: str, ip_type: str, ip_address: str = None,
-                          subnet_mask: str = None, gateway: str = None, dns: str = None) -> tuple[bool, str]:
+def _apply_windows_config(interface: str, ip_type: str, ip_address: Optional[str] = None,
+                          subnet_mask: Optional[str] = None, gateway: Optional[str] = None, 
+                          dns: Optional[str] = None) -> Tuple[bool, str]:
     """Apply network configuration on Windows systems."""
     commands = []
     
@@ -65,8 +68,9 @@ def _apply_windows_config(interface: str, ip_type: str, ip_address: str = None,
     return True, "Network configuration applied successfully"
 
 
-def _apply_linux_config(interface: str, ip_type: str, ip_address: str = None,
-                       subnet_mask: str = None, gateway: str = None, dns: str = None) -> tuple[bool, str]:
+def _apply_linux_config(interface: str, ip_type: str, ip_address: Optional[str] = None,
+                       subnet_mask: Optional[str] = None, gateway: Optional[str] = None, 
+                       dns: Optional[str] = None) -> Tuple[bool, str]:
     """Apply network configuration on Linux systems."""
     commands = []
     

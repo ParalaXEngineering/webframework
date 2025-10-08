@@ -85,6 +85,16 @@
         {{graph(item["id"], item["text"], item["graph_x"], item["graph_y"], item["graph_type"])}}
     {% elif item["type"] == "CALENDAR" %}
         {{calendar(item["id"], item["value"], item["data"])}}
+    {% elif item["type"] == "CARD" %}
+        {{card(item["itemId"], item["text"], item["value"], item["icon"], item["style"], item["data"])}}
+    {% elif item["type"] == "ALERTBOX" %}
+        {{alertbox(item["itemId"], item["text"], item["style"], item["icon"], item["header"], item["disabled"])}}
+    {% elif item["type"] == "DYNAMICCONTENT" %}
+        {{dynamiccontent(item["itemId"], item["text"], item["disabled"])}}
+    {% elif item["type"] == "BUTTONGROUP" %}
+        {{buttongroup(item["itemId"], item["data"], item["value"])}}
+    {% elif item["type"] == "ICONTEXT" %}
+        {{icontext(item["itemId"], item["icon"], item["text"], item["style"], item["path"])}}
     {% endif %}
 
     {% if "itemId" in item %}
@@ -868,4 +878,82 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% macro inimage(id, file) %}
     {{ common_input.image(id)}}
+{% endmacro %}
+{# New item macros #}
+
+{% macro card(id, title, body, icon, header_color, footer_buttons) %}
+<div class="card mb-3" id="{{id}}">
+    <div class="card-header bg-{{header_color}} text-white">
+        {% if icon %}
+        <i class="{{icon}}"></i> 
+        {% endif %}
+        <strong>{{title}}</strong>
+    </div>
+    <div class="card-body">
+        {{body | safe}}
+    </div>
+    {% if footer_buttons and footer_buttons | length > 0 %}
+    <div class="card-footer">
+        {% for btn in footer_buttons %}
+        <button type="submit" name="{{btn.id}}" value="{{btn.id}}" 
+                class="btn btn-{{btn.style if btn.style else 'primary'}}">
+            {% if btn.icon %}
+            <i class="{{btn.icon}}"></i> 
+            {% endif %}
+            {{btn.text}}
+        </button>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro alertbox(id, text, style, icon, title, dismissible) %}
+<div class="alert alert-{{style}} {% if dismissible %}alert-dismissible fade show{% endif %}" 
+     role="alert" id="{{id}}">
+    {% if icon %}
+    <i class="{{icon}}"></i> 
+    {% endif %}
+    {% if title %}
+    <strong>{{title}}</strong><br>
+    {% endif %}
+    {{text | safe}}
+    {% if dismissible %}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro dynamiccontent(id, initial_content, card) %}
+<div id="{{id}}" {% if card %}class="card card-body"{% endif %}>
+    {{initial_content | safe}}
+</div>
+{% endmacro %}
+
+{% macro buttongroup(id, buttons, layout) %}
+<div class="btn-group{% if layout == 'vertical' %}-vertical{% endif %}" 
+     role="group" id="{{id}}">
+    {% for btn in buttons %}
+    <button type="submit" name="{{btn.id}}" value="{{btn.id}}" 
+            class="btn btn-{{btn.style if btn.style else 'primary'}}"
+            {% if btn.disabled %}disabled{% endif %}>
+        {% if btn.icon %}
+        <i class="{{btn.icon}}"></i> 
+        {% endif %}
+        {{btn.text}}
+    </button>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro icontext(id, icon, text, color, link) %}
+<div id="{{id}}" class="{% if color %}text-{{color}}{% endif %}">
+    {% if link %}
+    <a href="{{link}}" class="{% if color %}text-{{color}}{% endif %}">
+    {% endif %}
+    <i class="{{icon}}"></i> {{text}}
+    {% if link %}
+    </a>
+    {% endif %}
+</div>
 {% endmacro %}

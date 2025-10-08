@@ -1620,3 +1620,288 @@ class DisplayerItemCalendar(DisplayerItem):
                        {"title": "Event 1", "start": "2024-01-15"},
                        {"title": "Event 2", "start": "2024-01-20", "end": "2024-01-22"}
                    ])
+
+
+@DisplayerCategory.DISPLAY
+class DisplayerItemCard(DisplayerItem):
+    """
+    Card component with colored header, icon, title, and body content.
+    
+    Creates a Bootstrap card with customizable header color, MDI icon,
+    and optional footer buttons.
+    
+    Example:
+        >>> card = DisplayerItemCard(
+        ...     id="demo_card",
+        ...     title="Feature Demo",
+        ...     icon="mdi-play-circle",
+        ...     header_color=BSstyle.PRIMARY,
+        ...     body="This demonstrates a cool feature.",
+        ...     footer_buttons=[
+        ...         {"id": "run_btn", "text": "Run", "style": "primary"}
+        ...     ]
+        ... )
+    """
+    
+    def __init__(
+        self,
+        id: str,
+        title: str,
+        body: str,
+        icon: str = None,
+        header_color: BSstyle = BSstyle.PRIMARY,
+        footer_buttons: List[Dict[str, str]] = None
+    ) -> None:
+        """
+        Initialize a card display item.
+        
+        Args:
+            id: Unique identifier for the card
+            title: Title text shown in the header
+            body: Main content (HTML supported)
+            icon: MDI icon name (e.g., "mdi-information")
+            header_color: Bootstrap color for header (default: PRIMARY)
+            footer_buttons: List of button dicts with keys: id, text, style, icon (optional)
+        """
+        super().__init__(DisplayerItems.CARD)
+        self.m_itemId = id
+        self.m_text = title  # Title
+        self.m_value = body  # Body content
+        self.m_icon = icon
+        self.m_style = header_color.value if isinstance(header_color, BSstyle) else header_color
+        self.m_data = footer_buttons or []
+    
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample card."""
+        return cls(
+            id="test_card",
+            title="Test Card",
+            icon="mdi-information",
+            header_color=BSstyle.PRIMARY,
+            body="This is a test card with sample content.",
+            footer_buttons=[
+                {"id": "test_btn", "text": "Click Me", "style": "primary"}
+            ]
+        )
+
+
+@DisplayerCategory.DISPLAY
+class DisplayerItemAlertBox(DisplayerItem):
+    """
+    Bootstrap alert box with icon and optional title.
+    
+    Creates a dismissible or static alert with icon support.
+    Different from DisplayerItemAlert which is simpler.
+    
+    Example:
+        >>> alert = DisplayerItemAlertBox(
+        ...     id="info_alert",
+        ...     style=BSstyle.INFO,
+        ...     icon="mdi-information-outline",
+        ...     title="Important Information",
+        ...     text="Please read this carefully.",
+        ...     dismissible=True
+        ... )
+    """
+    
+    def __init__(
+        self,
+        id: str,
+        text: str,
+        style: BSstyle = BSstyle.INFO,
+        icon: str = None,
+        title: str = None,
+        dismissible: bool = False
+    ) -> None:
+        """
+        Initialize an alert box display item.
+        
+        Args:
+            id: Unique identifier for the alert
+            text: Alert message content (HTML supported)
+            style: Bootstrap alert style (info, success, warning, danger)
+            icon: MDI icon name (e.g., "mdi-alert")
+            title: Optional bold title before text
+            dismissible: If True, adds close button
+        """
+        super().__init__(DisplayerItems.ALERTBOX)
+        self.m_itemId = id
+        self.m_text = text
+        self.m_style = style.value if isinstance(style, BSstyle) else style
+        self.m_icon = icon
+        self.m_header = title  # Using header for title
+        self.m_disabled = dismissible  # Reusing disabled flag for dismissible
+    
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample alert box."""
+        return cls(
+            id="test_alert",
+            style=BSstyle.INFO,
+            icon="mdi-information",
+            title="Test Alert",
+            text="This is a test alert box.",
+            dismissible=True
+        )
+
+
+@DisplayerCategory.DISPLAY
+class DisplayerItemDynamicContent(DisplayerItem):
+    """
+    Placeholder div for content that will be updated dynamically.
+    
+    Creates a container with an ID that can be targeted by emit_reload()
+    for dynamic updates without page refresh.
+    
+    Example:
+        >>> content = DisplayerItemDynamicContent(
+        ...     id="live_status",
+        ...     initial_content="<p>Waiting for updates...</p>",
+        ...     card=True
+        ... )
+        
+        # Later in threaded action:
+        scheduler.emit_reload([{
+            'id': 'live_status',
+            'content': '<p>Updated at 12:45!</p>'
+        }])
+    """
+    
+    def __init__(
+        self,
+        id: str,
+        initial_content: str = "",
+        card: bool = False
+    ) -> None:
+        """
+        Initialize a dynamic content placeholder.
+        
+        Args:
+            id: Unique identifier (used by emit_reload to target this element)
+            initial_content: Initial HTML/text content
+            card: If True, wraps content in card styling
+        """
+        super().__init__(DisplayerItems.DYNAMICCONTENT)
+        self.m_itemId = id
+        self.m_text = initial_content
+        self.m_disabled = card  # Reusing disabled flag for card styling
+    
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample dynamic content."""
+        return cls(
+            id="test_dynamic",
+            initial_content="<p>This content will be updated dynamically.</p>",
+            card=True
+        )
+
+
+@DisplayerCategory.INPUT
+class DisplayerItemButtonGroup(DisplayerItem):
+    """
+    Group of buttons displayed horizontally or vertically.
+    
+    Creates multiple buttons in a Bootstrap button group layout.
+    
+    Example:
+        >>> btn_group = DisplayerItemButtonGroup(
+        ...     id="demo_controls",
+        ...     buttons=[
+        ...         {"id": "start", "text": "Start", "icon": "mdi-play", "style": "success"},
+        ...         {"id": "stop", "text": "Stop", "icon": "mdi-stop", "style": "danger"},
+        ...         {"id": "reset", "text": "Reset", "icon": "mdi-refresh", "style": "warning"}
+        ...     ],
+        ...     layout="horizontal"
+        ... )
+    """
+    
+    def __init__(
+        self,
+        id: str,
+        buttons: List[Dict[str, str]],
+        layout: str = "horizontal"
+    ) -> None:
+        """
+        Initialize a button group display item.
+        
+        Args:
+            id: Unique identifier for the button group
+            buttons: List of button dicts with keys:
+                - id: Button ID (required)
+                - text: Button text (required)
+                - style: Bootstrap style (default: "primary")
+                - icon: MDI icon name (optional)
+                - disabled: Boolean (optional)
+            layout: "horizontal" or "vertical"
+        """
+        super().__init__(DisplayerItems.BUTTONGROUP)
+        self.m_itemId = id
+        self.m_data = buttons
+        self.m_value = layout  # horizontal or vertical
+    
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample button group."""
+        return cls(
+            id="test_btn_group",
+            buttons=[
+                {"id": "btn1", "text": "Button 1", "style": "primary"},
+                {"id": "btn2", "text": "Button 2", "style": "success"},
+                {"id": "btn3", "text": "Button 3", "style": "danger"}
+            ],
+            layout="horizontal"
+        )
+
+
+@DisplayerCategory.DISPLAY
+class DisplayerItemIconText(DisplayerItem):
+    """
+    Simple line with icon and text displayed inline.
+    
+    Creates a compact icon + text combination, useful for feature lists
+    or quick information display.
+    
+    Example:
+        >>> icon_text = DisplayerItemIconText(
+        ...     id="feature1",
+        ...     icon="mdi-check-circle",
+        ...     text="Real-time updates enabled",
+        ...     color=BSstyle.SUCCESS
+        ... )
+    """
+    
+    def __init__(
+        self,
+        id: str,
+        icon: str,
+        text: str,
+        color: BSstyle = None,
+        link: str = None
+    ) -> None:
+        """
+        Initialize an icon+text display item.
+        
+        Args:
+            id: Unique identifier
+            icon: MDI icon name (e.g., "mdi-check")
+            text: Text content to display
+            color: Bootstrap color for text (optional)
+            link: URL to link to (optional, makes it clickable)
+        """
+        super().__init__(DisplayerItems.ICONTEXT)
+        self.m_itemId = id
+        self.m_icon = icon
+        self.m_text = text
+        self.m_style = color.value if isinstance(color, BSstyle) and color else None
+        self.m_path = link  # Using path for link URL
+    
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample icon+text."""
+        return cls(
+            id="test_icontext",
+            icon="mdi-information",
+            text="Sample icon text item",
+            color=BSstyle.PRIMARY
+        )

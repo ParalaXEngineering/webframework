@@ -373,10 +373,30 @@ function saveScrollPosition() {
     document.getElementById('your-form-id').submit();
 }
 
-$(document).ready(function() {    
+$(document).ready(function() {
+    console.log('[DEBUG] site.js loaded and document ready');
+    console.log('[DEBUG] Attempting to connect to SocketIO at:', 'http://' + document.domain + ':' + location.port);
+    
     var socket = io.connect('http://' + document.domain + ':' + location.port);
+    
+    // Debug: Socket connection events
+    socket.on('connect', function() {
+        console.log('[SOCKETIO] Connected to server');
+    });
+    
+    socket.on('disconnect', function() {
+        console.log('[SOCKETIO] Disconnected from server');
+    });
+    
+    socket.on('connect_error', function(error) {
+        console.error('[SOCKETIO] Connection error:', error);
+    });
+    
     setTimeout(test_connect, 1000)
-    function test_connect(){socket.emit("user_connected") }
+    function test_connect(){
+        console.log('[SOCKETIO] Emitting user_connected');
+        socket.emit("user_connected");
+    }
 
     // Append overlay to body
     $('body').append(`
@@ -516,8 +536,10 @@ $(document).ready(function() {
     })
 
     socket.on( 'popup', function( msg ) {
+        console.log('[SOCKETIO] Received popup:', msg);
         for(let level of Object.keys(msg))
         {
+            console.log('[SOCKETIO] Popup level:', level, 'Content:', msg[level]);
             if(level != 4)
             {
                 Swal.fire({
@@ -569,14 +591,17 @@ $(document).ready(function() {
     })
 
     socket.on( 'action_status', function( msg ) {
+        console.log('[SOCKETIO] Received action_status:', msg);
         for(let category of Object.keys(msg))
         {
+            console.log('[SOCKETIO] Processing category:', category, 'Message:', msg[category]);
             //Do we already have the status in the table
             let current_status = document.getElementById(msg[category][0])
             if(!current_status)
             {
                 let table = document.getElementById(category + "_result")
                 console.log(category)
+                console.log('[SOCKETIO] Table element:', table);
                 //Prepare the cell
                 let status = '<div id="' + msg[category][0] + '"></div></div>'
 
@@ -589,6 +614,10 @@ $(document).ready(function() {
                     cell.innerHTML = status
 
                     current_status = document.getElementById(msg[category][0])
+                }
+                else
+                {
+                    console.log('[SOCKETIO] WARNING: Table not found for category:', category + "_result");
                 }
             }
 

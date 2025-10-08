@@ -1,5 +1,7 @@
 import threading
 import logging
+import logging.config
+import os
 
 thread_manager_obj = None
 
@@ -9,9 +11,30 @@ class Threaded_manager:
 
     def __init__(self):
         self.m_running_threads = []  # ✅ déplacement ici : variable d'instance
-        logging.config.fileConfig("submodules/framework/log_config.ini")
+        
+        # Try to find log_config.ini in multiple locations
+        log_config_paths = [
+            "submodules/framework/log_config.ini",
+            "log_config.ini",
+            os.path.join(os.path.dirname(__file__), "..", "..", "log_config.ini")
+        ]
+        
+        log_config_found = False
+        for path in log_config_paths:
+            if os.path.exists(path):
+                try:
+                    logging.config.fileConfig(path)
+                    log_config_found = True
+                    break
+                except Exception:
+                    continue
+        
+        if not log_config_found:
+            # Fallback to basic config if no file found
+            logging.basicConfig(level=logging.INFO)
+        
         self.m_logger = logging.getLogger("website")
-        self.m_logger.info("Scheduler started")
+        self.m_logger.info("Thread Manager started")
 
     def add_thread(self, thread: threading.Thread):
         """Add a new thread to the pool

@@ -91,7 +91,11 @@ def check_html_for_resources(item_class_name: str, required_vendors: List[str]) 
                 if resource_type in vendor_patterns:
                     expected_patterns.extend(vendor_patterns[resource_type])
     
-    # Build unexpected patterns (all other vendors)
+    # Define globally-loaded resources (always present in base.j2)
+    # These are loaded for framework-wide features (scheduler, popups, etc.)
+    GLOBAL_RESOURCES = ['sweetalert2.min.css', 'sweetalert2.all.min.js']
+    
+    # Build unexpected patterns (all other vendors, excluding global resources)
     unexpected_patterns = []
     all_vendors = set(VENDOR_RESOURCE_PATTERNS.keys())
     unexpected_vendors = all_vendors - set(required_vendors)
@@ -99,7 +103,9 @@ def check_html_for_resources(item_class_name: str, required_vendors: List[str]) 
         vendor_patterns = VENDOR_RESOURCE_PATTERNS[vendor]
         for resource_type in ['css', 'js', 'cdn']:
             if resource_type in vendor_patterns:
-                unexpected_patterns.extend(vendor_patterns[resource_type])
+                # Filter out global resources from unexpected list
+                patterns = [p for p in vendor_patterns[resource_type] if p not in GLOBAL_RESOURCES]
+                unexpected_patterns.extend(patterns)
     
     # Check for expected patterns
     missing = [pattern for pattern in expected_patterns if pattern not in html]

@@ -14,7 +14,7 @@
     "bool_example": {
       "friendly": "Boolean Field",
       "type": "bool",
-      "value": true
+      "value": false
     },
     "select_example": {
       "friendly": "Select Dropdown",
@@ -29,7 +29,7 @@
     "serial_port_example": {
       "friendly": "Serial Port Selection",
       "type": "serial_port",
-      "value": "None",
+      "value": "COM1",
       "options": [
         "COM1",
         "COM2",
@@ -40,7 +40,7 @@
     "icon_example": {
       "friendly": "Icon Selector",
       "type": "icon",
-      "value": "star"
+      "value": "star-outline"
     }
   },
   "complex_types": {
@@ -68,12 +68,14 @@
       "type": "multi_select",
       "value": [
         "red",
-        "blue"
+        "blue",
+        "blue",
+        "red#blue#red#blue"
       ],
       "options": [
-        "red",
-        "green",
         "blue",
+        "green",
+        "red",
         "yellow"
       ]
     },

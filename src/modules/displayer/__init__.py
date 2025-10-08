@@ -77,6 +77,12 @@ from .items import (
     DisplayerItemInputFile,
     DisplayerItemInputImage,
     DisplayerItemCalendar,
+    # New items
+    DisplayerItemCard,
+    DisplayerItemAlertBox,
+    DisplayerItemDynamicContent,
+    DisplayerItemButtonGroup,
+    DisplayerItemIconText,
 )
 
 __all__ = [
@@ -137,6 +143,13 @@ __all__ = [
     
     # Advanced items
     'DisplayerItemCalendar',
+    
+    # New items
+    'DisplayerItemCard',
+    'DisplayerItemAlertBox',
+    'DisplayerItemDynamicContent',
+    'DisplayerItemButtonGroup',
+    'DisplayerItemIconText',
 ]
 
 # Backward compatibility aliases for clearer naming

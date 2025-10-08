@@ -4,6 +4,10 @@
 {% block subtitle %}Auto-generated test components for visual inspection{% endblock %}
 
 {% block styles %}
+<!-- Vendor CSS for gallery components -->
+<link rel="stylesheet" href="../../../webengine/assets/vendors/filepond/filepond.min.css">
+<link rel="stylesheet" href="../../../webengine/assets/vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.css">
+
 <style>
 /* Fix sidebar scrolling */
 #sidebar .sidebar-wrapper {
@@ -52,6 +56,75 @@ const filenameMap = {{ filename_map | tojson }};
 
 let currentComponentName = null;
 
+// Initialize vendor libraries for dynamically loaded content
+function initializeVendorLibraries(container) {
+    console.log('Gallery: Initializing vendor libraries');
+    
+    // Initialize FilePond if available
+    if (typeof FilePond !== 'undefined') {
+        // Register plugins
+        if (typeof FilePondPluginImagePreview !== 'undefined' && typeof FilePondPluginFileValidateType !== 'undefined') {
+            FilePond.registerPlugin(FilePondPluginImagePreview, FilePondPluginFileValidateType);
+        }
+        
+        // Image preview filepond
+        container.querySelectorAll(".image-preview-filepond").forEach(element => {
+            if (!element.classList.contains('filepond--root')) {  // Avoid re-initializing
+                FilePond.create(element, {
+                    labelIdle: `Drag & Drop image <span class="filepond--label-action">Browse</span>`,
+                    credits: null,
+                    allowImagePreview: true,
+                    allowImageFilter: false,
+                    allowImageExifOrientation: false,
+                    allowImageCrop: false,
+                    acceptedFileTypes: ["image/png", "image/jpg", "image/jpeg"],
+                    storeAsFile: true,
+                });
+                console.log('Gallery: Initialized FilePond image preview');
+            }
+        });
+        
+        // Basic filepond
+        container.querySelectorAll(".basic-filepond").forEach(element => {
+            if (!element.classList.contains('filepond--root')) {
+                FilePond.create(element, {
+                    credits: null,
+                    storeAsFile: true,
+                });
+                console.log('Gallery: Initialized FilePond basic');
+            }
+        });
+        
+        // Folder filepond
+        container.querySelectorAll(".folder-filepond").forEach(element => {
+            if (!element.classList.contains('filepond--root')) {
+                FilePond.create(element, {
+                    credits: null,
+                    storeAsFile: true,
+                    allowMultiple: true,
+                    allowDirectoriesOnly: false,
+                });
+                console.log('Gallery: Initialized FilePond folder');
+            }
+        });
+    }
+    
+    // Initialize TinyMCE if available
+    if (typeof tinymce !== 'undefined') {
+        container.querySelectorAll(".tinymce-editor").forEach(element => {
+            if (!element.classList.contains('tox-tinymce')) {  // Avoid re-initializing
+                tinymce.init({
+                    selector: '#' + element.id,
+                    plugins: 'lists link image table code',
+                    toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist',
+                    menubar: false,
+                });
+                console.log('Gallery: Initialized TinyMCE');
+            }
+        });
+    }
+}
+
 // Load preview content directly (no iframe, no fetch - content is embedded!)
 function loadPreview(componentName) {
     console.log('Gallery: loadPreview called with:', componentName);
@@ -65,7 +138,6 @@ function loadPreview(componentName) {
     if (componentName && contentMap[componentName]) {
         currentComponentName = componentName;
         const contentDisplay = document.getElementById('content-display');
-        const noSelection = document.getElementById('no-selection');
         const currentFileTitle = document.getElementById('current-file-title');
         
         console.log('Gallery: Loading embedded content for:', componentName);
@@ -73,9 +145,28 @@ function loadPreview(componentName) {
         // Inject the pre-extracted content
         contentDisplay.innerHTML = contentMap[componentName];
         
-        // Show content, hide placeholder
+        // Execute any scripts in the injected content
+        const scripts = contentDisplay.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            // Copy attributes
+            Array.from(oldScript.attributes).forEach(attr => {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+            // Copy content
+            newScript.textContent = oldScript.textContent;
+            // Replace old script with new one (this executes it)
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+        console.log('Gallery: Executed', scripts.length, 'scripts in injected content');
+        
+        // Manually initialize vendor libraries for injected content
+        setTimeout(() => {
+            initializeVendorLibraries(contentDisplay);
+        }, 100); // Small delay to ensure scripts are loaded
+        
+        // Show content
         contentDisplay.style.display = 'block';
-        noSelection.style.display = 'none';
         
         // Update title
         currentFileTitle.textContent = componentName;
@@ -153,4 +244,15 @@ document.addEventListener('DOMContentLoaded', function() {
 // Listen for hash changes
 window.addEventListener('hashchange', () => loadPreview());
 </script>
+
+<!-- Vendor JavaScript for gallery components -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="../../../webengine/assets/vendors/filepond/filepond.min.js"></script>
+<script src="../../../webengine/assets/vendors/filepond-plugin-file-validate-type/filepond-plugin-file-validate-type.min.js"></script>
+<script src="../../../webengine/assets/vendors/filepond-plugin-image-preview/filepond-plugin-image-preview.min.js"></script>
+<script src="../../../webengine/assets/vendors/tinymce/tinymce.min.js"></script>
+<script src="../../../webengine/assets/vendors/fullcalendar/fullcalendar.min.js"></script>
+<script src="../../../webengine/assets/js/filepond-init.js"></script>
+<script src="../../../webengine/assets/js/tinymce-init.js"></script>
+
 {% endblock %}

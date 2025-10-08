@@ -18,6 +18,7 @@ from . import displayer
 from . import access_manager
 from . import action
 from . import scheduler
+from . import scheduler_classes
 from . import threaded_action
 from . import threaded_manager
 from . import workflow
@@ -26,7 +27,7 @@ from . import site_conf
 
 __all__ = [
     'config_manager', 'log_parser', 'displayer',
-    'access_manager', 'action', 'scheduler', 
+    'access_manager', 'action', 'scheduler', 'scheduler_classes',
     'threaded_action', 'threaded_manager', 'workflow',
     'utilities', 'site_conf'
 ]

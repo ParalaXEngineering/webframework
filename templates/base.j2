@@ -15,6 +15,7 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app.css') }}">
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app-dark.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'css/theme-aware.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.css') }}">
     {% for css in required_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename= css) }}">
     {% endfor %}
@@ -359,6 +360,8 @@
     <script src="{{ url_for('static', filename= js) }}"></script>
     {% endfor %}
     
+    <script src="{{ url_for('static', filename= 'vendors/jquery/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
