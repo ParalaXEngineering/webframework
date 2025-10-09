@@ -18,10 +18,11 @@ from flask_socketio import SocketIO
 from src.modules import displayer
 from src.modules import utilities, access_manager, site_conf, threaded_manager
 from src.modules import scheduler
-from src.pages import settings
+from src import pages as pages_module
 from demo_scheduler_action import DemoSchedulerAction
 import os
 import threading
+import importlib
 
 # Create Flask app
 app = Flask(__name__, 
@@ -75,6 +76,15 @@ class DemoSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo")
         self.add_sidebar_submenu("Complete Showcase", "demo.complete_showcase")
         self.add_sidebar_submenu("Settings Demo", "demo.settings_demo")
+        
+        # Add Framework Pages section
+        self.add_sidebar_title("Framework Pages")
+        self.add_sidebar_section("System", "cog", "framework")
+        self.add_sidebar_submenu("Settings", "settings.index", endpoint="framework")
+        self.add_sidebar_submenu("Thread Monitor", "threads.threads", endpoint="framework")
+        self.add_sidebar_submenu("Bug Tracker", "bug.bugtracker", endpoint="framework")
+        self.add_sidebar_submenu("Updater", "updater.update", endpoint="framework")
+        self.add_sidebar_submenu("Packager", "packager.packager", endpoint="framework")
 
 # Initialize site configuration
 demo_conf = DemoSiteConf()
@@ -626,8 +636,21 @@ def settings_demo():
 app.register_blueprint(demo_bp)
 app.register_blueprint(common_bp)
 
-# Register settings blueprint for live settings interface
-app.register_blueprint(settings.bp)
+# Auto-discover and register framework internal pages
+pages_dir = os.path.dirname(os.path.abspath(pages_module.__file__))
+framework_pages = [f[:-3] for f in os.listdir(pages_dir) 
+                   if f.endswith('.py') and f != '__init__.py']
+
+for page_name in framework_pages:
+    try:
+        page_module = importlib.import_module(f"src.pages.{page_name}")
+        if hasattr(page_module, 'bp'):
+            app.register_blueprint(page_module.bp)
+            print(f"✓ Registered framework page: {page_name}")
+    except ImportError as e:
+        print(f"✗ Failed to import {page_name}: {e}")
+    except Exception as e:
+        print(f"✗ Failed to register {page_name}: {e}")
 
 if __name__ == '__main__':
     print("=" * 60)

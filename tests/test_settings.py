@@ -32,8 +32,7 @@ import pytest
 import json
 import tempfile
 import os
-from src.modules.settings_storage import SettingsStorage
-from src.modules.settings_manager import SettingsManager
+from src.modules.settings import SettingsStorage, SettingsManager
 
 
 @pytest.fixture

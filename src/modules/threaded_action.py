@@ -3,18 +3,15 @@ import time
 import copy
 import subprocess
 import traceback
-import os
 
 
 try:
     from . import threaded_manager
     from . import scheduler
-    from . import access_manager
     from .logger_factory import get_logger
 except ImportError:
     import threaded_manager
     import scheduler
-    import access_manager
     from logger_factory import get_logger
 
 

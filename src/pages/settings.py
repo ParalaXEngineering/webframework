@@ -29,7 +29,7 @@ Config structure:
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from ..modules.settings_manager import SettingsManager
+from ..modules.settings import SettingsManager
 from ..modules import displayer
 import os
 

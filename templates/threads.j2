@@ -15,7 +15,7 @@ Running Tools
             {{threads[thread]}}
         </div>
         <div class="card-footer d-flex justify-content-between">
-            <form action="{{ url_for('singles.threads') }}" method="POST">
+            <form action="{{ url_for('threads.threads') }}" method="POST">
                 {{common_input.hidden(thread, "")}}
                 <button class="btn btn-light-primary">Kill thread</button>
             </form>

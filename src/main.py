@@ -29,8 +29,6 @@ import sys
 import threading
 import traceback
 
-from functools import wraps
-
 try:
     from .modules import scheduler
     from .modules import threaded_manager
@@ -70,8 +68,9 @@ def setup_app(app):
 
     socketio_obj = SocketIO(app)
     
-    # Initialize logger using centralized factory
+    # Initialize logger using centralized factory and log application start
     logger = get_logger("main")
+    logger.info("Application starting up")
 
     # Detect if we're running from exe
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
@@ -111,16 +110,35 @@ def setup_app(app):
         if hasattr(main_module, 'bp'):
             app.register_blueprint(main_module.bp)
 
-    # Register other common blueprints
+    # Auto-discover and register framework internal pages
     try:
-        from .pages import settings, common, updater, packager, bug_tracker
+        from . import pages as pages_module
     except ImportError:
-        from pages import settings, common, updater, packager, bug_tracker
-    app.register_blueprint(settings.bp)
-    app.register_blueprint(common.bp)
-    app.register_blueprint(updater.bp)
-    app.register_blueprint(packager.bp)
-    app.register_blueprint(bug_tracker.bp)
+        import pages as pages_module
+    
+    # Get the pages directory path
+    pages_dir = os.path.dirname(os.path.abspath(pages_module.__file__))
+    
+    # Get all Python files in the pages directory
+    framework_pages = [f[:-3] for f in os.listdir(pages_dir) 
+                       if f.endswith('.py') and f != '__init__.py']
+    
+    # Import and register each framework page blueprint
+    for page_name in framework_pages:
+        try:
+            if '.' in __name__:  # Running as package
+                page_module = importlib.import_module(f".pages.{page_name}", package='src')
+            else:  # Running directly
+                page_module = importlib.import_module(f"pages.{page_name}")
+            
+            # Register the blueprint if it exists
+            if hasattr(page_module, 'bp'):
+                app.register_blueprint(page_module.bp)
+                logger.info(f"Registered framework page blueprint: {page_name}")
+        except ImportError as e:
+            logger.warning(f"Failed to import framework page {page_name}: {e}")
+        except Exception as e:
+            logger.warning(f"Failed to register blueprint for {page_name}: {e}")
 
     # Register access manager
     access_manager.auth_object = access_manager.Access_manager()
