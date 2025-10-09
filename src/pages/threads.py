@@ -1,124 +1,102 @@
 """
 Thread Monitoring Page - Flask blueprint for thread management and monitoring.
 
-This module provides real-time monitoring of running threads, displaying their
-state, progress, and allowing management operations like stopping threads.
+This module provides real-time monitoring of running threads with a modern
+card-based interface showing console output, logs, and process information.
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request
+from ..modules import displayer
 from ..modules.threaded import threaded_manager
 
 bp = Blueprint("threads", __name__, url_prefix="/threads")
 
 
-@bp.route("/", methods=["GET"])
+@bp.route("/", methods=["GET", "POST"])
 def threads():
     """
-    Display all currently running threads with their status.
+    Display all currently running threads with modern card interface.
     
     Returns:
-        Rendered template showing thread list with names and states
+        Rendered template showing thread cards with tabs for console, logs, etc.
     """
+    disp = displayer.Displayer()
+    disp.add_generic("Thread Monitor")
+    disp.set_title("Thread Monitor")
+    
+    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Threads", "threads.threads", [])
+    
     # Get thread manager instance
     manager = threaded_manager.thread_manager_obj
     
-    if manager is None:
-        return render_template("threads.j2", threads={})
-    
-    # Build thread information dictionary
-    threads_info = {}
-    all_threads = manager.get_all_threads()
-    
-    for thread in all_threads:
-        thread_name = thread.get_name() if hasattr(thread, 'get_name') else thread.m_default_name
+    # Handle POST requests (stop or force kill thread)
+    if request.method == 'POST':
+        action = request.form.get('action')
+        thread_name = request.form.get('thread_name')
         
-        # Gather thread state information
-        state_info = []
-        
-        # Running state
-        if hasattr(thread, 'm_running'):
-            state_info.append(f"Running: {thread.m_running}")
-        
-        # Progress state
-        if hasattr(thread, 'm_running_state'):
-            if thread.m_running_state == -1:
-                state_info.append("State: Active (no progress info)")
+        if action == 'stop' and thread_name:
+            thread = manager.get_thread(thread_name)
+            if thread:
+                manager.del_thread(thread)
+                disp.add_alert("✓ Stopped thread: {}".format(thread_name), displayer.BSstyle.WARNING)
             else:
-                state_info.append(f"Progress: {thread.m_running_state}%")
-        
-        # Process state
-        if hasattr(thread, 'm_process_running'):
-            state_info.append(f"Process running: {thread.m_process_running}")
-        
-        # Thread type
-        if hasattr(thread, 'm_type'):
-            state_info.append(f"Type: {thread.m_type}")
-        
-        # Error state
-        if hasattr(thread, 'm_error') and thread.m_error:
-            state_info.append(f"❌ Error: {thread.m_error}")
-        
-        threads_info[thread_name] = " | ".join(state_info) if state_info else "No state information"
-    
-    return render_template("threads.j2", threads=threads_info)
-
-
-@bp.route("/", methods=["POST"])
-def threads_post():
-    """
-    Handle thread management actions (kill thread).
-    
-    Expects POST data with thread name to kill.
-    
-    Returns:
-        Redirect back to threads page after action
-    """
-    # Get thread manager instance
-    manager = threaded_manager.thread_manager_obj
+                disp.add_alert("✗ Thread not found: {}".format(thread_name), displayer.BSstyle.ERROR)
+        elif action == 'force_kill' and thread_name:
+            thread = manager.get_thread(thread_name)
+            if thread:
+                # Force kill: stop thread and remove from manager
+                if hasattr(thread, 'stop'):
+                    thread.stop()
+                manager.del_thread(thread)
+                disp.add_alert("✓ Force killed thread: {}".format(thread_name), displayer.BSstyle.DANGER)
+            else:
+                disp.add_alert("✗ Thread not found: {}".format(thread_name), displayer.BSstyle.ERROR)
     
     if manager is None:
-        return redirect(url_for('thread.threads'))
+        disp.add_alert("Thread manager not initialized", displayer.BSstyle.ERROR)
+        return render_template("base_content.j2", content=disp.display())
     
-    # Get thread name from POST data
-    form_data = request.form.to_dict()
+    # Statistics section
+    stats = manager.get_thread_stats()
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [3, 3, 3, 3]
+    ))
     
-    # The hidden input name contains the thread name as key
-    thread_name = list(form_data.keys())[0] if form_data else None
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<div class='text-center'><h3>{}</h3><small>Total Threads</small></div>".format(stats['total'])
+    ), 0)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<div class='text-center'><h3>{}</h3><small>Running</small></div>".format(stats['running'])
+    ), 1)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<div class='text-center'><h3>{}</h3><small>With Process</small></div>".format(stats['with_process'])
+    ), 2)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<div class='text-center'><h3>{}</h3><small>With Errors</small></div>".format(stats['with_error'])
+    ), 3)
     
-    if thread_name:
-        # Find and kill the thread
-        thread = manager.get_thread(thread_name)
-        if thread:
-            manager.del_thread(thread)
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
     
-    return redirect(url_for('threads.threads'))
+    # Single dynamic content placeholder for ALL threads
+    # ThreadEmitter will update this with complete thread list (running + completed)
+    initial_content = "<p class='text-muted text-center'><i class='mdi mdi-loading mdi-spin'></i> Loading threads...</p>"
+    
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12]
+    ))
+    disp.add_display_item(
+        displayer.DisplayerItemDynamicContent(
+            id='threads_content',
+            initial_content=initial_content,
+            card=False
+        ),
+        0
+    )
+    
+    # Render page - ThreadEmitter will update content via reload events
+    return render_template("base_content.j2", 
+                         content=disp.display(), 
+                         target="threads.threads")
 
 
-@bp.route("/api/threads", methods=["GET"])
-def api_threads():
-    """
-    API endpoint for real-time thread status updates.
-    
-    Returns:
-        JSON object with thread states for live updates
-    """
-    manager = threaded_manager.thread_manager_obj
-    
-    if manager is None:
-        return jsonify({"threads": {}})
-    
-    threads_info = {}
-    all_threads = manager.get_all_threads()
-    
-    for thread in all_threads:
-        thread_name = thread.get_name() if hasattr(thread, 'get_name') else thread.m_default_name
-        
-        threads_info[thread_name] = {
-            "running": getattr(thread, 'm_running', False),
-            "state": getattr(thread, 'm_running_state', -1),
-            "process_running": getattr(thread, 'm_process_running', False),
-            "type": getattr(thread, 'm_type', "unknown"),
-            "error": getattr(thread, 'm_error', None)
-        }
-    
-    return jsonify({"threads": threads_info})

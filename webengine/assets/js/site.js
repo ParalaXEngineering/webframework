@@ -377,7 +377,9 @@ $(document).ready(function() {
     console.log('[DEBUG] site.js loaded and document ready');
     console.log('[DEBUG] Attempting to connect to SocketIO at:', 'http://' + document.domain + ':' + location.port);
     
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    // Make socket globally accessible for other scripts
+    window.socket = io.connect('http://' + document.domain + ':' + location.port);
+    var socket = window.socket;  // Keep local reference for compatibility
     
     // Debug: Socket connection events
     socket.on('connect', function() {
@@ -507,8 +509,9 @@ $(document).ready(function() {
     })
     socket.on( 'reload', function( msg ) {
         let div = document.getElementById(msg["id"])
-        if(div)
-            div.innerHTML = msg["content"]
+        if(div) {
+            smartUpdateContent(div, msg["content"]);
+        }
 
         // When any image with class 'zoomable' is clicked
         $('.zoomable').click(function() {
@@ -522,6 +525,186 @@ $(document).ready(function() {
             $('#overlay').fadeOut();
         });
     })
+    
+    /**
+     * Smart content update - only updates DOM elements that changed
+     * Preserves state like active tabs, scroll position, user interactions
+     */
+    function smartUpdateContent(element, newHtmlString) {
+        // Create temporary container with new content
+        const temp = document.createElement('div');
+        temp.innerHTML = newHtmlString;
+        
+        // If element is currently empty, just set innerHTML
+        if (!element.firstChild) {
+            element.innerHTML = newHtmlString;
+            return;
+        }
+        
+        // STEP 1: Find all currently active tabs/content BEFORE updating
+        const activeStates = new Map();
+        element.querySelectorAll('[role="tab"][aria-selected="true"]').forEach(tab => {
+            const tabId = tab.getAttribute('id');
+            const targetId = tab.getAttribute('data-bs-target') || tab.getAttribute('href');
+            if (tabId) {
+                activeStates.set(tabId, targetId);
+            }
+        });
+        
+        // STEP 2: Compare children of old and new
+        const oldChildren = Array.from(element.childNodes);
+        const newChildren = Array.from(temp.childNodes);
+        
+        // Update or replace children
+        const maxLength = Math.max(oldChildren.length, newChildren.length);
+        for (let i = 0; i < maxLength; i++) {
+            if (i >= newChildren.length) {
+                element.removeChild(oldChildren[i]);
+            } else if (i >= oldChildren.length) {
+                element.appendChild(newChildren[i].cloneNode(true));
+            } else {
+                if (nodesAreSimilar(oldChildren[i], newChildren[i])) {
+                    updateNode(oldChildren[i], newChildren[i]);
+                } else {
+                    element.replaceChild(newChildren[i].cloneNode(true), oldChildren[i]);
+                }
+            }
+        }
+        
+        // STEP 3: Restore active states AFTER updating
+        activeStates.forEach((targetId, tabId) => {
+            const tab = element.querySelector(`#${CSS.escape(tabId)}`);
+            const target = element.querySelector(targetId?.replace('#', '#'));
+            
+            if (tab && target) {
+                // Deactivate all tabs in this group first
+                const tabList = tab.closest('[role="tablist"]');
+                if (tabList) {
+                    tabList.querySelectorAll('[role="tab"]').forEach(t => {
+                        t.classList.remove('active');
+                        t.setAttribute('aria-selected', 'false');
+                    });
+                }
+                
+                // Deactivate all tab panes in this group
+                const tabContent = target.parentElement;
+                if (tabContent?.classList.contains('tab-content')) {
+                    tabContent.querySelectorAll('.tab-pane').forEach(pane => {
+                        pane.classList.remove('active', 'show');
+                    });
+                }
+                
+                // Activate the preserved tab
+                tab.classList.add('active');
+                tab.setAttribute('aria-selected', 'true');
+                target.classList.add('active', 'show');
+            }
+        });
+    }
+    
+    /**
+     * Recursively compare and update DOM nodes
+     */
+    function updateNode(oldNode, newNode) {
+        // Get children as arrays
+        const oldChildren = Array.from(oldNode.childNodes);
+        const newChildren = Array.from(newNode.childNodes);
+        
+        // Handle text nodes
+        if (oldNode.nodeType === Node.TEXT_NODE && newNode.nodeType === Node.TEXT_NODE) {
+            if (oldNode.textContent !== newNode.textContent) {
+                oldNode.textContent = newNode.textContent;
+            }
+            return;
+        }
+        
+        // Handle element nodes
+        if (oldNode.nodeType === Node.ELEMENT_NODE && newNode.nodeType === Node.ELEMENT_NODE) {
+            // Update attributes if changed
+            updateAttributes(oldNode, newNode);
+            
+            // Update children
+            const maxLength = Math.max(oldChildren.length, newChildren.length);
+            
+            for (let i = 0; i < maxLength; i++) {
+                const oldChild = oldChildren[i];
+                const newChild = newChildren[i];
+                
+                if (!oldChild && newChild) {
+                    oldNode.appendChild(newChild.cloneNode(true));
+                } else if (oldChild && !newChild) {
+                    oldNode.removeChild(oldChild);
+                } else if (oldChild && newChild) {
+                    if (nodesAreSimilar(oldChild, newChild)) {
+                        updateNode(oldChild, newChild);
+                    } else {
+                        oldNode.replaceChild(newChild.cloneNode(true), oldChild);
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Check if two nodes are similar enough to update in place
+     */
+    function nodesAreSimilar(node1, node2) {
+        // Same node type
+        if (node1.nodeType !== node2.nodeType) return false;
+        
+        // Text nodes are always similar
+        if (node1.nodeType === Node.TEXT_NODE) return true;
+        
+        // Element nodes: same tag name
+        if (node1.nodeType === Node.ELEMENT_NODE) {
+            if (node1.tagName !== node2.tagName) return false;
+            
+            // Prefer to update nodes with same ID
+            const id1 = node1.getAttribute('id');
+            const id2 = node2.getAttribute('id');
+            if (id1 && id2) {
+                return id1 === id2;
+            }
+            
+            // Same tag is good enough for most cases
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Update element attributes if they changed
+     */
+    function updateAttributes(oldElement, newElement) {
+        // Get all attribute names from both elements
+        const oldAttrs = oldElement.attributes;
+        const newAttrs = newElement.attributes;
+        
+        // Update/add new attributes - just sync them directly
+        // Tab state preservation is handled at higher level in smartUpdateContent
+        for (let attr of newAttrs) {
+            const oldValue = oldElement.getAttribute(attr.name);
+            const newValue = attr.value;
+            
+            if (attr.name === 'class') {
+                const finalClasses = newValue;
+                if (oldElement.className !== finalClasses) {
+                    oldElement.className = finalClasses;
+                }
+            } else if (oldValue !== newValue) {
+                // Update other attributes that changed
+                oldElement.setAttribute(attr.name, newValue);
+            }
+        }
+        
+        // Remove attributes that no longer exist
+        for (let attr of oldAttrs) {
+            if (!newElement.hasAttribute(attr.name)) {
+                oldElement.removeAttribute(attr.name);
+            }
+        }
+    }
 
     socket.on( 'result', function( msg ) {
         let div = document.getElementById("progress_result")

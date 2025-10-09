@@ -25,6 +25,8 @@ class Threaded_manager:
             lock_timeout: Default timeout in seconds for lock acquisition (default: 2.0)
         """
         self.m_running_threads = []
+        self.m_completed_threads = []  # History of completed threads
+        self.max_history = 50  # Keep last 50 completed threads
         self._lock = threading.Lock()  # Thread-safe operations
         self.lock_timeout = lock_timeout  # Configurable lock timeout
         
@@ -52,7 +54,7 @@ class Threaded_manager:
             self._lock.release()
 
     def del_thread(self, thread: threading.Thread):
-        """Delete a thread from the pool.
+        """Delete a thread from the pool and archive it to history.
         
         Args:
             thread: The thread to delete
@@ -72,7 +74,7 @@ class Threaded_manager:
         except Exception as e:
             self.m_logger.debug(f"Thread '{thread_name}' process_close failed: {e}")
 
-        # Remove from pool
+        # Remove from pool and add to history
         if not self._lock.acquire(timeout=self.lock_timeout):
             self.m_logger.error(f"Failed to acquire lock for del_thread (timeout={self.lock_timeout}s)")
             raise TimeoutError(f"Could not acquire lock within {self.lock_timeout}s")
@@ -81,6 +83,12 @@ class Threaded_manager:
             try:
                 self.m_running_threads.remove(thread)
                 self.m_logger.info(f"Removed thread '{thread_name}' from pool")
+                
+                # Add to history (keep only last max_history threads)
+                self.m_completed_threads.append(thread)
+                if len(self.m_completed_threads) > self.max_history:
+                    self.m_completed_threads.pop(0)
+                self.m_logger.debug(f"Archived thread '{thread_name}' to history")
             except ValueError:
                 self.m_logger.debug(f"Thread '{thread_name}' not found in pool")
         finally:
@@ -98,6 +106,36 @@ class Threaded_manager:
         
         try:
             return self.m_running_threads.copy()
+        finally:
+            self._lock.release()
+
+    def get_completed_threads(self) -> list:
+        """Return all completed threads from history.
+        
+        Returns:
+            List of completed threads
+        """
+        if not self._lock.acquire(timeout=self.lock_timeout):
+            self.m_logger.error(f"Failed to acquire lock for get_completed_threads (timeout={self.lock_timeout}s)")
+            return []
+        
+        try:
+            return self.m_completed_threads.copy()
+        finally:
+            self._lock.release()
+
+    def get_all_threads_with_history(self) -> tuple:
+        """Return both running and completed threads.
+        
+        Returns:
+            Tuple of (running_threads, completed_threads)
+        """
+        if not self._lock.acquire(timeout=self.lock_timeout):
+            self.m_logger.error(f"Failed to acquire lock for get_all_threads_with_history (timeout={self.lock_timeout}s)")
+            return ([], [])
+        
+        try:
+            return (self.m_running_threads.copy(), self.m_completed_threads.copy())
         finally:
             self._lock.release()
 

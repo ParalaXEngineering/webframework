@@ -17,11 +17,11 @@ from flask import Flask, render_template, request, Blueprint
 from flask_socketio import SocketIO
 from src.modules import displayer
 from src.modules import utilities, access_manager, site_conf
-from src.modules.threaded import threaded_manager
-from src.modules import scheduler
+from src.modules.threaded import threaded_manager, thread_emitter
+from src.modules import scheduler, log_emitter
 from src import pages as pages_module
 from demo_scheduler_action import DemoSchedulerAction
-from demo_thread import DemoBackgroundThread
+# Note: DemoBackgroundThread not imported - threads start manually via /threading-demo
 import os
 import threading
 import importlib
@@ -42,6 +42,14 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Initialize thread manager
 threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
+
+# Initialize thread emitter for real-time updates
+thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio, interval=0.5)
+thread_emitter.thread_emitter_obj.start()
+
+# Initialize log emitter for real-time log viewing
+logs_dir = os.path.join(os.path.dirname(__file__), 'logs')
+log_emitter.initialize_log_emitter(socketio, logs_dir, interval=2.0, app=app)
 
 # Initialize scheduler with SocketIO
 scheduler_instance = scheduler.Scheduler(socket_obj=socketio)
@@ -75,6 +83,7 @@ class DemoSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Layouts", "demo.layouts")
         self.add_sidebar_submenu("Text & Display", "demo.text_display")
         self.add_sidebar_submenu("Inputs", "demo.inputs")
+        self.add_sidebar_submenu("Threading Demo", "demo.threading_demo")
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo")
         self.add_sidebar_submenu("Complete Showcase", "demo.complete_showcase")
         self.add_sidebar_submenu("Settings Demo", "demo.settings_demo")
@@ -84,9 +93,13 @@ class DemoSiteConf(site_conf.Site_conf):
         self.add_sidebar_section("System", "cog", "framework")
         self.add_sidebar_submenu("Settings", "settings.index", endpoint="framework")
         self.add_sidebar_submenu("Thread Monitor", "threads.threads", endpoint="framework")
+        self.add_sidebar_submenu("Log Viewer", "logging.logs", endpoint="framework")
         self.add_sidebar_submenu("Bug Tracker", "bug.bugtracker", endpoint="framework")
         self.add_sidebar_submenu("Updater", "updater.update", endpoint="framework")
         self.add_sidebar_submenu("Packager", "packager.packager", endpoint="framework")
+        
+        # Add topbar thread status indicator
+        self.add_topbar_thread_info("format-list-bulleted", "center")
 
 # Initialize site configuration
 demo_conf = DemoSiteConf()
@@ -161,8 +174,25 @@ def index():
     ), 2)
     
     disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_scheduler", "Scheduler", "mdi-clock-fast", "/scheduler-demo", [], displayer.BSstyle.INFO
+        "btn_threading", "Threading", "mdi-cog-sync", "/threading-demo", [], displayer.BSstyle.ERROR
     ), 3)
+    
+    # Second row
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [4, 4, 4]
+    ))
+    
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_scheduler", "Scheduler", "mdi-clock-fast", "/scheduler-demo", [], displayer.BSstyle.INFO
+    ), 0)
+    
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_settings", "Settings", "mdi-cog", "/settings-demo", [], displayer.BSstyle.SECONDARY
+    ), 1)
+    
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_logs", "Log Viewer", "mdi-file-document-multiple", "/logging/", [], displayer.BSstyle.DARK
+    ), 2)
     
     # Complete showcase button
     disp.add_master_layout(displayer.DisplayerLayout(
@@ -634,6 +664,126 @@ def settings_demo():
     return redirect('/settings/')
 
 
+@demo_bp.route('/threading-demo', methods=['GET', 'POST'])
+def threading_demo():
+    """Threading demo with buttons to start various thread types."""
+    from demo_threaded_complete import DemoThreadedAction
+    
+    disp = displayer.Displayer()
+    disp.add_module(DemoThreadedAction)
+    disp.set_title("Threading System Demo")
+    
+    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Threading Demo", "demo.threading_demo", [])
+    
+    # Handle POST requests (button clicks)
+    if request.method == 'POST':
+        # Parse form data using util_post_to_json
+        data_in = utilities.util_post_to_json(request.form.to_dict())
+        
+        # Check if our module is in the data
+        if DemoThreadedAction.m_default_name in data_in:
+            module_data = data_in[DemoThreadedAction.m_default_name]
+            
+            # Check which button was clicked
+            if 'btn_complete' in module_data:
+                thread = DemoThreadedAction("complete")
+                thread.start()
+                disp.add_display_item(displayer.DisplayerItemAlert("✓ Started Complete Demo Thread", displayer.BSstyle.SUCCESS), 0)
+            elif 'btn_console' in module_data:
+                thread = DemoThreadedAction("console")
+                thread.start()
+                disp.add_display_item(displayer.DisplayerItemAlert("✓ Started Console Demo Thread", displayer.BSstyle.SUCCESS), 0)
+            elif 'btn_logging' in module_data:
+                thread = DemoThreadedAction("logging")
+                thread.start()
+                disp.add_display_item(displayer.DisplayerItemAlert("✓ Started Logging Demo Thread", displayer.BSstyle.SUCCESS), 0)
+            elif 'btn_process' in module_data:
+                thread = DemoThreadedAction("process")
+                thread.start()
+                disp.add_display_item(displayer.DisplayerItemAlert("✓ Started Process Demo Thread", displayer.BSstyle.SUCCESS), 0)
+            elif 'btn_stop' in module_data:
+                count = threaded_manager.thread_manager_obj.get_thread_count()
+                threaded_manager.thread_manager_obj.kill_all_threads()
+                disp.add_display_item(displayer.DisplayerItemAlert("✓ Stopped {} threads".format(count), displayer.BSstyle.WARNING), 0)
+    
+    # Description
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12]
+    ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        """<h3>Threading Demo</h3>
+        <p>Start different types of demo threads to see all features of the threading system.
+        Each thread demonstrates console output, logging, progress tracking, and more.
+        Visit the <a href='/threads/'>Threads Monitor</a> page to see them in action!</p>"""
+    ), 0)
+    
+    # Thread statistics
+    stats = threaded_manager.thread_manager_obj.get_thread_stats()
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [3, 3, 3, 3]
+    ))
+    
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>Total Threads</strong><br><h3>{}</h3>".format(stats['total'])
+    ), 0)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>Running</strong><br><h3>{}</h3>".format(stats['running'])
+    ), 1)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>With Process</strong><br><h3>{}</h3>".format(stats['with_process'])
+    ), 2)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>With Errors</strong><br><h3>{}</h3>".format(stats['with_error'])
+    ), 3)
+    
+    # Separator and section title
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12]
+    ))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<h4>🚀 Start Demo Threads</h4><p>Click a button below to start a demo thread that showcases different features.</p>"
+    ), 0)
+    
+    # Demo buttons
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [6, 6]
+    ))
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_complete", "🤖 Complete Demo"
+    ), 0)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_console", "📋 Console Demo"
+    ), 0)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_logging", "📝 Logging Demo"
+    ), 1)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_process", "⚙️ Process Demo"
+    ), 1)
+    
+    # Monitor and control buttons
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [6, 6]
+    ))
+    
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_monitor", "📊 Monitor Threads →", "monitor-eye",
+        "/threads/", [], displayer.BSstyle.SECONDARY
+    ), 0)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_stop", "🛑 Stop All Threads"
+    ), 1)
+    
+    return render_template("base_content.j2", content=disp.display(), target="demo.threading_demo")
+
+
 # Register blueprints
 app.register_blueprint(demo_bp)
 app.register_blueprint(common_bp)
@@ -659,11 +809,13 @@ if __name__ == '__main__':
     print("  Displayer Demo Application")
     print("=" * 60)
     
-    # Start demo background thread for testing threads UI
-    print("  Starting demo background thread...")
-    demo_thread = DemoBackgroundThread()
-    demo_thread.start()
-    print("  ✓ Demo thread started - visit /threads/ to monitor")
+    # NOTE: Demo background thread is NOT started automatically
+    # Visit /threading-demo to start demo threads manually
+    # print("  Starting demo background thread...")
+    # demo_thread = DemoBackgroundThread()
+    # demo_thread.start()
+    # print("  ✓ Demo thread started - visit /threads/ to monitor")
+    print("  Visit /threading-demo to start demo threads")
     print()
     
     print("  Starting Flask server with SocketIO...")
@@ -671,4 +823,9 @@ if __name__ == '__main__':
     print("  Press CTRL+C to stop the server")
     print("=" * 60)
     
-    socketio.run(app, debug=True, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
+    # Configure Flask to be less verbose and use single instance
+    import logging
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)  # Only show errors, not every request
+    
+    socketio.run(app, debug=True, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True, use_reloader=False)

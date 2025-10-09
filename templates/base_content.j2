@@ -230,4 +230,10 @@
         {% endif %}
     {% endfor%}
 {% endif %}
+
+{# Thread Monitor Socket.IO JavaScript #}
+{% if thread_monitor_js %}
+<script src="{{ url_for('static', filename='js/thread_monitor.js') }}"></script>
+{% endif %}
+
 {% endblock %}
