@@ -6,7 +6,7 @@ from ..modules import site_conf
 from ..modules import displayer
 from ..modules import SFTPConnection
 
-from ..modules import threaded_action
+from ..modules.threaded import Threaded_action
 
 import os
 import zipfile
@@ -20,7 +20,7 @@ import subprocess
 import copy
 
 
-class SETUP_Updater(threaded_action.Threaded_action):
+class SETUP_Updater(Threaded_action):
     """Module to create and upload the update packages.
 
     Update package can be uploaded to FTP servers, provided that the correct credentials are given in the settings

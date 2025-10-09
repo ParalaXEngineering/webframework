@@ -31,13 +31,13 @@ import traceback
 
 try:
     from .modules import scheduler
-    from .modules import threaded_manager
+    from .modules.threaded import threaded_manager
     from .modules import access_manager
     from .modules import site_conf
     from .modules.logger_factory import get_logger
 except ImportError:
     import scheduler
-    import threaded_manager
+    from threaded import threaded_manager
     import access_manager
     import site_conf
     from logger_factory import get_logger

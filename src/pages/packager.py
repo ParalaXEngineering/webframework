@@ -13,13 +13,13 @@ import datetime
 import sys
 import time
 import errno
-from ..modules import threaded_action
+from ..modules.threaded import Threaded_action
 
 import os
 import tempfile
 
 
-class SETUP_Packager(threaded_action.Threaded_action):
+class SETUP_Packager(Threaded_action):
     m_default_name = "Binaries Package Manager"
     m_action = ""
 

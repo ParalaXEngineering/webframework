@@ -16,10 +16,12 @@ Or use VS Code launch configuration (F5)
 from flask import Flask, render_template, request, Blueprint
 from flask_socketio import SocketIO
 from src.modules import displayer
-from src.modules import utilities, access_manager, site_conf, threaded_manager
+from src.modules import utilities, access_manager, site_conf
+from src.modules.threaded import threaded_manager
 from src.modules import scheduler
 from src import pages as pages_module
 from demo_scheduler_action import DemoSchedulerAction
+from demo_thread import DemoBackgroundThread
 import os
 import threading
 import importlib
@@ -656,6 +658,14 @@ if __name__ == '__main__':
     print("=" * 60)
     print("  Displayer Demo Application")
     print("=" * 60)
+    
+    # Start demo background thread for testing threads UI
+    print("  Starting demo background thread...")
+    demo_thread = DemoBackgroundThread()
+    demo_thread.start()
+    print("  ✓ Demo thread started - visit /threads/ to monitor")
+    print()
+    
     print("  Starting Flask server with SocketIO...")
     print("  Open your browser to: http://localhost:5001")
     print("  Press CTRL+C to stop the server")

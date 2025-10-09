@@ -1,0 +1,264 @@
+{% extends 'base.j2' %}
+
+{% block title %}
+Thread Details - {{ thread.name }}
+{% endblock %}
+
+{% block main_page %}
+<div class="container-fluid">
+    <!-- Thread Header -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>{{ thread.name }}</h3>
+                <div>
+                    <a href="{{ url_for('threads.threads') }}" class="btn btn-secondary">Back to List</a>
+                    <form action="{{ url_for('threads.threads') }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="{{ thread.name }}" value="">
+                        <button class="btn btn-danger">Kill Thread</button>
+                    </form>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Status:</strong>
+                    {% if thread.running %}
+                        <span class="badge badge-success">Running</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Stopped</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-3">
+                    <strong>Type:</strong> {{ thread.type }}
+                </div>
+                <div class="col-md-3">
+                    <strong>Process:</strong>
+                    {% if thread.process_running %}
+                        <span class="text-success">Active</span>
+                    {% else %}
+                        <span class="text-muted">Inactive</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-3">
+                    <strong>Background:</strong> {{ 'Yes' if thread.background else 'No' }}
+                </div>
+            </div>
+            
+            {% if thread.progress != -1 %}
+            <div class="row mt-3">
+                <div class="col-12">
+                    <strong>Progress: {{ thread.progress }}%</strong>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" 
+                             style="width: {{ thread.progress }}%">
+                            {{ thread.progress }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if thread.error %}
+            <div class="alert alert-danger mt-3 mb-0">
+                <strong>Error:</strong> {{ thread.error }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tabbed Interface -->
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="threadTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="console-tab" data-toggle="tab" href="#console" role="tab">
+                        Console Output
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="logs-tab" data-toggle="tab" href="#logs" role="tab">
+                        Logs
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="process-tab" data-toggle="tab" href="#process" role="tab">
+                        Process Output
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="threadTabsContent">
+                <!-- Console Output Tab -->
+                <div class="tab-pane fade show active" id="console" role="tabpanel">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h5>Console Output</h5>
+                        <button class="btn btn-sm btn-secondary" onclick="refreshConsole()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="console-output" id="console-content">
+                        {% if console_data.console_output %}
+                            {% for line in console_data.console_output %}
+                                <div class="console-line">{{ line }}</div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted">No console output</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div class="tab-pane fade" id="logs" role="tabpanel">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h5>Log Entries</h5>
+                        <button class="btn btn-sm btn-secondary" onclick="refreshLogs()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="table-responsive" id="logs-content">
+                        {% if console_data.logs %}
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 180px;">Timestamp</th>
+                                        <th style="width: 100px;">Level</th>
+                                        <th>Message</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in console_data.logs %}
+                                        <tr>
+                                            <td>{{ log.timestamp }}</td>
+                                            <td>
+                                                <span class="badge 
+                                                    {% if log.level == 'ERROR' %}badge-danger
+                                                    {% elif log.level == 'WARNING' %}badge-warning
+                                                    {% elif log.level == 'INFO' %}badge-info
+                                                    {% else %}badge-secondary{% endif %}">
+                                                    {{ log.level }}
+                                                </span>
+                                            </td>
+                                            <td>{{ log.message }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="text-muted">No log entries</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Process Output Tab -->
+                <div class="tab-pane fade" id="process" role="tabpanel">
+                    <div class="d-flex justify-content-between mb-2">
+                        <h5>Process Output</h5>
+                        <button class="btn btn-sm btn-secondary" onclick="refreshConsole()">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="console-output" id="process-content">
+                        {% if console_data.process_output %}
+                            {% for line in console_data.process_output %}
+                                <div class="console-line">{{ line }}</div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted">No process output</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.console-output {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    padding: 15px;
+    border-radius: 4px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+.console-line {
+    padding: 2px 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.table-responsive {
+    max-height: 500px;
+    overflow-y: auto;
+}
+</style>
+
+<script>
+function refreshConsole() {
+    fetch('{{ url_for("threads.api_thread_console", thread_name=thread.name) }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.console_output) {
+                let html = '';
+                data.console_output.forEach(line => {
+                    html += `<div class="console-line">${escapeHtml(line)}</div>`;
+                });
+                document.getElementById('console-content').innerHTML = html || '<div class="text-muted">No console output</div>';
+            }
+            
+            if (data.process_output) {
+                let html = '';
+                data.process_output.forEach(line => {
+                    html += `<div class="console-line">${escapeHtml(line)}</div>`;
+                });
+                document.getElementById('process-content').innerHTML = html || '<div class="text-muted">No process output</div>';
+            }
+        });
+}
+
+function refreshLogs() {
+    fetch('{{ url_for("threads.api_thread_logs", thread_name=thread.name) }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.logs) {
+                let html = '<table class="table table-sm table-striped"><thead><tr><th style="width: 180px;">Timestamp</th><th style="width: 100px;">Level</th><th>Message</th></tr></thead><tbody>';
+                data.logs.forEach(log => {
+                    let badgeClass = 'badge-secondary';
+                    if (log.level === 'ERROR') badgeClass = 'badge-danger';
+                    else if (log.level === 'WARNING') badgeClass = 'badge-warning';
+                    else if (log.level === 'INFO') badgeClass = 'badge-info';
+                    
+                    html += `<tr>
+                        <td>${escapeHtml(log.timestamp)}</td>
+                        <td><span class="badge ${badgeClass}">${escapeHtml(log.level)}</span></td>
+                        <td>${escapeHtml(log.message)}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                document.getElementById('logs-content').innerHTML = html;
+            }
+        });
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+// Auto-refresh every 2 seconds
+setInterval(refreshConsole, 2000);
+setInterval(refreshLogs, 2000);
+</script>
+{% endblock %}

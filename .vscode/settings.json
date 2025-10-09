@@ -11,7 +11,7 @@
     "markdown.preview.openMarkdownLinks": "inPreview",
     "github.copilot.chat.codeGeneration.instructions": [
         {
-        "text": "Always use VS Code built-in tools: F5 debugger (not print statements), Testing UI (not pytest terminal), Problems panel for errors. Don't generate .md file for summurizing your work. Summurize veryy briefly here with a few lines. When writing tests, keep the tests amount minimal.",
+        "text": "Always use VS Code built-in tools for debugging and testing and panels for errors. Don't generate .md file for summarizing your work. Summarize very briefly here with a few lines. When writing tests, keep the tests amount minimal. Be concise and precise. You talk to a intermediate level python programer, talk to him accordingly. If you havve python 3.6 related issue, it is because your are not using native exceution, and thus not the venv. Please aloways use the venv",
         }
     ]
 }

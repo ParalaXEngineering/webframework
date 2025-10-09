@@ -6,7 +6,7 @@ state, progress, and allowing management operations like stopping threads.
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
-from ..modules import threaded_manager
+from ..modules.threaded import threaded_manager
 
 bp = Blueprint("threads", __name__, url_prefix="/threads")
 

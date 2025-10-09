@@ -5,7 +5,7 @@ This module demonstrates how the scheduler works with threaded actions,
 showing all the different message types and features.
 """
 
-from src.modules.threaded_action import Threaded_action
+from src.modules.threaded import Threaded_action
 from src.modules import scheduler
 import time
 import random
