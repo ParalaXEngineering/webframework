@@ -80,35 +80,37 @@ def setup_app(app):
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         )
 
-    # Get all Python files in the "pages" directory
-    files = [f for f in os.listdir(os.path.join(app_path, "website", "pages")) if f.endswith(".py")]
-    
-    # Dictionary to store the modules that need to be imported first
-    modules_to_load_first = {}
+    # Get all Python files in the "pages" directory (if it exists)
+    website_pages_path = os.path.join(app_path, "website", "pages")
+    if os.path.exists(website_pages_path):
+        files = [f for f in os.listdir(website_pages_path) if f.endswith(".py")]
+        
+        # Dictionary to store the modules that need to be imported first
+        modules_to_load_first = {}
 
-    # Identify files with the same base name (e.g., "xxx" and "xxx_abcdef")
-    for file in files:
-        module_name = file[:-3]  # Remove the ".py" extension
-        base_name = module_name.split('_')[0]  # Get the base name (before the first "_")
+        # Identify files with the same base name (e.g., "xxx" and "xxx_abcdef")
+        for file in files:
+            module_name = file[:-3]  # Remove the ".py" extension
+            base_name = module_name.split('_')[0]  # Get the base name (before the first "_")
 
-        # Organize the modules with the same base name
-        if base_name not in modules_to_load_first:
-            modules_to_load_first[base_name] = []
-        if module_name != base_name:
-            modules_to_load_first[base_name].append(module_name)
+            # Organize the modules with the same base name
+            if base_name not in modules_to_load_first:
+                modules_to_load_first[base_name] = []
+            if module_name != base_name:
+                modules_to_load_first[base_name].append(module_name)
 
-    # Import all modules and register the blueprint from the main module (e.g., "xxx.py")
-    for base_name, module_names in modules_to_load_first.items():
-        # Import all related modules first (e.g., "xxx_abcdef.py")
-        for module_name in sorted(module_names):
-            importlib.import_module(f"website.pages.{module_name}")
+        # Import all modules and register the blueprint from the main module (e.g., "xxx.py")
+        for base_name, module_names in modules_to_load_first.items():
+            # Import all related modules first (e.g., "xxx_abcdef.py")
+            for module_name in sorted(module_names):
+                importlib.import_module(f"website.pages.{module_name}")
 
-        # Finally, import and register the blueprint from the main module (e.g., "xxx.py")
-        main_module = importlib.import_module(f"website.pages.{base_name}")
+            # Finally, import and register the blueprint from the main module (e.g., "xxx.py")
+            main_module = importlib.import_module(f"website.pages.{base_name}")
 
-        # Register the blueprint if it exists in the main module
-        if hasattr(main_module, 'bp'):
-            app.register_blueprint(main_module.bp)
+            # Register the blueprint if it exists in the main module
+            if hasattr(main_module, 'bp'):
+                app.register_blueprint(main_module.bp)
 
     # Auto-discover and register framework internal pages
     try:
@@ -161,21 +163,44 @@ def setup_app(app):
 
     threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
 
-    # Import site_conf
-    site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
-    site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj
-    site_conf.site_conf_app_path = app_path
+    # Initialize log emitter for real-time log viewing
+    try:
+        from .modules import log_emitter
+    except ImportError:
+        from modules import log_emitter
+    
+    logs_dir = os.path.join(app_path, 'logs')
+    log_emitter.initialize_log_emitter(socketio_obj, logs_dir, interval=2.0, app=app)
+    logger.info("Log emitter initialized")
 
-    # Register long term functions from the site confi
-    site_conf.site_conf_obj.register_scheduler_lt_functions()
+    # Initialize thread emitter for real-time thread updates
+    try:
+        from .modules.threaded import thread_emitter
+    except ImportError:
+        from threaded import thread_emitter
+    
+    thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=0.5)
+    thread_emitter.thread_emitter_obj.start()
+    logger.info("Thread emitter initialized")
 
-    @socketio_obj.on("user_connected")
-    def connect():
-        scheduler.scheduler_obj.m_user_connected = True
+    # Import site_conf (if website module exists)
+    try:
+        site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
+        site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj
+        site_conf.site_conf_app_path = app_path
 
-    @socketio_obj.server.on("*")
-    def catch_all(event, sid, *args):
-        site_conf.site_conf_obj.socketio_event(event, args)
+        # Register long term functions from the site confi
+        site_conf.site_conf_obj.register_scheduler_lt_functions()
+
+        @socketio_obj.on("user_connected")
+        def connect():
+            scheduler.scheduler_obj.m_user_connected = True
+
+        @socketio_obj.server.on("*")
+        def catch_all(event, sid, *args):
+            site_conf.site_conf_obj.socketio_event(event, args)
+    except ModuleNotFoundError:
+        logger.info("No website.site_conf found - running in test/framework-only mode")
 
     @app.context_processor
     def inject_bar():
@@ -253,15 +278,16 @@ def setup_app(app):
         if request.endpoint == "static":
             return
 
-        # Read the parameters
-        session["config"] = utilities.util_read_parameters()
-
+        # Note: config reading migrated to settings engine in src/modules/settings
+        
         inject_bar()
 
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         webbrowser.open("http://127.0.0.1:5000/common/login")
+    
+    return socketio_obj
 
 
 # Only setup the app if we're running as main, not during import for testing
-if __name__ == "__main__" or (FLASK_AVAILABLE and app is not None and not os.environ.get('PYTEST_CURRENT_TEST')):
+if __name__ == "__main__":
     setup_app(app)
