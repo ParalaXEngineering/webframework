@@ -38,6 +38,7 @@ class LogEmitter:
         self.max_lines = max_lines
         self.app = app  # Store Flask app for context
         self.running = False
+        self.live_mode = False  # Live mode disabled by default
         self._thread: Optional[threading.Thread] = None
         self.logger = get_logger("log.emitter")
         
@@ -63,11 +64,61 @@ class LogEmitter:
         """Main emission loop - runs in background thread."""
         while self.running:
             try:
-                self._emit_log_content()
+                # Only emit if live mode is enabled
+                if self.live_mode:
+                    self._emit_log_content()
             except Exception as e:
                 self.logger.error(f"Error emitting log content: {e}")
             
             time.sleep(self.interval)
+    
+    def set_live_mode(self, enabled: bool):
+        """
+        Enable or disable live mode for real-time updates.
+        
+        Args:
+            enabled: True to enable live updates, False to disable
+        """
+        self.live_mode = enabled
+        self.logger.info(f"Live mode {'enabled' if enabled else 'disabled'}")
+        
+        # Don't emit immediately - let the background thread handle it
+        # This prevents blocking the HTTP response
+    
+    def get_initial_content(self, max_lines_per_file: int = 50) -> str:
+        """
+        Get initial log content for display (optimized, fewer lines).
+        
+        Args:
+            max_lines_per_file: Maximum lines to show per file (default: 50)
+            
+        Returns:
+            HTML string with log content
+        """
+        if not os.path.exists(self.logs_dir):
+            return "<div class='alert alert-info'>Logs directory not found</div>"
+        
+        try:
+            # Get all log files
+            log_files = []
+            for filename in sorted(os.listdir(self.logs_dir)):
+                if filename.endswith('.log'):
+                    filepath = os.path.join(self.logs_dir, filename)
+                    if os.path.isfile(filepath):
+                        log_files.append({
+                            'name': filename,
+                            'path': filepath
+                        })
+            
+            if not log_files:
+                return "<div class='alert alert-info'>No log files found</div>"
+            
+            # Render with limited lines
+            return self._render_log_tabs_with_framework(log_files, max_lines_per_file=max_lines_per_file)
+            
+        except Exception as e:
+            self.logger.error(f"Error getting initial content: {e}")
+            return f"<div class='alert alert-danger'>Error loading logs: {str(e)}</div>"
     
     def _emit_log_content(self):
         """Read all log files and emit their content."""
@@ -89,8 +140,8 @@ class LogEmitter:
             if not log_files:
                 return
             
-            # Render using framework's TABS layout
-            html = self._render_log_tabs_with_framework(log_files)
+            # Render using framework's TABS layout (use 50 lines for performance)
+            html = self._render_log_tabs_with_framework(log_files, max_lines_per_file=50)
             
             # Emit via socket
             self.socket.emit('reload', {
@@ -101,20 +152,27 @@ class LogEmitter:
         except Exception as e:
             self.logger.error(f"Error in _emit_log_content: {e}")
     
-    def _render_log_tabs_with_framework(self, log_files: List[Dict]) -> str:
+    def _render_log_tabs_with_framework(self, log_files: List[Dict], max_lines_per_file: int = None) -> str:
         """
         Render log files using ONLY the framework's TABS layout.
         
         Args:
             log_files: List of dicts with 'name' and 'path' keys
+            max_lines_per_file: Maximum lines to show per file (None = use self.max_lines)
             
         Returns:
             HTML string
         """
+        render_start_time = time.time()
+        
         if not log_files:
             return "<p class='text-muted'>No log files found</p>"
         
+        # Use provided max_lines or default
+        lines_limit = max_lines_per_file if max_lines_per_file is not None else self.max_lines
+        
         # Create a Displayer instance
+        create_disp_start = time.time()
         disp = displayer.Displayer()
         disp.add_generic("Logs", display=False)
         
@@ -124,6 +182,7 @@ class LogEmitter:
             displayer.Layouts.TABS,
             tab_titles
         ))
+        create_disp_time = time.time() - create_disp_start
         
         self.logger.debug(f"Created TABS master layout with ID {master_layout_id}, {len(tab_titles)} tabs")
         
@@ -133,9 +192,10 @@ class LogEmitter:
             self.logger.debug(f"Master layout type: {master_layout.get('type')}, lines structure: {len(master_layout.get('lines', [[]]))} rows, {len(master_layout.get('lines', [[]])[0])} columns")
         
         # For each log file, add a TABLE layout inside its tab
+        parse_start = time.time()
         for tab_index, log_file in enumerate(log_files):
-            # Read and parse log entries
-            log_entries = self._read_and_parse_log_file(log_file['path'])
+            # Read and parse log entries with lines limit
+            log_entries = self._read_and_parse_log_file(log_file['path'], max_lines=lines_limit)
             
             self.logger.debug(f"Tab {tab_index}: Adding slave layout for {log_file['name']}, parent layout ID: {master_layout_id}")
             
@@ -205,11 +265,15 @@ class LogEmitter:
                 
                 current_line += 1
         
+        parse_time = time.time() - parse_start
+        
         # Render using Flask's render_template_string
         from flask import render_template_string
         
+        template_start = time.time()
         # Get the content dictionary
         content_dict = disp.display(bypass_auth=True)
+        display_time = time.time() - template_start
         
         # The content_dict has module names as keys (e.g., 'Logs')
         # NOT a 'modules' list!
@@ -239,9 +303,15 @@ class LogEmitter:
         
         try:
             # Use stored app context for background thread
+            render_html_start = time.time()
             if self.app:
                 with self.app.app_context():
                     html = render_template_string(template_string, layout=tabs_layout)
+                render_html_time = time.time() - render_html_start
+                
+                total_time = time.time() - render_start_time
+                self.logger.info(f"RENDERING TIMES: create_disp={create_disp_time:.3f}s, parse={parse_time:.3f}s, display={display_time:.3f}s, render_html={render_html_time:.3f}s, TOTAL={total_time:.3f}s")
+                
                 return html
             else:
                 # Fallback if no app provided
@@ -251,30 +321,45 @@ class LogEmitter:
             self.logger.error(f"Template rendering failed: {e}")
             return f"<div class='alert alert-danger'>Error: {str(e)}</div>"
     
-    def _read_and_parse_log_file(self, filepath: str) -> List[Dict]:
+    def _read_and_parse_log_file(self, filepath: str, max_lines: int = None) -> List[Dict]:
         """
         Read and parse log file into structured entries.
         
         Args:
             filepath: Path to log file
+            max_lines: Maximum lines to read (None = use self.max_lines)
             
         Returns:
             List of parsed log entry dicts
         """
+        start_time = time.time()
+        lines_limit = max_lines if max_lines is not None else self.max_lines
+        
         try:
-            # Truncate log file to last 1000 lines first
-            self._truncate_log_file(filepath)
+            # Only truncate file if using default max_lines (live mode)
+            if max_lines is None:
+                self._truncate_log_file(filepath)
             
-            # Read entire file
+            # Read file and get last N lines
+            read_start = time.time()
             with open(filepath, 'r', encoding='utf-8', errors='replace') as f:
                 lines = f.readlines()
+            read_time = time.time() - read_start
+            
+            # Get last N lines only (optimize for initial load)
+            lines = lines[-lines_limit:] if len(lines) > lines_limit else lines
             
             # Parse each line
+            parse_start = time.time()
             entries = []
             for line in lines:
                 if line.strip():
                     parsed = self._parse_log_line(line)
                     entries.append(parsed)
+            parse_time = time.time() - parse_start
+            
+            total_time = time.time() - start_time
+            self.logger.info(f"File {os.path.basename(filepath)}: read={read_time:.3f}s, parse={parse_time:.3f}s, total={total_time:.3f}s, lines={len(entries)}")
             
             return entries
             
