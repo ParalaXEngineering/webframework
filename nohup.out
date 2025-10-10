@@ -1,0 +1,30 @@
+2025-10-10 14:00:18,833 - INFO - manual_test - manual_test_webapp.py:80 - Initializing manual test application using framework setup
+2025-10-10 14:00:18,853 - INFO - main - main.py:73 - Application starting up
+2025-10-10 14:00:18,921 - INFO - main - main.py:139 - Registered framework page blueprint: logging
+2025-10-10 14:00:18,922 - INFO - main - main.py:139 - Registered framework page blueprint: packager
+2025-10-10 14:00:18,922 - INFO - main - main.py:139 - Registered framework page blueprint: updater
+2025-10-10 14:00:18,922 - INFO - main - main.py:139 - Registered framework page blueprint: threads
+2025-10-10 14:00:18,923 - WARNING - main - main.py:143 - Failed to register blueprint for threads_new: The name 'threads' is already registered for a different blueprint. Use 'name=' to provide a unique name.
+2025-10-10 14:00:18,923 - INFO - main - main.py:139 - Registered framework page blueprint: common
+2025-10-10 14:00:18,924 - INFO - main - main.py:139 - Registered framework page blueprint: settings
+2025-10-10 14:00:18,924 - INFO - main - main.py:139 - Registered framework page blueprint: bug_tracker
+2025-10-10 14:00:18,924 - INFO - scheduler - scheduler.py:215 - Scheduler started
+2025-10-10 14:00:18,924 - INFO - scheduler_longterm - scheduler.py:68 - LT Scheduler started
+2025-10-10 14:00:18,925 - INFO - threaded_manager - threaded_manager.py:35 - Thread Manager started
+2025-10-10 14:00:18,925 - INFO - log.emitter - log_emitter.py:54 - Log emitter started (interval=2.0s)
+2025-10-10 14:00:18,925 - INFO - main - main.py:174 - Log emitter initialized
+2025-10-10 14:00:18,925 - INFO - threaded.emitter - thread_emitter.py:44 - Thread emitter started (interval=0.5s)
+2025-10-10 14:00:18,925 - INFO - main - main.py:184 - Thread emitter initialized
+2025-10-10 14:00:18,925 - INFO - main - main.py:203 - No website.site_conf found - running in test/framework-only mode
+2025-10-10 14:00:18,927 - INFO - manual_test - manual_test_webapp.py:90 - Registered demo pages blueprint
+============================================================
+  ParalaX Web Framework - Manual Test Application
+============================================================
+  Starting Flask server with SocketIO...
+  Open your browser to: http://localhost:5001
+  Press CTRL+C to stop the server
+============================================================
+ * Serving Flask app 'src.main'
+ * Debug mode: on
+Address already in use
+Port 5001 is in use by another program. Either identify and stop that program, or start the server with a different port.

@@ -265,8 +265,14 @@ class DisplayerLayout:
                     table_dict["columns"] = config_to_use["searchable_columns"]
                 if "api_endpoint" in config_to_use:
                     table_dict["api"] = config_to_use["api_endpoint"]
+                if "api_params" in config_to_use:
+                    table_dict["api_params"] = config_to_use["api_params"]
                 if "refresh_interval" in config_to_use:
                     table_dict["refresh_interval"] = config_to_use["refresh_interval"]
+                if "order" in config_to_use:
+                    table_dict["order"] = config_to_use["order"]
+                if "pageLength" in config_to_use:
+                    table_dict["pageLength"] = config_to_use["pageLength"]
                 
                 self.m_all_layout["responsive_addon"][table_id] = table_dict
 

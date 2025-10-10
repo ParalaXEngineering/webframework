@@ -251,6 +251,24 @@ def setup_app(app):
             required_cdn=ResourceRegistry.get_required_js_cdn()
         )
 
+    # Custom Jinja2 filter for url_for with dict parameters
+    @app.template_filter('url_for_with_params')
+    def url_for_with_params_filter(endpoint, params=None):
+        """
+        Generate a URL for an endpoint with optional parameters.
+        
+        Args:
+            endpoint: Flask endpoint name (e.g., 'logging.api_log_data')
+            params: Dictionary of URL parameters (e.g., {'log_file': 'test.log'})
+        
+        Returns:
+            Generated URL string
+        """
+        from flask import url_for
+        if params:
+            return url_for(endpoint, **params)
+        return url_for(endpoint)
+
     # Index page
     @app.route("/")
     def index():

@@ -364,17 +364,26 @@ class Displayer:
                 layout.display(master_layout["containers"][column], self.g_next_layout)
             self.g_next_layout += 1
 
-            # Setup the all layout variable
+            # Setup the all layout variable (merge responsive_addon to preserve all tables)
             for item in layout.m_all_layout:
-                self.m_all_layout[item] = layout.m_all_layout[item]
+                if item == "responsive_addon" and item in self.m_all_layout:
+                    # Merge responsive_addon dictionaries instead of overwriting
+                    self.m_all_layout[item].update(layout.m_all_layout[item])
+                else:
+                    self.m_all_layout[item] = layout.m_all_layout[item]
 
             return self.g_next_layout - 1
         elif master_layout["type"] == Layouts.TABS.value:
             # Only one row for tabs
             layout.display(master_layout["lines"][0][column], self.g_next_layout)
             self.g_next_layout += 1
+            # Merge responsive_addon to preserve all tables
             for item in layout.m_all_layout:
-                self.m_all_layout[item] = layout.m_all_layout[item]
+                if item == "responsive_addon" and item in self.m_all_layout:
+                    # Merge responsive_addon dictionaries instead of overwriting
+                    self.m_all_layout[item].update(layout.m_all_layout[item])
+                else:
+                    self.m_all_layout[item] = layout.m_all_layout[item]
             return self.g_next_layout - 1
 
     def add_master_layout(self, layout: DisplayerLayout) -> int:
@@ -394,9 +403,13 @@ class Displayer:
         layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
         self.g_next_layout += 1
 
-        # Setup the all layout variable
+        # Setup the all layout variable (merge responsive_addon to preserve all tables)
         for item in layout.m_all_layout:
-            self.m_all_layout[item] = layout.m_all_layout[item]
+            if item == "responsive_addon" and item in self.m_all_layout:
+                # Merge responsive_addon dictionaries instead of overwriting
+                self.m_all_layout[item].update(layout.m_all_layout[item])
+            else:
+                self.m_all_layout[item] = layout.m_all_layout[item]
 
         return self.g_next_layout - 1
 

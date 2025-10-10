@@ -1,81 +1,221 @@
 {% extends 'base.j2' %}
 
+{% block css %}
+<style>
+  /* Fix SearchPanes width in tabs - prevent full-width expansion */
+  .dtsp-searchPanes {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+  
+  .dtsp-searchPane {
+    flex: 0 1 auto !important;
+    min-width: 200px !important;
+    max-width: 350px !important;
+    width: auto !important;
+  }
+</style>
+{% endblock %}
+
 {% block js %}
 <script>
-    // Basic Table Initialization
+  // ---- Helpers -------------------------------------------------------------
+  function buildAjaxConfig(url) {
+    return {
+      url,
+      type: 'GET',
+      // CRITICAL: Forward all DataTables params (including SearchPanes params)
+      data: function(d) { return d; },
+      dataSrc: function (json) {
+        if (!json) return [];
+        if (Array.isArray(json.data)) return json.data;   // DT SSP
+        if (Array.isArray(json.items)) return json.items; // alt
+        if (Array.isArray(json.results)) return json.results;
+        if (Array.isArray(json)) return json;
+        return [];
+      }
+    };
+  }
 
-    {% if 'responsive_addon' in content['all_layout'] %}
-        {% for table_id, addon in content['all_layout']['responsive_addon'].items() %}
-            {% if addon.get('data') %}
-                const tableData_{{ table_id }} = {{ addon['data'] | safe }};
-            {% endif %}
-            initializeDataTable('#{{addon.get('type')}}_{{ table_id }}', {
-                {% if addon.get('data') %}
-                data: tableData_{{ table_id }},
-                {% endif %}
+  // Get a DataTable instance regardless of jQuery / vanilla build
+  function getDTInstance(el) {
+    if (window.jQuery && $.fn && $.fn.dataTable) {
+      if ($.fn.dataTable.isDataTable(el)) return $(el).DataTable();
+      return null;
+    }
+    if (window.DataTable) {
+      try {
+        // In DT2 vanilla this returns the existing instance if already initialised
+        const dt = DataTable(el);
+        // Guard: only treat as instance if initialised
+        if (dt && typeof dt.draw === 'function') return dt;
+      } catch (e) { /* not initialised yet */ }
+    }
+    return null;
+  }
 
-                {% if 'ajax' in addon.get('type') or 'server_side' in addon.get('type') %}
-                    ajax: {
-                        url: '{{url_for(addon.get('api'))}}',
-                        dataSrc: ''
-                    },
-                {% endif %}
+  {% if 'responsive_addon' in content['all_layout'] %}
+    {% for table_id, addon in content['all_layout']['responsive_addon'].items() %}
+      {% set is_ssp = 'ajax' in addon.get('type') or 'server_side' in addon.get('type') %}
 
-                {% if 'advanced' in addon.get('type') or 'ajax' in addon.get('type') or 'bulk_data' in addon.get('type') or 'server_side' in addon.get('type') %}
-                    {% set all_indices = range(0, addon['ajax_columns']|length) %}
-                    {% set pane_indices = addon.get('columns') if addon.get('columns') is not none else range(0, addon['ajax_columns']|length) %}
-                    {% set non_pane_indices = [] %}
-                    {% for i in all_indices %}
-                        {% if i not in pane_indices %}
-                            {% set _ = non_pane_indices.append(i) %}
-                        {% endif %}
-                    {% endfor %}
+      {% if addon.get('data') %}
+        const tableData_{{ table_id }} = {{ addon['data'] | safe }};
+      {% endif %}
 
-                    columns: [
-                        {% for column in addon['ajax_columns'] %}
-                            { data: '{{ column["data"] }}', defaultContent: '' },
-                        {% endfor %}
-                    ],
-                    columnDefs: [
-                        {
-                            targets: {{ addon['columns'] }},
-                            render: function (data, type) {
-                                if (!data) return '';
-                                if (type === 'sp') {
-                                    if (Array.isArray(data)) data = data.join(',');
-                                    else if (typeof data !== 'string') data = String(data);
-                                    return data
-                                        .replace(/<\/?[^>]+(>|$)/g, '')
-                                        .replace(/(<br\s*\/?>)/gi, '')
-                                        .normalize('NFKD')
-                                        .replace(/[^\x00-\x7F]/g, '')
-                                        .split(',')
-                                        .map(item => item.trim());
-                                }
-                                return data;
-                            },
-                            searchPanes: { orthogonal: 'sp' }
-                        },
-                        {
-                            searchPanes: { show: false },
-                            targets: {{ non_pane_indices }}
-                        },
-                    ],
-                    stateSave: true,
-                    searchPanes: {
-                        cascadePanes: true,
-                        {% if addon.get("columns") %}
-                        columns: {{ addon["columns"] }}
-                        {% endif %}
-                    }
-                {% endif %}
-            }, {%if 'ajax' in addon.get('type') or 'server_side' in addon.get('type') %} true {% else %} false {%endif%});
+      (function initDT_{{ table_id }}() {
+        {% set all_indices = range(0, addon['ajax_columns']|length) %}
+        {% set pane_indices = addon.get('columns') if addon.get('columns') is not none else all_indices|list %}
+        {% set non_pane_indices = [] %}
+        {% for i in all_indices %}
+          {% if i not in pane_indices %}
+            {% set _ = non_pane_indices.append(i) %}
+          {% endif %}
         {% endfor %}
-    {% endif %}
+
+        const tableSelector = '#{{addon.get('type')}}_{{ table_id }}';
+
+        // Build SearchPanes config once
+        const panesConfig_{{ table_id }} = {
+          cascadePanes: true,
+          columns: {{ pane_indices|list }},
+          {% if is_ssp %}
+          viewTotal: true,
+          dtOpts: { paging: false, searching: false }
+          {% endif %}
+        };
+
+        const opts_{{ table_id }} = {
+          {% if addon.get('data') and not is_ssp %}
+          data: tableData_{{ table_id }},
+          {% endif %}
+
+          {% if is_ssp %}
+          serverSide: true,
+          processing: true,
+          ajax: buildAjaxConfig("{{ addon.get('api') | url_for_with_params(addon.get('api_params')) }}"),
+          {% endif %}
+
+          // Scroller and SSP both require paging enabled
+          paging: true,
+
+          columns: [
+            {% for column in addon['ajax_columns'] %}
+              { data: '{{ column["data"] }}', defaultContent: '' },
+            {% endfor %}
+          ],
+
+          columnDefs: [
+            {
+              targets: {{ pane_indices|list }},
+              render: function (data, type, row, meta) {
+                if (data == null) return '';
+
+                // For SearchPanes (type === 'sp'), strip HTML and normalize
+                if (type === 'sp') {
+                  if (Array.isArray(data)) data = data.join(',');
+                  else if (typeof data !== 'string') data = String(data);
+                  return data
+                    .replace(/<\/?[^>]+(>|$)/g, '')
+                    .replace(/(<br\s*\/?>)/gi, '')
+                    .normalize('NFKD')
+                    .replace(/[^\x00-\x7F]/g, '')
+                    .split(',')
+                    .map(item => item.trim());
+                }
+                
+                // For display, return data as-is (server sends HTML badges)
+                return data;
+              },
+              searchPanes: { orthogonal: 'sp' }
+            }
+            {% if non_pane_indices %}
+            ,{ searchPanes: { show: false }, targets: {{ non_pane_indices }} }
+            {% endif %}
+          ],
+
+          stateSave: true,
+
+          // DT2: explicitly place SearchPanes in the layout so it appears
+          layout: {
+            topStart: [
+              { searchPanes: {% if addon.get("columns") %} panesConfig_{{ table_id }} {% else %} panesConfig_{{ table_id }} {% endif %} }
+            ]
+          }
+
+          {% if addon.get("order") %},
+          order: {{ addon["order"] | tojson }}
+          {% endif %}
+          {% if addon.get("pageLength") %},
+          pageLength: {{ addon["pageLength"] }}
+          {% endif %}
+        };
+
+        // If you actually use Scroller elsewhere, ensure the flags are coherent
+        {% if addon.get('scroller') %}
+        opts_{{ table_id }}.scroller = true;
+        opts_{{ table_id }}.deferRender = true;
+        {% endif %}
+
+        initializeDataTable(tableSelector, opts_{{ table_id }}, {{ 'true' if is_ssp else 'false' }});
+      })();
+    {% endfor %}
+  {% endif %}
+
+  // ---- Tab redraw: safe for jQuery and vanilla builds ----------------------
+  document.addEventListener('DOMContentLoaded', function () {
+    const tabTriggers = document.querySelectorAll('[data-bs-toggle="tab"]');
+    tabTriggers.forEach(function (tabTrigger) {
+      tabTrigger.addEventListener('shown.bs.tab', function (event) {
+        const targetId = event.target.getAttribute('href');
+        if (!targetId) return;
+        const targetPane = document.querySelector(targetId);
+        if (!targetPane) return;
+
+        // Small delay to ensure tab is fully visible
+        setTimeout(function() {
+          const tables = targetPane.querySelectorAll('table.dataTable, table.dt-table');
+          tables.forEach(function (table) {
+            const dt = getDTInstance(table);
+            if (dt) {
+              // Adjust column widths
+              if (dt.columns && typeof dt.columns().adjust === 'function') {
+                dt.columns().adjust();
+              }
+              
+              // Force SearchPanes to recalculate by destroying and rebuilding
+              if (dt.searchPanes) {
+                try {
+                  // Try different methods to rebuild SearchPanes
+                  if (typeof dt.searchPanes.rebuild === 'function') {
+                    dt.searchPanes.rebuild();
+                  } else if (typeof dt.searchPanes.rebuildPane === 'function') {
+                    dt.searchPanes.rebuildPane();
+                  } else {
+                    // Force a full redraw which should trigger SearchPanes resize
+                    dt.draw();
+                  }
+                } catch (e) {
+                  console.log('SearchPanes rebuild failed, trying draw:', e);
+                  dt.draw();
+                }
+              } else {
+                // No searchPanes API, just redraw
+                dt.draw(false);
+              }
+            }
+          });
+          
+          // Also trigger a window resize event which some DataTables plugins listen to
+          window.dispatchEvent(new Event('resize'));
+        }, 50);
+      });
+    });
+  });
 </script>
-
-
 {% endblock %}
+
+
 
 {% block title %}
 {% if content["title"]%}
@@ -110,61 +250,50 @@
   });
 </script>
 
-{%if content|length <= 3 %} 
-    {# This is size of 1 because the modals are always here #}
+{% if content|length <= 3 %}
     <div class="text-center">
         <img src="{{ url_for('static', filename= 'images/status/unauthorized.svg')}}" width="500vw">
         <h1 class="error-title">Unauthorized</h1>
         <p class="fs-5 text-gray-600">There is no tools that you are authorized to use in this section</p>
     </div>
 {% else %}
-    {# Start with the modals #}
     {% for modal in content["modals"] %}
     <div class="modal fade" id="{{modal["id"]}}" tabindex="-1" aria-labelledby="Coucou" aria-hidden="true" style="display: none;">
         <div class="modal-dialog modal-dialog-scrollable modal-full" role="document">
             <div class="modal-content">
                 {% if "header" in modal %}
                 <div class="modal-header">
-                <h5 class="modal-title">{{ modal["header"] }}</h5>
+                  <h5 class="modal-title">{{ modal["header"] }}</h5>
                 </div>
                 {% endif %}
                 <div class="modal-body">
-                {# Each module is displayed in its block #}
                 {% for module in modal["content"] %}
                     {% if module != "modals" %}
-                        {# Module layouts #}
                         {% for layout in modal["content"][module]["layouts"] %}
 
-                            {# Subtitle #}
                             {% if layout["subtitle"] and layout["type"] != "SPACER" %}
                                 <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
                             {% endif %}
 
-                            {# Content #}
                             {% if layout["type"] == "VERT" %}
                                 {{ disp_layouts.display_vertical_layout(layout["columns"], layout["containers"], layout["align"]) }}
                             {% elif layout["type"] == "TABLE" %}
                                 {{ disp_layouts.display_table_layout(layout["header"], layout["lines"]) }}
                             {% endif %}
-                        {% endfor%}
+                        {% endfor %}
                     {% endif %}
-                {% endfor%}
-            </div>
+                {% endfor %}
+                </div>
             </div>
         </div>
     </div>
     {% endfor %}
 
-    {# Each module is displayed in its block #}
     {% for module in content %}
-        
         {% if module != "modals" and module != "all_layout" and module != "breadcrumbs" and module != "title" and module != "required_css" and module != "required_js" and module != "required_cdn" %}
             <div class="card">
-                {# Possibility to add a header to the card #}
-                <div class="card-header py-1">
-                </div>
+                <div class="card-header py-1"></div>
 
-                {# Module content #}
                 <div class="card-body">
                     {% if content[module]["display"] %}
                         {% if "name_override" in content[module] %}
@@ -174,7 +303,7 @@
                         {% endif %}
                     {% endif %}
 
-                    {% if "error" in content[module] and content[module]["error"]%}
+                    {% if "error" in content[module] and content[module]["error"] %}
                         <div class="text-center">
                             <img src="{{ url_for('static', filename='images/status/error.svg')}}" style="width: 500px; max-width: 100%;">
                             <h3 class="error-title mt-3">This page can't be displayed with the current configuration</h3>
@@ -182,30 +311,24 @@
                         </div>
                     {% else %}
 
-                        {# Form information #}
                         {% if target %}
                             <form action="{{ url_for(target) }}" method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         {% endif %}
-                        {# Module layouts #}
-                        {% for layout in content[module]["layouts"] %}
 
-                            {# Subtitle #}
+                        {% for layout in content[module]["layouts"] %}
                             {% if layout["subtitle"] and layout["type"] != "SPACER" %}
                                 <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
                             {% endif %}
-
-                            {# Content #}
                             {{ disp_layouts.display_layout(layout) }}
-                        {% endfor%}
+                        {% endfor %}
 
                         {% if target %}
-                        </form>
+                            </form>
                         {% endif %}
 
                     </div>
 
-                    {# Module footer #}
                     {% if content[module]["type"] == "threaded_action" or content[module]["type"] == "worfklow" %}
                         <div class="card-footer alert-light-secondary theme-aware">
                             <h4 class="theme-text">Action progress</h4>
@@ -213,13 +336,11 @@
                                 <table class="table-light table-striped mb-0 theme-aware" id="{{module}}_result">
                                     <thead>
                                         <tr>
-                                            <th style="width: 50%;">Task</th> <!-- Largeur explicite pour équilibrer -->
+                                            <th style="width: 50%;">Task</th>
                                             <th style="width: 50%;">Status</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <!-- Vos lignes ici -->
-                                    </tbody>
+                                    <tbody></tbody>
                                 </table>
                             </div>
                             <div id="progress_result"></div>
@@ -228,10 +349,9 @@
                 {% endif %}
             </div>
         {% endif %}
-    {% endfor%}
+    {% endfor %}
 {% endif %}
 
-{# Thread Monitor Socket.IO JavaScript #}
 {% if thread_monitor_js %}
 <script src="{{ url_for('static', filename='js/thread_monitor.js') }}"></script>
 {% endif %}

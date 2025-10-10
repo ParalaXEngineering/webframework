@@ -37,7 +37,7 @@ class MessageEmitter:
             logger: Optional logger for error reporting (if None, creates default)
         """
         self.socket = socket_io
-        self.logger = logger or get_logger("scheduler.emitter")
+        self.logger = logger or get_logger("scheduler_emitter")
     
     def emit_status(self, statuses: List[List]) -> None:
         """

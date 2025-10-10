@@ -45,19 +45,6 @@ function initializeDataTable(selector, customOptions, ajax) {
         };
         const finalOptions = { ...tableOptions, ...customOptions };
         const table = new DataTable(`#${tableId}`, finalOptions);
-        if (ajax) {
-            setInterval(function () {
-                fetch('/status/logs_api')
-                    .then(response => response.json())
-                    .then(newData => {
-                        table.clear();
-                        table.rows.add(newData);
-                        table.draw(false);
-                        if (table.searchPanes) {
-                            table.searchPanes.rebuildPane();
-                        }
-                    });
-            }, 3000);
-        }
+        // Note: Auto-refresh removed - use customOptions.ajax with proper endpoint if needed
     });
 }

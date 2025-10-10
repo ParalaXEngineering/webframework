@@ -51,6 +51,7 @@ class TestSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Layouts", "demo.layouts")
         self.add_sidebar_submenu("Text & Display", "demo.text_display")
         self.add_sidebar_submenu("Inputs", "demo.inputs")
+        self.add_sidebar_submenu("Table Modes", "demo.table_modes")
         self.add_sidebar_submenu("Threading Demo", "demo.threading_demo")
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo")
         self.add_sidebar_submenu("Complete Showcase", "demo.complete_showcase")

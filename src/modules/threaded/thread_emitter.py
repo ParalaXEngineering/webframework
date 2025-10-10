@@ -30,7 +30,7 @@ class ThreadEmitter:
         self.interval = interval
         self.running = False
         self._thread: Optional[threading.Thread] = None
-        self.logger = get_logger("threaded.emitter")
+        self.logger = get_logger("threaded_emitter")
         
     def start(self):
         """Start the emitter background thread."""

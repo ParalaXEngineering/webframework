@@ -45,7 +45,7 @@ class MessageQueue:
         """
         self._queues: Dict[MessageType, deque] = {}
         self._locks: Dict[MessageType, Lock] = {}
-        self._logger = get_logger("scheduler.message_queue")
+        self._logger = get_logger("scheduler_message_queue")
         
         # Initialize queues with appropriate size limits
         for msg_type in MessageType:

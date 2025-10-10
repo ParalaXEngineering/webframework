@@ -40,25 +40,25 @@ class LogEmitter:
         self.running = False
         self.live_mode = False  # Live mode disabled by default
         self._thread: Optional[threading.Thread] = None
-        self.logger = get_logger("log.emitter")
+        #self.logger = get_logger("log_emitter")
         
     def start(self):
         """Start the emitter background thread."""
         if self.running:
-            self.logger.warning("Log emitter already running")
+            #self.logger.warning("Log emitter already running")
             return
             
         self.running = True
         self._thread = threading.Thread(target=self._emit_loop, daemon=True)
         self._thread.start()
-        self.logger.info(f"Log emitter started (interval={self.interval}s)")
+        #self.logger.info(f"Log emitter started")
     
     def stop(self):
         """Stop the emitter background thread."""
         self.running = False
         if self._thread:
             self._thread.join(timeout=2.0)
-        self.logger.info("Log emitter stopped")
+        #self.logger.info("Log emitter stopped")
     
     def _emit_loop(self):
         """Main emission loop - runs in background thread."""
@@ -68,7 +68,8 @@ class LogEmitter:
                 if self.live_mode:
                     self._emit_log_content()
             except Exception as e:
-                self.logger.error(f"Error emitting log content: {e}")
+                #self.logger.error(f"Error emitting log content: {e}")
+                pass
             
             time.sleep(self.interval)
     
@@ -80,7 +81,7 @@ class LogEmitter:
             enabled: True to enable live updates, False to disable
         """
         self.live_mode = enabled
-        self.logger.info(f"Live mode {'enabled' if enabled else 'disabled'}")
+        #self.logger.info(f"Live mode {'enabled' if enabled else 'disabled'}")
         
         # Don't emit immediately - let the background thread handle it
         # This prevents blocking the HTTP response
@@ -117,7 +118,7 @@ class LogEmitter:
             return self._render_log_tabs_with_framework(log_files, max_lines_per_file=max_lines_per_file)
             
         except Exception as e:
-            self.logger.error(f"Error getting initial content: {e}")
+            #self.logger.error(f"Error getting initial content: {e}")
             return f"<div class='alert alert-danger'>Error loading logs: {str(e)}</div>"
     
     def _emit_log_content(self):
@@ -150,7 +151,8 @@ class LogEmitter:
             })
             
         except Exception as e:
-            self.logger.error(f"Error in _emit_log_content: {e}")
+            #self.logger.error(f"Error in _emit_log_content: {e}")
+            pass
     
     def _render_log_tabs_with_framework(self, log_files: List[Dict], max_lines_per_file: int = None) -> str:
         """
@@ -184,12 +186,12 @@ class LogEmitter:
         ))
         create_disp_time = time.time() - create_disp_start
         
-        self.logger.debug(f"Created TABS master layout with ID {master_layout_id}, {len(tab_titles)} tabs")
+        #self.logger.debug(f"Created TABS master layout with ID {master_layout_id}, {len(tab_titles)} tabs")
         
         # Debug: Check master layout structure
         master_layout = disp.find_layout(layout_id=master_layout_id)
-        if master_layout:
-            self.logger.debug(f"Master layout type: {master_layout.get('type')}, lines structure: {len(master_layout.get('lines', [[]]))} rows, {len(master_layout.get('lines', [[]])[0])} columns")
+        #if master_layout:
+        #    self.logger.debug(f"Master layout type: {master_layout.get('type')}, lines structure: {len(master_layout.get('lines', [[]]))} rows, {len(master_layout.get('lines', [[]])[0])} columns")
         
         # For each log file, add a TABLE layout inside its tab
         parse_start = time.time()
@@ -197,7 +199,7 @@ class LogEmitter:
             # Read and parse log entries with lines limit
             log_entries = self._read_and_parse_log_file(log_file['path'], max_lines=lines_limit)
             
-            self.logger.debug(f"Tab {tab_index}: Adding slave layout for {log_file['name']}, parent layout ID: {master_layout_id}")
+            #self.logger.debug(f"Tab {tab_index}: Adding slave layout for {log_file['name']}, parent layout ID: {master_layout_id}")
             
             # Add TABLE layout in this tab column
             # IMPORTANT: Must explicitly pass master_layout_id, not rely on default -1
@@ -212,10 +214,10 @@ class LogEmitter:
             
             # Debug: Check if slave layout was created successfully
             if slave is None or slave == -1:
-                self.logger.error(f"Failed to create slave layout for tab {tab_index} ({log_file['name']}): returned {slave}")
+                #self.logger.error(f"Failed to create slave layout for tab {tab_index} ({log_file['name']}): returned {slave}")
                 continue
             
-            self.logger.debug(f"Created slave layout {slave} for tab {tab_index} ({log_file['name']})")
+            #self.logger.debug(f"Created slave layout {slave} for tab {tab_index} ({log_file['name']})")
             
             # Add log entries as rows
             current_line = 0
@@ -310,15 +312,15 @@ class LogEmitter:
                 render_html_time = time.time() - render_html_start
                 
                 total_time = time.time() - render_start_time
-                self.logger.info(f"RENDERING TIMES: create_disp={create_disp_time:.3f}s, parse={parse_time:.3f}s, display={display_time:.3f}s, render_html={render_html_time:.3f}s, TOTAL={total_time:.3f}s")
+                #self.logger.info(f"RENDERING TIMES: create_disp={create_disp_time:.3f}s, parse={parse_time:.3f}s, display={display_time:.3f}s, render_html={render_html_time:.3f}s, TOTAL={total_time:.3f}s")
                 
                 return html
             else:
                 # Fallback if no app provided
-                self.logger.warning("No Flask app context available")
+                #self.logger.warning("No Flask app context available")
                 return "<div class='alert alert-warning'>No Flask app context</div>"
         except Exception as e:
-            self.logger.error(f"Template rendering failed: {e}")
+            #self.logger.error(f"Template rendering failed: {e}")
             return f"<div class='alert alert-danger'>Error: {str(e)}</div>"
     
     def _read_and_parse_log_file(self, filepath: str, max_lines: int = None) -> List[Dict]:
@@ -359,7 +361,7 @@ class LogEmitter:
             parse_time = time.time() - parse_start
             
             total_time = time.time() - start_time
-            self.logger.info(f"File {os.path.basename(filepath)}: read={read_time:.3f}s, parse={parse_time:.3f}s, total={total_time:.3f}s, lines={len(entries)}")
+            #self.logger.info(f"File {os.path.basename(filepath)}: read={read_time:.3f}s, parse={parse_time:.3f}s, total={total_time:.3f}s, lines={len(entries)}")
             
             return entries
             
@@ -383,7 +385,8 @@ class LogEmitter:
                 with open(filepath, 'w', encoding='utf-8') as f:
                     f.writelines(lines[-self.max_lines:])
         except Exception as e:
-            self.logger.error(f"Error truncating log file {filepath}: {e}")
+            #self.logger.error(f"Error truncating log file {filepath}: {e}")
+            pass
     
     def _parse_log_line(self, line: str) -> Dict:
         """
