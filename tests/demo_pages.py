@@ -236,6 +236,82 @@ def text_display():
     for idx, (text, style) in enumerate(badges):
         disp.add_display_item(displayer.DisplayerItemBadge(text, style), idx)
     
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
+    
+    # Action Buttons
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Action Buttons (CRUD Operations)"
+    ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<p>Action buttons are commonly used in tables for quick CRUD operations. "
+        "They provide View, Edit, Delete, and other actions in a compact format.</p>"
+    ), 0)
+    
+    # Demo different styles
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Item", "Status", "Button Style", "Actions"]
+    ))
+    
+    # Row 1: Default button style with all actions
+    disp.add_display_item(displayer.DisplayerItemText("User #1234"), column=0)
+    disp.add_display_item(displayer.DisplayerItemBadge("Active", displayer.BSstyle.SUCCESS), column=1)
+    disp.add_display_item(displayer.DisplayerItemText("Buttons (default)"), column=2)
+    disp.add_display_item(displayer.DisplayerItemActionButtons(
+        id="actions_user_1234",
+        view_url="https://www.google.com",
+        edit_url="https://www.google.com",
+        delete_url="https://www.google.com"
+    ), column=3)
+    
+    # Row 2: Icon style (more compact)
+    disp.add_display_item(displayer.DisplayerItemText("Product #5678"), column=0)
+    disp.add_display_item(displayer.DisplayerItemBadge("Pending", displayer.BSstyle.WARNING), column=1)
+    disp.add_display_item(displayer.DisplayerItemText("Icons only"), column=2)
+    disp.add_display_item(displayer.DisplayerItemActionButtons(
+        id="actions_product_5678",
+        view_url="https://www.google.com",
+        edit_url="https://www.google.com",
+        delete_url="https://www.google.com",
+        style="icons"
+    ), column=3)
+    
+    # Row 3: Only edit and delete
+    disp.add_display_item(displayer.DisplayerItemText("Comment #9012"), column=0)
+    disp.add_display_item(displayer.DisplayerItemBadge("Flagged", displayer.BSstyle.ERROR), column=1)
+    disp.add_display_item(displayer.DisplayerItemText("Edit & Delete only"), column=2)
+    disp.add_display_item(displayer.DisplayerItemActionButtons(
+        id="actions_comment_9012",
+        edit_url="https://www.google.com",
+        delete_url="https://www.google.com"
+    ), column=3)
+    
+    # Row 4: Custom actions
+    disp.add_display_item(displayer.DisplayerItemText("Report #3456"), column=0)
+    disp.add_display_item(displayer.DisplayerItemBadge("Complete", displayer.BSstyle.INFO), column=1)
+    disp.add_display_item(displayer.DisplayerItemText("Custom actions"), column=2)
+    disp.add_display_item(displayer.DisplayerItemActionButtons(
+        id="actions_report_3456",
+        actions=[
+            {"type": "view", "url": "https://www.google.com", "icon": "mdi mdi-eye", "style": "info", "tooltip": "View Report"},
+            {"type": "download", "url": "https://www.google.com", "icon": "mdi mdi-download", "style": "success", "tooltip": "Download PDF"},
+            {"type": "copy", "url": "https://www.google.com", "icon": "mdi mdi-content-copy", "style": "secondary", "tooltip": "Copy Link"}
+        ]
+    ), column=3)
+    
+    # Row 5: Large size buttons
+    disp.add_display_item(displayer.DisplayerItemText("Project #7890"), column=0)
+    disp.add_display_item(displayer.DisplayerItemBadge("Active", displayer.BSstyle.SUCCESS), column=1)
+    disp.add_display_item(displayer.DisplayerItemText("Large size"), column=2)
+    disp.add_display_item(displayer.DisplayerItemActionButtons(
+        id="actions_project_7890",
+        view_url="https://www.google.com",
+        edit_url="https://www.google.com",
+        delete_url="https://www.google.com",
+        size="lg"
+    ), column=3)
+    
     return render_template("base_content.j2", content=disp.display())
 
 

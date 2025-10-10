@@ -135,6 +135,7 @@ def logs():
         f"<div class='text-center'><h3>{os.path.basename(logs_dir)}</h3><small>Directory</small></div>"
     ), 2)
     
+    disp.duplicate_master_layout()
     disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
     
     # Info message about SERVER_SIDE DataTables (always live)

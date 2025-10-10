@@ -84,6 +84,7 @@ from .items import (
     DisplayerItemAlertBox,
     DisplayerItemDynamicContent,
     DisplayerItemButtonGroup,
+    DisplayerItemActionButtons,
     DisplayerItemIconText,
 )
 
@@ -152,6 +153,7 @@ __all__ = [
     'DisplayerItemAlertBox',
     'DisplayerItemDynamicContent',
     'DisplayerItemButtonGroup',
+    'DisplayerItemActionButtons',
     'DisplayerItemIconText',
 ]
 

@@ -76,6 +76,7 @@ def threads():
         "<div class='text-center'><h3>{}</h3><small>With Errors</small></div>".format(stats['with_error'])
     ), 3)
     
+    disp.duplicate_master_layout()
     disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
     
     # Single dynamic content placeholder for ALL threads

@@ -1,23 +1,4 @@
 {% extends 'base.j2' %}
-
-{% block css %}
-<style>
-  /* Fix SearchPanes width in tabs - prevent full-width expansion */
-  .dtsp-searchPanes {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 10px !important;
-  }
-  
-  .dtsp-searchPane {
-    flex: 0 1 auto !important;
-    min-width: 200px !important;
-    max-width: 350px !important;
-    width: auto !important;
-  }
-</style>
-{% endblock %}
-
 {% block js %}
 <script>
   // ---- Helpers -------------------------------------------------------------

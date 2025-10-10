@@ -1701,7 +1701,7 @@ class DisplayerItemCard(DisplayerItem):
         return cls(
             id="test_card",
             title="Test Card",
-            icon="mdi-information",
+            icon="mdi mdi-information",
             header_color=BSstyle.PRIMARY,
             body="This is a test card with sample content.",
             footer_buttons=[
@@ -1763,7 +1763,7 @@ class DisplayerItemAlertBox(DisplayerItem):
         return cls(
             id="test_alert",
             style=BSstyle.INFO,
-            icon="mdi-information",
+            icon="mdi mdi-information",
             title="Test Alert",
             text="This is a test alert box.",
             dismissible=True
@@ -1925,7 +1925,148 @@ class DisplayerItemIconText(DisplayerItem):
         """Create test instance with sample icon+text."""
         return cls(
             id="test_icontext",
-            icon="mdi-information",
+            icon="mdi mdi-information",
             text="Sample icon text item",
             color=BSstyle.PRIMARY
         )
+
+
+@DisplayerCategory.DISPLAY
+class DisplayerItemActionButtons(DisplayerItem):
+    """
+    Row action buttons for CRUD operations (View, Edit, Delete).
+    
+    Creates a compact inline button group with icon-based action buttons,
+    commonly used in table rows or list items for quick actions.
+    
+    Each button can have:
+    - Icon (MDI or Bootstrap Icons)
+    - Tooltip
+    - URL/Link
+    - Color style
+    - Enable/disable state
+    
+    Example:
+        >>> # Full custom actions
+        >>> actions = DisplayerItemActionButtons(
+        ...     id="user_123_actions",
+        ...     actions=[
+        ...         {"type": "view", "url": "/users/123", "tooltip": "View details"},
+        ...         {"type": "edit", "url": "/users/123/edit", "tooltip": "Edit user"},
+        ...         {"type": "delete", "url": "/users/123/delete", "tooltip": "Delete user", "disabled": False}
+        ...     ]
+        ... )
+        
+        >>> # Quick default actions with URLs
+        >>> actions = DisplayerItemActionButtons(
+        ...     id="item_456_actions",
+        ...     view_url="/items/456",
+        ...     edit_url="/items/456/edit",
+        ...     delete_url="/items/456/delete"
+        ... )
+        
+        >>> # Only edit and delete
+        >>> actions = DisplayerItemActionButtons(
+        ...     id="comment_789_actions",
+        ...     edit_url="/comments/789/edit",
+        ...     delete_url="/comments/789/delete"
+        ... )
+    """
+    
+    # Default action configurations
+    DEFAULT_ACTIONS = {
+        "view": {
+            "icon": "mdi mdi-eye",
+            "style": "info",
+            "tooltip": "View"
+        },
+        "edit": {
+            "icon": "mdi mdi-pencil",
+            "style": "warning",
+            "tooltip": "Edit"
+        },
+        "delete": {
+            "icon": "mdi mdi-delete",
+            "style": "danger",
+            "tooltip": "Delete"
+        },
+        "download": {
+            "icon": "mdi mdi-download",
+            "style": "success",
+            "tooltip": "Download"
+        },
+        "copy": {
+            "icon": "mdi mdi-content-copy",
+            "style": "secondary",
+            "tooltip": "Copy"
+        }
+    }
+    
+    def __init__(
+        self,
+        id: str,
+        actions: List[Dict[str, Any]] = None,
+        view_url: str = None,
+        edit_url: str = None,
+        delete_url: str = None,
+        size: str = "sm",
+        style: str = "buttons"  # "buttons" or "icons"
+    ) -> None:
+        """
+        Initialize action buttons display item.
+        
+        Args:
+            id: Unique identifier for the button group
+            actions: List of custom action dicts with keys:
+                - type: Action type ("view", "edit", "delete", or custom)
+                - url: Link URL (optional)
+                - icon: Icon class (optional, overrides default)
+                - style: Bootstrap style (optional, overrides default)
+                - tooltip: Tooltip text (optional, overrides default)
+                - disabled: Boolean (optional, default False)
+            view_url: Quick setup - URL for view action
+            edit_url: Quick setup - URL for edit action
+            delete_url: Quick setup - URL for delete action
+            size: Button size ("sm", "md", "lg")
+            style: Display style ("buttons" for btn, "icons" for plain icons)
+        """
+        super().__init__(DisplayerItems.ACTIONBUTTONS)
+        self.m_itemId = id
+        self.m_value = size  # sm, md, lg
+        self.m_style = style  # buttons or icons
+        
+        # Build actions list
+        if actions is not None:
+            self.m_data = actions
+        else:
+            # Quick setup mode: build from individual URLs
+            self.m_data = []
+            if view_url:
+                self.m_data.append({
+                    "type": "view",
+                    "url": view_url,
+                    **self.DEFAULT_ACTIONS["view"]
+                })
+            if edit_url:
+                self.m_data.append({
+                    "type": "edit",
+                    "url": edit_url,
+                    **self.DEFAULT_ACTIONS["edit"]
+                })
+            if delete_url:
+                self.m_data.append({
+                    "type": "delete",
+                    "url": delete_url,
+                    **self.DEFAULT_ACTIONS["delete"]
+                })
+    
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample action buttons."""
+        return cls(
+            id="test_actions",
+            view_url="https://www.google.com",
+            edit_url="https://www.google.com",
+            delete_url="https://www.google.com"
+        )
+

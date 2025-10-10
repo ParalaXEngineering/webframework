@@ -97,6 +97,8 @@
         {{buttongroup(item["itemId"], item["data"], item["value"])}}
     {% elif item["type"] == "ICONTEXT" %}
         {{icontext(item["itemId"], item["icon"], item["text"], item["style"], item["path"])}}
+    {% elif item["type"] == "ACTIONBUTTONS" %}
+        {{actionbuttons(item["itemId"], item["data"], item["value"], item["style"])}}
     {% endif %}
 
     {% if "itemId" in item %}
@@ -963,3 +965,31 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 </div>
 {% endmacro %}
+
+{% macro actionbuttons(id, actions, size, display_style) %}
+{# Action buttons for CRUD operations (View, Edit, Delete, etc.)
+   Renders as compact icon buttons or button group
+   
+   Parameters:
+   - id: unique identifier
+   - actions: list of action dicts with keys: type, url, icon, style, tooltip, disabled
+   - size: button size (sm, md, lg)
+   - display_style: "buttons" for btn styling, "icons" for plain icons
+#}
+<div id="{{id}}" class="action-buttons d-inline-flex gap-1" role="group">
+    {% for action in actions %}
+        {% set btn_size = 'btn-' + size if size and size != 'md' else '' %}
+        {% set btn_class = 'btn btn-' + (action.style if action.style else 'secondary') + ' ' + btn_size if display_style == 'buttons' else 'btn btn-link text-' + (action.style if action.style else 'secondary') + ' p-1' %}
+        
+        <a href="{{action.url if action.url else '#'}}" 
+           class="{{btn_class}}" 
+           data-bs-toggle="tooltip" 
+           data-bs-placement="top" 
+           title="{{action.tooltip if action.tooltip else action.type|capitalize}}"
+           {% if action.disabled %}disabled aria-disabled="true"{% endif %}>
+            <i class="{{action.icon}}"></i>
+        </a>
+    {% endfor %}
+</div>
+{% endmacro %}
+
