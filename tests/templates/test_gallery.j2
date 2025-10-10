@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="../webengine/assets/compiled/css/app.css">
+    <link rel="stylesheet" href="../webengine/assets/compiled/css/app-dark.css">
+    <link rel="stylesheet" href="../webengine/assets/extensions/@icon/dripicons/dripicons.css">
+    <link rel="stylesheet" href="../webengine/assets/compiled/css/iconly.css">
+    <link rel="stylesheet" href="../webengine/assets/extensions/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="../webengine/assets/compiled/css/table-datatable-jquery.css">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+        #app { display: flex; min-height: 100vh; }
+        #sidebar { width: 260px; flex-shrink: 0; background: #435ebe; color: white; }
+        #main { flex: 1; padding: 2rem; background: #f2f7ff; overflow-y: auto; }
+        .sidebar-wrapper { padding: 1rem; }
+        .sidebar-header { margin-bottom: 2rem; }
+        .sidebar-header h3 { margin: 0.5rem 0; font-size: 1.5rem; }
+        .sidebar-header h6 { margin: 0; opacity: 0.8; }
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; }
+        .sidebar-title { font-weight: 700; padding: 0.5rem 1rem; opacity: 0.6; font-size: 0.875rem; }
+        .sidebar-link { display: block; padding: 0.75rem 1rem; color: white; text-decoration: none; border-radius: 0.5rem; margin: 0.25rem 0; transition: background 0.2s; }
+        .sidebar-link:hover, .sidebar-link.active { background: rgba(255,255,255,0.1); }
+        .page-heading { margin-bottom: 1.5rem; }
+        .page-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .breadcrumb { display: flex; gap: 0.5rem; font-size: 0.875rem; color: #666; }
+        .component-section { background: white; border-radius: 0.5rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .component-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: #435ebe; }
+        .theme-toggle { display: none; }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div id="sidebar">
+            <div class="sidebar-wrapper">
+                <div class="sidebar-header">
+                    <h3>{{ app["name"] }}</h3>
+                    <h6>v{{ app["version"] }}</h6>
+                </div>
+                
+                <div class="sidebar-menu">
+                    {% for item in sidebarItems %}
+                        {% if item.get("isTitle") %}
+                            <div class="sidebar-title">{{ item["name"] }}</div>
+                        {% else %}
+                            <a href="#item-{{ item['name']|replace(' ', '-')|replace('_', '-')|lower }}" class="sidebar-link">
+                                <i class="{{ item.get('icon', 'mdi-circle') }}"></i>
+                                <span>{{ item["name"] }}</span>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div id="main">
+            <div class="page-heading">
+                <h3 class="page-title">Displayer Component Gallery</h3>
+                <div class="breadcrumb">
+                    <span>Test Gallery</span>
+                    <span>→</span>
+                    <span>All Components</span>
+                </div>
+            </div>
+            
+            <div class="page-content">
+                {% for filename, content in content_map.items() %}
+                    {% set clean_name = filename_map.get(filename, filename).replace('.html', '').replace('item_', '').replace('layout_', '').replace('displayer_', '') %}
+                    <div class="component-section" id="item-{{ clean_name|replace(' ', '-')|replace('_', '-')|lower }}">
+                        <h4 class="component-title">{{ clean_name }}</h4>
+                        {{ content|safe }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <script src="../webengine/assets/static/js/components/dark.js"></script>
+    <script src="../webengine/assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+    <script src="../webengine/assets/compiled/js/app.js"></script>
+    <script src="../webengine/assets/extensions/jquery/jquery.min.js"></script>
+    <script src="../webengine/assets/extensions/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="../webengine/assets/extensions/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="../webengine/assets/static/js/pages/datatables.js"></script>
+</body>
+
+</html>

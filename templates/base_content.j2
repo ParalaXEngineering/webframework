@@ -14,14 +14,14 @@
                 data: tableData_{{ table_id }},
                 {% endif %}
 
-                {% if 'ajax' in addon.get('type') %}
+                {% if 'ajax' in addon.get('type') or 'server_side' in addon.get('type') %}
                     ajax: {
                         url: '{{url_for(addon.get('api'))}}',
                         dataSrc: ''
                     },
                 {% endif %}
 
-                {% if 'advanced' in addon.get('type') or 'ajax' in addon.get('type') %}
+                {% if 'advanced' in addon.get('type') or 'ajax' in addon.get('type') or 'bulk_data' in addon.get('type') or 'server_side' in addon.get('type') %}
                     {% set all_indices = range(0, addon['ajax_columns']|length) %}
                     {% set pane_indices = addon.get('columns') if addon.get('columns') is not none else range(0, addon['ajax_columns']|length) %}
                     {% set non_pane_indices = [] %}
@@ -69,7 +69,7 @@
                         {% endif %}
                     }
                 {% endif %}
-            }, {%if 'ajax' in addon.get('type') %} true {% else %} false {%endif%});
+            }, {%if 'ajax' in addon.get('type') or 'server_side' in addon.get('type') %} true {% else %} false {%endif%});
         {% endfor %}
     {% endif %}
 </script>

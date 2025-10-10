@@ -13,58 +13,141 @@ demo_bp = Blueprint('demo', __name__)
 
 @demo_bp.route('/')
 def index():
-    """Main index page with navigation to all demo pages."""
+    """Main index page with gallery of demo pages."""
     disp = displayer.Displayer()
-    disp.add_generic("Demo Navigation")
-    disp.set_title("Displayer Component Demo")
+    disp.add_generic("Demo Gallery")
+    disp.set_title("Displayer Component Showcase")
     
     disp.add_breadcrumb("Home", "demo.index", [])
     
-    # Navigation cards
+    # Info alert
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12]
+    ))
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        "<strong>ParalaX Web Framework Demo</strong> - Explore all displayer components and features",
+        displayer.BSstyle.INFO
+    ), 0)
+    
+    # Gallery - Row 1: Core Components
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [3, 3, 3, 3]
     ))
     
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_layouts", "Layouts", "mdi-view-dashboard", "/layouts", [], displayer.BSstyle.PRIMARY
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_layouts",
+        title="Layouts",
+        icon="mdi-view-dashboard",
+        header_color=displayer.BSstyle.PRIMARY,
+        body="Explore VERTICAL, HORIZONTAL, TABLE, TABS, and SPACER layouts",
+        footer_buttons=[{"id": "btn_layouts", "text": "View Demos", "style": "primary"}]
     ), 0)
     
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_text", "Text & Display", "mdi-text", "/text-display", [], displayer.BSstyle.SUCCESS
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_text",
+        title="Text & Display",
+        icon="mdi-text",
+        header_color=displayer.BSstyle.SUCCESS,
+        body="Text, alerts, badges, progress bars, and display components",
+        footer_buttons=[{"id": "btn_text", "text": "View Demos", "style": "success"}]
     ), 1)
     
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_inputs", "Inputs", "mdi-form-textbox", "/inputs", [], displayer.BSstyle.WARNING
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_inputs",
+        title="Input Components",
+        icon="mdi-form-textbox",
+        header_color=displayer.BSstyle.WARNING,
+        body="Text inputs, dropdowns, checkboxes, file uploads, and more",
+        footer_buttons=[{"id": "btn_inputs", "text": "View Demos", "style": "warning"}]
     ), 2)
     
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_threading", "Threading", "mdi-cog-sync", "/threading-demo", [], displayer.BSstyle.ERROR
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_tables",
+        title="Table Modes (NEW)",
+        icon="mdi-table",
+        header_color=displayer.BSstyle.INFO,
+        body="SIMPLE, INTERACTIVE, BULK_DATA, SERVER_SIDE table rendering modes",
+        footer_buttons=[{"id": "btn_tables", "text": "View Demos", "style": "info"}]
     ), 3)
     
-    # Second row
+    # Gallery - Row 2: Advanced Features
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [4, 4, 4]
+        displayer.Layouts.VERTICAL, [3, 3, 3, 3]
     ))
     
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_scheduler", "Scheduler", "mdi-clock-fast", "/scheduler-demo", [], displayer.BSstyle.INFO
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_threading",
+        title="Threading",
+        icon="mdi-cog-sync",
+        header_color=displayer.BSstyle.ERROR,
+        body="Background tasks with progress tracking and real-time updates",
+        footer_buttons=[{"id": "btn_threading", "text": "View Demos", "style": "danger"}]
     ), 0)
     
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_settings", "Settings", "mdi-cog", "/settings/", [], displayer.BSstyle.SECONDARY
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_scheduler",
+        title="Scheduler",
+        icon="mdi-clock-fast",
+        header_color=displayer.BSstyle.SECONDARY,
+        body="Scheduled tasks, emit_status, popups, and dynamic reloading",
+        footer_buttons=[{"id": "btn_scheduler", "text": "View Demos", "style": "secondary"}]
     ), 1)
     
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_logs", "Log Viewer", "mdi-file-document-multiple", "/logging/", [], displayer.BSstyle.DARK
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_settings",
+        title="Settings",
+        icon="mdi-cog",
+        header_color=displayer.BSstyle.DARK,
+        body="Framework settings and configuration management",
+        footer_buttons=[{"id": "btn_settings", "text": "Open Settings", "style": "dark"}]
     ), 2)
+    
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_logs",
+        title="Log Viewer",
+        icon="mdi-file-document-multiple",
+        header_color=displayer.BSstyle.PRIMARY,
+        body="Real-time log file monitoring with DataTables filtering",
+        footer_buttons=[{"id": "btn_logs", "text": "View Logs", "style": "primary"}]
+    ), 3)
     
     # Complete showcase button
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12]
     ))
     disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_complete", "Complete Showcase", "mdi-star", "/complete-showcase", [], displayer.BSstyle.PRIMARY
+        "btn_complete", "🌟 Complete Component Showcase", "mdi-star", "/complete-showcase", [], displayer.BSstyle.SUCCESS
     ), 0)
+    
+    # Handle card button clicks
+    if request.method == 'POST':
+        data_in = utilities.util_post_to_json(request.form.to_dict())
+        if "Demo Gallery" in data_in:
+            module_data = data_in["Demo Gallery"]
+            if "btn_layouts" in module_data:
+                from flask import redirect, url_for
+                return redirect(url_for('demo.layouts'))
+            elif "btn_text" in module_data:
+                from flask import redirect, url_for
+                return redirect(url_for('demo.text_display'))
+            elif "btn_inputs" in module_data:
+                from flask import redirect, url_for
+                return redirect(url_for('demo.inputs'))
+            elif "btn_tables" in module_data:
+                from flask import redirect, url_for
+                return redirect(url_for('demo.table_modes'))
+            elif "btn_threading" in module_data:
+                from flask import redirect, url_for
+                return redirect(url_for('demo.threading_demo'))
+            elif "btn_scheduler" in module_data:
+                from flask import redirect, url_for
+                return redirect(url_for('demo.scheduler_demo'))
+            elif "btn_settings" in module_data:
+                from flask import redirect, url_for
+                return redirect(url_for('settings.index'))
+            elif "btn_logs" in module_data:
+                from flask import redirect, url_for
+                return redirect(url_for('logging.index'))
     
     return render_template("base_content.j2", content=disp.display())
 
@@ -516,3 +599,179 @@ def scheduler_demo():
     )
     
     return render_template("base_content.j2", content=disp.display(), target="demo.scheduler_demo")
+
+
+@demo_bp.route('/table-modes')
+def table_modes():
+    """Showcase new TABLE layout modes with TableMode enum."""
+    disp = displayer.Displayer()
+    disp.add_generic("Table Modes Showcase")
+    disp.set_title("New TABLE Layout API - TableMode Examples")
+    
+    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Table Modes", "demo.table_modes", [])
+    
+    # Info
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12]
+    ))
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        "<strong>NEW API:</strong> Use <code>datatable_config</code> with <code>TableMode</code> enum instead of confusing 'basic/advanced/ajax' strings!",
+        displayer.BSstyle.INFO
+    ), 0)
+    
+    # 1. Simple HTML Table (no DataTables)
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="1. TableMode.SIMPLE - Plain HTML Table"
+    ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "No DataTables JavaScript - just plain HTML. Fastest rendering, no features."
+    ), 0)
+    
+    layout_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Name", "Email", "Role"]
+        # No datatable_config = plain HTML
+    ))
+    disp.add_display_item(displayer.DisplayerItemText("Alice Smith"), 0, line=0, layout_id=layout_id)
+    disp.add_display_item(displayer.DisplayerItemText("alice@example.com"), 1, line=0, layout_id=layout_id)
+    disp.add_display_item(displayer.DisplayerItemBadge("Admin", displayer.BSstyle.PRIMARY), 2, line=0, layout_id=layout_id)
+    
+    disp.add_display_item(displayer.DisplayerItemText("Bob Johnson"), 0, line=1, layout_id=layout_id)
+    disp.add_display_item(displayer.DisplayerItemText("bob@example.com"), 1, line=1, layout_id=layout_id)
+    disp.add_display_item(displayer.DisplayerItemBadge("User", displayer.BSstyle.SUCCESS), 2, line=1, layout_id=layout_id)
+    
+    # 2. Interactive Mode
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="2. TableMode.INTERACTIVE - Manual Row Population"
+    ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "DataTables with manual item population. Flexible - can use any DisplayerItem. Searchable columns enabled."
+    ), 0)
+    
+    layout_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Product", "Price", "Actions"],
+        datatable_config={
+            "table_id": "interactive_demo",
+            "mode": displayer.TableMode.INTERACTIVE,
+            "searchable_columns": [0]  # Enable search on Product column
+        }
+    ))
+    
+    products = [
+        ("Laptop", "$1,299", "primary"),
+        ("Mouse", "$29", "success"),
+        ("Keyboard", "$89", "info")
+    ]
+    
+    for line, (product, price, style) in enumerate(products):
+        disp.add_display_item(displayer.DisplayerItemText(product), 0, line=line, layout_id=layout_id)
+        disp.add_display_item(displayer.DisplayerItemBadge(price, getattr(displayer.BSstyle, style.upper())), 1, line=line, layout_id=layout_id)
+        disp.add_display_item(displayer.DisplayerItemButton(f"buy_{line}", "Buy"), 2, line=line, layout_id=layout_id)
+    
+    # 3. Bulk Data Mode
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="3. TableMode.BULK_DATA - Pre-loaded JSON"
+    ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "Most efficient for large datasets (100s-1000s of rows). Data loaded as JSON with search panes on selected columns."
+    ), 0)
+    
+    bulk_data = [
+        {"User": "Alice Cooper", "Department": "Engineering", "Status": "Active", "Projects": 5},
+        {"User": "Bob Dylan", "Department": "Marketing", "Status": "Active", "Projects": 3},
+        {"User": "Charlie Brown", "Department": "Engineering", "Status": "On Leave", "Projects": 2},
+        {"User": "Diana Ross", "Department": "Sales", "Status": "Active", "Projects": 8},
+        {"User": "Eddie Vedder", "Department": "Engineering", "Status": "Active", "Projects": 4},
+        {"User": "Frank Sinatra", "Department": "Sales", "Status": "Active", "Projects": 6},
+    ]
+    
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["User", "Department", "Status", "Projects"],
+        datatable_config={
+            "table_id": "bulk_demo",
+            "mode": displayer.TableMode.BULK_DATA,
+            "data": bulk_data,
+            "columns": [
+                {"data": "User"},
+                {"data": "Department"},
+                {"data": "Status"},
+                {"data": "Projects"}
+            ],
+            "searchable_columns": [1, 2]  # Search panes on Department (col 1) and Status (col 2)
+        }
+    ))
+    
+    # 4. Code examples
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12], subtitle="Code Examples"
+    ))
+    
+    code_example = '''# NEW API - Clear and explicit
+from src.modules.displayer import DisplayerLayout, Layouts, TableMode
+
+# 1. SIMPLE - Plain HTML table (no DataTables JavaScript)
+layout = DisplayerLayout(
+    Layouts.TABLE, 
+    columns=["Name", "Status"]
+    # No datatable_config = plain HTML table
+)
+
+# 2. INTERACTIVE - Manual row population with DisplayerItems
+layout_id = disp.add_master_layout(DisplayerLayout(
+    Layouts.TABLE,
+    columns=["Product", "Price", "Actions"],
+    datatable_config={
+        "table_id": "interactive_demo",
+        "mode": TableMode.INTERACTIVE,
+        "searchable_columns": [0]  # Search pane on Product column
+    }
+))
+# Then add items with add_display_item(item, column, line, layout_id)
+
+# 3. BULK_DATA - Pre-loaded JSON (most efficient for large datasets)
+bulk_data = [
+    {"User": "Alice", "Department": "Engineering", "Status": "Active"},
+    {"User": "Bob", "Department": "Marketing", "Status": "Active"}
+]
+layout = DisplayerLayout(
+    Layouts.TABLE,
+    columns=["User", "Department", "Status"],
+    datatable_config={
+        "table_id": "bulk_demo",
+        "mode": TableMode.BULK_DATA,
+        "data": bulk_data,
+        "columns": [
+            {"data": "User"},
+            {"data": "Department"}, 
+            {"data": "Status"}
+        ],
+        "searchable_columns": [1, 2]  # Search panes on columns 1 & 2
+    }
+)
+
+# 4. SERVER_SIDE - AJAX endpoint (for dynamic/real-time data)
+layout = DisplayerLayout(
+    Layouts.TABLE,
+    columns=["Name", "Status"],
+    datatable_config={
+        "table_id": "ajax_demo",
+        "mode": TableMode.SERVER_SIDE,
+        "api_endpoint": "api.get_users",  # Flask route name
+        "columns": [{"data": "Name"}, {"data": "Status"}],
+        "refresh_interval": 3000  # Auto-refresh every 3s
+    }
+)
+
+# OLD API (deprecated - shows warning)
+layout = DisplayerLayout(
+    Layouts.TABLE,
+    columns=["Name"],
+    responsive={"table1": {"type": "advanced", ...}}
+)'''
+    
+    disp.add_display_item(displayer.DisplayerItemText(f"<pre><code>{code_example}</code></pre>"), 0)
+    
+    return render_template("base_content.j2", content=disp.display())

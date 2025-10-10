@@ -24,6 +24,7 @@ from .core import (
     ResourceRegistry,
     DisplayerCategory,
     Layouts,
+    TableMode,
     DisplayerItems,
     BSstyle,
     BSalign,

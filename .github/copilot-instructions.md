@@ -82,7 +82,7 @@ disp.add_master_layout(DisplayerLayout(Layouts.TABS, ["Config", "Logs", "Debug"]
 ```python
 from src.modules.displayer import (
     DisplayerItemText, DisplayerItemButton, DisplayerItemInputText,
-    DisplayerItemInputDropdown, DisplayerItemImage
+    DisplayerItemInputDropdown, DisplayerItemImage, TableMode
 )
 
 # Add to specific column (VERTICAL layouts)
@@ -92,6 +92,83 @@ disp.add_display_item(DisplayerItemButton("btn_save", "Save"), column=1)
 # Add to specific section (HORIZONTAL/TABLE/TABS)
 disp.add_display_item(DisplayerItemInputText("username", "Username"), column=0)
 ```
+
+### TABLE Layout Modes
+
+**NEW API (Recommended)**: Use `datatable_config` with `TableMode` enum
+
+```python
+# Simple HTML table (no JavaScript)
+disp.add_master_layout(DisplayerLayout(
+    Layouts.TABLE,
+    columns=["Name", "Status", "Actions"]
+    # No datatable_config = plain HTML
+))
+
+# Interactive DataTable (manual item population - flexible)
+disp.add_master_layout(DisplayerLayout(
+    Layouts.TABLE,
+    columns=["Name", "Status", "Actions"],
+    datatable_config={
+        "table_id": "users",
+        "mode": TableMode.INTERACTIVE,  # Use TableMode enum
+        "searchable_columns": [0, 1]    # Enable search panes on Name, Status
+    }
+))
+
+# Bulk Data DataTable (pre-loaded JSON - most efficient)
+disp.add_master_layout(DisplayerLayout(
+    Layouts.TABLE,
+    columns=["Name", "Email", "Status"],
+    datatable_config={
+        "table_id": "bulk_users",
+        "mode": TableMode.BULK_DATA,  # Efficient for large datasets
+        "data": [
+            {"Name": "Alice", "Email": "alice@ex.com", "Status": "Active"},
+            {"Name": "Bob", "Email": "bob@ex.com", "Status": "Inactive"}
+        ],
+        "columns": [{"data": "Name"}, {"data": "Email"}, {"data": "Status"}],
+        "searchable_columns": [0, 1]  # Optional: columns with search panes
+    }
+))
+
+# Server-Side DataTable (AJAX endpoint)
+disp.add_master_layout(DisplayerLayout(
+    Layouts.TABLE,
+    columns=["Name", "Email", "Status"],
+    datatable_config={
+        "table_id": "ajax_users",
+        "mode": TableMode.SERVER_SIDE,
+        "api_endpoint": "api.get_users",
+        "refresh_interval": 3000,  # Auto-refresh every 3s
+        "columns": [{"data": "Name"}, {"data": "Email"}, {"data": "Status"}]
+    }
+))
+```
+
+**OLD API (Deprecated, will be removed in v2.0)**: `responsive` parameter
+
+```python
+# Still works but shows deprecation warning
+disp.add_master_layout(DisplayerLayout(
+    Layouts.TABLE,
+    columns=["Name", "Status"],
+    responsive={
+        "table1": {
+            "type": "advanced",  # OLD: "basic", "advanced", "ajax"
+            "columns": [0, 1],
+            "ajax_columns": [{"data": "Name"}, {"data": "Status"}],
+            "data": [...]
+        }
+    }
+))
+```
+
+**TableMode Enum Values**:
+- `TableMode.SIMPLE` - Plain HTML table (no DataTables JS)
+- `TableMode.INTERACTIVE` - DataTables with manual row population (flexible)
+- `TableMode.BULK_DATA` - DataTables with pre-loaded data (efficient for 100s-1000s of rows)
+- `TableMode.SERVER_SIDE` - DataTables with AJAX endpoint (for dynamic data)
 
 ### Complete Page Example
 ```python

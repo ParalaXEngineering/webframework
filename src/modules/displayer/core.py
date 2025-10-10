@@ -247,6 +247,21 @@ class Layouts(Enum):
     TABS = "TABS"
 
 
+class TableMode(Enum):
+    """
+    DataTable rendering modes for TABLE layouts.
+    
+    - SIMPLE: Plain HTML table without DataTables JavaScript
+    - INTERACTIVE: DataTables with manual row population via DisplayerItems
+    - BULK_DATA: DataTables with pre-loaded JSON data (most efficient for large datasets)
+    - SERVER_SIDE: DataTables with AJAX endpoint for server-side data loading
+    """
+    SIMPLE = "simple"
+    INTERACTIVE = "interactive"
+    BULK_DATA = "bulk_data"
+    SERVER_SIDE = "server_side"
+
+
 class DisplayerItems(Enum):
     """Registry of all available displayer item types."""
     TEXT = "TEXT"

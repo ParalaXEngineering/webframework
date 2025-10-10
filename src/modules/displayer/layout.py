@@ -5,9 +5,10 @@ This module contains the DisplayerLayout class which defines how items
 are arranged on the page (vertical, horizontal, table, tabs, spacer).
 """
 
+import warnings
 from typing import Optional, List, Dict, Any
 
-from .core import Layouts, BSalign, BSstyle, MAZERStyles, ResourceRegistry
+from .core import Layouts, TableMode, BSalign, BSstyle, MAZERStyles, ResourceRegistry
 
 
 class DisplayerLayout:
@@ -40,6 +41,7 @@ class DisplayerLayout:
         height: int = 0,
         background: Optional[BSstyle] = None,
         responsive: Optional[Dict[str, Any]] = None,
+        datatable_config: Optional[Dict[str, Any]] = None,
         userid: Optional[str] = None,
         style: Optional[MAZERStyles] = None
     ) -> None:
@@ -54,8 +56,9 @@ class DisplayerLayout:
             spacing: Bootstrap spacing format {property}{sides}-{size}, or int for py-{size}
             height: Height value for the layout (default line height)
             background: Background color/style (BSstyle enum)
-            responsive: DataTables configuration dict for responsive tables.
-                Format: {"tableName": {"type": "simple/advanced", "columns": [...]}}
+            responsive: DEPRECATED - Use datatable_config instead
+            datatable_config: DataTable configuration dict.
+                Format: {"table_id": "myTable", "mode": TableMode.BULK_DATA, "data": [...], ...}
             userid: Custom ID for form analysis
             style: Custom style override (MAZERStyles enum)
             
@@ -69,11 +72,16 @@ class DisplayerLayout:
             ...     background=BSstyle.LIGHT
             ... )
             
-            >>> # Responsive table layout
+            >>> # New DataTable API
             >>> layout = DisplayerLayout(
             ...     layoutType=Layouts.TABLE,
             ...     columns=["Name", "Email", "Status"],
-            ...     responsive={"userTable": {"type": "advanced", "columns": [0, 1, 2]}}
+            ...     datatable_config={
+            ...         "table_id": "users",
+            ...         "mode": TableMode.BULK_DATA,
+            ...         "data": [{"Name": "Alice", "Email": "a@ex.com", "Status": "Active"}],
+            ...         "searchable_columns": [0, 1]
+            ...     }
             ... )
         """
         self.m_type = layoutType.value
@@ -82,12 +90,32 @@ class DisplayerLayout:
         self.m_alignement = alignment
         self.m_height = height
         self.m_background = background
-        self.m_responsive = responsive
         self.m_userid = userid
         self.m_style = style
         
         # Instance-specific layout metadata storage (replaces class variable g_all_layout)
         self.m_all_layout = {}
+        
+        # Handle backward compatibility: responsive -> datatable_config
+        if responsive is not None and datatable_config is not None:
+            raise ValueError("Cannot specify both 'responsive' and 'datatable_config'. Use 'datatable_config' only.")
+        
+        if responsive is not None:
+            warnings.warn(
+                "Parameter 'responsive' is deprecated and will be removed in v2.0. "
+                "Use 'datatable_config' instead with TableMode enum.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+            # Keep old format as-is for backward compatibility
+            self.m_datatable_config = None
+            self.m_responsive = responsive
+        elif datatable_config is not None:
+            self.m_datatable_config = datatable_config
+            self.m_responsive = None
+        else:
+            self.m_datatable_config = None
+            self.m_responsive = None
         
         # Convert integer spacing to py-{spacing} format
         if isinstance(spacing, int):
@@ -96,7 +124,50 @@ class DisplayerLayout:
             else:
                 self.m_spacing = "py-5"
         else:
-            self.m_spacing = spacing 
+            self.m_spacing = spacing
+    
+    def _convert_old_responsive_format(self, responsive: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Convert old 'responsive' format to new 'datatable_config' format.
+        
+        Args:
+            responsive: Old format like {"table1": {"type": "advanced", "columns": [0,1], ...}}
+        
+        Returns:
+            New format compatible with datatable_config
+        """
+        # Get the first (and typically only) table config
+        table_id = list(responsive.keys())[0]
+        old_config = responsive[table_id]
+        
+        # Map old 'type' to new TableMode
+        type_map = {
+            "basic": TableMode.INTERACTIVE.value,
+            "advanced": TableMode.BULK_DATA.value,
+            "ajax": TableMode.SERVER_SIDE.value,
+            "simple": TableMode.SIMPLE.value
+        }
+        
+        old_type = old_config.get("type", "interactive")
+        new_mode = type_map.get(old_type, TableMode.INTERACTIVE.value)
+        
+        # Build new config
+        new_config = {
+            "table_id": table_id,
+            "mode": new_mode
+        }
+        
+        # Copy over other settings with renamed keys
+        if "columns" in old_config:
+            new_config["searchable_columns"] = old_config["columns"]
+        if "ajax_columns" in old_config:
+            new_config["columns"] = old_config["ajax_columns"]
+        if "data" in old_config:
+            new_config["data"] = old_config["data"]
+        if "api" in old_config:
+            new_config["api_endpoint"] = old_config["api"]
+        
+        return new_config
 
     def display(self, container: List[Dict[str, Any]], id: int) -> None:
         """
@@ -130,8 +201,11 @@ class DisplayerLayout:
         if self.m_type == Layouts.TABLE.value or self.m_type == Layouts.TABS.value:
             current_layout["header"] = self.m_column
             
-            # Handle responsive tables with DataTables
-            if isinstance(self.m_responsive, dict):
+            # Handle DataTables configuration (new or old format)
+            config_to_use = self.m_datatable_config if self.m_datatable_config else None
+            
+            # Also support old m_responsive format for backward compatibility
+            if config_to_use is None and isinstance(self.m_responsive, dict):
                 # Register DataTables resource when table has responsive enabled
                 ResourceRegistry.require('datatables')
                 
@@ -158,6 +232,43 @@ class DisplayerLayout:
                     table_dict["type"] = responsive_info.get("type", "basic")
                     # Append/update this table's addon
                     self.m_all_layout["responsive_addon"][table_id] = table_dict
+            
+            elif config_to_use is not None:
+                # New datatable_config format
+                ResourceRegistry.require('datatables')
+                
+                table_id = config_to_use.get("table_id", "table")
+                mode = config_to_use.get("mode", TableMode.INTERACTIVE.value)
+                
+                # Extract value if it's an enum
+                if hasattr(mode, 'value'):
+                    mode = mode.value
+                
+                # Set layout properties for template
+                current_layout["responsive"] = table_id
+                current_layout["responsive_type"] = mode
+                
+                # Build addon configuration for JavaScript initialization
+                if "responsive_addon" not in self.m_all_layout:
+                    self.m_all_layout["responsive_addon"] = {}
+                
+                table_dict = {
+                    "type": mode,  # Keep "type" key for template compatibility
+                }
+                
+                # Copy configuration fields
+                if "data" in config_to_use:
+                    table_dict["data"] = config_to_use["data"]
+                if "columns" in config_to_use:
+                    table_dict["ajax_columns"] = config_to_use["columns"]
+                if "searchable_columns" in config_to_use:
+                    table_dict["columns"] = config_to_use["searchable_columns"]
+                if "api_endpoint" in config_to_use:
+                    table_dict["api"] = config_to_use["api_endpoint"]
+                if "refresh_interval" in config_to_use:
+                    table_dict["refresh_interval"] = config_to_use["refresh_interval"]
+                
+                self.m_all_layout["responsive_addon"][table_id] = table_dict
 
             # For TABS, lines is a single row of cells (one per tab)
             if self.m_type == Layouts.TABS.value:

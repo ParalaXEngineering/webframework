@@ -718,6 +718,139 @@ def test_displayer_basics(test_app: Flask) -> None:
 
 
 # ---------------------------------------------------------------------------
+# TableMode Tests (NEW API)
+# ---------------------------------------------------------------------------
+
+def test_layout_table_simple(test_app: Flask) -> None:
+    """Test TABLE layout with TableMode.SIMPLE (plain HTML table)."""
+    disp = displayer.Displayer()
+    disp.add_generic("TableMode SIMPLE")
+    
+    # Simple table - no DataTables JavaScript
+    layout = displayer.DisplayerLayout(
+        displayer.Layouts.TABLE, 
+        ["Name", "Status", "Actions"],
+        subtitle="Simple HTML Table"
+    )
+    disp.add_master_layout(layout)
+    
+    # Add rows
+    disp.add_display_item(displayer.DisplayerItemText("Alice"), column=0)
+    disp.add_display_item(displayer.DisplayerItemBadge("Active", displayer.BSstyle.SUCCESS), column=1)
+    disp.add_display_item(displayer.DisplayerItemButton("btn_edit", "Edit"), column=2)
+    
+    render_result = render_item_page(test_app, disp)
+    save_html("layout_TABLE_simple.html", render_result["html"])
+    print(f"✓ TableMode.SIMPLE test passed - {TEST_OUTPUT_DIR}/layout_TABLE_simple.html")
+
+
+def test_layout_table_interactive(test_app: Flask) -> None:
+    """Test TABLE layout with TableMode.INTERACTIVE (DataTable with manual row population)."""
+    disp = displayer.Displayer()
+    disp.add_generic("TableMode INTERACTIVE")
+    
+    # Interactive DataTable - manual item population
+    layout = displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        ["Product", "Category", "Price", "Stock"],
+        subtitle="Interactive DataTable",
+        datatable_config={
+            "table_id": "products_table",
+            "mode": displayer.TableMode.INTERACTIVE,
+            "searchable_columns": [0, 1]  # Search panes on Product and Category
+        }
+    )
+    disp.add_master_layout(layout)
+    
+    # Add sample products
+    products = [
+        ("Laptop", "Electronics", "$999", "15"),
+        ("Mouse", "Electronics", "$29", "50"),
+        ("Desk", "Furniture", "$299", "8"),
+        ("Chair", "Furniture", "$199", "12"),
+    ]
+    
+    for product, category, price, stock in products:
+        disp.add_display_item(displayer.DisplayerItemText(product), column=0)
+        disp.add_display_item(displayer.DisplayerItemBadge(category, displayer.BSstyle.INFO), column=1)
+        disp.add_display_item(displayer.DisplayerItemText(price), column=2)
+        disp.add_display_item(displayer.DisplayerItemText(stock), column=3)
+    
+    render_result = render_item_page(test_app, disp)
+    save_html("layout_TABLE_interactive.html", render_result["html"])
+    print(f"✓ TableMode.INTERACTIVE test passed - {TEST_OUTPUT_DIR}/layout_TABLE_interactive.html")
+
+
+def test_layout_table_bulk_data(test_app: Flask) -> None:
+    """Test TABLE layout with TableMode.BULK_DATA (pre-loaded JSON data)."""
+    disp = displayer.Displayer()
+    disp.add_generic("TableMode BULK_DATA")
+    
+    # Bulk data table - most efficient for large datasets
+    bulk_data = [
+        {"Name": "Alice", "Email": "alice@example.com", "Role": "Admin", "Projects": 5},
+        {"Name": "Bob", "Email": "bob@example.com", "Role": "Developer", "Projects": 12},
+        {"Name": "Charlie", "Email": "charlie@example.com", "Role": "Designer", "Projects": 8},
+        {"Name": "Diana", "Email": "diana@example.com", "Role": "Manager", "Projects": 3},
+        {"Name": "Eve", "Email": "eve@example.com", "Role": "Developer", "Projects": 15},
+    ]
+    
+    layout = displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        ["Name", "Email", "Role", "Projects"],
+        subtitle="Bulk Data DataTable",
+        datatable_config={
+            "table_id": "users_bulk",
+            "mode": displayer.TableMode.BULK_DATA,
+            "data": bulk_data,
+            "columns": [
+                {"data": "Name"},
+                {"data": "Email"},
+                {"data": "Role"},
+                {"data": "Projects"}
+            ],
+            "searchable_columns": [0, 2]  # Search on Name and Role
+        }
+    )
+    disp.add_master_layout(layout)
+    
+    render_result = render_item_page(test_app, disp)
+    save_html("layout_TABLE_bulk_data.html", render_result["html"])
+    print(f"✓ TableMode.BULK_DATA test passed - {TEST_OUTPUT_DIR}/layout_TABLE_bulk_data.html")
+
+
+def test_layout_table_server_side(test_app: Flask) -> None:
+    """Test TABLE layout with TableMode.SERVER_SIDE (AJAX endpoint)."""
+    disp = displayer.Displayer()
+    disp.add_generic("TableMode SERVER_SIDE")
+    
+    # Server-side DataTable - for dynamic/real-time data
+    # NOTE: Using test endpoint - in production use your API route
+    layout = displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        ["ID", "Name", "Status", "Updated"],
+        subtitle="Server-Side DataTable",
+        datatable_config={
+            "table_id": "tasks_ajax",
+            "mode": displayer.TableMode.SERVER_SIDE,
+            "api_endpoint": "test_disp.item_page",  # Using test endpoint (in real app: "api.get_tasks")
+            "refresh_interval": 3000,  # Refresh every 3 seconds
+            "columns": [
+                {"data": "ID"},
+                {"data": "Name"},
+                {"data": "Status"},
+                {"data": "Updated"}
+            ]
+        }
+    )
+    disp.add_master_layout(layout)
+    
+    render_result = render_item_page(test_app, disp)
+    save_html("layout_TABLE_server_side.html", render_result["html"])
+    print(f"✓ TableMode.SERVER_SIDE test passed - {TEST_OUTPUT_DIR}/layout_TABLE_server_side.html")
+
+
+# ---------------------------------------------------------------------------
 # Session-level Hook: Generate Index Page After All Tests
 # ---------------------------------------------------------------------------
 
