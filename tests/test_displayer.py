@@ -160,7 +160,7 @@ def generate_index_page() -> None:
     other_files = sorted([f for f in html_files if not f.startswith("item_") and not f.startswith("layout_")])
     
     # Build Flask app with framework's base template
-    workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     template_path_framework = os.path.join(workspace_root, "templates")
     template_path_test = os.path.join(os.path.dirname(__file__), "templates")
     
@@ -226,25 +226,21 @@ def generate_index_page() -> None:
         test_name = filename.replace("displayer_", "").replace(".html", "")
         filename_map[test_name] = filename
     
-    # Extract main content from each HTML file
+    # Extract main content from each HTML file for embedding
     from bs4 import BeautifulSoup
     content_map = {}
-    
     for name, filename in filename_map.items():
         file_path = os.path.join(TEST_OUTPUT_DIR, filename)
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                html_content = f.read()
-                soup = BeautifulSoup(html_content, "html.parser")
-                
-                # Extract main content
+                soup = BeautifulSoup(f.read(), "html.parser")
+                # Find div with id="main" (not <main> tag)
                 main_content = soup.find("div", id="main")
                 if main_content:
                     # Extract the innerHTML (content inside #main, not the div itself)
                     content_map[name] = main_content.decode_contents()
                 else:
                     content_map[name] = f'<div class="alert alert-warning">No #main content found in {filename}</div>'
-                            
         except Exception as e:
             content_map[name] = f'<div class="alert alert-danger">Error loading {filename}: {str(e)}</div>'
     
@@ -305,23 +301,24 @@ def make_html_standalone(html: str) -> str:
     import re
     
     # Map Flask routes to actual file paths
+    # Path from tests/output/ to webengine/assets/ is ../../webengine/assets/
     replacements = [
         # Static vendor files
-        (r'href="/static/vendors/([^"]+)"', r'href="../../../webengine/assets/vendors/\1"'),
-        (r'src="/static/vendors/([^"]+)"', r'src="../../../webengine/assets/vendors/\1"'),
+        (r'href="/static/vendors/([^"]+)"', r'href="../../webengine/assets/vendors/\1"'),
+        (r'src="/static/vendors/([^"]+)"', r'src="../../webengine/assets/vendors/\1"'),
         
         # Static CSS
-        (r'href="/static/css/([^"]+)"', r'href="../../../webengine/assets/css/\1"'),
+        (r'href="/static/css/([^"]+)"', r'href="../../webengine/assets/css/\1"'),
         
         # Static JS
-        (r'src="/static/js/([^"]+)"', r'src="../../../webengine/assets/js/\1"'),
+        (r'src="/static/js/([^"]+)"', r'src="../../webengine/assets/js/\1"'),
         
         # Common assets (favicon, images)
-        (r'href="/common/assets/([^"]+)"', r'href="../../../webengine/assets/\1"'),
-        (r'src="/common/assets/([^"]+)"', r'src="../../../webengine/assets/\1"'),
+        (r'href="/common/assets/([^"]+)"', r'href="../../webengine/assets/\1"'),
+        (r'src="/common/assets/([^"]+)"', r'src="../../webengine/assets/\1"'),
         
         # Static fonts
-        (r'href="/static/fonts/([^"]+)"', r'href="../../../webengine/assets/fonts/\1"'),
+        (r'href="/static/fonts/([^"]+)"', r'href="../../webengine/assets/fonts/\1"'),
     ]
     
     for pattern, replacement in replacements:

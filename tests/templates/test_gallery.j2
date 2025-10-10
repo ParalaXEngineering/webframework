@@ -1,91 +1,154 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.j2" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="../webengine/assets/compiled/css/app.css">
-    <link rel="stylesheet" href="../webengine/assets/compiled/css/app-dark.css">
-    <link rel="stylesheet" href="../webengine/assets/extensions/@icon/dripicons/dripicons.css">
-    <link rel="stylesheet" href="../webengine/assets/compiled/css/iconly.css">
-    <link rel="stylesheet" href="../webengine/assets/extensions/datatables.net-bs5/css/dataTables.bootstrap5.min.css">
-    <link rel="stylesheet" href="../webengine/assets/compiled/css/table-datatable-jquery.css">
-    <style>
-        body { margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
-        #app { display: flex; min-height: 100vh; }
-        #sidebar { width: 260px; flex-shrink: 0; background: #435ebe; color: white; }
-        #main { flex: 1; padding: 2rem; background: #f2f7ff; overflow-y: auto; }
-        .sidebar-wrapper { padding: 1rem; }
-        .sidebar-header { margin-bottom: 2rem; }
-        .sidebar-header h3 { margin: 0.5rem 0; font-size: 1.5rem; }
-        .sidebar-header h6 { margin: 0; opacity: 0.8; }
-        .sidebar-menu { list-style: none; padding: 0; margin: 0; }
-        .sidebar-title { font-weight: 700; padding: 0.5rem 1rem; opacity: 0.6; font-size: 0.875rem; }
-        .sidebar-link { display: block; padding: 0.75rem 1rem; color: white; text-decoration: none; border-radius: 0.5rem; margin: 0.25rem 0; transition: background 0.2s; }
-        .sidebar-link:hover, .sidebar-link.active { background: rgba(255,255,255,0.1); }
-        .page-heading { margin-bottom: 1.5rem; }
-        .page-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; }
-        .breadcrumb { display: flex; gap: 0.5rem; font-size: 0.875rem; color: #666; }
-        .component-section { background: white; border-radius: 0.5rem; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .component-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: #435ebe; }
-        .theme-toggle { display: none; }
-    </style>
-</head>
+{% block title %}Displayer Test Gallery{% endblock %}
+{% block subtitle %}Auto-generated test components for visual inspection{% endblock %}
 
-<body>
-    <div id="app">
-        <div id="sidebar">
-            <div class="sidebar-wrapper">
-                <div class="sidebar-header">
-                    <h3>{{ app["name"] }}</h3>
-                    <h6>v{{ app["version"] }}</h6>
-                </div>
-                
-                <div class="sidebar-menu">
-                    {% for item in sidebarItems %}
-                        {% if item.get("isTitle") %}
-                            <div class="sidebar-title">{{ item["name"] }}</div>
-                        {% else %}
-                            <a href="#item-{{ item['name']|replace(' ', '-')|replace('_', '-')|lower }}" class="sidebar-link">
-                                <i class="{{ item.get('icon', 'mdi-circle') }}"></i>
-                                <span>{{ item["name"] }}</span>
-                            </a>
-                        {% endif %}
-                    {% endfor %}
-                </div>
+{% block styles %}
+<style>
+/* Fix sidebar scrolling */
+#sidebar .sidebar-wrapper {
+    overflow-y: auto !important;
+    max-height: 100vh;
+}
+
+/* Preview container styling */
+#preview-container {
+    min-height: 400px;
+}
+
+#content-display {
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+}
+</style>
+{% endblock %}
+
+{% block main_page %}
+<section class="section">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">
+                <i class="mdi mdi-eye"></i> Test Preview: <span id="current-file-title">Select a component</span>
+            </h4>
+            <div>
+                <button class="btn btn-sm btn-outline-primary" onclick="openInNewTab()">
+                    <i class="mdi mdi-open-in-new"></i> Open Full Page
+                </button>
             </div>
         </div>
-        
-        <div id="main">
-            <div class="page-heading">
-                <h3 class="page-title">Displayer Component Gallery</h3>
-                <div class="breadcrumb">
-                    <span>Test Gallery</span>
-                    <span>→</span>
-                    <span>All Components</span>
-                </div>
-            </div>
-            
-            <div class="page-content">
-                {% for filename, content in content_map.items() %}
-                    {% set clean_name = filename_map.get(filename, filename).replace('.html', '').replace('item_', '').replace('layout_', '').replace('displayer_', '') %}
-                    <div class="component-section" id="item-{{ clean_name|replace(' ', '-')|replace('_', '-')|lower }}">
-                        <h4 class="component-title">{{ clean_name }}</h4>
-                        {{ content|safe }}
-                    </div>
-                {% endfor %}
+        <div class="card-body">
+            <div id="content-display" style="display: none;">
+                <!-- Test content will be injected here from embedded content_map -->
             </div>
         </div>
     </div>
-    
-    <script src="../webengine/assets/static/js/components/dark.js"></script>
-    <script src="../webengine/assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js"></script>
-    <script src="../webengine/assets/compiled/js/app.js"></script>
-    <script src="../webengine/assets/extensions/jquery/jquery.min.js"></script>
-    <script src="../webengine/assets/extensions/datatables.net/js/jquery.dataTables.min.js"></script>
-    <script src="../webengine/assets/extensions/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
-    <script src="../webengine/assets/static/js/pages/datatables.js"></script>
-</body>
+</section>
 
-</html>
+<script>
+// Content and filename mapping embedded from Python
+const contentMap = {{ content_map | tojson }};
+const filenameMap = {{ filename_map | tojson }};
+
+let currentComponentName = null;
+
+// Load preview content directly (no iframe, no fetch - content is embedded!)
+function loadPreview(componentName) {
+    console.log('Gallery: loadPreview called with:', componentName);
+    
+    if (!componentName) {
+        const hash = window.location.hash.substring(1);
+        componentName = hash || null;
+        console.log('Gallery: Extracted component from hash:', componentName);
+    }
+    
+    if (componentName && contentMap[componentName]) {
+        currentComponentName = componentName;
+        const contentDisplay = document.getElementById('content-display');
+        const currentFileTitle = document.getElementById('current-file-title');
+        
+        console.log('Gallery: Loading embedded content for:', componentName);
+        
+        // Inject the pre-extracted content
+        contentDisplay.innerHTML = contentMap[componentName];
+        
+        // Show content
+        contentDisplay.style.display = 'block';
+        
+        // Update title
+        currentFileTitle.textContent = componentName;
+        
+        // Update hash
+        window.location.hash = componentName;
+        console.log('Gallery: Content loaded successfully');
+    } else {
+        console.warn('Gallery: No content found for:', componentName);
+    }
+}
+
+// Open current component's full HTML file in new tab
+function openInNewTab() {
+    if (currentComponentName && filenameMap[currentComponentName]) {
+        window.open(filenameMap[currentComponentName], '_blank');
+    }
+}
+
+// Override sidebar link behavior for gallery
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Gallery: DOM loaded, setting up sidebar navigation');
+    console.log('Gallery: contentMap has', Object.keys(contentMap).length, 'components');
+    
+    // Add a small delay to ensure framework's sidebar JS is done
+    setTimeout(function() {
+        // Find all sidebar links
+        const sidebarLinks = document.querySelectorAll('.sidebar-item a');
+        console.log('Gallery: Found', sidebarLinks.length, 'sidebar links');
+        
+        sidebarLinks.forEach((link, index) => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Extract component name from link text
+                const span = this.querySelector('span');
+                if (!span) {
+                    console.warn('Gallery: No span found in link', this);
+                    return;
+                }
+                
+                const componentName = span.textContent.trim();
+                
+                console.log('Gallery: Clicked', componentName);
+                
+                if (contentMap[componentName]) {
+                    // Load preview using component name directly
+                    loadPreview(componentName);
+                    
+                    // Update active state
+                    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                    this.closest('.sidebar-item').classList.add('active');
+                } else {
+                    console.error('Gallery: No content found for', componentName);
+                }
+            });
+        });
+        
+        // Auto-load first item if no hash
+        if (!window.location.hash) {
+            const firstItem = document.querySelector('.sidebar-item a');
+            if (firstItem) {
+                console.log('Gallery: Auto-clicking first item');
+                firstItem.click();
+            }
+        } else {
+            // Load from hash
+            console.log('Gallery: Loading from hash:', window.location.hash);
+            loadPreview();
+        }
+    }, 100); // Small delay to let framework initialize
+});
+
+// Listen for hash changes
+window.addEventListener('hashchange', () => loadPreview());
+</script>
+{% endblock %}
