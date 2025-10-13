@@ -16,8 +16,9 @@ from src.modules.auth.auth_manager import auth_manager
 from src.modules.auth.auth_utils import validate_username, validate_password_strength
 from src.modules.auth.permission_registry import permission_registry
 from src.modules import utilities
+from src.modules.logger_factory import get_logger
 
-
+logger = get_logger("admin_auth")
 admin_auth_bp = Blueprint('admin_auth', __name__, url_prefix='/admin')
 
 
@@ -289,26 +290,45 @@ def manage_permissions():
             
             # Save permissions
             if "btn_save_permissions" in module_data:
-                # Parse checkbox format: checkbox_{module}_{group}_{action}
+                # Debug: print what we received
+                logger.info(f"Received form data for permission save:")
                 for key, value in module_data.items():
                     if key.startswith("checkbox_"):
-                        parts = key.split("_", 3)
-                        if len(parts) == 4:
-                            _, module_name, group, action = parts
+                        logger.info(f"  {key} = {value} (type: {type(value)})")
+                
+                # First, get all modules and groups to rebuild permissions from scratch
+                all_modules = permission_registry.get_all_modules()
+                all_groups = auth_manager.get_all_groups()
+                
+                # Build new permissions from form data
+                new_permissions = {}
+                for module_name in all_modules:
+                    new_permissions[module_name] = {group: [] for group in all_groups}
+                
+                # Parse checkbox format: checkbox_{module}|{group}|{action}
+                # Using | separator to avoid conflicts with underscores in module/group/action names
+                # Only checked boxes appear in POST data
+                for key, value in module_data.items():
+                    if key.startswith("checkbox_"):
+                        # Remove "checkbox_" prefix and split by |
+                        checkbox_data = key[9:]  # Remove "checkbox_" prefix
+                        parts = checkbox_data.split("|")
+                        if len(parts) == 3:
+                            module_name, group, action = parts
                             
-                            # Get current permissions for module/group
-                            current_perms = auth_manager.get_module_permissions(module_name)
-                            if group not in current_perms:
-                                current_perms[group] = []
+                            # Check if checkbox is checked (value could be "on", "true", "1", or True)
+                            is_checked = str(value) in ["on", "true", "True", "1"] or value in [True, 1]
                             
-                            # Add or remove action
-                            if value == "on" and action not in current_perms[group]:
-                                current_perms[group].append(action)
-                            elif value != "on" and action in current_perms[group]:
-                                current_perms[group].remove(action)
+                            logger.info(f"Processing {module_name}.{group}.{action}: value={value}, is_checked={is_checked}")
                             
-                            # Save updated permissions
-                            auth_manager.set_module_permissions(module_name, group, current_perms[group])
+                            # Add this action to the new permissions if checked
+                            if is_checked and module_name in new_permissions and group in new_permissions[module_name]:
+                                new_permissions[module_name][group].append(action)
+                
+                # Apply all the new permissions
+                for module_name, group_perms in new_permissions.items():
+                    for group, actions in group_perms.items():
+                        auth_manager.set_module_permissions(module_name, group, actions)
                 
                 flash("Permissions saved successfully!", "success")
     
@@ -350,8 +370,9 @@ def manage_permissions():
             for group in all_groups:
                 # Check if group has this action
                 is_checked = action in current_perms.get(group, [])
+                # Use | as separator to avoid conflicts with underscores in names
                 checkbox = DisplayerItemInputBox(
-                    f"checkbox_{module_name}_{group}_{action}",
+                    f"checkbox_{module_name}|{group}|{action}",
                     "",
                     value=is_checked
                 )
