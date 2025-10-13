@@ -61,6 +61,13 @@ class TestSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo")
         self.add_sidebar_submenu("Complete Showcase", "demo.complete_showcase")
         
+        # Authorization demos
+        self.add_sidebar_title("Authorization Examples")
+        self.add_sidebar_section("Auth Demos", "shield-check", "auth")
+        self.add_sidebar_submenu("Accessible Page", "demo.auth_accessible", endpoint="auth")
+        self.add_sidebar_submenu("Restricted Page", "demo.auth_restricted", endpoint="auth")
+        self.add_sidebar_submenu("Admin Only", "demo.auth_admin", endpoint="auth")
+        
         # Add User Management section
         self.add_sidebar_title("User Management")
         self.add_sidebar_section("Account", "person", "user")
@@ -118,9 +125,9 @@ auth_module.auth_manager = auth_manager_instance
 socketio = setup_app(app)
 
 # Register demo pages blueprint
-from demo_pages import demo_bp
+from demo_support.demo_pages import demo_bp
 app.register_blueprint(demo_bp)
-logger.info("Registered demo pages blueprint")
+logger.info("Registered demo pages blueprint (includes authorization demos)")
 
 # Register user profile and admin blueprints
 from website.pages.user_profile_bp import user_profile_bp
@@ -133,6 +140,8 @@ logger.info("Registered auth management blueprints")
 from src.modules.auth.permission_registry import permission_registry
 permission_registry.register_module("DEV_example", ["execute", "configure"])
 permission_registry.register_module("Demo Layouts", [])
+permission_registry.register_module("Protected Demo", ["read", "write"])
+permission_registry.register_module("Readonly Demo", ["read", "write", "delete", "execute"])
 logger.info("Registered module permissions")
 
 if __name__ == "__main__":
@@ -145,6 +154,13 @@ if __name__ == "__main__":
     print("  Default Credentials:")
     print("  - Admin: username='admin', password='admin'")
     print("  - Guest: username='GUEST', password='' (passwordless)")
+    print("  ")
+    print("  Demo Features:")
+    print("  - Component showcase (layouts, inputs, tables, etc.)")
+    print("  - Authorization demos in Demo Gallery:")
+    print("    • Accessible Page (anyone can view)")
+    print("    • Restricted Page (requires permission)")
+    print("    • Admin Only (requires admin role)")
     print("  ")
     print("  Press CTRL+C to stop the server")
     print("=" * 60)

@@ -123,6 +123,38 @@ def index():
         footer_buttons=[{"id": "btn_logs", "text": "View Logs", "style": "primary"}]
     ), 3)
     
+    # Gallery - Row 3: Authorization
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [4, 4, 4]
+    ))
+    
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_auth_accessible",
+        title="Accessible Page",
+        icon="mdi-check-circle",
+        header_color=displayer.BSstyle.SUCCESS,
+        body="A page any logged-in user can access (no special permissions)",
+        footer_buttons=[{"id": "btn_auth_accessible", "text": "Try It", "style": "success"}]
+    ), 0)
+    
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_auth_restricted",
+        title="Restricted Page",
+        icon="mdi-lock",
+        header_color=displayer.BSstyle.WARNING,
+        body="Requires 'read' permission in 'Protected Demo' module",
+        footer_buttons=[{"id": "btn_auth_restricted", "text": "Try It", "style": "warning"}]
+    ), 1)
+    
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="card_auth_admin",
+        title="Admin Only",
+        icon="mdi-shield-crown",
+        header_color=displayer.BSstyle.ERROR,
+        body="Only users in 'admin' group can access this page",
+        footer_buttons=[{"id": "btn_auth_admin", "text": "Try It", "style": "danger"}]
+    ), 2)
+    
     # Complete showcase button
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12]
@@ -160,6 +192,12 @@ def index():
             elif "btn_logs" in module_data:
                 from flask import redirect, url_for
                 return redirect(url_for('logging.index'))
+            elif "btn_auth_accessible" in module_data:
+                return redirect(url_for('demo.auth_accessible'))
+            elif "btn_auth_restricted" in module_data:
+                return redirect(url_for('demo.auth_restricted'))
+            elif "btn_auth_admin" in module_data:
+                return redirect(url_for('demo.auth_admin'))
     
     return render_template("base_content.j2", content=disp.display())
 
@@ -868,5 +906,177 @@ layout = DisplayerLayout(
 )'''
     
     disp.add_display_item(displayer.DisplayerItemText(f"<pre><code>{code_example}</code></pre>"), 0)
+    
+    return render_template("base_content.j2", content=disp.display())
+
+
+# ============================================================================
+# AUTHORIZATION DEMOS
+# ============================================================================
+
+@demo_bp.route('/auth/accessible')
+@require_login
+def auth_accessible():
+    """A page anyone logged in can access."""
+    from src.modules.auth.auth_manager import auth_manager
+    
+    username = session.get('username')
+    user = auth_manager.get_user(username)
+    
+    disp = displayer.Displayer()
+    disp.add_generic("Accessible Page")
+    disp.set_title("Public Demo Page")
+    
+    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Accessible Page", "demo.auth_accessible", [])
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        f"<h4>✓ Welcome {username}!</h4>"
+        "<p>This page is accessible to any logged-in user.</p>"
+        "<p><strong>No special permissions required.</strong></p>",
+        displayer.BSstyle.SUCCESS
+    ), 0)
+    
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<h5>Your Account Info:</h5>"
+        f"<ul>"
+        f"<li><strong>Username:</strong> {user.username}</li>"
+        f"<li><strong>Groups:</strong> {', '.join(user.groups) if user.groups else 'None'}</li>"
+        f"<li><strong>Is Admin:</strong> {'Yes' if 'admin' in user.groups else 'No'}</li>"
+        f"</ul>"
+    ), 0)
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_home", "Back to Demos", "mdi-home", url_for('demo.index'), [], displayer.BSstyle.SECONDARY
+    ), 0)
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_restricted", "Try Restricted Page", "mdi-lock", url_for('demo.auth_restricted'), [], displayer.BSstyle.WARNING
+    ), 1)
+    
+    return render_template("base_content.j2", content=disp.display())
+
+
+@demo_bp.route('/auth/restricted')
+@require_login
+def auth_restricted():
+    """A page that requires specific permission."""
+    from src.modules.auth.auth_manager import auth_manager
+    
+    username = session.get('username')
+    
+    # Check if user has permission
+    has_permission = auth_manager.has_permission(username, 'Protected Demo', 'read')
+    
+    disp = displayer.Displayer()
+    disp.add_generic("Restricted Page")
+    disp.set_title("Protected Demo Page")
+    
+    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Restricted Page", "demo.auth_restricted", [])
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    
+    if has_permission:
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>🔓 Access Granted!</h4>"
+            f"<p>Welcome {username}! You have the required permission.</p>"
+            "<p><strong>Required:</strong> 'read' permission in 'Protected Demo' module</p>",
+            displayer.BSstyle.SUCCESS
+        ), 0)
+        
+        disp.add_display_item(displayer.DisplayerItemText(
+            "<h5>Protected Content:</h5>"
+            "<p>This is secret information only visible to authorized users!</p>"
+            "<ul>"
+            "<li>Sensitive data 1</li>"
+            "<li>Sensitive data 2</li>"
+            "<li>Sensitive data 3</li>"
+            "</ul>"
+        ), 0)
+    else:
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>🔒 Access Denied</h4>"
+            f"<p>Sorry {username}, you don't have permission to view this page.</p>"
+            "<p><strong>Required:</strong> 'read' permission in 'Protected Demo' module</p>"
+            "<p><em>Ask an administrator to grant you access.</em></p>",
+            displayer.BSstyle.ERROR
+        ), 0)
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_home", "Back to Demos", "mdi-home", url_for('demo.index'), [], displayer.BSstyle.SECONDARY
+    ), 0)
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_admin", "Try Admin Page", "mdi-shield-crown", url_for('demo.auth_admin'), [], displayer.BSstyle.ERROR
+    ), 1)
+    
+    return render_template("base_content.j2", content=disp.display())
+
+
+@demo_bp.route('/auth/admin')
+@require_login
+def auth_admin():
+    """A page that requires admin role."""
+    from src.modules.auth.auth_manager import auth_manager
+    
+    username = session.get('username')
+    user = auth_manager.get_user(username)
+    
+    # Check if user is admin
+    is_admin = 'admin' in user.groups
+    
+    disp = displayer.Displayer()
+    disp.add_generic("Admin Page")
+    disp.set_title("Administrator Only")
+    
+    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Admin Page", "demo.auth_admin", [])
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    
+    if is_admin:
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>👑 Admin Access Granted!</h4>"
+            f"<p>Welcome {username}! You have administrator privileges.</p>"
+            "<p><strong>Required:</strong> 'admin' group membership</p>",
+            displayer.BSstyle.SUCCESS
+        ), 0)
+        
+        # Show all users
+        all_users = auth_manager.get_all_users()
+        
+        disp.add_display_item(displayer.DisplayerItemText(
+            f"<h5>System Users ({len(all_users)}):</h5>"
+        ), 0)
+        
+        table_layout = disp.add_master_layout(displayer.DisplayerLayout(
+            displayer.Layouts.TABLE,
+            ["Username", "Groups", "Last Login"]
+        ))
+        
+        for u in all_users:
+            disp.add_display_item(displayer.DisplayerItemText(u.username), 0, layout_id=table_layout)
+            
+            groups_text = ', '.join(u.groups) if u.groups else 'None'
+            disp.add_display_item(displayer.DisplayerItemText(groups_text), 1, layout_id=table_layout)
+            disp.add_display_item(displayer.DisplayerItemText(u.last_login or 'Never'), 2, layout_id=table_layout)
+    else:
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>⛔ Admin Access Required</h4>"
+            f"<p>Sorry {username}, this page is for administrators only.</p>"
+            "<p><strong>Required:</strong> 'admin' group membership</p>"
+            "<p><em>You need to be in the 'admin' group to access this page.</em></p>",
+            displayer.BSstyle.ERROR
+        ), 0)
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_home", "Back to Demos", "mdi-home", url_for('demo.index'), [], displayer.BSstyle.SECONDARY
+    ), 0)
+    disp.add_display_item(displayer.DisplayerItemButtonLink(
+        "btn_accessible", "Back to Accessible Page", "mdi-check", url_for('demo.auth_accessible'), [], displayer.BSstyle.SUCCESS
+    ), 1)
     
     return render_template("base_content.j2", content=disp.display())
