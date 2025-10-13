@@ -93,15 +93,17 @@ def login():
                 username = data_in.get("user", "")
                 password = data_in.get("password", "")
                 
-                if new_auth_manager.verify_login(username, password):
+                # Use check_login_attempt for security features (lockout, attempt tracking)
+                success, error_message = new_auth_manager.check_login_attempt(username, password)
+                
+                if success:
                     # Set old auth object for compatibility FIRST
                     if access_manager.auth_object:
                         access_manager.auth_object.set_user(username, True)
                     # Then set new session (this takes priority)
                     new_auth_manager.set_current_user(username)
                     return redirect("/")
-                else:
-                    error_message = "Invalid username or password"
+                # else: error_message is already set by check_login_attempt
             
             return render_template("login.j2", target="common.login", users=users, message=error_message)
     except ImportError:

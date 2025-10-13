@@ -49,7 +49,7 @@ def threads():
                 if hasattr(thread, 'stop'):
                     thread.stop()
                 manager.del_thread(thread)
-                disp.add_alert("✓ Force killed thread: {}".format(thread_name), displayer.BSstyle.DANGER)
+                disp.add_alert("✓ Force killed thread: {}".format(thread_name), displayer.BSstyle.ERROR)
             else:
                 disp.add_alert("✗ Thread not found: {}".format(thread_name), displayer.BSstyle.ERROR)
     

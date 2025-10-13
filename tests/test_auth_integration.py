@@ -425,6 +425,135 @@ class TestAuthIntegration:
         client.post('/login', data={'user': 'testadmin', 'password': 'admin123'})
         response = client.get('/admin/users')
         assert response.status_code == 200
+    
+    def test_check_login_attempt_successful(self, auth_manager_instance):
+        """Test successful login with check_login_attempt."""
+        manager = auth_manager_instance
+        manager.create_user("testuser", "correct_password", ["users"])
+        
+        success, error_msg = manager.check_login_attempt("testuser", "correct_password")
+        
+        assert success is True
+        assert error_msg is None
+        
+        # Failed attempts should be reset
+        remaining = manager.failed_login_manager.get_remaining_attempts("testuser")
+        assert remaining == 5
+    
+    def test_check_login_attempt_wrong_password(self, auth_manager_instance):
+        """Test failed login increments attempt counter."""
+        manager = auth_manager_instance
+        manager.create_user("testuser", "correct_password", ["users"])
+        
+        success, error_msg = manager.check_login_attempt("testuser", "wrong_password")
+        
+        assert success is False
+        assert "Bad password" in error_msg
+        assert "4 attempts remaining" in error_msg
+        
+        # Verify attempt was recorded
+        status = manager.failed_login_manager.get_user_status("testuser")
+        assert status['count'] == 1
+    
+    def test_check_login_attempt_lockout_after_5_failures(self, auth_manager_instance):
+        """Test account locks after 5 failed attempts."""
+        manager = auth_manager_instance
+        manager.create_user("testuser", "correct_password", ["users"])
+        
+        # Make 5 failed attempts
+        for i in range(5):
+            success, error_msg = manager.check_login_attempt("testuser", "wrong_password")
+            assert success is False
+            
+            if i < 4:
+                # First 4 attempts show remaining count
+                assert "attempts remaining" in error_msg
+            else:
+                # 5th attempt locks the account
+                assert "Account locked" in error_msg or "Too many failed attempts" in error_msg
+        
+        # Account should be locked
+        is_locked, _ = manager.failed_login_manager.is_locked("testuser")
+        assert is_locked
+    
+    def test_check_login_attempt_cannot_login_while_locked(self, auth_manager_instance):
+        """Test cannot login while account is locked."""
+        manager = auth_manager_instance
+        manager.create_user("testuser", "correct_password", ["users"])
+        
+        # Lock the account
+        for _ in range(5):
+            manager.check_login_attempt("testuser", "wrong_password")
+        
+        # Try to login with CORRECT password while locked
+        success, error_msg = manager.check_login_attempt("testuser", "correct_password")
+        
+        assert success is False
+        assert "Account locked" in error_msg
+        assert "Try again in" in error_msg
+    
+    def test_check_login_attempt_user_not_exists(self, auth_manager_instance):
+        """Test login attempt for non-existent user."""
+        manager = auth_manager_instance
+        
+        success, error_msg = manager.check_login_attempt("nonexistent", "anypassword")
+        
+        assert success is False
+        assert "User does not exist" in error_msg
+    
+    def test_check_login_attempt_passwordless_user(self, auth_manager_instance):
+        """Test passwordless users can always login."""
+        manager = auth_manager_instance
+        manager.create_user("guestuser", "", ["guest"])  # Empty password
+        
+        # Should login successfully
+        success, error_msg = manager.check_login_attempt("guestuser", "")
+        
+        assert success is True
+        assert error_msg is None
+        
+        # Even with any password (passwordless users don't check)
+        success2, error_msg2 = manager.check_login_attempt("guestuser", "anypassword")
+        assert success2 is True
+        assert error_msg2 is None
+    
+    def test_check_login_attempt_resets_on_success(self, auth_manager_instance):
+        """Test successful login resets failed attempt counter."""
+        manager = auth_manager_instance
+        manager.create_user("testuser", "correct_password", ["users"])
+        
+        # Make 3 failed attempts
+        for _ in range(3):
+            manager.check_login_attempt("testuser", "wrong_password")
+        
+        status = manager.failed_login_manager.get_user_status("testuser")
+        assert status['count'] == 3
+        
+        # Successful login should reset
+        success, _ = manager.check_login_attempt("testuser", "correct_password")
+        assert success is True
+        
+        status_after = manager.failed_login_manager.get_user_status("testuser")
+        assert status_after['count'] == 0
+    
+    def test_check_login_attempt_lockout_persists(self, auth_manager_instance):
+        """Test lockout state persists across reload."""
+        manager = auth_manager_instance
+        manager.create_user("testuser", "correct_password", ["users"])
+        
+        # Lock the account
+        for _ in range(5):
+            manager.check_login_attempt("testuser", "wrong_password")
+        
+        is_locked_before, _ = manager.failed_login_manager.is_locked("testuser")
+        assert is_locked_before
+        
+        # Reload manager (simulates restart)
+        manager.reload()
+        
+        # Still locked after reload
+        is_locked_after, _ = manager.failed_login_manager.is_locked("testuser")
+        assert is_locked_after
 
 
 class TestPermissionRegistry:

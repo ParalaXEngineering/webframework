@@ -10,6 +10,7 @@ from flask import session
 
 from .auth_models import User, ModulePermission
 from .auth_utils import hash_password, verify_password, get_default_user_prefs
+from .security_utils import FailedLoginManager
 
 
 class AuthManager:
@@ -36,6 +37,13 @@ class AuthManager:
         self._users: Dict[str, User] = {}
         self._permissions: Dict[str, ModulePermission] = {}
         self._groups: Set[str] = set()  # Set of group names
+        
+        # Security: Failed login attempt manager
+        self.failed_login_manager = FailedLoginManager(
+            lockout_file=str(self.auth_dir / "failed_logins.json"),
+            max_attempts=5,
+            lockout_minutes=5
+        )
         
         # Create directories if needed
         self.auth_dir.mkdir(parents=True, exist_ok=True)
@@ -349,6 +357,74 @@ class AuthManager:
             return True
         
         return False
+    
+    def check_login_attempt(self, username: str, password: str) -> tuple:
+        """
+        Check login attempt with account lockout management.
+        
+        This method combines login verification with security features:
+        - Tracks failed login attempts
+        - Locks accounts after too many failures
+        - Provides detailed error messages
+        - Resets attempts on successful login
+        
+        Args:
+            username: Username to authenticate
+            password: Plain text password
+            
+        Returns:
+            Tuple of (success: bool, error_message: str|None)
+            - (True, None) on successful login
+            - (False, "error message") on failure
+        
+        Example:
+            success, error = auth_manager.check_login_attempt("admin", "password123")
+            if success:
+                # Login successful
+                auth_manager.set_current_user("admin")
+            else:
+                # Show error message to user
+                flash(error, "danger")
+        """
+        # Check if account is currently locked
+        is_locked, locked_until = self.failed_login_manager.is_locked(username)
+        if is_locked:
+            remaining_time = self.failed_login_manager.get_lockout_time_remaining(username)
+            minutes = int(remaining_time // 60)
+            seconds = int(remaining_time % 60)
+            error_message = f"Account locked. Try again in {minutes}m {seconds}s"
+            return (False, error_message)
+        
+        # Check if user exists
+        user = self._users.get(username)
+        if not user:
+            error_message = "User does not exist"
+            return (False, error_message)
+        
+        # Check for passwordless users (always allowed)
+        if not user.password_hash or user.password_hash == "":
+            self.failed_login_manager.reset_attempts(username)
+            self.update_last_login(username)
+            return (True, None)
+        
+        # Verify password
+        if verify_password(password, user.password_hash):
+            # Successful login - reset failed attempts
+            self.failed_login_manager.reset_attempts(username)
+            self.update_last_login(username)
+            return (True, None)
+        else:
+            # Failed login attempt
+            count = self.failed_login_manager.increment_attempts(username)
+            attempts_left = self.failed_login_manager.get_remaining_attempts(username)
+            
+            if count >= 5:
+                # Account is now locked
+                error_message = "Too many failed attempts. Account locked for 5 minutes."
+            else:
+                error_message = f"Bad password ({attempts_left} attempts remaining)"
+            
+            return (False, error_message)
     
     def get_current_user(self) -> Optional[str]:
         """Get current logged-in user from session."""
