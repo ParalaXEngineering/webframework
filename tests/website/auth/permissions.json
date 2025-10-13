@@ -3,37 +3,49 @@
     "DEV_example": {
       "groups": {
         "admin": [
-          "read",
-          "write",
+          "configure",
           "delete",
-          "execute",
-          "configure"
-        ],
-        "guest": [
-          "read"
-        ],
-        "qual": [
-          "read",
-          "write",
           "execute"
         ],
-        "tecx": [
-          "read",
-          "execute"
-        ]
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
       }
     },
     "Demo Layouts": {
       "groups": {
         "admin": [],
-        "guest": [],
+        "guest": [
+          "delete",
+          "read"
+        ],
         "qual": [],
-        "tecx": []
+        "tecx": [],
+        "toto": []
       }
     },
     "DEV": {
       "groups": {
         "example": []
+      }
+    },
+    "Protected Demo": {
+      "groups": {
+        "admin": [],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Readonly Demo": {
+      "groups": {
+        "admin": [],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
       }
     }
   },

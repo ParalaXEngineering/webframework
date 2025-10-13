@@ -206,6 +206,23 @@ def index():
 @require_login
 def layouts():
     """Demonstrate different layout types."""
+    from src.modules.auth.auth_manager import auth_manager
+    
+    username = session.get('username')
+    
+    # Check permission to view layouts demo
+    if not auth_manager.has_permission(username, 'Demo_Layouts', 'view'):
+        disp = displayer.Displayer()
+        disp.add_generic("Access Denied")
+        disp.set_title("Permission Required")
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>🔒 Access Denied</h4>"
+            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Layouts' module.</p>",
+            displayer.BSstyle.ERROR
+        ), 0)
+        return render_template("base_content.j2", content=disp.display())
+    
     disp = displayer.Displayer()
     disp.add_generic("Layout Demos")
     disp.set_title("Layout Types")
@@ -257,6 +274,23 @@ def layouts():
 @require_login
 def text_display():
     """Demonstrate text and display items."""
+    from src.modules.auth.auth_manager import auth_manager
+    
+    username = session.get('username')
+    
+    # Check permission to view component demos
+    if not auth_manager.has_permission(username, 'Demo_Components', 'view'):
+        disp = displayer.Displayer()
+        disp.add_generic("Access Denied")
+        disp.set_title("Permission Required")
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>🔒 Access Denied</h4>"
+            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Components' module.</p>",
+            displayer.BSstyle.ERROR
+        ), 0)
+        return render_template("base_content.j2", content=disp.display())
+    
     disp = displayer.Displayer()
     disp.add_generic("Text & Display")
     disp.set_title("Text & Display Components")
@@ -371,6 +405,23 @@ def text_display():
 @require_login
 def inputs():
     """Demonstrate input items with form submission."""
+    from src.modules.auth.auth_manager import auth_manager
+    
+    username = session.get('username')
+    
+    # Check permission to view component demos
+    if not auth_manager.has_permission(username, 'Demo_Components', 'view'):
+        disp = displayer.Displayer()
+        disp.add_generic("Access Denied")
+        disp.set_title("Permission Required")
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>🔒 Access Denied</h4>"
+            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Components' module.</p>",
+            displayer.BSstyle.ERROR
+        ), 0)
+        return render_template("base_content.j2", content=disp.display())
+    
     if request.method == 'POST':
         data = utilities.util_post_to_json(request.form.to_dict())
         return render_template("success.j2", message=f"Form submitted! Data: {data}")
@@ -409,6 +460,23 @@ def inputs():
 @require_login
 def complete_showcase():
     """A comprehensive page showing ALL displayer features."""
+    from src.modules.auth.auth_manager import auth_manager
+    
+    username = session.get('username')
+    
+    # Check permission to view component demos
+    if not auth_manager.has_permission(username, 'Demo_Components', 'view'):
+        disp = displayer.Displayer()
+        disp.add_generic("Access Denied")
+        disp.set_title("Permission Required")
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>🔒 Access Denied</h4>"
+            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Components' module.</p>",
+            displayer.BSstyle.ERROR
+        ), 0)
+        return render_template("base_content.j2", content=disp.display())
+    
     disp = displayer.Displayer()
     disp.add_generic("Complete Showcase")
     disp.set_title("Complete Showcase")
@@ -445,8 +513,24 @@ def complete_showcase():
 @require_login
 def threading_demo():
     """Threading demo with buttons to start various thread types."""
+    from src.modules.auth.auth_manager import auth_manager
     from demo_support.demo_threaded_complete import DemoThreadedAction
     from src.modules.threaded import threaded_manager
+    
+    username = session.get('username')
+    
+    # Check permission to view threading demos
+    if not auth_manager.has_permission(username, 'Demo_Threading', 'view'):
+        disp = displayer.Displayer()
+        disp.add_generic("Access Denied")
+        disp.set_title("Permission Required")
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>🔒 Access Denied</h4>"
+            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Threading' module.</p>",
+            displayer.BSstyle.ERROR
+        ), 0)
+        return render_template("base_content.j2", content=disp.display())
     
     disp = displayer.Displayer()
     disp.add_module(DemoThreadedAction)
@@ -567,8 +651,24 @@ def threading_demo():
 @require_login
 def scheduler_demo():
     """Demonstrate scheduler functionality with threaded actions."""
+    from src.modules.auth.auth_manager import auth_manager
     from demo_support.demo_scheduler_action import DemoSchedulerAction
     from src.modules.threaded import threaded_manager
+    
+    username = session.get('username')
+    
+    # Check permission to view scheduler demos
+    if not auth_manager.has_permission(username, 'Demo_Scheduler', 'view'):
+        disp = displayer.Displayer()
+        disp.add_generic("Access Denied")
+        disp.set_title("Permission Required")
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>🔒 Access Denied</h4>"
+            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Scheduler' module.</p>",
+            displayer.BSstyle.ERROR
+        ), 0)
+        return render_template("base_content.j2", content=disp.display())
     
     # Require jQuery for SocketIO functionality in site.js
     from src.modules.displayer import ResourceRegistry
@@ -737,6 +837,23 @@ def scheduler_demo():
 @require_login
 def table_modes():
     """Showcase new TABLE layout modes with TableMode enum."""
+    from src.modules.auth.auth_manager import auth_manager
+    
+    username = session.get('username')
+    
+    # Check permission to view component demos
+    if not auth_manager.has_permission(username, 'Demo_Components', 'view'):
+        disp = displayer.Displayer()
+        disp.add_generic("Access Denied")
+        disp.set_title("Permission Required")
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>🔒 Access Denied</h4>"
+            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Components' module.</p>",
+            displayer.BSstyle.ERROR
+        ), 0)
+        return render_template("base_content.j2", content=disp.display())
+    
     disp = displayer.Displayer()
     disp.add_generic("Table Modes Showcase")
     disp.set_title("New TABLE Layout API - TableMode Examples")
@@ -966,8 +1083,8 @@ def auth_restricted():
     
     username = session.get('username')
     
-    # Check if user has permission
-    has_permission = auth_manager.has_permission(username, 'Protected Demo', 'read')
+    # Check if user has permission to view authorization demos
+    has_permission = auth_manager.has_permission(username, 'Demo_Authorization', 'view')
     
     disp = displayer.Displayer()
     disp.add_generic("Restricted Page")
@@ -982,7 +1099,7 @@ def auth_restricted():
         disp.add_display_item(displayer.DisplayerItemAlert(
             f"<h4>🔓 Access Granted!</h4>"
             f"<p>Welcome {username}! You have the required permission.</p>"
-            "<p><strong>Required:</strong> 'read' permission in 'Protected Demo' module</p>",
+            "<p><strong>Required:</strong> 'view' permission in 'Demo_Authorization' module</p>",
             displayer.BSstyle.SUCCESS
         ), 0)
         
@@ -999,7 +1116,7 @@ def auth_restricted():
         disp.add_display_item(displayer.DisplayerItemAlert(
             f"<h4>🔒 Access Denied</h4>"
             f"<p>Sorry {username}, you don't have permission to view this page.</p>"
-            "<p><strong>Required:</strong> 'read' permission in 'Protected Demo' module</p>"
+            "<p><strong>Required:</strong> 'view' permission in 'Demo_Authorization' module</p>"
             "<p><em>Ask an administrator to grant you access.</em></p>",
             displayer.BSstyle.ERROR
         ), 0)

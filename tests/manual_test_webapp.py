@@ -138,11 +138,15 @@ logger.info("Registered auth management blueprints")
 
 # Register demo module permissions
 from src.modules.auth.permission_registry import permission_registry
-permission_registry.register_module("DEV_example", ["execute", "configure"])
-permission_registry.register_module("Demo Layouts", [])
-permission_registry.register_module("Protected Demo", ["read", "write"])
-permission_registry.register_module("Readonly Demo", ["read", "write", "delete", "execute"])
-logger.info("Registered module permissions")
+
+# Register real demo modules with appropriate permissions
+permission_registry.register_module("Demo_Layouts", ["view", "edit"])
+permission_registry.register_module("Demo_Components", ["view", "edit"])
+permission_registry.register_module("Demo_Threading", ["view", "execute"])
+permission_registry.register_module("Demo_Scheduler", ["view", "execute", "configure"])
+permission_registry.register_module("Demo_Authorization", ["view"])
+
+logger.info("Registered demo module permissions")
 
 if __name__ == "__main__":
     print("=" * 60)
