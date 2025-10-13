@@ -262,7 +262,7 @@ class ThreadEmitter:
             return card_html
         
         # Build console HTML
-        console_output = console_data.get('console', [])
+        console_output = console_data.get('console_output', [])
         if console_output:
             console_html = "<div style='background:#1e1e1e; color:#d4d4d4; padding:10px; border-radius:5px; max-height:400px; overflow-y:auto; font-family:monospace;'>"
             for line in console_output[-50:]:  # Last 50 lines

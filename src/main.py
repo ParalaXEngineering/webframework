@@ -183,6 +183,11 @@ def setup_app(app):
     thread_emitter.thread_emitter_obj.start()
     logger.info("Thread emitter initialized")
 
+    # Register user_connected handler (ALWAYS needed for thread progress)
+    @socketio_obj.on("user_connected")
+    def connect():
+        scheduler.scheduler_obj.m_user_connected = True
+
     # Import site_conf (if website module exists)
     try:
         site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
@@ -191,10 +196,6 @@ def setup_app(app):
 
         # Register long term functions from the site confi
         site_conf.site_conf_obj.register_scheduler_lt_functions()
-
-        @socketio_obj.on("user_connected")
-        def connect():
-            scheduler.scheduler_obj.m_user_connected = True
 
         @socketio_obj.server.on("*")
         def catch_all(event, sid, *args):

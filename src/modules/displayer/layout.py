@@ -261,6 +261,11 @@ class DisplayerLayout:
                     table_dict["data"] = config_to_use["data"]
                 if "columns" in config_to_use:
                     table_dict["ajax_columns"] = config_to_use["columns"]
+                else:
+                    # If columns not provided, generate from table headers
+                    # This is required for DataTables initialization
+                    table_dict["ajax_columns"] = [{"data": col} for col in self.m_column]
+                    
                 if "searchable_columns" in config_to_use:
                     table_dict["columns"] = config_to_use["searchable_columns"]
                 if "api_endpoint" in config_to_use:
