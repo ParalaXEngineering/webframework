@@ -1,0 +1,98 @@
+{
+  "basic_types": {
+    "friendly": "Basic Data Types",
+    "string_example": {
+      "friendly": "String Field",
+      "type": "string",
+      "value": "Hello World"
+    },
+    "int_example": {
+      "friendly": "Integer Field",
+      "type": "int",
+      "value": 42
+    },
+    "bool_example": {
+      "friendly": "Boolean Field",
+      "type": "bool",
+      "value": false
+    },
+    "select_example": {
+      "friendly": "Select Dropdown",
+      "type": "select",
+      "value": "option3",
+      "options": [
+        "option1",
+        "option2",
+        "option3"
+      ]
+    },
+    "serial_port_example": {
+      "friendly": "Serial Port Selection",
+      "type": "serial_port",
+      "value": "COM1",
+      "options": [
+        "COM1",
+        "COM2",
+        "COM3",
+        "COM4"
+      ]
+    },
+    "icon_example": {
+      "friendly": "Icon Selector",
+      "type": "icon",
+      "value": "star-outline"
+    }
+  },
+  "complex_types": {
+    "friendly": "Complex Data Structures",
+    "key_value_pairs_example": {
+      "friendly": "Key-Value Pairs (User-Defined)",
+      "type": "key_value_pairs",
+      "value": {
+        "line1": "First line",
+        "line2": "Second line",
+        "line3": "Third line"
+      }
+    },
+    "text_list_example": {
+      "friendly": "Text List (User-Defined Items)",
+      "type": "text_list",
+      "value": [
+        "apple",
+        "banana",
+        "cherry"
+      ]
+    },
+    "multi_select_example": {
+      "friendly": "Multi-Select (Choose Multiple)",
+      "type": "multi_select",
+      "value": [
+        "red",
+        "blue",
+        "blue",
+        "red#blue#red#blue"
+      ],
+      "options": [
+        "blue",
+        "green",
+        "red",
+        "yellow"
+      ]
+    },
+    "dropdown_mapping_example": {
+      "friendly": "Dropdown Mapping (Predefined Keys + Text Values)",
+      "type": "dropdown_mapping",
+      "value": {
+        "host": "localhost",
+        "port": "8080",
+        "protocol": "https"
+      },
+      "options": [
+        "host",
+        "port",
+        "protocol",
+        "timeout"
+      ]
+    }
+  }
+}

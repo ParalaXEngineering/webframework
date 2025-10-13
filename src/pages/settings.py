@@ -66,35 +66,155 @@ def index():
     disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Settings", "settings.index", [])
     
-    # Categories overview
+    # Categories overview in a nice table
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12], subtitle="Settings Categories"
     ))
     
+    # Create simple table layout (no DataTables)
+    layout_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Category", "Description", "Settings Count", "Actions"]
+    ))
+    
     categories = manager.list_categories()
-    for category in categories:
+    for line, category in enumerate(categories):
         friendly = manager.get_category_friendly(category)
         settings = manager.get_category(category)
         count = len(settings)
         
+        # Category name with icon
+        disp.add_display_item(
+            displayer.DisplayerItemText(f"<strong>{friendly}</strong>"),
+            column=0, line=line, layout_id=layout_id
+        )
+        
+        # Description (could be enhanced with metadata from manager)
+        disp.add_display_item(
+            displayer.DisplayerItemText(f"Configuration options for {friendly.lower()}"),
+            column=1, line=line, layout_id=layout_id
+        )
+        
+        # Settings count badge
+        badge_style = displayer.BSstyle.INFO if count > 0 else displayer.BSstyle.SECONDARY
+        disp.add_display_item(
+            displayer.DisplayerItemBadge(f"{count} settings", badge_style),
+            column=2, line=line, layout_id=layout_id
+        )
+        
+        # Action buttons
+        disp.add_display_item(
+            displayer.DisplayerItemActionButtons(
+                id=f"actions_{category}",
+                view_url=f"/settings/view?category={category}",
+                edit_url=f"/settings/edit?category={category}",
+                style="icons",
+                size="sm"
+            ),
+            column=3, line=line, layout_id=layout_id
+        )
+    
+    return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_auth), target="")
+
+
+@bp.route("/view", methods=["GET"])
+def view():
+    """View settings in read-only table format."""
+    manager = get_manager()
+    category_filter = request.args.get("category")
+    
+    disp = displayer.Displayer()
+    disp.add_generic("View Settings", display=False)
+    disp.set_title("View Settings")
+    
+    # Add breadcrumbs
+    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Settings", "settings.index", [])
+    if category_filter:
+        disp.add_breadcrumb(f"View {manager.get_category_friendly(category_filter)}", "settings.view", [f"category={category_filter}"])
+    else:
+        disp.add_breadcrumb("View All Settings", "settings.view", [])
+    
+    all_settings = manager.get_all_settings()
+    
+    # Filter by category if specified
+    categories_to_show = [category_filter] if category_filter else manager.list_categories()
+    
+    for category in categories_to_show:
+        if category not in all_settings:
+            continue
+            
+        category_data = all_settings[category]
+        friendly_name = category_data.get("friendly", category)
+        
         disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [9, 3]
+            displayer.Layouts.VERTICAL, [12], subtitle=friendly_name, spacing=2
         ))
         
-        disp.add_display_item(
-            displayer.DisplayerItemText(f"<strong>{friendly}</strong><br><small>{count} settings</small>"),
-            0
-        )
-        disp.add_display_item(
-            displayer.DisplayerItemButtonLink(
-                f"edit_{category}",
-                "Edit",
-                icon="pencil",
-                link=f"/settings/edit?category={category}",
-                color=displayer.BSstyle.PRIMARY
-            ),
-            1
-        )
+        # Create simple table for this category (no DataTables)
+        layout_id = disp.add_master_layout(displayer.DisplayerLayout(
+            displayer.Layouts.TABLE,
+            columns=["Setting", "Type", "Current Value", "Actions"]
+        ))
+        
+        line = 0
+        for key, setting in category_data.items():
+            if key == "friendly" or not isinstance(setting, dict):
+                continue
+            
+            friendly = setting.get("friendly", key)
+            setting_type = setting.get("type", "string")
+            value = setting.get("value")
+            
+            # Setting name
+            disp.add_display_item(
+                displayer.DisplayerItemText(f"<strong>{friendly}</strong>"),
+                column=0, line=line, layout_id=layout_id
+            )
+            
+            # Type badge
+            type_colors = {
+                "string": displayer.BSstyle.INFO,
+                "int": displayer.BSstyle.PRIMARY,
+                "bool": displayer.BSstyle.SUCCESS,
+                "select": displayer.BSstyle.WARNING,
+                "text_list": displayer.BSstyle.SECONDARY,
+                "key_value_pairs": displayer.BSstyle.SECONDARY,
+            }
+            type_color = type_colors.get(setting_type, displayer.BSstyle.SECONDARY)
+            disp.add_display_item(
+                displayer.DisplayerItemBadge(setting_type, type_color),
+                column=1, line=line, layout_id=layout_id
+            )
+            
+            # Current value (formatted nicely)
+            if setting_type == "bool":
+                value_display = "✓ Yes" if value else "✗ No"
+            elif setting_type in ["text_list", "multi_select"]:
+                value_display = f"{len(value) if value else 0} items"
+            elif setting_type in ["key_value_pairs", "dropdown_mapping"]:
+                value_display = f"{len(value) if value else 0} entries"
+            else:
+                value_display = str(value) if value is not None else "<em>Not set</em>"
+            
+            disp.add_display_item(
+                displayer.DisplayerItemText(value_display),
+                column=2, line=line, layout_id=layout_id
+            )
+            
+            # Action buttons - edit only (no view/delete for individual settings)
+            full_key = f"{category}.{key}"
+            disp.add_display_item(
+                displayer.DisplayerItemActionButtons(
+                    id=f"actions_{category}_{key}",
+                    edit_url=f"/settings/edit?category={category}#{full_key}",
+                    style="icons",
+                    size="sm"
+                ),
+                column=3, line=line, layout_id=layout_id
+            )
+            
+            line += 1
     
     return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_auth), target="")
 

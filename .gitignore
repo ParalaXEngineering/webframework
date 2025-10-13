@@ -31,3 +31,4 @@ build/
 *.egg
 tests/core/output
 tests/output
+tests/flask_session
