@@ -165,5 +165,5 @@ if __name__ == "__main__":
     print("  Press CTRL+C to stop the server")
     print("=" * 60)
     
-    socketio.run(app, debug=True, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
+    socketio.run(app, debug=False, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
 

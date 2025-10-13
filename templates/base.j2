@@ -56,7 +56,7 @@
 <body class="theme-light" style="overflow-y: auto">
     <div id="app">                   
         <div id="sidebar" class="active">
-            <div class="sidebar-wrapper active ps ps--active-y">
+            <div class="sidebar-wrapper active">
                 <div class="sidebar-header position-relative">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="logo">
@@ -84,17 +84,26 @@
                         {% if sidebarItem.isTitle %}
                         <li class="sidebar-title">{{sidebarItem.name}}</li>
                         {% else %}
-                            <li class="sidebar-item {{ 'active' if (endpoint and page_info and ((sidebarItem.endpoint in endpoint) and (sidebarItem.cat in page_info)) ) }} {{'has-sub' if "submenu" in sidebarItem }}">
+                            {# Check if any submenu item matches current endpoint #}
+                            {% set ns = namespace(section_active=false) %}
+                            {% if "submenu" in sidebarItem %}
+                                {% for sub in sidebarItem.submenu %}
+                                    {% if endpoint and endpoint == sub.url %}
+                                        {% set ns.section_active = true %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <li class="sidebar-item {{ 'active' if ns.section_active }} {{'has-sub' if "submenu" in sidebarItem }}">
                                 <a href="{{ url_for(sidebarItem.url) if sidebarItem.url!=undefined else '#'}}" class='sidebar-link'>
                                     <i class="mdi {{ sidebarItem.icon }}"></i>
                                     <span>{{sidebarItem.name}}</span>
                                 </a>
                                 {% if "submenu" in sidebarItem %}
-                                    <ul class="submenu {{ 'active' if (endpoint and page_info and ((sidebarItem.endpoint in endpoint) and (sidebarItem.cat in page_info)) ) }}">
+                                    <ul class="submenu {{ 'active' if ns.section_active }}">
                                     {% for sub in sidebarItem.submenu %}
-                                        <li class="submenu-item {% if "subsubmenu" in sub %} has-sub {% endif %} {{ 'active' if (endpoint and page_info and ((sub.url in endpoint) and (sub.name in page_info)) ) }}">
+                                        <li class="submenu-item {% if "subsubmenu" in sub %} has-sub {% endif %} {{ 'active' if (endpoint and endpoint == sub.url) }}">
                                             {% if "." in sub.url%}
-                                                <a href="{{ url_for(sub.url) }}?{{ sub.param }}">{{ sub.name }}</a>
+                                                <a href="{{ url_for(sub.url) }}?{{ sub.param }}" class="submenu-link">{{ sub.name }}</a>
                                             {% else %}
                                                 <a href="#" class="submenu-link">{{ sub.name }}</a>
                                             {% endif %}
@@ -102,8 +111,8 @@
                                             {% if "subsubmenu" in sub %}
                                                 <ul class="submenu submenu-level-2">
                                                 {% for subsub in sub.subsubmenu %}
-                                                    <li class="submenu-link {{ 'active' if (endpoint and page_info and ((subsub.url in endpoint) and (subsub.name in page_info)) ) }}">
-                                                        <a href="{{ url_for(subsub.url) }}?{{ subsub.param }}">{{ subsub.name }}</a>
+                                                    <li class="submenu-item {{ 'active' if (endpoint and page_info and ((subsub.url in endpoint) and (subsub.name in page_info)) ) }}">
+                                                        <a href="{{ url_for(subsub.url) }}?{{ subsub.param }}" class="submenu-link">{{ subsub.name }}</a>
                                                     </li>
                                                 {% endfor %}
                                                 </ul>
@@ -120,9 +129,6 @@
                     {% endfor %}
                     </ul>
                 </div>
-
-                <div class="ps__rail-x" style="left: 0px; bottom: 0px;"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div>
-                <div class="ps__rail-y" style="top: 0px; height: 1467px; right: 0px;"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 1121px;"></div></div>
             </div>
         </div>
         
@@ -366,7 +372,6 @@
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/dark.js') }}"></script>
-    <script src="{{ url_for('static', filename= 'js/sidebar.js') }}"></script>
     {% for script in javascript %}
         <script src="{{ url_for('common.assets', asset_type="js", filename= script) }}"></script>
     {% endfor %}
