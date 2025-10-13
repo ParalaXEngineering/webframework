@@ -225,10 +225,13 @@ def setup_app(app):
         if "page_info" not in session:
             session["page_info"] = ""
 
-        if access_manager.auth_object.get_login():
+        # Try new auth system first
+        user = session.get('user')
+        
+        # Fallback to old auth system if new auth not set
+        if not user and access_manager.auth_object and access_manager.auth_object.get_login():
             user = access_manager.auth_object.get_user()
-        else:
-            user = None
+        
         return dict(
             endpoint=request.endpoint, page_info=session["page_info"], user=user
         )

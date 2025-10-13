@@ -1,0 +1,13 @@
+{
+  "theme": "light",
+  "dashboard_layout": "default",
+  "module_settings": {
+    "DEV_example": {
+      "default_serial_port": "COM3",
+      "timeout": 30
+    }
+  },
+  "notifications": {
+    "email_on_complete": true
+  }
+}

@@ -81,6 +81,9 @@ class Threaded_action:
         # Background flag
         self.m_background = False
 
+        # User preferences - NEW FEATURE
+        self.m_user_prefs = {}  # Injected by route handler
+
         # Logger initialization
         self.m_logger = None
         self._init_logger()
@@ -175,16 +178,30 @@ class Threaded_action:
                 "message": message
             }
             self._console_logs.append(log_entry)
+
+    # ============================================================================
+    # USER PREFERENCES - NEW FUNCTIONALITY
+    # ============================================================================
+
+    def get_user_pref(self, key: str, default=None):
+        """Access user preference for this module.
+        
+        User preferences are stored per-user and per-module, allowing modules
+        to remember user-specific settings like serial ports, timeouts, etc.
+        
+        Args:
+            key: Preference key to retrieve
+            default: Default value if key not found
             
-            # Also write to logger
-            if level == "ERROR":
-                self.m_logger.error(message)
-            elif level == "WARNING":
-                self.m_logger.warning(message)
-            elif level == "DEBUG":
-                self.m_logger.debug(message)
-            else:
-                self.m_logger.info(message)
+        Returns:
+            The preference value or default
+            
+        Example:
+            port = self.get_user_pref("default_serial_port", "COM1")
+            timeout = self.get_user_pref("timeout", 60)
+        """
+        module_prefs = self.m_user_prefs.get("module_settings", {}).get(self.m_default_name, {})
+        return module_prefs.get(key, default)
 
     def log_get_entries(self, lines: Optional[int] = None) -> List[Dict[str, str]]:
         """Get log entries.

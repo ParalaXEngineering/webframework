@@ -1,0 +1,51 @@
+{
+  "modules": {
+    "DEV_example": {
+      "groups": {
+        "admin": [
+          "read",
+          "write",
+          "delete",
+          "execute",
+          "configure"
+        ],
+        "guest": [
+          "read"
+        ],
+        "qual": [
+          "read",
+          "write",
+          "execute"
+        ],
+        "tecx": [
+          "read",
+          "execute"
+        ]
+      }
+    },
+    "Demo Layouts": {
+      "groups": {
+        "admin": [],
+        "guest": [],
+        "qual": [],
+        "tecx": []
+      }
+    },
+    "DEV": {
+      "groups": {
+        "example": []
+      }
+    }
+  },
+  "pages": {
+    "admin_auth.manage_users": [
+      "admin"
+    ],
+    "admin_auth.manage_permissions": [
+      "admin"
+    ],
+    "admin_auth.manage_groups": [
+      "admin"
+    ]
+  }
+}

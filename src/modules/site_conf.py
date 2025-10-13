@@ -421,5 +421,6 @@ class Site_conf:
     
     def get_statics(self, app_path) -> dict:
         """Function to store the other endpoints that must be registered by the application, for instance to serve images """
+        print(app_path)
         return {"images": os.path.join(app_path, "website", "assets", "images"), 
                 "js": os.path.join(app_path, "website", "assets", "js")}

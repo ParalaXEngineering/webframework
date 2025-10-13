@@ -15,11 +15,16 @@ import os
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 sys.path.insert(0, os.path.join(project_root, 'src'))
+sys.path.insert(0, os.path.join(project_root, 'tests'))  # Add tests to path for website module
 
 # Import framework setup
 from src.main import app, setup_app, FLASK_AVAILABLE
 from src.modules.logger_factory import get_logger
 from src.modules import site_conf
+from src.modules.auth.auth_manager import AuthManager
+
+# Initialize auth manager BEFORE creating app
+auth_manager_instance = AuthManager(auth_dir="tests/website/auth")
 
 if not FLASK_AVAILABLE:
     print("ERROR: Flask is not available. Please install dependencies.")
@@ -56,6 +61,19 @@ class TestSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo")
         self.add_sidebar_submenu("Complete Showcase", "demo.complete_showcase")
         
+        # Add User Management section
+        self.add_sidebar_title("User Management")
+        self.add_sidebar_section("Account", "person", "user")
+        self.add_sidebar_submenu("My Profile", "user_profile.profile", endpoint="user")
+        self.add_sidebar_submenu("My Preferences", "user_profile.preferences", endpoint="user")
+        
+        # Add Admin section
+        self.add_sidebar_title("Administration")
+        self.add_sidebar_section("Admin", "shield-lock", "admin")
+        self.add_sidebar_submenu("Users", "admin_auth.manage_users", endpoint="admin")
+        self.add_sidebar_submenu("Permissions", "admin_auth.manage_permissions", endpoint="admin")
+        self.add_sidebar_submenu("Groups", "admin_auth.manage_groups", endpoint="admin")
+        
         # Add Framework Pages section
         self.add_sidebar_title("Framework Pages")
         self.add_sidebar_section("System", "cog", "framework")
@@ -66,10 +84,18 @@ class TestSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Updater", "updater.update", endpoint="framework")
         self.add_sidebar_submenu("Packager", "packager.packager", endpoint="framework")
         
-        # Configure topbar
-        self.m_topbar = {"display": False, "left": [], "center": [], "right": [], "login": False}
+        # Configure topbar with login display
+        self.m_topbar = {"display": True, "left": [], "center": [], "right": [], "login": True}
         self.m_javascripts = []
         self.m_enable_easter_eggs = False
+    
+    def get_statics(self, app_path: str) -> dict:
+        """Override get_statics to point to test website location."""
+        # For test app, website is at tests/website/ instead of website/
+        return {
+            "images": os.path.join(app_path, "tests", "website", "assets", "images"),
+            "js": os.path.join(app_path, "tests", "website", "assets", "js")
+        }
     
     def context_processor(self):
         """Return context for templates"""
@@ -82,6 +108,12 @@ logger.info("Initializing manual test application using framework setup")
 
 # Create and inject the test site_conf BEFORE calling setup_app
 site_conf.site_conf_obj = TestSiteConf()
+# Set app_path so get_statics() works correctly
+site_conf.site_conf_app_path = project_root
+
+# Inject auth_manager into auth module
+import src.modules.auth.auth_manager as auth_module
+auth_module.auth_manager = auth_manager_instance
 
 socketio = setup_app(app)
 
@@ -90,12 +122,30 @@ from demo_pages import demo_bp
 app.register_blueprint(demo_bp)
 logger.info("Registered demo pages blueprint")
 
+# Register user profile and admin blueprints
+from website.pages.user_profile_bp import user_profile_bp
+from website.pages.admin_auth_bp import admin_auth_bp
+app.register_blueprint(user_profile_bp)
+app.register_blueprint(admin_auth_bp)
+logger.info("Registered auth management blueprints")
+
+# Register demo module permissions
+from src.modules.auth.permission_registry import permission_registry
+permission_registry.register_module("DEV_example", ["execute", "configure"])
+permission_registry.register_module("Demo Layouts", [])
+logger.info("Registered module permissions")
+
 if __name__ == "__main__":
     print("=" * 60)
     print("  ParalaX Web Framework - Manual Test Application")
     print("=" * 60)
     print("  Starting Flask server with SocketIO...")
     print("  Open your browser to: http://localhost:5001")
+    print("  ")
+    print("  Default Credentials:")
+    print("  - Admin: username='admin', password='admin'")
+    print("  - Guest: username='GUEST', password='' (passwordless)")
+    print("  ")
     print("  Press CTRL+C to stop the server")
     print("=" * 60)
     

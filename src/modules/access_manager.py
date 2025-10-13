@@ -30,7 +30,29 @@ class Access_manager:
 
     def load_authorizations(self):
         """Load the authorization file into the manager"""
-        config = utilities.util_read_parameters()
+        # Try to use new auth_manager if available
+        try:
+            from src.modules.auth.auth_manager import auth_manager as new_auth_manager
+            if new_auth_manager:
+                # Use new auth system - no config needed
+                if "username" not in session:
+                    session['username'] = "GUEST"
+                return
+        except ImportError:
+            pass
+        
+        # Fallback to old config-based system
+        try:
+            config = utilities.util_read_parameters()
+        except AttributeError:
+            # No config system available - use defaults
+            self.m_users = ["GUEST"]
+            self.m_users_groups = {}
+            self.m_groups = []
+            self.m_modules = {}
+            if "username" not in session:
+                session['username'] = "GUEST"
+            return
 
         if "access" in config:
             self.m_users = config["access"]["users"]["value"]

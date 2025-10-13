@@ -4,14 +4,26 @@ Demo Pages Blueprint
 All the demo routes for showcasing displayer components.
 """
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect, url_for, session
+from functools import wraps
 from src.modules import displayer, utilities
 
 # Create blueprint for demo routes
 demo_bp = Blueprint('demo', __name__)
 
 
+def require_login(f):
+    """Decorator to require login for demo pages."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return redirect(url_for('common.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @demo_bp.route('/')
+@require_login
 def index():
     """Main index page with gallery of demo pages."""
     disp = displayer.Displayer()
@@ -153,6 +165,7 @@ def index():
 
 
 @demo_bp.route('/layouts')
+@require_login
 def layouts():
     """Demonstrate different layout types."""
     disp = displayer.Displayer()
@@ -203,6 +216,7 @@ def layouts():
 
 
 @demo_bp.route('/text-display')
+@require_login
 def text_display():
     """Demonstrate text and display items."""
     disp = displayer.Displayer()
@@ -316,6 +330,7 @@ def text_display():
 
 
 @demo_bp.route('/inputs', methods=['GET', 'POST'])
+@require_login
 def inputs():
     """Demonstrate input items with form submission."""
     if request.method == 'POST':
@@ -353,6 +368,7 @@ def inputs():
 
 
 @demo_bp.route('/complete-showcase')
+@require_login
 def complete_showcase():
     """A comprehensive page showing ALL displayer features."""
     disp = displayer.Displayer()
@@ -388,6 +404,7 @@ def complete_showcase():
 
 
 @demo_bp.route('/threading-demo', methods=['GET', 'POST'])
+@require_login
 def threading_demo():
     """Threading demo with buttons to start various thread types."""
     from demo_support.demo_threaded_complete import DemoThreadedAction
@@ -509,6 +526,7 @@ def threading_demo():
 
 
 @demo_bp.route('/scheduler-demo', methods=['GET', 'POST'])
+@require_login
 def scheduler_demo():
     """Demonstrate scheduler functionality with threaded actions."""
     from demo_support.demo_scheduler_action import DemoSchedulerAction
@@ -678,6 +696,7 @@ def scheduler_demo():
 
 
 @demo_bp.route('/table-modes')
+@require_login
 def table_modes():
     """Showcase new TABLE layout modes with TableMode enum."""
     disp = displayer.Displayer()

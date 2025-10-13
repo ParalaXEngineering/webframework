@@ -45,78 +45,116 @@ def download():
 @bp.route("/assets/<asset_type>/", methods=["GET"])
 def assets(asset_type):
     """Serve asset files based on type."""
-    try:
-        asset_paths = site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path)
+    asset_paths = site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path)
+    print(asset_paths)
 
-        folder_path = None
-        for path_info in asset_paths:
-            if asset_type in path_info:
-                folder_path = asset_paths[asset_type]
-                break
+    folder_path = None
+    for path_info in asset_paths:
+        if asset_type in path_info:
+            folder_path = asset_paths[asset_type]
+            break
 
-        if folder_path is None:
-            return "Invalid folder type", 404
+    if folder_path is None:
+        return "Invalid folder type", 404
 
-        file_name = request.args.get("filename")
-        if file_name[0] == ".":
-            file_name = file_name[2:]
-        file_path = os.path.join(folder_path, file_name)
+    file_name = request.args.get("filename")
+    if file_name[0] == ".":
+        file_name = file_name[2:]
+    file_path = os.path.join(folder_path, file_name)
 
-        if not os.path.exists(file_path):
-            return "", 200  # Return a blank page with status 200
+    print(file_path)
 
-        return send_file(file_path, as_attachment=True)
-    except Exception:
-        return render_template("base.j2")
+    if not os.path.exists(file_path):
+        return "", 200  # Return a blank page with status 200
+
+    # Serve images inline for display, not as attachment downloads
+    return send_file(file_path, as_attachment=False)
 
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     """Login page with user authentication."""
-    access_manager.auth_object.unlog()
-    config = utilities.util_read_parameters()
-    users = config["access"]["users"]["value"]
-    users_password = config["access"]["users_password"]["value"]
-
-    error_message = None
-
-    # Sort users
-    users.sort()
-    if "GUEST" not in users:
-        users = ["GUEST"] + users
-
-    if request.method == "POST":
-        data_in = utilities.util_post_to_json(request.form.to_dict())
-
-        username = data_in["user"]
-        password_attempt = data_in["password"].encode('utf-8')
-
-        redirect_path = config["core"]["redirect"]["value"] if "core" in config else "/"
-
-        if username in users:
-            if username not in users_password:
-                # No password is always allowed for now
-                access_manager.auth_object.set_user(username, True)
-                return redirect(redirect_path)
-            else:
-                stored_password = users_password[username][0]
-                stored_hash = stored_password.encode('utf-8')
-
-                # Verify password with bcrypt
-                try:
-                    if bcrypt.checkpw(password_attempt, stored_hash):
-                        # Successful login
+    # Logout current user
+    if access_manager.auth_object:
+        access_manager.auth_object.unlog()
+    
+    # Try to use new auth_manager if available
+    try:
+        from src.modules.auth.auth_manager import auth_manager as new_auth_manager
+        if new_auth_manager:
+            error_message = None
+            
+            # Get all users
+            users = [u.username for u in new_auth_manager.get_all_users()]
+            users.sort()
+            
+            if request.method == "POST":
+                data_in = utilities.util_post_to_json(request.form.to_dict())
+                username = data_in.get("user", "")
+                password = data_in.get("password", "")
+                
+                if new_auth_manager.verify_login(username, password):
+                    # Set old auth object for compatibility FIRST
+                    if access_manager.auth_object:
                         access_manager.auth_object.set_user(username, True)
-                        return redirect(redirect_path)
-                    else:
-                        error_message = "Bad Password for this user"
-                except Exception:
+                    # Then set new session (this takes priority)
+                    new_auth_manager.set_current_user(username)
+                    return redirect("/")
+                else:
+                    error_message = "Invalid username or password"
+            
+            return render_template("login.j2", target="common.login", users=users, message=error_message)
+    except ImportError:
+        pass
+    
+    # Fallback to old auth system (if config.json exists)
+    try:
+        config = utilities.util_read_parameters()
+        users = config["access"]["users"]["value"]
+        users_password = config["access"]["users_password"]["value"]
+
+        error_message = None
+
+        # Sort users
+        users.sort()
+        if "GUEST" not in users:
+            users = ["GUEST"] + users
+
+        if request.method == "POST":
+            data_in = utilities.util_post_to_json(request.form.to_dict())
+
+            username = data_in["user"]
+            password_attempt = data_in["password"].encode('utf-8')
+
+            redirect_path = config["core"]["redirect"]["value"] if "core" in config else "/"
+
+            if username in users:
+                if username not in users_password:
+                    # No password is always allowed for now
                     access_manager.auth_object.set_user(username, True)
                     return redirect(redirect_path)
-        else:
-            error_message = "User does not exist"
+                else:
+                    stored_password = users_password[username][0]
+                    stored_hash = stored_password.encode('utf-8')
 
-    return render_template("login.j2", target="common.login", users=users, message=error_message)
+                    # Verify password with bcrypt
+                    try:
+                        if bcrypt.checkpw(password_attempt, stored_hash):
+                            # Successful login
+                            access_manager.auth_object.set_user(username, True)
+                            return redirect(redirect_path)
+                        else:
+                            error_message = "Bad Password for this user"
+                    except Exception:
+                        access_manager.auth_object.set_user(username, True)
+                        return redirect(redirect_path)
+            else:
+                error_message = "User does not exist"
+
+        return render_template("login.j2", target="common.login", users=users, message=error_message)
+    except Exception:
+        # No auth configured - show empty login page
+        return render_template("login.j2", target="common.login", users=["GUEST"], message=None)
 
 
 @bp.route("/help", methods=["GET"])
