@@ -15,6 +15,8 @@ class DemoSchedulerAction(Threaded_action):
     """Demo action that showcases all scheduler functionality."""
     
     m_default_name = "Scheduler Demo"
+    m_required_permission = "Demo_Scheduler"
+    m_required_action = "view"
     
     def __init__(self):
         super().__init__()

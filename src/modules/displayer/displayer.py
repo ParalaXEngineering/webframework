@@ -6,11 +6,23 @@ of modules, layouts, and items for rendering web pages.
 """
 
 from typing import Optional, Dict, List, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 try:
     from .. import access_manager
+    # Import the module, not the object, so we get the updated value
+    from ..auth import auth_manager as auth_manager_module
 except ImportError:
     import access_manager
+    from auth import auth_manager as auth_manager_module
+
+try:
+    from flask import session
+except ImportError:
+    # For testing without Flask
+    session = None
 
 from .core import ResourceRegistry, Layouts
 from .layout import DisplayerLayout
@@ -54,6 +66,10 @@ class Displayer:
         """
         Prepare a new module for displaying. An optional ID can be assigned to this module.
         The module is then set to active, which means that everything will be added on it.
+        
+        This method now automatically checks permissions if the module has m_required_permission set.
+        If permission check fails, the module is marked as access_denied and will display an 
+        access denied message instead of the regular content.
 
         Args:
             module: A module object with m_default_name, m_type, and optionally m_error
@@ -67,11 +83,77 @@ class Displayer:
         if hasattr(module, "m_error"):
             error_module = module.m_error
 
+        # Check permissions automatically
+        access_denied = False
+        denied_reason = None
+        user_permissions = []
+        current_username = None
+        is_guest = False
+        
+        required_permission = getattr(module, 'm_required_permission', None)
+        required_action = getattr(module, 'm_required_action', 'view')
+        
+        # Get the current auth_manager instance from the module (not the import-time value)
+        auth_manager = auth_manager_module.auth_manager
+        
+        logger.info(f"[Displayer] Module: {default_name}, required_permission={required_permission}, required_action={required_action}")
+        logger.info(f"[Displayer] auth_manager={auth_manager}, session available={session is not None}")
+        
+        # If no explicit permission is set, use the module name as permission
+        # This ensures GUEST users can't access modules unless explicitly granted
+        if not required_permission:
+            required_permission = default_name
+            logger.info(f"[Displayer] No explicit permission, defaulting to module name: {required_permission}")
+        
+        if auth_manager is not None and session is not None:
+            logger.info(f"[Displayer] Auth system is available, checking permissions...")
+            current_username = session.get('username')
+            logger.info(f"[Displayer] Checking permissions for user: {current_username}, module: {required_permission}, action: {required_action}")
+            
+            if not current_username:
+                access_denied = True
+                denied_reason = "You must be logged in to access this module."
+            else:
+                # Check if user is GUEST (for informational purposes)
+                is_guest = current_username.upper() == 'GUEST'
+                
+                # Check permissions - GUEST is treated like any other user
+                has_perm = auth_manager.has_permission(current_username, required_permission, required_action)
+                logger.info(f"[Displayer] Permission check result: {has_perm} for {current_username} on {required_permission}.{required_action}")
+                
+                if not has_perm:
+                    access_denied = True
+                    denied_reason = f"You need '{required_action}' permission for '{required_permission}' module."
+                else:
+                    # Get all user permissions for this module
+                    user_permissions = auth_manager.get_user_permissions(current_username, required_permission)
+        else:
+            logger.warning(f"[Displayer] Auth system NOT available! auth_manager={auth_manager is not None}, session={session is not None}")
+            logger.warning(f"[Displayer] Module '{default_name}' will be displayed WITHOUT permission checks!")
+        
+        # Inject user context into the module instance
+        if hasattr(module, '_current_user'):
+            module._current_user = current_username
+        if hasattr(module, '_user_permissions'):
+            module._user_permissions = user_permissions
+        if hasattr(module, '_is_guest'):
+            module._is_guest = is_guest
+        if hasattr(module, '_is_readonly'):
+            module._is_readonly = not ('write' in user_permissions or 'edit' in user_permissions or 'execute' in user_permissions) if user_permissions else True
+        
         self.m_modules[default_name] = {
             "id": default_name,
             "type": module.m_type,
             "display": display,
-            "error": error_module
+            "error": error_module,
+            "access_denied": access_denied,
+            "denied_reason": denied_reason,
+            "required_permission": required_permission,
+            "required_action": required_action,
+            "user_permissions": user_permissions,
+            "current_user": current_username,
+            "is_guest": is_guest,
+            "is_readonly": not ('write' in user_permissions or 'edit' in user_permissions or 'execute' in user_permissions) if user_permissions else True
         }
         if name_override:
             self.m_modules[default_name]["name_override"] = name_override
@@ -450,11 +532,16 @@ class Displayer:
         serve_modules["required_cdn"] = ResourceRegistry.get_required_js_cdn()
 
         for module in self.m_modules:  
+            # Authorization is now handled in add_module(), so we just check the flag
+            # No need to call authorize_module again here
             if not bypass_auth:
-                auth = access_manager.auth_object.authorize_module(module)
+                # Skip modules that were denied access during add_module
+                if self.m_modules[module].get('access_denied', False):
+                    # Still add it so the template can show the access denied message
+                    serve_modules[module] = self.m_modules[module]
+                else:
+                    serve_modules[module] = self.m_modules[module]
             else: 
-                auth = True
-            if auth:
                 serve_modules[module] = self.m_modules[module]
 
         return serve_modules

@@ -51,6 +51,18 @@ class Threaded_action:
     m_error = None
     """A possible error that can be appended to the module for display option"""
     
+    m_required_permission = None
+    """The permission module name required to access this module (e.g., 'Demo_Threading'). None means no permission check."""
+    
+    m_required_action = 'view'
+    """The action required to access this module (e.g., 'view', 'execute', 'edit'). Default is 'view'."""
+    
+    # User context - set by framework when module is loaded
+    _current_user = None
+    _user_permissions = []
+    _is_guest = False
+    _is_readonly = True
+    
     def __init__(self):       
         """Constructor - Initializes thread, console, logging, and process management"""
         self.m_name = None
@@ -102,6 +114,60 @@ class Threaded_action:
         """Destructor"""
         if self.m_logger:
             self.m_logger.info(f"Threaded action '{self.get_name()}' destroyed")
+
+    # ============================================================================
+    # USER CONTEXT API - NEW FUNCTIONALITY
+    # ============================================================================
+    
+    def get_current_user(self) -> Optional[str]:
+        """
+        Get the current logged-in username.
+        
+        Returns:
+            Username or None if not set
+        """
+        return self._current_user
+    
+    def get_user_permissions(self) -> List[str]:
+        """
+        Get all permissions the current user has for this module.
+        
+        Returns:
+            List of permission actions (e.g., ['view', 'edit', 'execute'])
+        """
+        return self._user_permissions.copy() if self._user_permissions else []
+    
+    def is_guest_user(self) -> bool:
+        """
+        Check if the current user is a guest.
+        
+        Returns:
+            True if user is GUEST
+        """
+        return self._is_guest
+    
+    def is_readonly_mode(self) -> bool:
+        """
+        Check if the module is in read-only mode for the current user.
+        
+        A module is read-only if the user doesn't have write/edit/execute permissions.
+        
+        Returns:
+            True if read-only (user can only view)
+        """
+        return self._is_readonly
+    
+    def has_permission(self, action: str) -> bool:
+        """
+        Check if the current user has a specific permission for this module.
+        
+        Args:
+            action: Permission to check (e.g., 'write', 'edit', 'execute')
+        
+        Returns:
+            True if user has the permission
+        """
+        return action in self._user_permissions if self._user_permissions else False
 
     # ============================================================================
     # CONSOLE MANAGEMENT - NEW FUNCTIONALITY

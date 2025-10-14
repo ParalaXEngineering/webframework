@@ -47,6 +47,81 @@
         "tecx": [],
         "toto": []
       }
+    },
+    "Demo_Authorization": {
+      "groups": {
+        "admin": [
+          "delete",
+          "read",
+          "view",
+          "write"
+        ],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Demo_Components": {
+      "groups": {
+        "admin": [
+          "delete",
+          "edit",
+          "read",
+          "view",
+          "write"
+        ],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Demo_Layouts": {
+      "groups": {
+        "admin": [
+          "delete",
+          "edit",
+          "read",
+          "view",
+          "write"
+        ],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Demo_Scheduler": {
+      "groups": {
+        "admin": [
+          "configure",
+          "delete",
+          "execute",
+          "read",
+          "view",
+          "write"
+        ],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Demo_Threading": {
+      "groups": {
+        "admin": [
+          "delete",
+          "execute",
+          "read",
+          "view",
+          "write"
+        ],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
     }
   },
   "pages": {

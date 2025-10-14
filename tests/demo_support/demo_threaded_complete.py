@@ -19,6 +19,8 @@ class DemoThreadedAction(Threaded_action):
     """Demo action showcasing all threading features."""
     
     m_default_name = "Demo Thread"
+    m_required_permission = "Demo_Threading"
+    m_required_action = "view"
     
     def __init__(self, demo_type="complete"):
         """Initialize demo action.

@@ -5,13 +5,15 @@ This module contains HTTP route handlers for shared functionality like downloads
 assets, login, and help pages.
 """
 
-from flask import Blueprint, render_template, request, send_file, redirect
+from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash, session
+from functools import wraps
 
 from ..modules import utilities
 from ..modules import access_manager
 from ..modules import displayer
 from ..modules import site_conf
 from ..modules import User_defined_module
+from ..modules.auth.auth_manager import auth_manager
 
 import os
 import sys
@@ -19,6 +21,53 @@ import markdown
 import bcrypt
 
 bp = Blueprint("common", __name__, url_prefix="/common")
+
+
+def require_admin(f):
+    """Decorator to require admin group for accessing a page."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not auth_manager:
+            # If no auth manager, allow access (backwards compatibility)
+            return f(*args, **kwargs)
+        
+        current_user = session.get('username')
+        if not current_user:
+            flash("Please log in to access this page.", "warning")
+            return redirect(url_for('common.login'))
+        
+        user = auth_manager.get_user(current_user)
+        if not user or 'admin' not in user.groups:
+            # Show access denied page
+            disp = displayer.Displayer()
+            disp.add_generic("Access Denied")
+            disp.set_title("Access Denied - Admin Only")
+            disp.add_breadcrumb("Home", "demo.index", [])
+            
+            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+            disp.add_display_item(displayer.DisplayerItemAlert(
+                "<h4><i class='bi bi-shield-lock'></i> Administrator Access Required</h4>"
+                "<p>This page is restricted to administrators only.</p>"
+                f"<p><strong>Current User:</strong> {current_user}</p>"
+                f"<p><strong>Your Groups:</strong> {', '.join(user.groups) if user else 'None'}</p>"
+                "<hr>"
+                "<p>If you need access to this page, please contact your system administrator.</p>",
+                displayer.BSstyle.WARNING
+            ), column=0)
+            
+            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+            disp.add_display_item(displayer.DisplayerItemButtonLink(
+                "btn_back",
+                "Return to Home",
+                "home",
+                link=url_for('demo.index'),
+                color=displayer.BSstyle.PRIMARY
+            ), column=0)
+            
+            return render_template("base_content.j2", content=disp.display())
+        
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 @bp.route("/download", methods=["GET"])

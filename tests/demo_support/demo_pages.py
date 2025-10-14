@@ -397,24 +397,14 @@ def inputs():
 @require_login
 def threading_demo():
     """Threading demo with buttons to start various thread types."""
-    from src.modules.auth.auth_manager import auth_manager
     from demo_support.demo_threaded_complete import DemoThreadedAction
     from src.modules.threaded import threaded_manager
     
     username = session.get('username')
     
-    # Check permission to view threading demos
-    if not auth_manager.has_permission(username, 'Demo_Threading', 'view'):
-        disp = displayer.Displayer()
-        disp.add_generic("Access Denied")
-        disp.set_title("Permission Required")
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>🔒 Access Denied</h4>"
-            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Threading' module.</p>",
-            displayer.BSstyle.ERROR
-        ), 0)
-        return render_template("base_content.j2", content=disp.display())
+    # No need to manually check permissions anymore - the framework handles it!
+    # When we add the module, if the user doesn't have permission,
+    # an access denied message will be displayed automatically.
     
     disp = displayer.Displayer()
     disp.add_module(DemoThreadedAction)
@@ -535,25 +525,12 @@ def threading_demo():
 @require_login
 def scheduler_demo():
     """Demonstrate scheduler functionality with threaded actions."""
-    from src.modules.auth.auth_manager import auth_manager
     from demo_support.demo_scheduler_action import DemoSchedulerAction
     from src.modules.threaded import threaded_manager
     
     username = session.get('username')
     
-    # Check permission to view scheduler demos
-    if not auth_manager.has_permission(username, 'Demo_Scheduler', 'view'):
-        disp = displayer.Displayer()
-        disp.add_generic("Access Denied")
-        disp.set_title("Permission Required")
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>🔒 Access Denied</h4>"
-            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Scheduler' module.</p>",
-            displayer.BSstyle.ERROR
-        ), 0)
-        return render_template("base_content.j2", content=disp.display())
-    
+    # No need to manually check permissions anymore - the framework handles it!
     # Require jQuery for SocketIO functionality in site.js
     from src.modules.displayer import ResourceRegistry
     ResourceRegistry.require('jquery')
@@ -940,15 +917,14 @@ def auth_accessible():
 @require_login
 def auth_restricted():
     """A page that requires specific permission."""
-    from src.modules.auth.auth_manager import auth_manager
+    from demo_support.demo_auth_action import DemoAuthorizationAction
     
     username = session.get('username')
     
-    # Check if user has permission to view authorization demos
-    has_permission = auth_manager.has_permission(username, 'Demo_Authorization', 'view')
+    # No need to manually check permissions anymore - the framework handles it!
     
     disp = displayer.Displayer()
-    disp.add_generic("Restricted Page")
+    disp.add_module(DemoAuthorizationAction)
     disp.set_title("Protected Demo Page")
     
     disp.add_breadcrumb("Home", "demo.index", [])
@@ -956,31 +932,24 @@ def auth_restricted():
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
     
-    if has_permission:
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>🔓 Access Granted!</h4>"
-            f"<p>Welcome {username}! You have the required permission.</p>"
-            "<p><strong>Required:</strong> 'view' permission in 'Demo_Authorization' module</p>",
-            displayer.BSstyle.SUCCESS
-        ), 0)
-        
-        disp.add_display_item(displayer.DisplayerItemText(
-            "<h5>Protected Content:</h5>"
-            "<p>This is secret information only visible to authorized users!</p>"
-            "<ul>"
-            "<li>Sensitive data 1</li>"
-            "<li>Sensitive data 2</li>"
-            "<li>Sensitive data 3</li>"
-            "</ul>"
-        ), 0)
-    else:
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>🔒 Access Denied</h4>"
-            f"<p>Sorry {username}, you don't have permission to view this page.</p>"
-            "<p><strong>Required:</strong> 'view' permission in 'Demo_Authorization' module</p>"
-            "<p><em>Ask an administrator to grant you access.</em></p>",
-            displayer.BSstyle.ERROR
-        ), 0)
+    # If the user has permission (module not denied), show success message
+    # The framework will automatically show access denied if permission is missing
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        f"<h4>🔓 Access Granted!</h4>"
+        f"<p>Welcome {username}! You have the required permission.</p>"
+        "<p><strong>Required:</strong> 'view' permission in 'Demo_Authorization' module</p>",
+        displayer.BSstyle.SUCCESS
+    ), 0)
+    
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<h5>Protected Content:</h5>"
+        "<p>This is secret information only visible to authorized users!</p>"
+        "<ul>"
+        "<li>Sensitive data 1</li>"
+        "<li>Sensitive data 2</li>"
+        "<li>Sensitive data 3</li>"
+        "</ul>"
+    ), 0)
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
     disp.add_display_item(displayer.DisplayerItemButtonLink(

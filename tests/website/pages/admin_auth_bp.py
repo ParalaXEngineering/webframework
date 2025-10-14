@@ -8,7 +8,7 @@ from functools import wraps
 
 from src.modules.displayer import (
     Displayer, DisplayerLayout, Layouts,
-    DisplayerItemText, DisplayerItemButton, DisplayerItemInputText,
+    DisplayerItemText, DisplayerItemButton, DisplayerItemButtonLink, DisplayerItemInputText,
     DisplayerItemInputSelect, DisplayerItemAlert, DisplayerItemInputString,
     DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
 )
@@ -51,14 +51,15 @@ def require_admin(f):
             ), column=0)
             
             disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-            disp.add_display_item(DisplayerItemButton(
+            disp.add_display_item(DisplayerItemButtonLink(
                 "btn_back",
                 "Return to Home",
-                BSstyle.PRIMARY,
-                action=url_for('demo.index')
+                "home",
+                link=url_for('demo.index'),
+                color=BSstyle.PRIMARY
             ), column=0)
             
-            return render_template("base_content.j2", content=disp.display(), target="")
+            return render_template("base_content.j2", content=disp.display())
         
         return f(*args, **kwargs)
     return decorated_function

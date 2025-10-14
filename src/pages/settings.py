@@ -31,6 +31,7 @@ Config structure:
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from ..modules.settings import SettingsManager
 from ..modules import displayer
+from .common import require_admin
 import os
 
 
@@ -54,6 +55,7 @@ def get_manager():
 
 
 @bp.route("/", methods=["GET"])
+@require_admin
 def index():
     """Settings dashboard - main entry point."""
     manager = get_manager()
@@ -118,6 +120,7 @@ def index():
 
 
 @bp.route("/view", methods=["GET"])
+@require_admin
 def view():
     """View settings in read-only table format."""
     manager = get_manager()
@@ -220,6 +223,7 @@ def view():
 
 
 @bp.route("/edit", methods=["GET", "POST"])
+@require_admin
 def edit():
     """Edit settings form with all field types."""
     manager = get_manager()
