@@ -68,7 +68,7 @@ class AuthManager:
                     "created_at": datetime.now().isoformat(),
                     "last_login": None
                 },
-                "GUEST": {
+                "guest": {
                     "password_hash": "",  # Passwordless
                     "groups": ["guest"],
                     "display_name": "Guest",
@@ -96,7 +96,7 @@ class AuthManager:
             self._save_json(self.groups_file, {"groups": default_groups})
         
         # Create default user preferences
-        for username in ["admin", "GUEST"]:
+        for username in ["admin", "guest"]:
             prefs_file = self.user_prefs_dir / f"{username}.json"
             if not prefs_file.exists():
                 self._save_json(prefs_file, get_default_user_prefs())

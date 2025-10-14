@@ -170,7 +170,7 @@ def setup_app(app):
         from modules.log import log_emitter
     
     logs_dir = os.path.join(app_path, 'logs')
-    log_emitter.initialize_log_emitter(socketio_obj, logs_dir, interval=2.0, app=app)
+    log_emitter.initialize_log_emitter(socketio_obj, logs_dir, interval=2.0)
     logger.info("Log emitter initialized")
 
     # Initialize thread emitter for real-time thread updates
