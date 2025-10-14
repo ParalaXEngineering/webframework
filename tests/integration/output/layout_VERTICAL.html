@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Default</title>
+    
+    
+    <link rel="stylesheet" href="../../webengine/assets/vendors/mdi/css/materialdesignicons.min.css">
+	<link rel="stylesheet" href="../../webengine/assets/css/app.css">
+	<link rel="stylesheet" href="../../webengine/assets/css/app-dark.css">
+    <link rel="stylesheet" href="../../webengine/assets/css/theme-aware.css">
+    <link rel="stylesheet" href="../../webengine/assets/vendors/sweetalert/sweetalert2.min.css">
+    
+    <link rel="shortcut icon" href="../../webengine/assets/images/?filename=logo/favicon.png" type="image/png">
+
+    
+
+</head>
+
+
+
+
+<body class="theme-light" style="overflow-y: auto">
+    <div id="app">                   
+        <div id="sidebar" class="active">
+            <div class="sidebar-wrapper active">
+                <div class="sidebar-header position-relative">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="logo">
+                            <div class="theme-toggle d-flex gap-2  align-items-center mt-2">
+                                <i class="mdi mdi-weather-sunny"></i>
+                                <div class="form-check form-switch fs-6">
+                                    <input class="form-check-input  me-0" type="checkbox" id="toggle-dark" style="cursor: pointer">
+                                    <label class="form-check-label"></label>
+                                </div>
+                                <i class="mdi mdi-weather-night"></i>
+                            </div>
+
+                            <h3><i class="mdi mdi-home"></i>Default</h3>
+                            <h6>v0</h6>
+                        </div>
+                        <div class="sidebar-toggler  x">
+                            <a href="#" class="sidebar-hide d-xl-none d-block"><i class="bi bi-x bi-middle"></i></a>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="sidebar-menu">
+                    <ul class="menu">
+                    
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div id="main" class="layout-navbar navbar-fixed">
+            
+
+            <div id="main-content">
+                <div class="page-title">
+                
+
+
+                
+                    <div class="row">
+                        <div class="col-12 order-md-1 order-last">
+                            <h2>
+
+</h2>
+                            <p class="text-subtitle text-muted"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                
+
+
+    
+
+
+
+
+
+
+  
+
+
+<script>
+  document.querySelectorAll('.alert').forEach(a=>{
+    setTimeout(()=>{ a.classList.remove('show'); a.addEventListener('transitionend',()=>a.remove()); }, 3500);
+  });
+</script>
+
+
+    
+
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+    
+        
+            <div class="card">
+                <div class="card-header py-1"></div>
+
+                <div class="card-body">
+                    
+                        
+                        <h1>AutoModule</h1>
+                        
+                    
+
+                    
+
+                        
+
+                        
+                            
+                                <h3 class="text-primary mt-5">Vert</h3>
+                            
+                            
+    
+        
+    <div class="row my-1 py-0 align-items-center  "  >
+    
+    
+        <div class="col-6 text-start">
+        
+        
+        
+            
+                
+                    
+    
+
+    
+
+    
+        
+    Left
+
+    
+
+    
+
+    
+
+                
+            
+            
+        
+
+        </div>
+    
+        <div class="col-6 text-start">
+        
+        
+        
+            
+                
+                    
+    
+
+    
+
+    
+        
+    Right
+
+    
+
+    
+
+    
+
+                
+            
+            
+        
+
+        </div>
+    
+    </div>
+
+
+    
+
+                        
+
+                        
+
+                    </div>
+
+                    
+                
+            </div>
+        
+    
+
+
+
+
+
+            </div>
+
+            <footer>
+                <div class="footer clearfix p-5 text-muted float-end">
+                    <div class="float-start">
+                        <p>2024 &copy;ESD<br>Framework by ESD<br>Template by Mazer</p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+        
+    </div>
+    
+    
+    <script src="../../webengine/assets/vendors/jquery/jquery.min.js"></script>
+    <script src="../../webengine/assets/vendors/sweetalert/sweetalert2.min.js"></script>
+    <script src="../../webengine/assets/js/socket.io.min.js"></script>
+    <script src="../../webengine/assets/js/app.js"></script>
+    <script src="../../webengine/assets/js/site.js"></script>
+    <script src="../../webengine/assets/js/dark.js"></script>
+    
+    
+<script>
+  // ---- Helpers -------------------------------------------------------------
+  function buildAjaxConfig(url) {
+    return {
+      url,
+      type: 'GET',
+      // CRITICAL: Forward all DataTables params (including SearchPanes params)
+      data: function(d) { return d; },
+      dataSrc: function (json) {
+        if (!json) return [];
+        if (Array.isArray(json.data)) return json.data;   // DT SSP
+        if (Array.isArray(json.items)) return json.items; // alt
+        if (Array.isArray(json.results)) return json.results;
+        if (Array.isArray(json)) return json;
+        return [];
+      }
+    };
+  }
+
+  // Get a DataTable instance regardless of jQuery / vanilla build
+  function getDTInstance(el) {
+    if (window.jQuery && $.fn && $.fn.dataTable) {
+      if ($.fn.dataTable.isDataTable(el)) return $(el).DataTable();
+      return null;
+    }
+    if (window.DataTable) {
+      try {
+        // In DT2 vanilla this returns the existing instance if already initialised
+        const dt = DataTable(el);
+        // Guard: only treat as instance if initialised
+        if (dt && typeof dt.draw === 'function') return dt;
+      } catch (e) { /* not initialised yet */ }
+    }
+    return null;
+  }
+
+  
+
+  // ---- Tab redraw: safe for jQuery and vanilla builds ----------------------
+  document.addEventListener('DOMContentLoaded', function () {
+    const tabTriggers = document.querySelectorAll('[data-bs-toggle="tab"]');
+    tabTriggers.forEach(function (tabTrigger) {
+      tabTrigger.addEventListener('shown.bs.tab', function (event) {
+        const targetId = event.target.getAttribute('href');
+        if (!targetId) return;
+        const targetPane = document.querySelector(targetId);
+        if (!targetPane) return;
+
+        // Small delay to ensure tab is fully visible
+        setTimeout(function() {
+          const tables = targetPane.querySelectorAll('table.dataTable, table.dt-table');
+          tables.forEach(function (table) {
+            const dt = getDTInstance(table);
+            if (dt) {
+              // Adjust column widths
+              if (dt.columns && typeof dt.columns().adjust === 'function') {
+                dt.columns().adjust();
+              }
+              
+              // Force SearchPanes to recalculate by destroying and rebuilding
+              if (dt.searchPanes) {
+                try {
+                  // Try different methods to rebuild SearchPanes
+                  if (typeof dt.searchPanes.rebuild === 'function') {
+                    dt.searchPanes.rebuild();
+                  } else if (typeof dt.searchPanes.rebuildPane === 'function') {
+                    dt.searchPanes.rebuildPane();
+                  } else {
+                    // Force a full redraw which should trigger SearchPanes resize
+                    dt.draw();
+                  }
+                } catch (e) {
+                  console.log('SearchPanes rebuild failed, trying draw:', e);
+                  dt.draw();
+                }
+              } else {
+                // No searchPanes API, just redraw
+                dt.draw(false);
+              }
+            }
+          });
+          
+          // Also trigger a window resize event which some DataTables plugins listen to
+          window.dispatchEvent(new Event('resize'));
+        }, 50);
+      });
+    });
+  });
+</script>
+
+
+    <script>
+    function showCustomAlert(message, imageUrl) {
+        // Supprime le modal existant s'il existe
+        const existingModal = document.getElementById("customAlertModal");
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Création du code HTML du modal Bootstrap
+        const modalHTML = `
+            <div class="modal fade" id="customAlertModal" tabindex="-1" aria-labelledby="customAlertModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" style="max-height: 80vh;">
+                <div class="modal-content">
+                <div class="modal-body text-center">
+                    ${imageUrl ? `<img src="${imageUrl}" alt="Alert Image" class="img-fluid mb-3" style="max-width: 50%;">` : ""}
+                    <p>${message}</p>
+                </div>
+                <div class="modal-body text-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+                </div>
+            </div>
+            </div>
+        `;
+
+        // Ajout du modal dans le body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Initialisation et affichage du modal via Bootstrap
+        const alertModal = new bootstrap.Modal(document.getElementById("customAlertModal"), {
+            backdrop: 'static',
+            keyboard: false
+        });
+        alertModal.show();
+    }
+    </script>
+
+    
+
+</body>
+
+</html>

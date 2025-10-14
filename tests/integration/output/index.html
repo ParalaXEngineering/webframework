@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Displayer Test Gallery</title>
+    
+    
+<style>
+/* Fix sidebar scrolling */
+#sidebar .sidebar-wrapper {
+    overflow-y: auto !important;
+    max-height: 100vh;
+}
+
+/* Preview container styling */
+#preview-container {
+    min-height: 400px;
+}
+
+#content-display {
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+}
+</style>
+
+    <link rel="stylesheet" href="../../webengine/assets/vendors/mdi/css/materialdesignicons.min.css">
+	<link rel="stylesheet" href="../../webengine/assets/css/app.css">
+	<link rel="stylesheet" href="../../webengine/assets/css/app-dark.css">
+    <link rel="stylesheet" href="../../webengine/assets/css/theme-aware.css">
+    <link rel="stylesheet" href="../../webengine/assets/vendors/sweetalert/sweetalert2.min.css">
+    
+    <link rel="shortcut icon" href="../../webengine/assets/images/logo/favicon.png" type="image/png">
+
+    
+
+</head>
+
+
+
+
+<body class="theme-light" style="overflow-y: auto">
+    <div id="app">                   
+        <div id="sidebar" class="active">
+            <div class="sidebar-wrapper active">
+                <div class="sidebar-header position-relative">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="logo">
+                            <div class="theme-toggle d-flex gap-2  align-items-center mt-2">
+                                <i class="mdi mdi-weather-sunny"></i>
+                                <div class="form-check form-switch fs-6">
+                                    <input class="form-check-input  me-0" type="checkbox" id="toggle-dark" style="cursor: pointer">
+                                    <label class="form-check-label"></label>
+                                </div>
+                                <i class="mdi mdi-weather-night"></i>
+                            </div>
+
+                            <h3><i class="mdi mdi-test-tube"></i>Test Gallery</h3>
+                            <h6>v1.0</h6>
+                        </div>
+                        <div class="sidebar-toggler  x">
+                            <a href="#" class="sidebar-hide d-xl-none d-block"><i class="bi bi-x bi-middle"></i></a>
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="sidebar-menu">
+                    <ul class="menu">
+                    
+                        
+                        <li class="sidebar-title">DisplayerItems</li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemActionButtons</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemAlert</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemAlertBox</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemBadge</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemButton</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemButtonGroup</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemButtonLink</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemCalendar</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemCard</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemDownload</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemDynamicContent</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemFile</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemGraph</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemHidden</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemIconLink</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemIconText</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemImage</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputBox</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputCascaded</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputDate</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputDualSelectText</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputDualTextSelect</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputFile</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputFileExplorer</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputFolder</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputImage</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputListSelect</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputListText</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputMapping</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputMultiSelect</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputMultiText</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputNumeric</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputSelect</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputSelectText</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputString</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputStringIcon</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputText</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputTextJS</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputTextSelect</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemInputTextText</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemModalButton</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemModalLink</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemPlaceholder</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemSeparator</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-palette"></i>
+                                    <span>DisplayerItemText</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                        <li class="sidebar-title">Layouts</li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-view-grid"></i>
+                                    <span>SPACER</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-view-grid"></i>
+                                    <span>TABLE_bulk_data</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-view-grid"></i>
+                                    <span>TABLE_interactive</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-view-grid"></i>
+                                    <span>TABLE_server_side</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-view-grid"></i>
+                                    <span>TABLE_simple</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-view-grid"></i>
+                                    <span>TABS</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-view-grid"></i>
+                                    <span>VERTICAL</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                        
+                        <li class="sidebar-title">Other Tests</li>
+                        
+                    
+                        
+                            
+                            
+                            
+                            <li class="sidebar-item  ">
+                                <a href="/" class='sidebar-link'>
+                                    <i class="mdi mdi-flask"></i>
+                                    <span>basics</span>
+                                </a>
+                                
+
+                                
+                            </li>
+                        
+                    
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div id="main" class="layout-navbar navbar-fixed">
+            
+
+            <div id="main-content">
+                <div class="page-title">
+                
+
+
+                
+                    <div class="row">
+                        <div class="col-12 order-md-1 order-last">
+                            <h2>Displayer Test Gallery</h2>
+                            <p class="text-subtitle text-muted">Auto-generated test components for visual inspection</p>
+                        </div>
+                    </div>
+                </div>
+                
+                
+<section class="section">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="card-title mb-0">
+                <i class="mdi mdi-eye"></i> Test Preview: <span id="current-file-title">Select a component</span>
+            </h4>
+            <div>
+                <button class="btn btn-sm btn-outline-primary" onclick="openInNewTab()">
+                    <i class="mdi mdi-open-in-new"></i> Open Full Page
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="content-display" style="display: none;">
+                <!-- Test content will be injected here from embedded content_map -->
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Content and filename mapping embedded from Python
+const contentMap = {"DisplayerItemActionButtons": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cspan id=\"test_actions\"\u003e\n\u003cdiv class=\"action-buttons d-inline-flex gap-1\" id=\"test_actions\" role=\"group\"\u003e\n\u003ca class=\"btn btn-info btn-sm\" data-bs-placement=\"top\" data-bs-toggle=\"tooltip\" href=\"https://www.google.com\" title=\"View\"\u003e\n\u003ci class=\"mdi mdi-eye\"\u003e\u003c/i\u003e\n\u003c/a\u003e\n\u003ca class=\"btn btn-warning btn-sm\" data-bs-placement=\"top\" data-bs-toggle=\"tooltip\" href=\"https://www.google.com\" title=\"Edit\"\u003e\n\u003ci class=\"mdi mdi-pencil\"\u003e\u003c/i\u003e\n\u003c/a\u003e\n\u003ca class=\"btn btn-danger btn-sm\" data-bs-placement=\"top\" data-bs-toggle=\"tooltip\" href=\"https://www.google.com\" title=\"Delete\"\u003e\n\u003ci class=\"mdi mdi-delete\"\u003e\u003c/i\u003e\n\u003c/a\u003e\n\u003c/div\u003e\n\u003c/span\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemAlert": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cdiv class=\"alert alert-warning\"\u003eThis is a test alert message\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemAlertBox": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cspan id=\"test_alert\"\u003e\n\u003cdiv class=\"alert alert-info alert-dismissible fade show\" id=\"test_alert\" role=\"alert\"\u003e\n\u003ci class=\"mdi mdi-information\"\u003e\u003c/i\u003e\n\u003cstrong\u003eTest Alert\u003c/strong\u003e\u003cbr/\u003e\n    \n    This is a test alert box.\n    \n    \u003cbutton aria-label=\"Close\" class=\"btn-close\" data-bs-dismiss=\"alert\" type=\"button\"\u003e\u003c/button\u003e\n\u003c/div\u003e\n\u003c/span\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemBadge": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cdiv class=\"badge bg-success\"\u003eStatus: Active\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemButton": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cbutton \u003c=\"\" button=\"\" class=\"btn btn-primary\" id=\"AutoModule.test_button\" name=\"AutoModule.test_button\" onclick=\"saveScrollPosition()\" type=\"submit\"\u003e\n        Click Me\n    \u003c/button\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemButtonGroup": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cspan id=\"test_btn_group\"\u003e\n\u003cdiv class=\"btn-group\" id=\"test_btn_group\" role=\"group\"\u003e\n\u003cbutton class=\"btn btn-primary\" name=\"btn1\" type=\"submit\" value=\"btn1\"\u003e\n        \n        Button 1\n    \u003c/button\u003e\n\u003cbutton class=\"btn btn-success\" name=\"btn2\" type=\"submit\" value=\"btn2\"\u003e\n        \n        Button 2\n    \u003c/button\u003e\n\u003cbutton class=\"btn btn-danger\" name=\"btn3\" type=\"submit\" value=\"btn3\"\u003e\n        \n        Button 3\n    \u003c/button\u003e\n\u003c/div\u003e\n\u003c/span\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemButtonLink": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003ca class=\"btn btn-success\" href=\"#action\" id=\"AutoModule.test_button_link\"\u003e\n\u003ch2\u003e\u003ci class=\"mdi mdi-check text-light\"\u003e\u003c/i\u003e\u003c/h2\u003e\n        Submit Form\n        \u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemCalendar": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cdiv aria-hidden=\"true\" aria-labelledby=\"eventModalLabel\" class=\"modal fade\" id=\"eventModal\" role=\"dialog\" tabindex=\"-1\"\u003e\n\u003cdiv class=\"modal-dialog modal-dialog-centered\" role=\"document\"\u003e\n\u003cdiv class=\"modal-content\"\u003e\n\u003cdiv class=\"modal-header\"\u003e\n\u003ch5 class=\"modal-title\" id=\"eventModalTitle\"\u003e\u003c/h5\u003e\n\u003c/div\u003e\n\u003cdiv class=\"modal-body\" id=\"eventModalBody\"\u003e\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv id=\"calendar\"\u003e\u003c/div\u003e\n\u003cscript\u003e\ndocument.addEventListener(\u0027DOMContentLoaded\u0027, function() {\n    var calendarEl = document.getElementById(\u0027calendar\u0027);\n\n    var calendar = new FullCalendar.Calendar(calendarEl, {\n    timeZone: \u0027UTC\u0027,\n    initialView: \u0027dayGridMonth\u0027,\n    events: [{\u0027title\u0027: \u0027Event 1\u0027, \u0027start\u0027: \u00272024-01-15\u0027}, {\u0027title\u0027: \u0027Event 2\u0027, \u0027start\u0027: \u00272024-01-20\u0027, \u0027end\u0027: \u00272024-01-22\u0027}],\n    editable: false,\n    selectable: true,\n    eventClick: function(info) {\n        // Inject event data into modal\n        var modalBody = document.getElementById(\u0027eventModalBody\u0027);\n        modalBody.innerHTML = info.event.extendedProps.description\n\n        var modalTitle = document.getElementById(\u0027eventModalTitle\u0027);\n        modalTitle.innerHTML = info.event.title\n\n        // Show the modal\n        $(\u0027#eventModal\u0027).modal(\u0027show\u0027);\n    }\n    });\n\n    calendar.render();\n});\n\n\u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemCard": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cspan id=\"test_card\"\u003e\n\u003cdiv class=\"card mb-3\" id=\"test_card\"\u003e\n\u003cdiv class=\"card-header bg-primary text-white\"\u003e\n\u003ci class=\"mdi mdi-information\"\u003e\u003c/i\u003e\n\u003cstrong\u003eTest Card\u003c/strong\u003e\n\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n        This is a test card with sample content.\n    \u003c/div\u003e\n\u003cdiv class=\"card-footer\"\u003e\n\u003cbutton class=\"btn btn-primary\" name=\"test_btn\" type=\"submit\" value=\"test_btn\"\u003e\n            \n            Click Me\n        \u003c/button\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/span\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemDownload": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003ca class=\"btn btn-primary\" href=\"/test/item\" }=\"\"\u003eDownload File\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemDynamicContent": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cspan id=\"test_dynamic\"\u003e\n\u003cdiv class=\"card card-body\" id=\"test_dynamic\"\u003e\n\u003cp\u003eThis content will be updated dynamically.\u003c/p\u003e\n\u003c/div\u003e\n\u003c/span\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemFile": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003ci class=\"mdi mdi-file-document text-danger\"\u003e\u003c/i\u003e\n\u003ca href=\"../../webengine/assets/common/?filename=/files/test_document.pdf\"\u003e Sample Document\u003c/a\u003e\n    \n\n    \n    (2024-01-15)\n    \n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemGraph": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Sample Graph\n    \n\n    \u003cdiv id=\"test_graph\"\u003e\u003c/div\u003e\n\u003cscript type=\"text/javascript\"\u003e\n    var test_graph_Options = {\n        chart: {\n            type: \"line\",\n            height: 350\n        },\n        series: [\n                \n                \n                    \n                    {\n                        name: \"Series1\",\n                        data: [\n                            \n                                [1640995200000, 10],\n                            \n                                [1641081600000, 25],\n                            \n                                [1641168000000, 15]\n                            \n                        ]\n                    }\n                \n                    ,\n                    {\n                        name: \"Series2\",\n                        data: [\n                            \n                                [1640995200000, 15],\n                            \n                                [1641081600000, 30],\n                            \n                                [1641168000000, 20]\n                            \n                        ]\n                    }\n                \n                \n        ],\n        \n        xaxis: {\n            type: \u0027datetime\u0027,\n            labels: {\n                datetimeUTC: false\n            }\n        },\n        \n        \n        tooltip: {\n            enabled: true,\n            followCursor: true,\n            x: {\n                format: \u0027dd/MM hh:mm:ss\u0027\n            }\n        }\n    };\n    var test_graph = new ApexCharts(document.querySelector(\"#test_graph\"), test_graph_Options);\n    test_graph.render();\n    \u003c/script\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemHidden": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cinput id=\"AutoModule.test_hidden\" name=\"AutoModule.test_hidden\" type=\"hidden\" value=\"hidden_value\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemIconLink": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003ca href=\"#details\" id=\"AutoModule.test_icon_link\"\u003e\n\u003ci class=\"mdi mdi-information text-primary\"\u003e\u003c/i\u003e\n        View Details\n        \u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemIconText": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cspan id=\"test_icontext\"\u003e\n\u003cdiv class=\"text-primary\" id=\"test_icontext\"\u003e\n\u003ci class=\"mdi mdi-information\"\u003e\u003c/i\u003e Sample icon text item\n    \n\u003c/div\u003e\n\u003c/span\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemImage": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cimg height=\"200px\" src=\"https://tse3.mm.bing.net/th/id/OIP.GGAs1O-ZmfBJGBCDcj0KpgHaDd?rs=1\u0026amp;pid=ImgDetMain\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputBox": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cinput checked=\"\" class=\"form-check-input\" id=\"AutoModule.test_checkbox\" name=\"AutoModule.test_checkbox\" type=\"checkbox\" value=\"1\"/\u003e\n\n    \n\n    \n        Enable notifications\n    \n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputCascaded": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Cascaded Selection\n    \n\n    \n\n    \n        \n            \n                \n    \n    \u003cselect class=\"form-control\" id=\"AutoModule.level1\" name=\"AutoModule.level1\" onchange=\"cascaded({\u0027category1\u0027: {\u0027subcategory1\u0027: {\u0027item1\u0027: {}, \u0027item2\u0027: {}}, \u0027subcategory2\u0027: {\u0027item3\u0027: {}, \u0027item4\u0027: {}}}, \u0027category2\u0027: {\u0027subcategory3\u0027: {\u0027item5\u0027: {}, \u0027item6\u0027: {}}}}, [\u0027AutoModule.level1\u0027, \u0027AutoModule.level2\u0027, \u0027AutoModule.level3\u0027], this)\"\u003e\n\u003coption selected=\"\"\u003ecategory1\u003c/option\u003e\n\u003coption\u003ecategory2\u003c/option\u003e\n\u003c/select\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.level2\" name=\"AutoModule.level2\" onchange=\"cascaded({\u0027category1\u0027: {\u0027subcategory1\u0027: {\u0027item1\u0027: {}, \u0027item2\u0027: {}}, \u0027subcategory2\u0027: {\u0027item3\u0027: {}, \u0027item4\u0027: {}}}, \u0027category2\u0027: {\u0027subcategory3\u0027: {\u0027item5\u0027: {}, \u0027item6\u0027: {}}}}, [\u0027AutoModule.level1\u0027, \u0027AutoModule.level2\u0027, \u0027AutoModule.level3\u0027], this)\"\u003e\n\u003coption\u003esubcategory1\u003c/option\u003e\n\u003coption selected=\"\"\u003esubcategory2\u003c/option\u003e\n\u003c/select\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.level3\" name=\"AutoModule.level3\" onchange=\"cascaded({\u0027category1\u0027: {\u0027subcategory1\u0027: {\u0027item1\u0027: {}, \u0027item2\u0027: {}}, \u0027subcategory2\u0027: {\u0027item3\u0027: {}, \u0027item4\u0027: {}}}, \u0027category2\u0027: {\u0027subcategory3\u0027: {\u0027item5\u0027: {}, \u0027item6\u0027: {}}}}, [\u0027AutoModule.level1\u0027, \u0027AutoModule.level2\u0027, \u0027AutoModule.level3\u0027], this)\"\u003e\n\u003coption selected=\"\"\u003eitem3\u003c/option\u003e\n\u003coption\u003eitem4\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputDate": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Select a date\n    \n\n    \n        \n    \n        \u003cinput class=\"form-control\" id=\"AutoModule.test_date\" name=\"AutoModule.test_date\" type=\"date\" value=\"2024-01-15\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputDualSelectText": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Dual select with text\n    \n\n    \n    \u003cdiv class=\"row align-items-center\"\u003e\n\u003cdiv class=\"col-sm-11\" id=\"AutoModule.test_dualselecttext.div\"\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_dualselecttext.maprow0\"\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_dualselecttext.mapAleft0\" name=\"AutoModule.test_dualselecttext.mapAleft0\"\u003e\n\u003coption value=\"opt1\"\u003eopt1\u003c/option\u003e\n\u003coption selected=\"\" value=\"opt2\"\u003eopt2\u003c/option\u003e\n\u003coption value=\"opt3\"\u003eopt3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_dualselecttext.mapAright0\" name=\"AutoModule.test_dualselecttext.mapAright0\" type=\"text\" value=\"opt1\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_dualselecttext.mapBleft0\" name=\"AutoModule.test_dualselecttext.mapBleft0\"\u003e\n\u003coption value=\"opt1\"\u003eopt1\u003c/option\u003e\n\u003coption value=\"opt2\"\u003eopt2\u003c/option\u003e\n\u003coption value=\"opt3\"\u003eopt3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_dualselecttext.mapBright0\" name=\"AutoModule.test_dualselecttext.mapBright0\" type=\"text\" value=\"Combined result\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_dualselecttext.maprow1\"\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_dualselecttext.mapAleft1\" name=\"AutoModule.test_dualselecttext.mapAleft1\"\u003e\n\u003coption value=\"opt1\"\u003eopt1\u003c/option\u003e\n\u003coption value=\"opt2\"\u003eopt2\u003c/option\u003e\n\u003coption selected=\"\" value=\"opt3\"\u003eopt3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_dualselecttext.mapAright1\" name=\"AutoModule.test_dualselecttext.mapAright1\" type=\"text\" value=\"opt2\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_dualselecttext.mapBleft1\" name=\"AutoModule.test_dualselecttext.mapBleft1\"\u003e\n\u003coption value=\"opt1\"\u003eopt1\u003c/option\u003e\n\u003coption value=\"opt2\"\u003eopt2\u003c/option\u003e\n\u003coption value=\"opt3\"\u003eopt3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_dualselecttext.mapBright1\" name=\"AutoModule.test_dualselecttext.mapBright1\" type=\"text\" value=\"Another combination\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-1\"\u003e\n\u003ca onclick=\"setting_add_dual_mapping(\u0027AutoModule.test_dualselecttext\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputDualTextSelect": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Dual text with select\n    \n\n    \n    \u003cdiv class=\"row align-items-center\"\u003e\n\u003cdiv class=\"col-sm-11\" id=\"AutoModule.test_dualtextselect.div\"\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_dualtextselect.maprow0\"\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_dualtextselect.mapAright0\" name=\"AutoModule.test_dualtextselect.mapAright0\" type=\"text\" value=\"First text\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_dualtextselect.mapAleft0\" name=\"AutoModule.test_dualtextselect.mapAleft0\"\u003e\n\u003coption value=\"choice1\"\u003echoice1\u003c/option\u003e\n\u003coption value=\"choice2\"\u003echoice2\u003c/option\u003e\n\u003coption value=\"choice3\"\u003echoice3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_dualtextselect.mapBright0\" name=\"AutoModule.test_dualtextselect.mapBright0\" type=\"text\" value=\"choice2\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_dualtextselect.mapBleft0\" name=\"AutoModule.test_dualtextselect.mapBleft0\"\u003e\n\u003coption value=\"choice1\"\u003echoice1\u003c/option\u003e\n\u003coption value=\"choice2\"\u003echoice2\u003c/option\u003e\n\u003coption value=\"choice3\"\u003echoice3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_dualtextselect.maprow1\"\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_dualtextselect.mapAright1\" name=\"AutoModule.test_dualtextselect.mapAright1\" type=\"text\" value=\"Another first\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_dualtextselect.mapAleft1\" name=\"AutoModule.test_dualtextselect.mapAleft1\"\u003e\n\u003coption value=\"choice1\"\u003echoice1\u003c/option\u003e\n\u003coption value=\"choice2\"\u003echoice2\u003c/option\u003e\n\u003coption value=\"choice3\"\u003echoice3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_dualtextselect.mapBright1\" name=\"AutoModule.test_dualtextselect.mapBright1\" type=\"text\" value=\"choice1\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-3\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_dualtextselect.mapBleft1\" name=\"AutoModule.test_dualtextselect.mapBleft1\"\u003e\n\u003coption value=\"choice1\"\u003echoice1\u003c/option\u003e\n\u003coption value=\"choice2\"\u003echoice2\u003c/option\u003e\n\u003coption value=\"choice3\"\u003echoice3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-1\"\u003e\n\u003ca onclick=\"setting_add_dual_mapping(\u0027AutoModule.test_dualtextselect\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputFile": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cinput class=\"basic-filepond\" id=\"AutoModule.test_file\" name=\"AutoModule.test_file\" type=\"file\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputFileExplorer": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        File Explorer\n    \n\n    \n        \u003cdiv id=\"AutoModule_test_fileexplorer_files0\"\u003e\n\u003ch5 class=\"p-2 text-primary\"\u003eDocuments\u003c/h5\u003e\n\u003ctable class=\"table table-striped mb-0\"\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eFile\u003c/th\u003e\n\u003cth\u003e\u003ci \u003c=\"\" class=\"mdi mdi-file-document\" i=\"\"\u003e\u003c/i\u003e\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd style=\"padding-left:5px\"\u003e\u003ci class=\"mdi mdi-folder\" style=\"margin-right:10px\"\u003e\u003c/i\u003e\u003cb\u003efile1.txt\u003c/b\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd style=\"padding-left:5px\"\u003e\u003ci class=\"mdi mdi-folder\" style=\"margin-right:10px\"\u003e\u003c/i\u003e\u003cb\u003efile2.pdf\u003c/b\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\n\u003c/div\u003e\n\u003cdiv id=\"AutoModule_test_fileexplorer_files1\"\u003e\n\u003ch5 class=\"p-2 text-primary\"\u003eImages\u003c/h5\u003e\n\u003cbutton aria-controls=\"collapeAutoModule_test_fileexplorer\" aria-expanded=\"false\" class=\"btn btn-primary collapsed\" data-bs-target=\"#collapeAutoModule_test_fileexplorer\" data-bs-toggle=\"collapse\" type=\"button\"\u003e\n            Show file explorer\n        \u003c/button\u003e\n\u003cdiv class=\"collapse\" id=\"collapeAutoModule_test_fileexplorer\"\u003e\n\u003ctable class=\"table table-striped mb-0\"\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eFile\u003c/th\u003e\n\u003cth\u003e\u003ci \u003c=\"\" class=\"mdi mdi-file-image\" i=\"\"\u003e\u003c/i\u003e\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd style=\"padding-left:5px\"\u003e\u003ci class=\"mdi mdi-folder\" style=\"margin-right:10px\"\u003e\u003c/i\u003e\u003cb\u003eimage1.png\u003c/b\u003e\u003c/td\u003e\n\u003ctd\u003e\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputFolder": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cinput class=\"folder-filepond\" id=\"AutoModule.test_folder\" name=\"AutoModule.test_folder\" type=\"file\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputImage": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cinput ,=\"\" class=\"image-preview-filepond\" id=\"AutoModule.test_image\" name=\"AutoModule.test_image\" type=\"file\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputListSelect": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Select from lists\n       \n\n    \n    \u003cdiv class=\"row align-items-center\"\u003e\n\u003cdiv class=\"col-sm-10\" id=\"AutoModule.test_listselect.div\"\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_listselect.div0\"\u003e\n\u003cdiv class=\"col-sm-12\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_listselect.list0\" name=\"AutoModule.test_listselect.list0\"\u003e\n\u003coption value=\"list1_item1\"\u003elist1_item1\u003c/option\u003e\n\u003coption selected=\"\" value=\"list1_item2\"\u003elist1_item2\u003c/option\u003e\n\u003coption value=\"list2_item1\"\u003elist2_item1\u003c/option\u003e\n\u003coption value=\"list2_item2\"\u003elist2_item2\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_listselect.div1\"\u003e\n\u003cdiv class=\"col-sm-12\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_listselect.list1\" name=\"AutoModule.test_listselect.list1\"\u003e\n\u003coption value=\"list1_item1\"\u003elist1_item1\u003c/option\u003e\n\u003coption value=\"list1_item2\"\u003elist1_item2\u003c/option\u003e\n\u003coption selected=\"\" value=\"list2_item1\"\u003elist2_item1\u003c/option\u003e\n\u003coption value=\"list2_item2\"\u003elist2_item2\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-2\"\u003e\n\u003ca onclick=\"setting_add_list(\u0027AutoModule.test_listselect\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003ca onclick=\"setting_rm_list(\u0027AutoModule.test_listselect\u0027)\"\u003e\u003ci class=\"mdi mdi-minus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputListText": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        List of text inputs\n    \n\n    \n    \u003cdiv class=\"row align-items-center\"\u003e\n\u003cdiv class=\"col-sm-10\" id=\"AutoModule.test_listtext.div\"\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_listtext.div0\"\u003e\n\u003cdiv class=\"col-sm-12\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_listtext.list0\" name=\"AutoModule.test_listtext.list0\" type=\"text\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_listtext.div1\"\u003e\n\u003cdiv class=\"col-sm-12\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_listtext.list1\" name=\"AutoModule.test_listtext.list1\" type=\"text\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_listtext.div2\"\u003e\n\u003cdiv class=\"col-sm-12\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_listtext.list2\" name=\"AutoModule.test_listtext.list2\" type=\"text\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-2\"\u003e\n\u003ca onclick=\"setting_add_list(\u0027AutoModule.test_listtext\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003ca onclick=\"setting_rm_list(\u0027AutoModule.test_listtext\u0027)\"\u003e\u003ci class=\"mdi mdi-minus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputMapping": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Key-Value Mapping\n    \n\n    \u003cdiv class=\"col-sm-12\" id=\"AutoModule.test_mapping.div\"\u003e\n\u003cdiv class=\"form-group row\"\u003e\n\u003cdiv class=\"col-sm-4\"\u003eSection A: \u003c/div\u003e\n\u003cdiv class=\"col-sm-6\" id=\"AutoModule.test_mapping.Section A.div\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_mapping.Section A.list0\" name=\"AutoModule.test_mapping.Section A.list0\" onchange=\"settings_list_format(\u0027AutoModule.test_mapping.Section A\u0027)\"\u003e\n\u003coption selected=\"\"\u003eoption1\u003c/option\u003e\n\u003coption\u003eoption2\u003c/option\u003e\n\u003coption\u003eoption3\u003c/option\u003e\n\u003c/select\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_mapping.Section A.list1\" name=\"AutoModule.test_mapping.Section A.list1\" onchange=\"settings_list_format(\u0027AutoModule.test_mapping.Section A\u0027)\"\u003e\n\u003coption\u003eoption1\u003c/option\u003e\n\u003coption selected=\"\"\u003eoption2\u003c/option\u003e\n\u003coption\u003eoption3\u003c/option\u003e\n\u003c/select\u003e\n\u003cinput id=\"AutoModule.test_mapping.Section A\" name=\"AutoModule.test_mapping.Section A\" type=\"hidden\" value=\"option1#option2\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-2\"\u003e\n\u003ca href=\"#a\" onclick=\"setting_add_list(\u0027AutoModule.test_mapping.Section A\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003ca href=\"#a\" onclick=\"setting_rm_list(\u0027AutoModule.test_mapping.Section A\u0027)\"\u003e\u003ci class=\"mdi mdi-minus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"form-group row\"\u003e\n\u003cdiv class=\"col-sm-4\"\u003eSection B: \u003c/div\u003e\n\u003cdiv class=\"col-sm-6\" id=\"AutoModule.test_mapping.Section B.div\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_mapping.Section B.list0\" name=\"AutoModule.test_mapping.Section B.list0\" onchange=\"settings_list_format(\u0027AutoModule.test_mapping.Section B\u0027)\"\u003e\n\u003coption\u003eoption1\u003c/option\u003e\n\u003coption\u003eoption2\u003c/option\u003e\n\u003coption selected=\"\"\u003eoption3\u003c/option\u003e\n\u003c/select\u003e\n\u003cinput id=\"AutoModule.test_mapping.Section B\" name=\"AutoModule.test_mapping.Section B\" type=\"hidden\" value=\"option3\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-2\"\u003e\n\u003ca href=\"#a\" onclick=\"setting_add_list(\u0027AutoModule.test_mapping.Section B\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003ca href=\"#a\" onclick=\"setting_rm_list(\u0027AutoModule.test_mapping.Section B\u0027)\"\u003e\u003ci class=\"mdi mdi-minus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputMultiSelect": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Select multiple items\n    \n\n    \u003cdiv class=\"col-sm-12\" id=\"AutoModule.test_multiselect.div\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-sm-10\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_multiselect.list0\" name=\"AutoModule.test_multiselect.list0\" onchange=\"settings_list_format(\u0027AutoModule.test_multiselect\u0027)\"\u003e\n\u003coption\u003eitem1\u003c/option\u003e\n\u003coption selected=\"\"\u003eitem2\u003c/option\u003e\n\u003coption\u003eitem3\u003c/option\u003e\n\u003coption\u003eitem4\u003c/option\u003e\n\u003c/select\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_multiselect.list1\" name=\"AutoModule.test_multiselect.list1\" onchange=\"settings_list_format(\u0027AutoModule.test_multiselect\u0027)\"\u003e\n\u003coption\u003eitem1\u003c/option\u003e\n\u003coption\u003eitem2\u003c/option\u003e\n\u003coption selected=\"\"\u003eitem3\u003c/option\u003e\n\u003coption\u003eitem4\u003c/option\u003e\n\u003c/select\u003e\n\u003cinput id=\"AutoModule.test_multiselect\" name=\"AutoModule.test_multiselect\" type=\"hidden\" value=\"item2#item3\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-2\"\u003e\n\u003ca onclick=\"setting_add_list(\u0027AutoModule.test_multiselect\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003ca onclick=\"setting_rm_list(\u0027AutoModule.test_multiselect\u0027)\"\u003e\u003ci class=\"mdi mdi-minus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputMultiText": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cdiv class=\"row\"\u003e\n        \n            Enter multiple lines\n        \n\n        \u003cdiv class=\"col-sm-10\" id=\"AutoModule.test_multitext.div\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_multitext.list0\" name=\"AutoModule.test_multitext.list0\" onchange=\"settings_list_format(\u0027AutoModule.test_multitext\u0027)\" type=\"text\" value=\"Line 1\"/\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_multitext.list1\" name=\"AutoModule.test_multitext.list1\" onchange=\"settings_list_format(\u0027AutoModule.test_multitext\u0027)\" type=\"text\" value=\"Line 2\"/\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_multitext.list2\" name=\"AutoModule.test_multitext.list2\" onchange=\"settings_list_format(\u0027AutoModule.test_multitext\u0027)\" type=\"text\" value=\"Line 3\"/\u003e\n\u003cinput id=\"AutoModule.test_multitext\" name=\"AutoModule.test_multitext\" type=\"hidden\" value=\"Line 1#Line 2#Line 3\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-2\"\u003e\n\u003ca onclick=\"setting_add_list(\u0027AutoModule.test_multitext\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003ca onclick=\"setting_rm_list(\u0027AutoModule.test_multitext\u0027)\"\u003e\u003ci class=\"mdi mdi-minus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputNumeric": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Enter a number\n    \n\n    \n        \n    \u003cinput class=\"form-control\" id=\"AutoModule.test_numeric\" name=\"AutoModule.test_numeric\" step=\".01\" type=\"number\" value=\"42.5\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputSelect": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Choose an option\n    \n    \n        \n  \n  \n  \u003cselect class=\"form-control\" id=\"AutoModule.test_select\" name=\"AutoModule.test_select\"\u003e\n\u003coption data-tooltip=\"First option\" value=\"option1\"\u003eoption1\u003c/option\u003e\n\u003coption data-tooltip=\"Second option\" selected=\"\" value=\"option2\"\u003eoption2\u003c/option\u003e\n\u003coption data-tooltip=\"Third option\" value=\"option3\"\u003eoption3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputSelectText": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Select and describe\n    \n\n    \n    \u003cdiv class=\"row align-items-center\"\u003e\n\u003cdiv class=\"col-sm-11\" id=\"AutoModule.test_selecttext.div\"\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_selecttext.maprow0\"\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_selecttext.mapleft0\" name=\"AutoModule.test_selecttext.mapleft0\"\u003e\n\u003coption value=\"option1\"\u003eoption1\u003c/option\u003e\n\u003coption selected=\"\" value=\"option2\"\u003eoption2\u003c/option\u003e\n\u003coption value=\"option3\"\u003eoption3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_selecttext.mapright0\" name=\"AutoModule.test_selecttext.mapright0\" type=\"text\" value=\"Description for option 2\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_selecttext.maprow1\"\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_selecttext.mapleft1\" name=\"AutoModule.test_selecttext.mapleft1\"\u003e\n\u003coption selected=\"\" value=\"option1\"\u003eoption1\u003c/option\u003e\n\u003coption value=\"option2\"\u003eoption2\u003c/option\u003e\n\u003coption value=\"option3\"\u003eoption3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_selecttext.mapright1\" name=\"AutoModule.test_selecttext.mapright1\" type=\"text\" value=\"Another description\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-1\"\u003e\n\u003ca onclick=\"setting_add_mapping(\u0027AutoModule.test_selecttext\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputString": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cspan\u003eEnter a string\u003c/span\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_string\" name=\"AutoModule.test_string\" type=\"text\" value=\"Sample string\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputStringIcon": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cspan\u003eIcon String\u003c/span\u003e\n\u003cdiv class=\"form-group row\"\u003e\n\u003cdiv class=\"col-sm-10\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_stringicon\" name=\"AutoModule.test_stringicon\" onchange=\"settings_update_icon(\u0027AutoModule.test_stringicon\u0027)\" type=\"text\" value=\"star-outline\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-2\" id=\"AutoModule.test_stringicon.div\"\u003e\n\u003ci class=\"mdi mdi-star-outline\" style=\"font-size: 24px;\"\u003e\u003c/i\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputText": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Enter text\n    \n\n    \n        \n    \u003ctextarea cols=\"50\" id=\"AutoModule.test_text\" name=\"AutoModule.test_text\" rows=\"5\"\u003eSample text value\u003c/textarea\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputTextJS": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Text with JS (auto-capitalize)\n    \n\n    \n        \n    \u003cinput class=\"form-control\" id=\"AutoModule.test_textjs\" name=\"AutoModule.test_textjs\" onchange=\"this.value = this.value.toUpperCase();\" type=\"text\" value=\"type here\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputTextSelect": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Text and Selection\n    \n\n    \n    \u003cdiv class=\"row align-items-center\"\u003e\n\u003cdiv class=\"col-sm-11\" id=\"AutoModule.test_textselect.div\"\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_textselect.maprow0\"\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_textselect.mapright0\" name=\"AutoModule.test_textselect.mapright0\" type=\"text\" value=\"option2\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_textselect.mapleft0\" name=\"AutoModule.test_textselect.mapleft0\"\u003e\n\u003coption value=\"option1\"\u003eoption1\u003c/option\u003e\n\u003coption value=\"option2\"\u003eoption2\u003c/option\u003e\n\u003coption value=\"option3\"\u003eoption3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_textselect.maprow1\"\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_textselect.mapright1\" name=\"AutoModule.test_textselect.mapright1\" type=\"text\" value=\"option1\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cselect class=\"form-control\" id=\"AutoModule.test_textselect.mapleft1\" name=\"AutoModule.test_textselect.mapleft1\"\u003e\n\u003coption value=\"option1\"\u003eoption1\u003c/option\u003e\n\u003coption value=\"option2\"\u003eoption2\u003c/option\u003e\n\u003coption value=\"option3\"\u003eoption3\u003c/option\u003e\n\u003c/select\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-1\"\u003e\n\u003ca onclick=\"setting_add_mapping(\u0027AutoModule.test_textselect\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemInputTextText": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cform action=\"/test/item\" enctype=\"multipart/form-data\" method=\"POST\"\u003e\n\u003cinput name=\"csrf_token\" type=\"hidden\" value=\"\"/\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        Two text fields\n    \n\n    \n    \u003cdiv class=\"row align-items-center\"\u003e\n\u003cdiv class=\"col-sm-11\" id=\"AutoModule.test_texttext.div\"\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_texttext.maprow0\"\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_texttext.mapleft0\" name=\"AutoModule.test_texttext.mapleft0\" type=\"text\" value=\"First field\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_texttext.mapright0\" name=\"AutoModule.test_texttext.mapright0\" type=\"text\" value=\"Second field\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"row\" id=\"AutoModule.test_texttext.maprow1\"\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_texttext.mapleft1\" name=\"AutoModule.test_texttext.mapleft1\" type=\"text\" value=\"Another first\"/\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-6\"\u003e\n\u003cinput class=\"form-control\" id=\"AutoModule.test_texttext.mapright1\" name=\"AutoModule.test_texttext.mapright1\" type=\"text\" value=\"Another second\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-sm-1\"\u003e\n\u003ca onclick=\"setting_add_mapping(\u0027AutoModule.test_texttext\u0027)\"\u003e\u003ci class=\"mdi mdi-plus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003ca onclick=\"setting_rm_mapping(\u0027AutoModule.test_texttext\u0027)\"\u003e\u003ci class=\"mdi mdi-minus-circle text-primary\" style=\"padding:5px\"\u003e\u003c/i\u003e\u003c/a\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/form\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemModalButton": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv aria-hidden=\"true\" aria-labelledby=\"Coucou\" class=\"modal fade\" id=\"modal_test_modal_route\" style=\"display: none;\" tabindex=\"-1\"\u003e\n\u003cdiv class=\"modal-dialog modal-dialog-scrollable modal-full\" role=\"document\"\u003e\n\u003cdiv class=\"modal-content\"\u003e\n\u003cdiv class=\"modal-header\"\u003e\n\u003ch5 class=\"modal-title\"\u003eTest Modal\u003c/h5\u003e\n\u003c/div\u003e\n\u003cdiv class=\"modal-body\"\u003e\n\u003cdiv class=\"row my-1 0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    This is the modal content\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        \u003cdiv class=\"alert alert-success\"\u003eModal works!\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cbutton ,=\"\" class=\"btn btn-warning mx-1\" data-bs-target=\"#modal_test_modal_route\" data-bs-toggle=\"modal\" id=\"test_modal_route\" type=\"button\"\u003e\n        Open Modal\n    \u003c/button\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemModalLink": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv aria-hidden=\"true\" aria-labelledby=\"Coucou\" class=\"modal fade\" id=\"modal_\" style=\"display: none;\" tabindex=\"-1\"\u003e\n\u003cdiv class=\"modal-dialog modal-dialog-scrollable modal-full\" role=\"document\"\u003e\n\u003cdiv class=\"modal-content\"\u003e\n\u003cdiv class=\"modal-header\"\u003e\n\u003ch5 class=\"modal-title\"\u003eTest Modal\u003c/h5\u003e\n\u003c/div\u003e\n\u003cdiv class=\"modal-body\"\u003e\n\u003cdiv class=\"row my-1 0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    This is the modal content\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        \u003cdiv class=\"alert alert-success\"\u003eModal works!\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cp\u003e\u003ca ,=\"\" data-bs-target=\"#modal_\" data-bs-toggle=\"modal\" id=\"\"\u003e\n\u003ci class=\"mdi mdi-information-outline text-info\"\u003e\u003c/i\u003e\n        Info\n    \u003c/a\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemPlaceholder": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cdiv id=\"AutoModule.test_placeholder\"\u003eInitial placeholder data\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemSeparator": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003chr class=\"my-3\"/\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "DisplayerItemText": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    Sample DisplayerItemText\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "SPACER": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003cdiv\u003e\u003cp style=\"margin-bottom:1cm;\"\u003e\u003c/p\u003e\u003c/div\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eAfter Spacer\u003c/h3\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    Below spacer\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "TABLE_bulk_data": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eTable (bulk_data)\u003c/h3\u003e\n\u003cdiv class=\"row m-1\"\u003e\n\u003cdiv class=\"table-responsive\"\u003e\n\u003ctable class=\"table table-striped mb-0\" id=\"bulk_data_test_bulk\"\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eName\u003c/th\u003e\n\u003cth\u003eRole\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "TABLE_interactive": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eTable (interactive)\u003c/h3\u003e\n\u003cdiv class=\"row m-1\"\u003e\n\u003cdiv class=\"table-responsive\"\u003e\n\u003ctable class=\"table table-striped mb-0\" id=\"interactive_test_interactive\"\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eProduct\u003c/th\u003e\n\u003cth\u003ePrice\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\n                            \n                                \n                                    \n    \n\n    \n\n    \n        \n    Laptop\n\n    \n\n    \n\n    \n\n                                \n                            \n                        \u003c/td\u003e\n\u003ctd\u003e\n                            \n                                \n                                    \n    \n\n    \n\n    \n        \n    $999\n\n    \n\n    \n\n    \n\n                                \n                            \n                        \u003c/td\u003e\n\u003c/tr\u003e\n\u003ctr\u003e\n\u003ctd\u003e\n                            \n                                \n                                    \n    \n\n    \n\n    \n        \n    Mouse\n\n    \n\n    \n\n    \n\n                                \n                            \n                        \u003c/td\u003e\n\u003ctd\u003e\n                            \n                                \n                                    \n    \n\n    \n\n    \n        \n    $29\n\n    \n\n    \n\n    \n\n                                \n                            \n                        \u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "TABLE_server_side": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eTable (server_side)\u003c/h3\u003e\n\u003cdiv class=\"row m-1\"\u003e\n\u003cdiv class=\"table-responsive\"\u003e\n\u003ctable class=\"table table-striped mb-0\" id=\"server_side_test_server\"\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eID\u003c/th\u003e\n\u003cth\u003eStatus\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "TABLE_simple": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eTable (simple)\u003c/h3\u003e\n\u003cdiv class=\"row m-1\"\u003e\n\u003cdiv class=\"table-responsive\"\u003e\n\u003ctable class=\"table table-striped mb-0\"\u003e\n\u003cthead\u003e\n\u003ctr\u003e\n\u003cth\u003eName\u003c/th\u003e\n\u003cth\u003eStatus\u003c/th\u003e\n\u003c/tr\u003e\n\u003c/thead\u003e\n\u003ctbody\u003e\n\u003ctr\u003e\n\u003ctd\u003e\n                            \n                                \n                                    \n    \n\n    \n\n    \n        \n    Row1\n\n    \n\n    \n\n    \n\n                                \n                            \n                        \u003c/td\u003e\n\u003ctd\u003e\n\u003cdiv class=\"badge bg-success\"\u003eActive\u003c/div\u003e\n\u003c/td\u003e\n\u003c/tr\u003e\n\u003c/tbody\u003e\n\u003c/table\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "TABS": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eTabs\u003c/h3\u003e\n\u003cul class=\"nav nav-tabs\" id=\"myTab\" role=\"tablist\"\u003e\n\u003cli class=\"nav-item\" role=\"presentation\"\u003e\n\u003ca aria-controls=\"tab1\" aria-selected=\"true\" class=\"nav-link active\" data-bs-toggle=\"tab\" href=\"#tab1\" id=\"tab1-tab\" role=\"tab\"\u003e\n        Tab1\n        \u003c/a\u003e\n\u003c/li\u003e\n\u003cli class=\"nav-item\" role=\"presentation\"\u003e\n\u003ca aria-controls=\"tab2\" aria-selected=\"false\" class=\"nav-link\" data-bs-toggle=\"tab\" href=\"#tab2\" id=\"tab2-tab\" role=\"tab\"\u003e\n        Tab2\n        \u003c/a\u003e\n\u003c/li\u003e\n\u003c/ul\u003e\n\u003cdiv class=\"tab-content\" id=\"myTabContent\"\u003e\n\u003cdiv aria-labelledby=\"tab1-tab\" class=\"tab-pane fade show active\" id=\"tab1\" role=\"tabpanel\"\u003e\n            \n                \n                    \n    \n\n    \n\n    \n        \n    Tab content A\n\n    \n\n    \n\n    \n\n                \n            \n        \u003c/div\u003e\n\u003cdiv aria-labelledby=\"tab2-tab\" class=\"tab-pane fade\" id=\"tab2\" role=\"tabpanel\"\u003e\n            \n                \n                    \n    \n\n    \n\n    \n        \n    Tab content B\n\n    \n\n    \n\n    \n\n                \n            \n        \u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "VERTICAL": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eAutoModule\u003c/h1\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eVert\u003c/h3\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-6 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    Left\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003cdiv class=\"col-6 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    Right\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n", "basics": "\n\u003cdiv id=\"main-content\"\u003e\n\u003cdiv class=\"page-title\"\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body py-1\"\u003e\n\u003cnav aria-label=\"breadcrumb\"\u003e\n\u003col class=\"breadcrumb\"\u003e\n\u003cli class=\"breadcrumb-item\"\u003e\n\u003ca href=\"/test/item\"\u003eHome\u003c/a\u003e\n\u003c/li\u003e\n\u003cli class=\"breadcrumb-item\"\u003e\n\u003ca href=\"/test/item?section=basics\"\u003eBasics\u003c/a\u003e\n\u003c/li\u003e\n\u003cli class=\"breadcrumb-item text-active\"\u003e\n\u003ca href=\"/test/item?section=current\"\u003eCurrent\u003c/a\u003e\n\u003c/li\u003e\n\u003cli aria-current=\"page\" class=\"breadcrumb-item active\"\u003eModule2\u003c/li\u003e\n\u003c/ol\u003e\n\u003c/nav\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"row\"\u003e\n\u003cdiv class=\"col-12 order-md-1 order-last\"\u003e\n\u003ch2\u003e\n\n    Displayer Basics Test\n\n\u003c/h2\u003e\n\u003cp class=\"text-subtitle text-muted\"\u003e\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cscript\u003e\n  document.querySelectorAll(\u0027.alert\u0027).forEach(a=\u003e{\n    setTimeout(()=\u003e{ a.classList.remove(\u0027show\u0027); a.addEventListener(\u0027transitionend\u0027,()=\u003ea.remove()); }, 3500);\n  });\n\u003c/script\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eModule 1: Nested Layouts\u003c/h1\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eMaster Layout (2 columns)\u003c/h3\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-6 text-start\"\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    Text in slave layout column 0\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    \n        \u003cdiv class=\"badge bg-success\"\u003eBadge in slave\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"col-6 text-start\"\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cdiv class=\"alert alert-info\"\u003eAlert in slave layout column 1\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eModule 2: Simple Layout\u003c/h1\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eThree columns\u003c/h3\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-4 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    Column A content\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003cdiv class=\"col-4 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    Column B content\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003cdiv class=\"col-4 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    Column C content\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eModule 3: Another Layout\u003c/h1\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eSingle column\u003c/h3\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n\u003cdiv class=\"alert alert-success\"\u003eModule 3 alert\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cdiv class=\"card\"\u003e\n\u003cdiv class=\"card-header py-1\"\u003e\u003c/div\u003e\n\u003cdiv class=\"card-body\"\u003e\n\u003ch1\u003eModule 4: Duplicated Layouts\u003c/h1\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eFirst instance\u003c/h3\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    First layout text\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003c/div\u003e\n\u003ch3 class=\"text-primary mt-5\"\u003eSecond instance (duplicate)\u003c/h3\u003e\n\u003cdiv class=\"row my-1 py-0 align-items-center\"\u003e\n\u003cdiv class=\"col-12 text-start\"\u003e\n        \n        \n        \n            \n                \n                    \n    \n\n    \n\n    \n        \n    Second layout text\n\n    \n\n    \n\n    \n\n                \n            \n            \n        \n\n        \u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003cfooter\u003e\n\u003cdiv class=\"footer clearfix p-5 text-muted float-end\"\u003e\n\u003cdiv class=\"float-start\"\u003e\n\u003cp\u003e2024 \u00a9ESD\u003cbr/\u003eFramework by ESD\u003cbr/\u003eTemplate by Mazer\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003c/footer\u003e\n"};
+const filenameMap = {"DisplayerItemActionButtons": "item_DisplayerItemActionButtons.html", "DisplayerItemAlert": "item_DisplayerItemAlert.html", "DisplayerItemAlertBox": "item_DisplayerItemAlertBox.html", "DisplayerItemBadge": "item_DisplayerItemBadge.html", "DisplayerItemButton": "item_DisplayerItemButton.html", "DisplayerItemButtonGroup": "item_DisplayerItemButtonGroup.html", "DisplayerItemButtonLink": "item_DisplayerItemButtonLink.html", "DisplayerItemCalendar": "item_DisplayerItemCalendar.html", "DisplayerItemCard": "item_DisplayerItemCard.html", "DisplayerItemDownload": "item_DisplayerItemDownload.html", "DisplayerItemDynamicContent": "item_DisplayerItemDynamicContent.html", "DisplayerItemFile": "item_DisplayerItemFile.html", "DisplayerItemGraph": "item_DisplayerItemGraph.html", "DisplayerItemHidden": "item_DisplayerItemHidden.html", "DisplayerItemIconLink": "item_DisplayerItemIconLink.html", "DisplayerItemIconText": "item_DisplayerItemIconText.html", "DisplayerItemImage": "item_DisplayerItemImage.html", "DisplayerItemInputBox": "item_DisplayerItemInputBox.html", "DisplayerItemInputCascaded": "item_DisplayerItemInputCascaded.html", "DisplayerItemInputDate": "item_DisplayerItemInputDate.html", "DisplayerItemInputDualSelectText": "item_DisplayerItemInputDualSelectText.html", "DisplayerItemInputDualTextSelect": "item_DisplayerItemInputDualTextSelect.html", "DisplayerItemInputFile": "item_DisplayerItemInputFile.html", "DisplayerItemInputFileExplorer": "item_DisplayerItemInputFileExplorer.html", "DisplayerItemInputFolder": "item_DisplayerItemInputFolder.html", "DisplayerItemInputImage": "item_DisplayerItemInputImage.html", "DisplayerItemInputListSelect": "item_DisplayerItemInputListSelect.html", "DisplayerItemInputListText": "item_DisplayerItemInputListText.html", "DisplayerItemInputMapping": "item_DisplayerItemInputMapping.html", "DisplayerItemInputMultiSelect": "item_DisplayerItemInputMultiSelect.html", "DisplayerItemInputMultiText": "item_DisplayerItemInputMultiText.html", "DisplayerItemInputNumeric": "item_DisplayerItemInputNumeric.html", "DisplayerItemInputSelect": "item_DisplayerItemInputSelect.html", "DisplayerItemInputSelectText": "item_DisplayerItemInputSelectText.html", "DisplayerItemInputString": "item_DisplayerItemInputString.html", "DisplayerItemInputStringIcon": "item_DisplayerItemInputStringIcon.html", "DisplayerItemInputText": "item_DisplayerItemInputText.html", "DisplayerItemInputTextJS": "item_DisplayerItemInputTextJS.html", "DisplayerItemInputTextSelect": "item_DisplayerItemInputTextSelect.html", "DisplayerItemInputTextText": "item_DisplayerItemInputTextText.html", "DisplayerItemModalButton": "item_DisplayerItemModalButton.html", "DisplayerItemModalLink": "item_DisplayerItemModalLink.html", "DisplayerItemPlaceholder": "item_DisplayerItemPlaceholder.html", "DisplayerItemSeparator": "item_DisplayerItemSeparator.html", "DisplayerItemText": "item_DisplayerItemText.html", "SPACER": "layout_SPACER.html", "TABLE_bulk_data": "layout_TABLE_bulk_data.html", "TABLE_interactive": "layout_TABLE_interactive.html", "TABLE_server_side": "layout_TABLE_server_side.html", "TABLE_simple": "layout_TABLE_simple.html", "TABS": "layout_TABS.html", "VERTICAL": "layout_VERTICAL.html", "basics": "displayer_basics.html"};
+
+let currentComponentName = null;
+
+// Load preview content directly (no iframe, no fetch - content is embedded!)
+function loadPreview(componentName) {
+    console.log('Gallery: loadPreview called with:', componentName);
+    
+    if (!componentName) {
+        const hash = window.location.hash.substring(1);
+        componentName = hash || null;
+        console.log('Gallery: Extracted component from hash:', componentName);
+    }
+    
+    if (componentName && contentMap[componentName]) {
+        currentComponentName = componentName;
+        const contentDisplay = document.getElementById('content-display');
+        const currentFileTitle = document.getElementById('current-file-title');
+        
+        console.log('Gallery: Loading embedded content for:', componentName);
+        
+        // Inject the pre-extracted content
+        contentDisplay.innerHTML = contentMap[componentName];
+        
+        // Show content
+        contentDisplay.style.display = 'block';
+        
+        // Update title
+        currentFileTitle.textContent = componentName;
+        
+        // Update hash
+        window.location.hash = componentName;
+        console.log('Gallery: Content loaded successfully');
+    } else {
+        console.warn('Gallery: No content found for:', componentName);
+    }
+}
+
+// Open current component's full HTML file in new tab
+function openInNewTab() {
+    if (currentComponentName && filenameMap[currentComponentName]) {
+        window.open(filenameMap[currentComponentName], '_blank');
+    }
+}
+
+// Override sidebar link behavior for gallery
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Gallery: DOM loaded, setting up sidebar navigation');
+    console.log('Gallery: contentMap has', Object.keys(contentMap).length, 'components');
+    
+    // Add a small delay to ensure framework's sidebar JS is done
+    setTimeout(function() {
+        // Find all sidebar links
+        const sidebarLinks = document.querySelectorAll('.sidebar-item a');
+        console.log('Gallery: Found', sidebarLinks.length, 'sidebar links');
+        
+        sidebarLinks.forEach((link, index) => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Extract component name from link text
+                const span = this.querySelector('span');
+                if (!span) {
+                    console.warn('Gallery: No span found in link', this);
+                    return;
+                }
+                
+                const componentName = span.textContent.trim();
+                
+                console.log('Gallery: Clicked', componentName);
+                
+                if (contentMap[componentName]) {
+                    // Load preview using component name directly
+                    loadPreview(componentName);
+                    
+                    // Update active state
+                    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                    this.closest('.sidebar-item').classList.add('active');
+                } else {
+                    console.error('Gallery: No content found for', componentName);
+                }
+            });
+        });
+        
+        // Auto-load first item if no hash
+        if (!window.location.hash) {
+            const firstItem = document.querySelector('.sidebar-item a');
+            if (firstItem) {
+                console.log('Gallery: Auto-clicking first item');
+                firstItem.click();
+            }
+        } else {
+            // Load from hash
+            console.log('Gallery: Loading from hash:', window.location.hash);
+            loadPreview();
+        }
+    }, 100); // Small delay to let framework initialize
+});
+
+// Listen for hash changes
+window.addEventListener('hashchange', () => loadPreview());
+</script>
+
+            </div>
+
+            <footer>
+                <div class="footer clearfix p-5 text-muted float-end">
+                    <div class="float-start">
+                        <p>2024 &copy; ParalaX<br>Framework by ESD<br>Template by Mazer</p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+        
+    </div>
+    
+    
+    <script src="../../webengine/assets/vendors/jquery/jquery.min.js"></script>
+    <script src="../../webengine/assets/vendors/sweetalert/sweetalert2.min.js"></script>
+    <script src="../../webengine/assets/js/socket.io.min.js"></script>
+    <script src="../../webengine/assets/js/app.js"></script>
+    <script src="../../webengine/assets/js/site.js"></script>
+    <script src="../../webengine/assets/js/dark.js"></script>
+    
+    
+
+    <script>
+    function showCustomAlert(message, imageUrl) {
+        // Supprime le modal existant s'il existe
+        const existingModal = document.getElementById("customAlertModal");
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Création du code HTML du modal Bootstrap
+        const modalHTML = `
+            <div class="modal fade" id="customAlertModal" tabindex="-1" aria-labelledby="customAlertModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" style="max-height: 80vh;">
+                <div class="modal-content">
+                <div class="modal-body text-center">
+                    ${imageUrl ? `<img src="${imageUrl}" alt="Alert Image" class="img-fluid mb-3" style="max-width: 50%;">` : ""}
+                    <p>${message}</p>
+                </div>
+                <div class="modal-body text-center">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+                </div>
+            </div>
+            </div>
+        `;
+
+        // Ajout du modal dans le body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+        // Initialisation et affichage du modal via Bootstrap
+        const alertModal = new bootstrap.Modal(document.getElementById("customAlertModal"), {
+            backdrop: 'static',
+            keyboard: false
+        });
+        alertModal.show();
+    }
+    </script>
+
+    
+
+</body>
+
+</html>

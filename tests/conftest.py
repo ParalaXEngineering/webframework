@@ -1,21 +1,33 @@
 """
 Conftest for the ParalaX Web Framework testing.
 
-This configuration sets up the test environment, manages paths,
-and provides fixtures for testing the framework.
+This is the main configuration file that sets up test execution order and
+provides common configuration. Specific fixtures are defined in:
+- tests/unit/conftest.py - for unit tests (no Flask)
+- tests/integration/conftest.py - for integration tests (with Flask)
+
+Test Organization:
+tests/
+├── conftest.py (this file - main configuration)
+├── unit/ (pure logic tests, no Flask required)
+│   ├── conftest.py
+│   ├── test_settings.py
+│   ├── test_scheduler.py
+│   ├── test_threading.py
+│   ├── test_table_modes.py
+│   └── test_security.py
+└── integration/ (end-to-end tests with Flask)
+    ├── conftest.py
+    ├── test_displayer.py
+    ├── test_displayer_tabs_tables.py
+    ├── test_resource_loading.py
+    ├── test_auth_integration.py
+    └── test_authorization_refactor.py
 
 Test Execution Order:
 - test_displayer.py runs first to generate HTML output files
 - test_resource_loading.py runs second to verify resources in generated HTML
 - All other tests run in default order
-
-Test Structure:
-tests/
-├── conftest.py (this file - test configuration)
-├── test_displayer.py (DisplayerItem tests with auto-discovery)
-├── test_resource_loading.py (Resource validation in HTML output)
-├── test_settings.py (Settings storage and manager tests)
-└── test_scheduler.py (Scheduler, MessageQueue, MessageEmitter tests)
 """
 from pathlib import Path
 import sys
@@ -34,8 +46,14 @@ def pytest_collection_modifyitems(config, items):
     order_map = {
         'test_displayer.py': 10,  # Generate HTML files first
         'test_resource_loading.py': 11,  # Then verify resources in HTML
+        'test_displayer_tabs_tables.py': 12,  # Additional displayer tests
+        'test_authorization_refactor.py': 15,  # Auth tests
+        'test_auth_integration.py': 16,  # More auth tests
         'test_settings.py': 20,  # Settings tests (no dependencies)
         'test_scheduler.py': 30,  # Scheduler tests (no dependencies)
+        'test_threading.py': 40,  # Threading tests
+        'test_table_modes.py': 50,  # Table mode tests
+        'test_security.py': 60,  # Security tests
     }
     
     def get_order_key(item):
@@ -72,44 +90,3 @@ def setup_environment():
     
     # Cleanup: restore original directory
     os.chdir(original_cwd)
-
-@pytest.fixture(scope="session", autouse=True)
-def setup_log():
-    """Reset logs once for all tests in this session."""
-    log_dir = Path("logs")
-    if log_dir.exists() and log_dir.is_dir():
-        for log_file in log_dir.glob("*.log"):
-            try:
-                log_file.unlink()
-            except Exception:
-                pass  # Ignore errors during cleanup
-
-@pytest.fixture(scope="function")
-def flask_app():
-    """Create and configure a test Flask app for tests that need it."""
-    try:
-        from main import app, setup_app, FLASK_AVAILABLE
-        
-        if not FLASK_AVAILABLE:
-            pytest.skip("Flask not available for this test")
-        
-        # Configure for testing
-        app.config['TESTING'] = True
-        app.config['WTF_CSRF_ENABLED'] = False
-        
-        # Setup the app
-        setup_app(app)
-        
-        return app
-    except ImportError as e:
-        pytest.skip(f"Cannot import Flask app: {e}")
-
-@pytest.fixture
-def client(flask_app):
-    """Create a test client."""
-    return flask_app.test_client()
-
-@pytest.fixture
-def runner(flask_app):
-    """Create a test CLI runner."""
-    return flask_app.test_cli_runner()
