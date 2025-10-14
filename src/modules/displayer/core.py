@@ -309,6 +309,8 @@ class DisplayerItems(Enum):
     BUTTONGROUP = "BUTTONGROUP"
     ICONTEXT = "ICONTEXT"
     ACTIONBUTTONS = "ACTIONBUTTONS"
+    CONSOLE = "CONSOLE"
+    CODE = "CODE"
 
 
 class BSstyle(Enum):

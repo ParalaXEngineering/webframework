@@ -1,22 +1,36 @@
 """
 Thread Status Emitter
 
-Background thread that periodically emits thread status updates via SocketIO as JSON data.
+Background thread that periodically emits thread status updates via SocketIO.
+Uses Displayer framework for consistent UI rendering.
 """
 import threading
 import time
 from typing import Optional, List, Dict
+from jinja2 import Environment, FileSystemLoader
 
 try:
     from ..log.logger_factory import get_logger
     from . import threaded_manager
+    from ..displayer import (
+        Displayer, DisplayerLayout, Layouts, BSstyle, BSalign,
+        DisplayerItemText, DisplayerItemSeparator, DisplayerItemAlertBox,
+        DisplayerItemActionButtons, DisplayerItemConsole, DisplayerItemBadge,
+        DisplayerItemIconText
+    )
 except ImportError:
     from log.logger_factory import get_logger
     import threaded_manager
+    from displayer import (
+        Displayer, DisplayerLayout, Layouts, BSstyle, BSalign,
+        DisplayerItemText, DisplayerItemSeparator, DisplayerItemAlertBox,
+        DisplayerItemActionButtons, DisplayerItemConsole, DisplayerItemBadge,
+        DisplayerItemIconText
+    )
 
 
 class ThreadEmitter:
-    """Emits thread status updates via SocketIO at regular intervals as structured JSON."""
+    """Emits thread status updates via SocketIO using Displayer framework."""
     
     def __init__(self, socket_io, interval: float = 1.0):
         """
@@ -31,6 +45,10 @@ class ThreadEmitter:
         self.running = False
         self._thread: Optional[threading.Thread] = None
         self.logger = get_logger("threaded_emitter")
+        
+        # Set up Jinja2 environment for template rendering (no Flask context needed)
+        self.jinja_env = Environment(loader=FileSystemLoader("templates/"))
+        self.content_reloader_template = self.jinja_env.get_template("base_content_reloader.j2")
         
     def start(self):
         """Start the emitter background thread."""
@@ -64,66 +82,118 @@ class ThreadEmitter:
         """Collect and emit current thread status as HTML."""
         manager = threaded_manager.thread_manager_obj
         if not manager:
+            self.logger.warning("Thread manager not initialized")
             return
         
-        # Get running and completed threads
-        running_threads, completed_threads = manager.get_all_threads_with_history()
-        
-        # Limit completed to last 10
-        completed_threads = list(completed_threads)[-10:] if completed_threads else []
-        
-        # Build HTML content
-        html_content = self._render_threads_html(running_threads, completed_threads)
-        
-        # Emit reload event for threads_content div
         try:
+            # Get running and completed threads
+            running_threads, completed_threads = manager.get_all_threads_with_history()
+            
+            # Limit completed to last 10
+            completed_threads = list(completed_threads)[-10:] if completed_threads else []
+            
+            # Build HTML content
+            html_content = self._render_threads_html(running_threads, completed_threads)
+
+            # Emit reload event for threads_content div
             self.socket.emit('reload', {
                 'id': 'threads_content',
                 'content': html_content
             })
         except Exception as e:
-            self.logger.error(f"Failed to emit reload: {e}")
+            self.logger.error(f"Failed to emit thread update: {e}")
+            self.logger.exception("Full error details:")
     
     def _render_threads_html(self, running_threads, completed_threads) -> str:
-        """Render HTML for all threads.
+        """Render HTML for all threads using Displayer framework.
         
         Args:
             running_threads: List of running threads
             completed_threads: List of completed threads
             
         Returns:
-            HTML string with thread cards
+            HTML string rendered from Displayer object
         """
-        if not running_threads and not completed_threads:
-            return "<div class='alert alert-info'>No threads currently running. Visit the Threading Demo to start some!</div>"
+        disp = Displayer()
+        disp.add_generic("ThreadList")  # Initialize module
         
-        html_parts = []
+        if not running_threads and not completed_threads:
+            disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
+            disp.add_display_item(DisplayerItemAlertBox(
+                id="no_threads",
+                text="No threads currently running. Visit the Threading Demo to start some!",
+                style=BSstyle.INFO,
+                icon="information"
+            ), 0)
+            return self._render_displayer(disp)
+        
+        # Main vertical layout - one row per thread
+        num_threads = len(running_threads) + len(completed_threads)
+        # +2 for section headers if both exist, +1 if only one exists
+        num_rows = num_threads
+        if running_threads:
+            num_rows += 1  # Header row
+        if completed_threads:
+            num_rows += 1  # Header row
+            
+        disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
+        
+        row_index = 0
         
         # Running threads section
         if running_threads:
-            html_parts.append(f"<h4><i class='mdi mdi-play-circle'></i> Running Threads ({len(running_threads)})</h4>")
+            # Section header
+            disp.add_display_item(DisplayerItemText(
+                f"<h4><i class='mdi mdi-play-circle'></i> Running Threads ({len(running_threads)})</h4>"
+            ), row_index)
+            row_index += 1
+            
+            # Add each running thread as a slave layout
             for thread in running_threads:
-                html_parts.append(self._render_thread_card(thread, is_running=True))
-                html_parts.append("<hr class='my-3'>")
+                self._add_thread_card_to_displayer(disp, thread, row_index, is_running=True)
+                row_index += 1
         
         # Completed threads section
         if completed_threads:
-            html_parts.append(f"<h4 class='mt-4'><i class='mdi mdi-history'></i> Completed Threads History ({len(completed_threads)}) - Last 10</h4>")
+            # Section header
+            disp.add_display_item(DisplayerItemText(
+                f"<h4 class='mt-4'><i class='mdi mdi-history'></i> Completed Threads History ({len(completed_threads)}) - Last 10</h4>"
+            ), row_index)
+            row_index += 1
+            
+            # Add each completed thread as a slave layout
             for thread in reversed(completed_threads):  # Newest first
-                html_parts.append(self._render_thread_card(thread, is_running=False))
-                html_parts.append("<hr class='my-3'>")
+                self._add_thread_card_to_displayer(disp, thread, row_index, is_running=False)
+                row_index += 1
         
-        return '\n'.join(html_parts)
+        return self._render_displayer(disp)
     
-    def _render_thread_card(self, thread, is_running: bool) -> str:
-        """Render HTML card for a single thread.
+    def _render_displayer(self, disp: Displayer) -> str:
+        """Render a Displayer object to HTML string.
         
         Args:
-            thread: Thread object
-            is_running: Whether thread is currently running
+            disp: Displayer object to render
             
         Returns:
-            HTML string for thread card
+            HTML string
+        """
+        try:
+            displayer_dict = disp.display()
+            html = self.content_reloader_template.render(content=displayer_dict)
+            return html
+        except Exception as e:
+            self.logger.error(f"Failed to render displayer: {e}")
+            self.logger.exception("Rendering error details:")
+            return f"<div class='alert alert-danger'>Error rendering thread display: {e}</div>"
+    
+    def _add_thread_card_to_displayer(self, disp: Displayer, thread, row_index: int, is_running: bool):
+        """Add a single thread card to the main displayer.
+        
+        Args:
+            disp: Main Displayer object
+            thread: Thread object
+            row_index: Row index in main layout where this thread goes
+            is_running: Whether thread is currently running
         """
         thread_name = thread.get_name()
         thread_id = thread_name.replace(' ', '_').replace(':', '_')
@@ -132,70 +202,158 @@ class ThreadEmitter:
         progress = thread.get_progress()
         error = thread.get_error()
         is_actually_running = thread.is_running()
+        console_data = thread.get_console_data()
+                
+        master = disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
+
+        header_layout_id = disp.add_slave_layout(
+            DisplayerLayout(Layouts.VERTICAL, [6, 4, 2], alignment=[BSalign.L, BSalign.L, BSalign.R]),
+            column=0,
+            layout_id=master  # Add to the last master layout (the main vertical one)
+        )
+        
+        # Left: Thread name
+        disp.add_display_item(DisplayerItemIconText(
+            id=f"{thread_id}_name",
+            icon="mdi-cog",
+            text=f"<h5 class='mb-0'>{thread_name}</h5>",
+            color=BSstyle.PRIMARY
+        ), column=0, layout_id=header_layout_id)
+    
+        
+        right_col = 1
         
         # Status badge
         if error:
-            status_badge = '<span class="badge bg-danger">Error</span>'
+            disp.add_display_item(DisplayerItemBadge("Error", BSstyle.ERROR), column=right_col, layout_id=header_layout_id)
         elif is_actually_running:
-            status_badge = '<span class="badge bg-success">Running</span>'
+            disp.add_display_item(DisplayerItemBadge("Running", BSstyle.SUCCESS), column=right_col, layout_id=header_layout_id)
         else:
-            status_badge = '<span class="badge bg-secondary">Completed</span>'
+            disp.add_display_item(DisplayerItemBadge("Completed", BSstyle.INFO), column=right_col, layout_id=header_layout_id)
         
-        # Build card HTML
-        card_html = [f"<h3 class='text-primary mt-3'>{thread_name} {status_badge}"]
-        
+        # Progress badge
         if progress > 0:
-            card_html.append(f' <span class="badge bg-info">{progress}%</span>')
+            disp.add_display_item(DisplayerItemBadge(f"{progress}%", BSstyle.PRIMARY), column=right_col, layout_id=header_layout_id)
         
         # Action buttons for running threads
+        right_col += 1
         if is_actually_running:
-            card_html.append(f"""
-<div class='float-end'>
-    <form method='POST' style='display:inline-block; margin-left:5px;'>
-        <input type='hidden' name='thread_name' value='{thread_name}'>
-        <button type='submit' name='action' value='stop' class='btn btn-sm btn-warning' title='Stop Thread'>
-            <i class='mdi mdi-stop'></i> Stop
-        </button>
-    </form>
-    <form method='POST' style='display:inline-block; margin-left:5px;'>
-        <input type='hidden' name='thread_name' value='{thread_name}'>
-        <button type='submit' name='action' value='force_kill' class='btn btn-sm btn-danger' title='Force Kill Thread'>
-            <i class='mdi mdi-close-octagon'></i> Force Kill
-        </button>
-    </form>
-</div>""")
+            disp.add_display_item(DisplayerItemActionButtons(
+                id=f"{thread_id}_actions",
+                view_url="#",
+                delete_url="#",
+                style="buttons"
+            ), column=right_col, layout_id=header_layout_id)
         
-        card_html.append("</h3>")
-        
-        # Get console data using proper getter
-        console_data = thread.get_console_data()
+        #=== Row 1: Tabs or "No Data" ===
         if not console_data:
-            card_html.append("<p class='text-muted'>No data available</p>")
-            return '\n'.join(card_html)
+            disp.add_display_item(DisplayerItemAlertBox(
+                id=f"{thread_id}_nodata",
+                text="No data available",
+                style=BSstyle.LIGHT,
+                icon="mdi-information-outline"
+            ), column=0, layout_id=master)
+            return
         
-        # Simple display of console output and logs (no tabs for now - simpler)
         console_output = console_data.get('console_output', [])
-        if console_output:
-            card_html.append("<h5>Console Output:</h5>")
-            card_html.append("<div style='background:#1e1e1e; color:#d4d4d4; padding:10px; border-radius:5px; max-height:300px; overflow-y:auto; font-family:monospace;'>")
-            for line in console_output[-30:]:  # Last 30 lines
-                card_html.append(f"{line}<br>")
-            card_html.append("</div>")
-        
         logs = console_data.get('logs', [])
+        
+        # Build tab titles
+        tab_titles = []
+        if console_output:
+            tab_titles.append("Console")
         if logs:
-            card_html.append("<h5 class='mt-3'>Recent Logs:</h5>")
-            card_html.append("<div style='max-height:200px; overflow-y:auto;'>")
-            for log in logs[-20:]:  # Last 20 logs
+            tab_titles.append("Logs")
+        tab_titles.append("Info")
+        
+        # Add TABS layout
+        tabs_layout_id = disp.add_master_layout(
+            DisplayerLayout(Layouts.TABS, tab_titles)
+        )
+        
+        tab_col = 0
+        
+        # Tab: Console
+        if console_output:
+            console_tab_id = disp.add_slave_layout(
+                DisplayerLayout(Layouts.VERTICAL, [12]),
+                column=tab_col,
+                layout_id=tabs_layout_id
+            )
+            disp.add_display_item(DisplayerItemConsole(
+                id=f"{thread_id}_console",
+                lines=console_output[-30:],
+                max_height="300px"
+            ), column=0, layout_id=console_tab_id)
+            tab_col += 1
+        
+        # Tab: Logs
+        if logs:
+            # Create vertical layout for logs
+            log_table = disp.add_slave_layout(
+                DisplayerLayout(Layouts.TABLE, ["Level", "Message"]),
+                column=tab_col,
+                layout_id=tabs_layout_id
+            )
+            
+            for log_row, log in enumerate(logs[-20:]):
                 level = log.get('level', 'info').upper()
-                level_badge_class = {'DEBUG': 'secondary', 'INFO': 'info', 'WARNING': 'warning', 'ERROR': 'danger'}.get(level, 'secondary')
-                card_html.append(f"<div><span class='badge bg-{level_badge_class}'>{level}</span> {log.get('message', '')}</div>")
-            card_html.append("</div>")
+                level_style_map = {
+                    'DEBUG': BSstyle.SECONDARY,
+                    'INFO': BSstyle.INFO,
+                    'WARNING': BSstyle.WARNING,
+                    'ERROR': BSstyle.ERROR
+                }
+                level_style = level_style_map.get(level, BSstyle.SECONDARY)
+                
+                disp.add_display_item(DisplayerItemBadge(level, level_style), column=0, line=log_row, layout_id=log_table)
+                disp.add_display_item(DisplayerItemText(log.get('message', '')), column=1, line=log_row, layout_id=log_table)
+            tab_col += 1
         
+        # Tab: Info
+        master_info = disp.add_slave_layout(
+            DisplayerLayout(Layouts.VERTICAL, [12]),
+            column=tab_col,
+            layout_id=tabs_layout_id
+        )
+
+        info_tab_id = disp.add_slave_layout(
+            DisplayerLayout(Layouts.VERTICAL, [6, 6]),
+            column=0,
+            layout_id=master_info
+        )
+        
+        disp.add_display_item(DisplayerItemText("<strong>Thread Name:</strong>"), column=0, layout_id=info_tab_id)
+        disp.add_display_item(DisplayerItemText(thread_name), column=1, layout_id=info_tab_id)
+        
+        # Info line 2: Status
+        info_tab_id = disp.add_slave_layout(
+            DisplayerLayout(Layouts.VERTICAL, [6, 6]),
+            column=0,
+            layout_id=master_info
+        )
+        disp.add_display_item(DisplayerItemText("<strong>Status:</strong>"), column=0, layout_id=info_tab_id)
+        disp.add_display_item(DisplayerItemText('Running' if is_actually_running else 'Completed'), column=1, layout_id=info_tab_id)
+        
+        # Info line 3: Progress
+        info_tab_id = disp.add_slave_layout(
+            DisplayerLayout(Layouts.VERTICAL, [6, 6]),
+            column=0,
+            layout_id=master_info
+        )
+        disp.add_display_item(DisplayerItemText("<strong>Progress:</strong>"), column=0, layout_id=info_tab_id)
+        disp.add_display_item(DisplayerItemText(f"{progress}%"), column=1, layout_id=info_tab_id)
+        
+        #=== Row 2: Error (if present) ===
         if error:
-            card_html.append(f"<div class='alert alert-danger mt-3'><strong>Error:</strong> {error}</div>")
+            disp.add_display_item(DisplayerItemAlertBox(
+                id=f"{thread_id}_error",
+                text=f"<strong>Error:</strong> {error}",
+                style=BSstyle.ERROR,
+                icon="mdi-alert-circle"
+            ), column=2, layout_id=master)
         
-        return '\n'.join(card_html)
+        return disp
 
 
 # Global emitter instance

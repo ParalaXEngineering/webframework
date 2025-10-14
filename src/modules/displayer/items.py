@@ -2065,3 +2065,142 @@ class DisplayerItemActionButtons(DisplayerItem):
             delete_url="https://www.google.com"
         )
 
+
+@DisplayerCategory.DISPLAY
+class DisplayerItemConsole(DisplayerItem):
+    """
+    Console output display with monospace font and dark terminal-like styling.
+    
+    Displays text content in a styled console/terminal format with:
+    - Dark background (#1e1e1e)
+    - Light text color (#d4d4d4)
+    - Monospace font
+    - Scrollable container
+    - Optional max height
+    
+    Perfect for showing command output, logs, or terminal sessions.
+    
+    Example:
+        >>> console = DisplayerItemConsole(
+        ...     id="build_output",
+        ...     lines=["Building project...", "Compiling src/main.py", "Build successful!"],
+        ...     max_height="400px"
+        ... )
+    """
+    
+    def __init__(
+        self,
+        id: str,
+        lines: List[str],
+        max_height: str = "300px",
+        title: str = None
+    ) -> None:
+        """
+        Initialize a console display item.
+        
+        Args:
+            id: Unique identifier
+            lines: List of console output lines to display
+            max_height: Maximum height before scrolling (e.g., "300px", "20rem")
+            title: Optional title/header for the console block
+        """
+        super().__init__(DisplayerItems.CONSOLE)
+        self.m_itemId = id
+        self.m_data = lines  # Using m_data for lines list
+        self.m_style = max_height  # Using m_style for max_height
+        self.m_header = title  # Using m_header for optional title
+    
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample console output."""
+        return cls(
+            id="test_console",
+            lines=[
+                "$ npm install",
+                "Installing dependencies...",
+                "✓ lodash@4.17.21",
+                "✓ axios@1.4.0",
+                "✓ react@18.2.0",
+                "",
+                "Build completed successfully!"
+            ],
+            max_height="200px",
+            title="Build Output"
+        )
+
+
+@DisplayerCategory.DISPLAY
+class DisplayerItemCode(DisplayerItem):
+    """
+    Code block display with syntax highlighting support.
+    
+    Displays formatted code with:
+    - Syntax highlighting (via highlight.js or Prism.js)
+    - Line numbers (optional)
+    - Copy button (optional)
+    - Language badge
+    - Light/dark theme support
+    
+    Supports many languages: python, javascript, java, c++, sql, json, yaml, etc.
+    
+    Example:
+        >>> code = DisplayerItemCode(
+        ...     id="sample_code",
+        ...     code='def hello():\\n    print("Hello, World!")',
+        ...     language="python",
+        ...     show_line_numbers=True,
+        ...     title="Example Function"
+        ... )
+    """
+    
+    def __init__(
+        self,
+        id: str,
+        code: str,
+        language: str = "text",
+        show_line_numbers: bool = False,
+        title: str = None,
+        max_height: str = "500px"
+    ) -> None:
+        """
+        Initialize a code display item.
+        
+        Args:
+            id: Unique identifier
+            code: Source code content to display
+            language: Programming language for syntax highlighting 
+                     (python, javascript, java, cpp, sql, json, yaml, bash, etc.)
+            show_line_numbers: Whether to show line numbers in gutter
+            title: Optional title/filename for the code block
+            max_height: Maximum height before scrolling
+        """
+        super().__init__(DisplayerItems.CODE)
+        self.m_itemId = id
+        self.m_text = code  # Using m_text for code content
+        self.m_path = language  # Using m_path for language
+        self.m_header = title  # Using m_header for title
+        self.m_style = max_height  # Using m_style for max_height
+        self.m_disabled = show_line_numbers  # Using m_disabled for line numbers flag
+    
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample code."""
+        sample_code = '''def fibonacci(n):
+    """Calculate Fibonacci number."""
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+
+# Test the function
+for i in range(10):
+    print(f"F({i}) = {fibonacci(i)}")'''
+        
+        return cls(
+            id="test_code",
+            code=sample_code,
+            language="python",
+            show_line_numbers=True,
+            title="fibonacci.py"
+        )
+
+

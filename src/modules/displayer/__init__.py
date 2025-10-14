@@ -86,6 +86,8 @@ from .items import (
     DisplayerItemButtonGroup,
     DisplayerItemActionButtons,
     DisplayerItemIconText,
+    DisplayerItemConsole,
+    DisplayerItemCode,
 )
 
 __all__ = [
@@ -155,6 +157,8 @@ __all__ = [
     'DisplayerItemButtonGroup',
     'DisplayerItemActionButtons',
     'DisplayerItemIconText',
+    'DisplayerItemConsole',
+    'DisplayerItemCode',
 ]
 
 # Backward compatibility aliases for clearer naming

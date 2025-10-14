@@ -99,6 +99,10 @@
         {{icontext(item["itemId"], item["icon"], item["text"], item["style"], item["path"])}}
     {% elif item["type"] == "ACTIONBUTTONS" %}
         {{actionbuttons(item["itemId"], item["data"], item["value"], item["style"])}}
+    {% elif item["type"] == "CONSOLE" %}
+        {{console(item["itemId"], item["data"], item["style"], item["header"])}}
+    {% elif item["type"] == "CODE" %}
+        {{code(item["itemId"], item["text"], item["path"], item["header"], item["style"], item["disabled"])}}
     {% endif %}
 
     {% if "itemId" in item %}
@@ -893,7 +897,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="card mb-3" id="{{id}}">
     <div class="card-header bg-{{header_color}} text-white">
         {% if icon %}
-        <i class="{{icon}}"></i> 
+        <i class="mdi mdi-{{icon}}"></i> 
         {% endif %}
         <strong>{{title}}</strong>
     </div>
@@ -920,7 +924,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="alert alert-{{style}} {% if dismissible %}alert-dismissible fade show{% endif %}" 
      role="alert" id="{{id}}">
     {% if icon %}
-    <i class="{{icon}}"></i> 
+    <i class="mdi mdi-{{icon}}"></i> 
     {% endif %}
     {% if title %}
     <strong>{{title}}</strong><br>
@@ -959,7 +963,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {% if link %}
     <a href="{{link}}" class="{% if color %}text-{{color}}{% endif %}">
     {% endif %}
-    <i class="{{icon}}"></i> {{text}}
+    <i class="mdi mdi-{{icon}}"></i> {{text}}
     {% if link %}
     </a>
     {% endif %}
@@ -990,6 +994,57 @@ document.addEventListener('DOMContentLoaded', function() {
             <i class="{{action.icon}}"></i>
         </a>
     {% endfor %}
+</div>
+{% endmacro %}
+
+{# Console output display with terminal-like styling
+   
+   Parameters:
+   - id: unique identifier
+   - lines: list of console output lines
+   - max_height: maximum height before scrolling (e.g., "300px")
+   - title: optional header/title for console block
+#}
+{% macro console(id, lines, max_height, title) %}
+<div id="{{id}}" class="console-output">
+    {% if title %}
+    <div class="console-header d-flex align-items-center mb-2">
+        <i class="mdi mdi-console me-2"></i>
+        <strong>{{title}}</strong>
+    </div>
+    {% endif %}
+    <div style="background:#1e1e1e; color:#d4d4d4; padding:12px; border-radius:6px; max-height:{{max_height if max_height else '300px'}}; overflow-y:auto; font-family:'Courier New', Consolas, monospace; font-size:0.9rem; line-height:1.5;">
+        {% for line in lines %}
+        {{line}}<br>
+        {% endfor %}
+    </div>
+</div>
+{% endmacro %}
+
+{# Code block with syntax highlighting
+   
+   Parameters:
+   - id: unique identifier
+   - code: source code content
+   - language: programming language (python, javascript, etc.)
+   - title: optional filename/title
+   - max_height: maximum height before scrolling
+   - show_line_numbers: whether to show line numbers
+#}
+{% macro code(id, code, language, title, max_height, show_line_numbers) %}
+<div id="{{id}}" class="code-block mb-3">
+    {% if title %}
+    <div class="code-header d-flex align-items-center justify-content-between bg-light p-2 border border-bottom-0 rounded-top">
+        <div>
+            <i class="mdi mdi-file-code me-2"></i>
+            <strong>{{title}}</strong>
+        </div>
+        {% if language %}
+        <span class="badge bg-secondary">{{language}}</span>
+        {% endif %}
+    </div>
+    {% endif %}
+    <pre class="m-0 border rounded{% if not title %}-top{% endif %}" style="max-height:{{max_height if max_height else '500px'}}; overflow-y:auto;"><code class="language-{{language if language else 'text'}}{% if show_line_numbers %} line-numbers{% endif %}">{{code}}</code></pre>
 </div>
 {% endmacro %}
 
