@@ -317,6 +317,30 @@ class Threaded_action:
         if self.m_name:
             return self.m_name
         return self.m_default_name
+    
+    def is_running(self) -> bool:
+        """Check if thread is currently running.
+        
+        Returns:
+            True if thread is running, False otherwise
+        """
+        return self.m_running
+    
+    def get_progress(self) -> int:
+        """Get current progress percentage.
+        
+        Returns:
+            Progress value (-1 for indeterminate, 0-100 for percentage)
+        """
+        return self.m_running_state
+    
+    def get_error(self) -> Optional[str]:
+        """Get error message if thread encountered an error.
+        
+        Returns:
+            Error message string or None if no error
+        """
+        return self.m_error
 
     def change_name(self, name: str):
         """Change the name of the instance.
