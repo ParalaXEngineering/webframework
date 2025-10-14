@@ -223,6 +223,31 @@ class Threaded_manager:
         finally:
             self._lock.release()
 
+    def remove_from_history(self, name: str) -> bool:
+        """Remove a completed thread from history by name.
+        
+        Args:
+            name: The name of the thread to remove from history
+            
+        Returns:
+            True if removed, False if not found
+        """
+        if not self._lock.acquire(timeout=self.lock_timeout):
+            self.m_logger.error(f"Failed to acquire lock for remove_from_history (timeout={self.lock_timeout}s)")
+            return False
+        
+        try:
+            for thread in self.m_completed_threads:
+                thread_name = thread.get_name() if hasattr(thread, 'get_name') else str(thread)
+                if name == thread_name:
+                    self.m_completed_threads.remove(thread)
+                    self.m_logger.info(f"Removed thread '{thread_name}' from history")
+                    return True
+            self.m_logger.debug(f"Thread '{name}' not found in history")
+            return False
+        finally:
+            self._lock.release()
+
     def kill_all_threads(self):
         """Kill all managed threads (useful for shutdown)"""
         if not self._lock.acquire(timeout=self.lock_timeout):

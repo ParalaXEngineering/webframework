@@ -225,7 +225,10 @@ class ThreadEmitter:
         
         # Status badge
         if error:
-            disp.add_display_item(DisplayerItemBadge("Error", BSstyle.ERROR), column=right_col, layout_id=header_layout_id)
+            if "Aborted" in error:
+                disp.add_display_item(DisplayerItemBadge("Aborted", BSstyle.WARNING), column=right_col, layout_id=header_layout_id)
+            else:
+                disp.add_display_item(DisplayerItemBadge("Error", BSstyle.ERROR), column=right_col, layout_id=header_layout_id)
         elif is_actually_running:
             disp.add_display_item(DisplayerItemBadge("Running", BSstyle.SUCCESS), column=right_col, layout_id=header_layout_id)
         else:
@@ -235,15 +238,13 @@ class ThreadEmitter:
         if progress > 0:
             disp.add_display_item(DisplayerItemBadge(f"{progress}%", BSstyle.PRIMARY), column=right_col, layout_id=header_layout_id)
         
-        # Action buttons for running threads
+        # Delete button - for running threads it stops them, for completed it removes from history
         right_col += 1
-        if is_actually_running:
-            disp.add_display_item(DisplayerItemActionButtons(
-                id=f"{thread_id}_actions",
-                view_url="#",
-                delete_url="#",
-                style="buttons"
-            ), column=right_col, layout_id=header_layout_id)
+        disp.add_display_item(DisplayerItemActionButtons(
+            id=f"{thread_id}_actions",
+            delete_url=f"/threads/delete?thread_name={thread_name}",
+            style="icons"
+        ), column=right_col, layout_id=header_layout_id)
         
         #=== Row 1: Tabs or "No Data" ===
         if not console_data:
@@ -333,7 +334,15 @@ class ThreadEmitter:
             layout_id=master_info
         )
         disp.add_display_item(DisplayerItemText("<strong>Status:</strong>"), column=0, layout_id=info_tab_id)
-        disp.add_display_item(DisplayerItemText('Running' if is_actually_running else 'Completed'), column=1, layout_id=info_tab_id)
+        
+        # Determine status text
+        if error:
+            status_text = "Aborted" if "Aborted" in error else "Error"
+        elif is_actually_running:
+            status_text = "Running"
+        else:
+            status_text = "Completed"
+        disp.add_display_item(DisplayerItemText(status_text), column=1, layout_id=info_tab_id)
         
         # Info line 3: Progress
         info_tab_id = disp.add_slave_layout(

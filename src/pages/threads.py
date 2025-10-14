@@ -101,3 +101,31 @@ def threads():
                          target="threads.threads")
 
 
+@bp.route("/delete", methods=["GET"])
+def delete_thread():
+    """
+    Delete a thread: kill if running (marks as aborted), or remove completed from history.
+    
+    Query Parameters:
+        thread_name: Name of the thread to delete
+        
+    Returns:
+        Redirect back to threads page
+    """
+    from flask import redirect, url_for
+    
+    thread_name = request.args.get('thread_name')
+    
+    if thread_name:
+        manager = threaded_manager.thread_manager_obj
+        if manager:
+            # Check if thread is running
+            thread = manager.get_thread(thread_name)
+            if thread:
+                # It's running - stop it and mark as aborted (stays in history)
+                thread.delete()  # This calls del_thread internally and marks as aborted
+            else:
+                # Not running - it's completed, remove from history
+                manager.remove_from_history(thread_name)
+    
+    return redirect(url_for('threads.threads'))

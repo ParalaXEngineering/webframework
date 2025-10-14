@@ -352,9 +352,61 @@ class Threaded_action:
         self.console_write(f"Thread renamed to: {name}", "INFO")
 
     def delete(self):
-        """Delete the thread and unregister it from the thread manager"""
+        """Delete the thread and unregister it from the thread manager.
+        
+        This stops the thread by:
+        1. Setting m_running = False (threads should check this in their action())
+        2. Killing any running subprocess
+        3. Force-stopping the Python thread using ctypes (dangerous but necessary)
+        4. Marking as aborted if it was running
+        5. Unregistering from thread manager
+        """
         self.console_write("Thread deletion requested", "WARNING")
+        was_running = self.m_running
         self.m_running = False
+        
+        # Try to kill any running subprocess
+        try:
+            if hasattr(self, 'm_process') and self.m_process:
+                self.console_write("Terminating subprocess...", "WARNING")
+                self.m_process.terminate()
+                # Give it a moment to terminate gracefully
+                time.sleep(0.1)
+                # Force kill if still alive
+                if self.m_process.poll() is None:
+                    self.m_process.kill()
+                    self.console_write("Subprocess forcefully killed", "WARNING")
+        except Exception as e:
+            self.console_write(f"Error stopping subprocess: {e}", "ERROR")
+        
+        # Force stop the Python thread using ctypes (raises SystemExit in thread)
+        if self.m_thread_action and self.m_thread_action.is_alive():
+            try:
+                import ctypes
+                thread_id = self.m_thread_action.ident
+                if thread_id:
+                    self.console_write("Force-stopping thread execution...", "WARNING")
+                    # Raise SystemExit exception in the thread
+                    res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
+                        ctypes.c_long(thread_id),
+                        ctypes.py_object(SystemExit)
+                    )
+                    if res == 0:
+                        self.console_write("Thread ID not found - cannot force stop", "ERROR")
+                    elif res > 1:
+                        # If it returns more than 1, we need to revert the exception
+                        ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), None)
+                        self.console_write("Failed to force stop thread", "ERROR")
+                    else:
+                        self.console_write("Thread execution forcefully stopped", "WARNING")
+            except Exception as e:
+                self.console_write(f"Error force-stopping thread: {e}", "ERROR")
+        
+        # Mark as aborted if it was still running
+        if was_running and not self.m_error:
+            self.m_error = "Aborted by user"
+            self.console_write("Thread aborted by user", "ERROR")
+        
         threaded_manager.thread_manager_obj.del_thread(self)
 
     # ============================================================================
