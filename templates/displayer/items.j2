@@ -78,7 +78,7 @@
     {% elif item["type"] == "INMAPPING" %}
         {{inmapping(item["id"], item["data"], item["value"], item["text"])}}
     {% elif item["type"] == "ALERT" %}
-        {{alert(item["text"], item["style"])}}
+        {{alert(item["text"], item["style"], item["header"] if "header" in item else None, item["icon"] if "icon" in item else "alert-circle")}}
     {% elif item["type"] == "BADGE" %}
         {{badge(item["text"], item["style"])}}
     {% elif item["type"] == "INFILEEXPLORER"%}
@@ -167,9 +167,22 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 {% endmacro %}
 
-{% macro alert(text, style) %}
+{% macro alert(text, style, header, icon) %}
     {% if style != "none" %}
-        <div class="alert alert-{{style}}">{{text}}</div>
+        <div class="alert-box mb-3">
+            {% if header %}
+            <div class="d-flex align-items-center justify-content-between alert-{{style}} p-2 border border-bottom-0 rounded-top">
+                <div>
+                    <i class="mdi mdi-{{icon}} me-2"></i>
+                    <strong>{{header}}</strong>
+                </div>
+                <span class="badge bg-{{style}}">{{style|upper}}</span>
+            </div>
+            {% endif %}
+            <div class="alert alert-light-{{style}} border {% if header %}rounded-0 rounded-bottom{% endif %} m-0">
+                {{text}}
+            </div>
+        </div>
     {% else %}
         <div>{{text}}</div>
     {% endif %}
@@ -1044,7 +1057,18 @@ document.addEventListener('DOMContentLoaded', function() {
         {% endif %}
     </div>
     {% endif %}
-    <pre class="m-0 border rounded{% if not title %}-top{% endif %}" style="max-height:{{max_height if max_height else '500px'}}; overflow-y:auto;"><code class="language-{{language if language else 'text'}}{% if show_line_numbers %} line-numbers{% endif %}">{{code}}</code></pre>
+    <pre class="m-0 border rounded{% if not title %}-top{% endif %}" style="max-height:{{max_height if max_height else '500px'}}; overflow-y:auto;"><code class="language-{{language if language else 'plaintext'}}">{{code}}</code></pre>
 </div>
+<script>
+    // Initialize syntax highlighting for this code block
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof hljs !== 'undefined') {
+            document.querySelectorAll('#{{id}} pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }
+    });
+</script>
 {% endmacro %}
+
 

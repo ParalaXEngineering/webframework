@@ -62,6 +62,10 @@ class ResourceRegistry:
         },
         'apexcharts': {
             'js_cdn': ['https://cdn.jsdelivr.net/npm/apexcharts']
+        },
+        'highlightjs': {
+            'css': ['vendors/highlightjs/styles/atom-one-dark.min.css'],
+            'js': ['vendors/highlightjs/highlight.min.js']
         }
     }
     
@@ -121,6 +125,20 @@ class ResourceRegistry:
             if vendor in cls.RESOURCES and 'js_cdn' in cls.RESOURCES[vendor]:
                 js_cdn.extend(cls.RESOURCES[vendor]['js_cdn'])
         return list(set(js_cdn))
+    
+    @classmethod
+    def get_required_css_cdn(cls):
+        """
+        Get list of all required CDN CSS files.
+        
+        Returns:
+            list: CDN URLs for CSS resources
+        """
+        css_cdn = []
+        for vendor in cls._required_vendors:
+            if vendor in cls.RESOURCES and 'css_cdn' in cls.RESOURCES[vendor]:
+                css_cdn.extend(cls.RESOURCES[vendor]['css_cdn'])
+        return list(set(css_cdn))
     
     @classmethod
     def reset(cls):

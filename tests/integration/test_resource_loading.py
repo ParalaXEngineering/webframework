@@ -29,7 +29,7 @@ from src.modules import displayer
 # Test Configuration
 # ---------------------------------------------------------------------------
 
-TEST_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
+TEST_OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "output")
 
 # Mapping of vendor libraries to their expected file patterns in HTML
 VENDOR_RESOURCE_PATTERNS = {
@@ -53,6 +53,10 @@ VENDOR_RESOURCE_PATTERNS = {
     'sweetalert': {
         'css': ['sweetalert2.min.css'],
         'js': ['sweetalert2.all.min.js']
+    },
+    'highlightjs': {
+        'css': ['highlightjs/styles/atom-one-dark.min.css'],
+        'js': ['highlightjs/highlight.min.js']
     }
 }
 

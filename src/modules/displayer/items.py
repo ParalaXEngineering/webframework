@@ -174,7 +174,7 @@ class DisplayerItemAlert(DisplayerItem):
     color schemes based on the alert type (success, warning, danger, info).
     """
 
-    def __init__(self, text: str, highlightType: BSstyle = BSstyle.SUCCESS) -> None:
+    def __init__(self, text: str, highlightType: BSstyle = BSstyle.SUCCESS, title: Optional[str] = None, icon: Optional[str] = None) -> None:
         """
         Initialize an alert item.
 
@@ -182,14 +182,19 @@ class DisplayerItemAlert(DisplayerItem):
             text: The alert message text
             highlightType: The Bootstrap style for the alert (default: BSstyle.SUCCESS)
                           Determines the color scheme of the alert
+            title: Optional title/header for the alert (appears as a badge/label)
+            icon: Optional MDI icon name (default: "alert-circle" if None)
+                 Examples: "information", "check-circle", "alert-octagon", "alert"
 
         Example:
             >>> alert = DisplayerItemAlert(text="Operation completed!", highlightType=BSstyle.SUCCESS)
-            >>> warning = DisplayerItemAlert(text="Please check your input", highlightType=BSstyle.WARNING)
+            >>> warning = DisplayerItemAlert(text="Please check your input", highlightType=BSstyle.WARNING, title="Warning", icon="alert-octagon")
         """
         super().__init__(DisplayerItems.ALERT)
         self.m_text = text
         self.m_style = highlightType.value
+        self.m_header = title
+        self.m_icon = icon if icon is not None else "alert-circle"
 
     def setText(self, text: str):
         """Update the alert text."""
@@ -199,7 +204,7 @@ class DisplayerItemAlert(DisplayerItem):
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample alert."""
-        return cls(text="This is a test alert message", highlightType=BSstyle.WARNING)
+        return cls(text="This is a test alert message", highlightType=BSstyle.WARNING, title="Test Alert", icon="alert-octagon")
 
 
 @DisplayerCategory.DISPLAY
@@ -1698,7 +1703,7 @@ class DisplayerItemCard(DisplayerItem):
         return cls(
             id="test_card",
             title="Test Card",
-            icon="mdi mdi-information",
+            icon="mdi mdi-shield",
             header_color=BSstyle.PRIMARY,
             body="This is a test card with sample content.",
             footer_buttons=[
@@ -2183,6 +2188,11 @@ class DisplayerItemCode(DisplayerItem):
         self.m_header = title  # Using m_header for title
         self.m_style = max_height  # Using m_style for max_height
         self.m_disabled = show_line_numbers  # Using m_disabled for line numbers flag
+
+    @classmethod
+    def get_required_resources(cls) -> List[str]:
+        """Code display requires Highlight.js for syntax highlighting."""
+        return ['highlightjs']
 
     @classmethod
     def instantiate_test(cls):
