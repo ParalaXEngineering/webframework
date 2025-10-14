@@ -60,6 +60,38 @@ class TestSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Threading Demo", "demo.threading_demo")
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo")
         
+        # Component Showcase - Auto-generated from DisplayerCategory
+        self.add_sidebar_title("Component Showcase")
+        self.add_sidebar_section("All Components", "palette", "showcase_main")
+        self.add_sidebar_submenu("Overview", "showcase.index", endpoint="showcase_main")
+        
+        # Add categories dynamically
+        from demo_support.component_showcase import get_all_components_for_sidebar
+        categories = get_all_components_for_sidebar()
+        for category_name, category_key, count in categories:
+            self.add_sidebar_submenu(
+                f"{category_name} ({count})", 
+                "showcase.category",
+                parameter=f"category={category_key}",
+                endpoint="showcase_main"
+            )
+        
+        # Layout Showcase
+        self.add_sidebar_title("Layout Showcase")
+        self.add_sidebar_section("All Layouts", "view-dashboard", "layout_main")
+        self.add_sidebar_submenu("Overview", "layouts.index", endpoint="layout_main")
+        
+        # Add layout types dynamically
+        from demo_support.layout_showcase import get_all_layouts_for_sidebar
+        layout_types = get_all_layouts_for_sidebar()
+        for layout_name, layout_key in layout_types:
+            self.add_sidebar_submenu(
+                layout_name,
+                "layouts.layout_detail",
+                parameter=f"layout={layout_key}",
+                endpoint="layout_main"
+            )
+        
         # Authorization demos
         self.add_sidebar_title("Authorization Examples")
         self.add_sidebar_section("Auth Demos", "shield-check", "auth")
@@ -125,8 +157,12 @@ socketio = setup_app(app)
 
 # Register demo pages blueprint
 from demo_support.demo_pages import demo_bp
+from demo_support.component_showcase import showcase_bp, get_all_components_for_sidebar
+from demo_support.layout_showcase import layout_bp, get_all_layouts_for_sidebar
 app.register_blueprint(demo_bp)
-logger.info("Registered demo pages blueprint (includes authorization demos)")
+app.register_blueprint(showcase_bp)
+app.register_blueprint(layout_bp)
+logger.info("Registered demo pages, component showcase, and layout showcase blueprints")
 
 # Register user profile and admin blueprints
 from website.pages.user_profile_bp import user_profile_bp

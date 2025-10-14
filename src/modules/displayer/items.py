@@ -445,7 +445,9 @@ class DisplayerItemModalButton(DisplayerItem):
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample modal button."""
-        return cls(text="Open Modal", link="test_modal_route")
+        # Note: Modal buttons require a Flask route that returns modal content
+        # For demo purposes, this shows the structure - in real usage, provide a proper endpoint
+        return cls(text="Open Modal (requires endpoint)", link="#")
 
 @DisplayerCategory.BUTTON
 class DisplayerItemModalLink(DisplayerItem):
@@ -485,7 +487,9 @@ class DisplayerItemModalLink(DisplayerItem):
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample modal link."""
-        return cls(text="Info", icon="information-outline", link="", color=BSstyle.INFO)
+        # Note: Modal links require a Flask route that returns modal content
+        # For demo purposes, this shows the structure - in real usage, provide a proper endpoint
+        return cls(text="Info (requires endpoint)", icon="information-outline", link="#", color=BSstyle.INFO)
 
 
 @DisplayerCategory.DISPLAY
@@ -545,8 +549,8 @@ class DisplayerItemDownload(DisplayerItem):
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample download button."""
-        # Use test_disp.item_page Flask endpoint
-        return cls(id="test_download", text="Download File", link="test_disp.item_page")
+        # Use a simple example - in real usage, provide a proper Flask endpoint
+        return cls(id="test_download", text="Download File", link="#")
 
 
 @DisplayerCategory.MEDIA

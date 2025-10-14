@@ -25,171 +25,71 @@ def require_login(f):
 @demo_bp.route('/')
 @require_login
 def index():
-    """Main index page with gallery of demo pages."""
+    """Main index page - demo landing page."""
     disp = displayer.Displayer()
-    disp.add_generic("Demo Gallery")
-    disp.set_title("Displayer Component Showcase")
+    disp.add_generic("Demo Landing")
+    disp.set_title("ParalaX Framework Demos")
     
     disp.add_breadcrumb("Home", "demo.index", [])
     
-    # Info alert
+    # Welcome message
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12]
     ))
     disp.add_display_item(displayer.DisplayerItemAlert(
-        "<strong>ParalaX Web Framework Demo</strong> - Explore all displayer components and features",
+        "<strong>Welcome to the ParalaX Web Framework Demo Application</strong><br><br>"
+        "This application demonstrates key features of the ParalaX Framework:<br><br>"
+        "<ul>"
+        "<li><strong>Component Showcase:</strong> Auto-generated catalog of all DisplayerItem components</li>"
+        "<li><strong>Demo Pages:</strong> Examples of layouts, inputs, threading, scheduling, and more</li>"
+        "<li><strong>Authorization:</strong> Permission-based page access examples</li>"
+        "<li><strong>Framework Features:</strong> Settings, logging, thread monitoring, and more</li>"
+        "</ul><br>"
+        "Use the sidebar to navigate through different sections.",
         displayer.BSstyle.INFO
     ), 0)
     
-    # Gallery - Row 1: Core Components
+    # Quick Links Section
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 3, 3, 3]
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="Quick Links"
     ))
     
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_layouts",
-        title="Layouts",
-        icon="mdi-view-dashboard",
-        header_color=displayer.BSstyle.PRIMARY,
-        body="Explore VERTICAL, HORIZONTAL, TABLE, TABS, and SPACER layouts",
-        footer_buttons=[{"id": "btn_layouts", "text": "View Demos", "style": "primary"}]
-    ), 0)
-    
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_text",
-        title="Text & Display",
-        icon="mdi-text",
-        header_color=displayer.BSstyle.SUCCESS,
-        body="Text, alerts, badges, progress bars, and display components",
-        footer_buttons=[{"id": "btn_text", "text": "View Demos", "style": "success"}]
-    ), 1)
-    
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_inputs",
-        title="Input Components",
-        icon="mdi-form-textbox",
-        header_color=displayer.BSstyle.WARNING,
-        body="Text inputs, dropdowns, checkboxes, file uploads, and more",
-        footer_buttons=[{"id": "btn_inputs", "text": "View Demos", "style": "warning"}]
-    ), 2)
-    
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_tables",
-        title="Table Modes (NEW)",
-        icon="mdi-table",
-        header_color=displayer.BSstyle.INFO,
-        body="SIMPLE, INTERACTIVE, BULK_DATA, SERVER_SIDE table rendering modes",
-        footer_buttons=[{"id": "btn_tables", "text": "View Demos", "style": "info"}]
-    ), 3)
-    
-    # Gallery - Row 2: Advanced Features
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [3, 3, 3, 3]
+    # Table of quick links
+    layout_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Section", "Description", "Link"]
     ))
     
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_threading",
-        title="Threading",
-        icon="mdi-cog-sync",
-        header_color=displayer.BSstyle.ERROR,
-        body="Background tasks with progress tracking and real-time updates",
-        footer_buttons=[{"id": "btn_threading", "text": "View Demos", "style": "danger"}]
-    ), 0)
+    quick_links = [
+        ("Component Showcase", "Browse all auto-discovered DisplayerItem components", "showcase.index"),
+        ("Layouts Demo", "Examples of VERTICAL, HORIZONTAL, TABLE, TABS layouts", "demo.layouts"),
+        ("Text & Display", "Alerts, badges, text, and display components", "demo.text_display"),
+        ("Input Components", "Forms, inputs, file uploads, and more", "demo.inputs"),
+        ("Table Modes", "SIMPLE, INTERACTIVE, BULK_DATA, SERVER_SIDE examples", "demo.table_modes"),
+        ("Threading Demo", "Background tasks with progress tracking", "demo.threading_demo"),
+        ("Scheduler Demo", "Scheduled tasks and dynamic reloading", "demo.scheduler_demo"),
+    ]
     
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_scheduler",
-        title="Scheduler",
-        icon="mdi-clock-fast",
-        header_color=displayer.BSstyle.SECONDARY,
-        body="Scheduled tasks, emit_status, popups, and dynamic reloading",
-        footer_buttons=[{"id": "btn_scheduler", "text": "View Demos", "style": "secondary"}]
-    ), 1)
-    
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_settings",
-        title="Settings",
-        icon="mdi-cog",
-        header_color=displayer.BSstyle.DARK,
-        body="Framework settings and configuration management",
-        footer_buttons=[{"id": "btn_settings", "text": "Open Settings", "style": "dark"}]
-    ), 2)
-    
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_logs",
-        title="Log Viewer",
-        icon="mdi-file-document-multiple",
-        header_color=displayer.BSstyle.PRIMARY,
-        body="Real-time log file monitoring with DataTables filtering",
-        footer_buttons=[{"id": "btn_logs", "text": "View Logs", "style": "primary"}]
-    ), 3)
-    
-    # Gallery - Row 3: Authorization
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [4, 4, 4]
-    ))
-    
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_auth_accessible",
-        title="Accessible Page",
-        icon="mdi-check-circle",
-        header_color=displayer.BSstyle.SUCCESS,
-        body="A page any logged-in user can access (no special permissions)",
-        footer_buttons=[{"id": "btn_auth_accessible", "text": "Try It", "style": "success"}]
-    ), 0)
-    
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_auth_restricted",
-        title="Restricted Page",
-        icon="mdi-lock",
-        header_color=displayer.BSstyle.WARNING,
-        body="Requires 'read' permission in 'Protected Demo' module",
-        footer_buttons=[{"id": "btn_auth_restricted", "text": "Try It", "style": "warning"}]
-    ), 1)
-    
-    disp.add_display_item(displayer.DisplayerItemCard(
-        id="card_auth_admin",
-        title="Admin Only",
-        icon="mdi-shield-crown",
-        header_color=displayer.BSstyle.ERROR,
-        body="Only users in 'admin' group can access this page",
-        footer_buttons=[{"id": "btn_auth_admin", "text": "Try It", "style": "danger"}]
-    ), 2)
-    
-    # Handle card button clicks
-    if request.method == 'POST':
-        data_in = utilities.util_post_to_json(request.form.to_dict())
-        if "Demo Gallery" in data_in:
-            module_data = data_in["Demo Gallery"]
-            if "btn_layouts" in module_data:
-                from flask import redirect, url_for
-                return redirect(url_for('demo.layouts'))
-            elif "btn_text" in module_data:
-                from flask import redirect, url_for
-                return redirect(url_for('demo.text_display'))
-            elif "btn_inputs" in module_data:
-                from flask import redirect, url_for
-                return redirect(url_for('demo.inputs'))
-            elif "btn_tables" in module_data:
-                from flask import redirect, url_for
-                return redirect(url_for('demo.table_modes'))
-            elif "btn_threading" in module_data:
-                from flask import redirect, url_for
-                return redirect(url_for('demo.threading_demo'))
-            elif "btn_scheduler" in module_data:
-                from flask import redirect, url_for
-                return redirect(url_for('demo.scheduler_demo'))
-            elif "btn_settings" in module_data:
-                from flask import redirect, url_for
-                return redirect(url_for('settings.index'))
-            elif "btn_logs" in module_data:
-                from flask import redirect, url_for
-                return redirect(url_for('logging.index'))
-            elif "btn_auth_accessible" in module_data:
-                return redirect(url_for('demo.auth_accessible'))
-            elif "btn_auth_restricted" in module_data:
-                return redirect(url_for('demo.auth_restricted'))
-            elif "btn_auth_admin" in module_data:
-                return redirect(url_for('demo.auth_admin'))
+    for line, (name, desc, url) in enumerate(quick_links):
+        disp.add_display_item(
+            displayer.DisplayerItemText(f"<strong>{name}</strong>"),
+            column=0, layout_id=layout_id, line=line
+        )
+        disp.add_display_item(
+            displayer.DisplayerItemText(desc),
+            column=1, layout_id=layout_id, line=line
+        )
+        disp.add_display_item(
+            displayer.DisplayerItemButtonLink(
+                id=f"link_{line}",
+                text="Open",
+                icon="arrow-right",
+                link=url,
+                color=displayer.BSstyle.PRIMARY
+            ),
+            column=2, layout_id=layout_id, line=line
+        )
     
     return render_template("base_content.j2", content=disp.display())
 
