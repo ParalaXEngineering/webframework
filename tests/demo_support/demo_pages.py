@@ -155,14 +155,6 @@ def index():
         footer_buttons=[{"id": "btn_auth_admin", "text": "Try It", "style": "danger"}]
     ), 2)
     
-    # Complete showcase button
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12]
-    ))
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_complete", "🌟 Complete Component Showcase", "mdi-star", "/complete-showcase", [], displayer.BSstyle.SUCCESS
-    ), 0)
-    
     # Handle card button clicks
     if request.method == 'POST':
         data_in = utilities.util_post_to_json(request.form.to_dict())
@@ -205,28 +197,10 @@ def index():
 @demo_bp.route('/layouts')
 @require_login
 def layouts():
-    """Demonstrate different layout types."""
-    from src.modules.auth.auth_manager import auth_manager
-    
-    username = session.get('username')
-    
-    # Check permission to view layouts demo
-    if not auth_manager.has_permission(username, 'Demo_Layouts', 'view'):
-        disp = displayer.Displayer()
-        disp.add_generic("Access Denied")
-        disp.set_title("Permission Required")
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>🔒 Access Denied</h4>"
-            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Layouts' module.</p>",
-            displayer.BSstyle.ERROR
-        ), 0)
-        return render_template("base_content.j2", content=disp.display())
-    
     disp = displayer.Displayer()
     disp.add_generic("Layout Demos")
     disp.set_title("Layout Types")
-    
+
     disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "demo.layouts", [])
     
@@ -273,24 +247,6 @@ def layouts():
 @demo_bp.route('/text-display')
 @require_login
 def text_display():
-    """Demonstrate text and display items."""
-    from src.modules.auth.auth_manager import auth_manager
-    
-    username = session.get('username')
-    
-    # Check permission to view component demos
-    if not auth_manager.has_permission(username, 'Demo_Components', 'view'):
-        disp = displayer.Displayer()
-        disp.add_generic("Access Denied")
-        disp.set_title("Permission Required")
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>🔒 Access Denied</h4>"
-            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Components' module.</p>",
-            displayer.BSstyle.ERROR
-        ), 0)
-        return render_template("base_content.j2", content=disp.display())
-    
     disp = displayer.Displayer()
     disp.add_generic("Text & Display")
     disp.set_title("Text & Display Components")
@@ -404,24 +360,6 @@ def text_display():
 @demo_bp.route('/inputs', methods=['GET', 'POST'])
 @require_login
 def inputs():
-    """Demonstrate input items with form submission."""
-    from src.modules.auth.auth_manager import auth_manager
-    
-    username = session.get('username')
-    
-    # Check permission to view component demos
-    if not auth_manager.has_permission(username, 'Demo_Components', 'view'):
-        disp = displayer.Displayer()
-        disp.add_generic("Access Denied")
-        disp.set_title("Permission Required")
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>🔒 Access Denied</h4>"
-            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Components' module.</p>",
-            displayer.BSstyle.ERROR
-        ), 0)
-        return render_template("base_content.j2", content=disp.display())
-    
     if request.method == 'POST':
         data = utilities.util_post_to_json(request.form.to_dict())
         return render_template("success.j2", message=f"Form submitted! Data: {data}")
@@ -454,60 +392,6 @@ def inputs():
     disp.add_display_item(displayer.DisplayerItemButton("submit_form", "Submit"), 0)
     
     return render_template("base_content.j2", content=disp.display(), target="demo.inputs")
-
-
-@demo_bp.route('/complete-showcase')
-@require_login
-def complete_showcase():
-    """A comprehensive page showing ALL displayer features."""
-    from src.modules.auth.auth_manager import auth_manager
-    
-    username = session.get('username')
-    
-    # Check permission to view component demos
-    if not auth_manager.has_permission(username, 'Demo_Components', 'view'):
-        disp = displayer.Displayer()
-        disp.add_generic("Access Denied")
-        disp.set_title("Permission Required")
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>🔒 Access Denied</h4>"
-            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Components' module.</p>",
-            displayer.BSstyle.ERROR
-        ), 0)
-        return render_template("base_content.j2", content=disp.display())
-    
-    disp = displayer.Displayer()
-    disp.add_generic("Complete Showcase")
-    disp.set_title("Complete Showcase")
-    
-    disp.add_breadcrumb("Home", "demo.index", [])
-    disp.add_breadcrumb("Showcase", "demo.complete_showcase", [])
-    
-    # All Alert Types
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Alerts"
-    ))
-    for style, name in [(displayer.BSstyle.PRIMARY, "Primary"),
-                        (displayer.BSstyle.SUCCESS, "Success"),
-                        (displayer.BSstyle.INFO, "Info"),
-                        (displayer.BSstyle.WARNING, "Warning"),
-                        (displayer.BSstyle.ERROR, "Error")]:
-        disp.add_display_item(displayer.DisplayerItemAlert(f"{name} alert", style), 0)
-    
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
-    
-    # Table
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.TABLE, ["Item", "Status", "Action"], subtitle="Table"
-    ))
-    disp.add_display_item(displayer.DisplayerItemText("Task 1"), column=0, line=0)
-    disp.add_display_item(displayer.DisplayerItemBadge("Active", displayer.BSstyle.SUCCESS), column=1, line=0)
-    disp.add_display_item(displayer.DisplayerItemButton("action1", "Edit"), column=2, line=0)
-    
-    return render_template("base_content.j2", content=disp.display())
-
 
 @demo_bp.route('/threading-demo', methods=['GET', 'POST'])
 @require_login
@@ -836,46 +720,19 @@ def scheduler_demo():
 @demo_bp.route('/table-modes')
 @require_login
 def table_modes():
-    """Showcase new TABLE layout modes with TableMode enum."""
-    from src.modules.auth.auth_manager import auth_manager
-    
-    username = session.get('username')
-    
-    # Check permission to view component demos
-    if not auth_manager.has_permission(username, 'Demo_Components', 'view'):
-        disp = displayer.Displayer()
-        disp.add_generic("Access Denied")
-        disp.set_title("Permission Required")
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>🔒 Access Denied</h4>"
-            f"<p>Sorry {username}, you need 'view' permission for 'Demo_Components' module.</p>",
-            displayer.BSstyle.ERROR
-        ), 0)
-        return render_template("base_content.j2", content=disp.display())
     
     disp = displayer.Displayer()
     disp.add_generic("Table Modes Showcase")
-    disp.set_title("New TABLE Layout API - TableMode Examples")
     
     disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Table Modes", "demo.table_modes", [])
-    
-    # Info
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12]
-    ))
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "<strong>NEW API:</strong> Use <code>datatable_config</code> with <code>TableMode</code> enum instead of confusing 'basic/advanced/ajax' strings!",
-        displayer.BSstyle.INFO
-    ), 0)
-    
+        
     # 1. Simple HTML Table (no DataTables)
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12], subtitle="1. TableMode.SIMPLE - Plain HTML Table"
     ))
     disp.add_display_item(displayer.DisplayerItemText(
-        "No DataTables JavaScript - just plain HTML. Fastest rendering, no features."
+        "Use basic displayer items to render. Can be slow for large datasets (50+ rows). No search or pagination."
     ), 0)
     
     layout_id = disp.add_master_layout(displayer.DisplayerLayout(
@@ -896,7 +753,7 @@ def table_modes():
         displayer.Layouts.VERTICAL, [12], subtitle="2. TableMode.INTERACTIVE - Manual Row Population"
     ))
     disp.add_display_item(displayer.DisplayerItemText(
-        "DataTables with manual item population. Flexible - can use any DisplayerItem. Searchable columns enabled."
+        "Use Datatable for rendering, while DisplayerItem is used for population. Can be slow for large datasets (50+ rows). Search and pagination enabled."
     ), 0)
     
     layout_id = disp.add_master_layout(displayer.DisplayerLayout(
@@ -953,12 +810,16 @@ def table_modes():
             "searchable_columns": [1, 2]  # Search panes on Department (col 1) and Status (col 2)
         }
     ))
+
+    # 4. Server-Side Mode
+    # TODO: Implement a real API endpoint for demo, and present the code here
     
     # 4. Code examples
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12], subtitle="Code Examples"
     ))
     
+    # TODO: create displayer item for code with syntax highlighting
     code_example = '''# NEW API - Clear and explicit
 from src.modules.displayer import DisplayerLayout, Layouts, TableMode
 

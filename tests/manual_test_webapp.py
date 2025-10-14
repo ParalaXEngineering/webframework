@@ -59,7 +59,6 @@ class TestSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Table Modes", "demo.table_modes")
         self.add_sidebar_submenu("Threading Demo", "demo.threading_demo")
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo")
-        self.add_sidebar_submenu("Complete Showcase", "demo.complete_showcase")
         
         # Authorization demos
         self.add_sidebar_title("Authorization Examples")
