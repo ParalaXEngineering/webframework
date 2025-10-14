@@ -83,7 +83,7 @@ class Action:
         :return: The name of the instance
         :rtype: str
         """
-        if self.m_name:
-            return self.m_name
+        if hasattr(self, 'm_name') and self.m_name:  # type: ignore
+            return self.m_name  # type: ignore
 
         return self.m_default_name

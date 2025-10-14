@@ -87,7 +87,7 @@ class ThreadEmitter:
         
         try:
             # Get running and completed threads
-            running_threads, completed_threads = manager.get_all_threads_with_history()
+            running_threads, completed_threads = manager.get_all_threads_with_history()  # type: ignore
             
             # Limit completed to last 10
             completed_threads = list(completed_threads)[-10:] if completed_threads else []

@@ -23,7 +23,7 @@ Skip Conditions:
 
 import pytest
 import os
-from typing import Dict
+from typing import Dict, Optional
 from flask import Flask, Blueprint, render_template, request, jsonify
 from bs4 import BeautifulSoup
 
@@ -166,7 +166,7 @@ def generate_index_page() -> None:
     
     # Add test templates folder to Jinja loader
     from jinja2 import ChoiceLoader, FileSystemLoader
-    app.jinja_loader = ChoiceLoader([
+    app.jinja_loader = ChoiceLoader([  # type: ignore
         FileSystemLoader(template_path_test),
         FileSystemLoader(template_path_framework),
     ])
@@ -314,7 +314,7 @@ def make_html_standalone(html: str) -> str:
     return html
 
 
-def render_item_page(app: Flask, disp: displayer.Displayer, target: str = None) -> dict:
+def render_item_page(app: Flask, disp: displayer.Displayer, target: Optional[str] = None) -> dict:
     """
     Render a displayer page and return status + HTML.
     
@@ -414,7 +414,7 @@ def add_displayer_item(disp: displayer.Displayer, item: displayer.DisplayerItem)
         })
 
 
-def add_displayer_layout(disp: displayer.Displayer, layout_type: displayer.Layouts, table_mode: displayer.TableMode = None) -> None:
+def add_displayer_layout(disp: displayer.Displayer, layout_type: displayer.Layouts, table_mode: Optional[displayer.TableMode] = None) -> None:
     """
     Create a minimal page for each layout type.
     
@@ -522,10 +522,10 @@ def add_displayer_layout(disp: displayer.Displayer, layout_type: displayer.Layou
 
 
 @pytest.mark.parametrize("item_class", 
-    list(displayer.DisplayerCategory.get_all().get("display", [])) + 
-    list(displayer.DisplayerCategory.get_all().get("input", [])) + 
-    list(displayer.DisplayerCategory.get_all().get("button", [])) + 
-    list(displayer.DisplayerCategory.get_all().get("media", []))
+    list(displayer.DisplayerCategory.get_all().get("display", [])) +  # type: ignore
+    list(displayer.DisplayerCategory.get_all().get("input", [])) +  # type: ignore
+    list(displayer.DisplayerCategory.get_all().get("button", [])) +  # type: ignore
+    list(displayer.DisplayerCategory.get_all().get("media", []))  # type: ignore
 )
 def test_displayer_items(displayer_test_app: Flask, item_class: type) -> None:
     """
@@ -766,7 +766,7 @@ def test_displayer_basics(displayer_test_app: Flask) -> None:
     assert title_tag or h1_tag, "Page should have title or h1"
     
     # ===== Validation 2: Multiple modules =====
-    cards = soup.find_all('div', class_=lambda x: x and 'card' in x)
+    cards = soup.find_all('div', class_=lambda x: x and 'card' in x)  # type: ignore
     assert len(cards) >= 4, f"Should have card elements for modules (at least 4), found {len(cards)}"
     
     # ===== Validation 3: Nested layouts - slave layouts =====

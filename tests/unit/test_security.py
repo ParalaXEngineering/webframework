@@ -180,6 +180,7 @@ class TestFailedLoginManager:
         
         assert is_locked2
         assert locked_until2 is not None
+        assert locked_until1 is not None
         # Times should be very close (within 1 second)
         time_diff = abs((locked_until1 - locked_until2).total_seconds())
         assert time_diff < 1
@@ -192,7 +193,7 @@ class TestFailedLoginManager:
         manager = FailedLoginManager(
             lockout_file=temp_lockout_file,
             max_attempts=5,
-            lockout_minutes=0.01  # ~0.6 seconds
+            lockout_minutes=1  # 1 minute
         )
         
         # Lock the account

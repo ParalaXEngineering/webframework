@@ -172,6 +172,7 @@ def test_thread_deletion():
     """Test thread deletion and cleanup"""
     import src.modules.threaded.threaded_manager as tm_module
     manager = tm_module.thread_manager_obj
+    assert manager is not None
     
     thread = SimpleThread()
     thread_count_before = manager.get_thread_count()
@@ -444,6 +445,7 @@ def test_thread_manager_add():
     """Test adding threads to manager"""
     import src.modules.threaded.threaded_manager as tm_module
     manager = tm_module.thread_manager_obj
+    assert manager is not None
     
     initial_count = manager.get_thread_count()
     
@@ -458,6 +460,7 @@ def test_thread_manager_get_all():
     """Test getting all threads"""
     import src.modules.threaded.threaded_manager as tm_module
     manager = tm_module.thread_manager_obj
+    assert manager is not None
     
     thread1 = SimpleThread()
     thread2 = SimpleThread()
@@ -473,6 +476,7 @@ def test_thread_manager_get_by_name():
     """Test getting threads by name"""
     import src.modules.threaded.threaded_manager as tm_module
     manager = tm_module.thread_manager_obj
+    assert manager is not None
     
     thread1 = SimpleThread()
     thread1.change_name("Thread1")
@@ -490,6 +494,7 @@ def test_thread_manager_unique_names():
     """Test getting unique thread names"""
     import src.modules.threaded.threaded_manager as tm_module
     manager = tm_module.thread_manager_obj
+    assert manager is not None
     
     thread1 = SimpleThread()
     thread2 = SimpleThread()
@@ -506,6 +511,7 @@ def test_thread_manager_stats():
     """Test thread manager statistics"""
     import src.modules.threaded.threaded_manager as tm_module
     manager = tm_module.thread_manager_obj
+    assert manager is not None
     
     # Create threads but don't start them (avoid hanging)
     thread1 = SimpleThread()
@@ -529,6 +535,7 @@ def test_thread_manager_delete():
     """Test deleting threads from manager"""
     import src.modules.threaded.threaded_manager as tm_module
     manager = tm_module.thread_manager_obj
+    assert manager is not None
     
     thread = SimpleThread()
     count_before = manager.get_thread_count()
@@ -581,6 +588,7 @@ def test_thread_lifecycle():
     
     # Should be auto-deleted from manager
     time.sleep(0.5)
+    assert manager is not None
     all_threads = manager.get_all_threads()
     assert thread not in all_threads
 

@@ -104,12 +104,14 @@ class Workflow:
                 self.m_thread_worker.start()
             except Exception as e:
                 traceback_str = traceback.format_exc()
-                self.m_logger.warning("Skipper workflow failed: " + str(e))
-                self.m_logger.info("Traceback was: " + traceback_str)
+                # TODO: Add logger - self.m_logger.warning("Skipper workflow failed: " + str(e))
+                # TODO: Add logger - self.m_logger.info("Traceback was: " + traceback_str)
+                print(f"Skipper workflow failed: {e}\nTraceback: {traceback_str}")
 
-                scheduler.scheduler_obj.emit_popup(
-                    scheduler.logLevel.warning, "Skipper failed with error " + str(e)
-                )
+                if scheduler.scheduler_obj:
+                    scheduler.scheduler_obj.emit_popup(
+                        scheduler.logLevel.warning, "Skipper failed with error " + str(e)
+                    )
         else:
             try:
                 # Start the worker in a thread
@@ -119,14 +121,17 @@ class Workflow:
                 self.m_thread_worker.start()
             except Exception as e:
                 traceback_str = traceback.format_exc()
-                self.m_logger.warning("Worker workflow failed: " + str(e))
-                self.m_logger.info("Traceback was: " + traceback_str)
-                scheduler.scheduler_obj.emit_popup(
-                    scheduler.logLevel.warning, "Worker failed with error " + str(e)
-                )
+                # TODO: Add logger - self.m_logger.warning("Worker workflow failed: " + str(e))
+                # TODO: Add logger - self.m_logger.info("Traceback was: " + traceback_str)
+                print(f"Worker workflow failed: {e}\nTraceback: {traceback_str}")
+                
+                if scheduler.scheduler_obj:
+                    scheduler.scheduler_obj.emit_popup(
+                        scheduler.logLevel.warning, "Worker failed with error " + str(e)
+                    )
         return
 
-    def add_display(self, disp: displayer) -> dict:
+    def add_display(self, disp: "displayer.Displayer") -> "displayer.Displayer":
         """Initialize the view and populate it with the necessary information to handle the workflow
 
         :return: The dictionnary of the view

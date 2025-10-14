@@ -1,6 +1,7 @@
 import time
 import threading
 from enum import Enum
+from typing import Optional, cast
 
 try:
     from ..threaded import threaded_manager
@@ -109,14 +110,14 @@ class Scheduler:
         """Function to be overwritten by specific website, ut is executed at the end of a scheduler cycle"""
         return
 
-    def emit_reload(self, content: str):
+    def emit_reload(self, content: list):
         """Send some information about a formulaire that needs to be refreshed on the page
 
         :param content: The content of the formulaire, in the form of a list of {id: "...", content: "..."}
-        :type content: str
+        :type content: list
         """
         for item in content:
-            data = [item["id"], item["content"]]
+            data = [item["id"], item["content"]]  # type: ignore
             self._queue.add(MessageType.RELOAD, data)
 
     def disable_button(self, id: str):
@@ -136,7 +137,7 @@ class Scheduler:
         self._queue.add(MessageType.BUTTON_ENABLE, id)
 
     def emit_status(
-        self, category: str, string: str, status: int = 0, supplement: str = "", status_id: str = None
+        self, category: str, string: str, status: int = 0, supplement: str = "", status_id: Optional[str] = None
     ):
         """Queue a message status to be sent to the web client
 
@@ -250,13 +251,14 @@ class Scheduler:
                 self._emitter.emit_button_states(button_disable, button_enable)
 
                 # Thread information
-                threads_names = threaded_manager.thread_manager_obj.get_unique_names()
                 thread_info = []
-                for name in threads_names:
-                    current_thread = threaded_manager.thread_manager_obj.get_threads_by_name(name)
-                    for i, thread in enumerate(current_thread):
-                        thread_info.append({
-                            "name": f"{name} #{i+1}" if len(current_thread) > 1 else name,
+                if threaded_manager.thread_manager_obj:
+                    threads_names = cast(list, threaded_manager.thread_manager_obj.get_unique_names())
+                    for name in threads_names:
+                        current_thread = threaded_manager.thread_manager_obj.get_threads_by_name(name)
+                        for i, thread in enumerate(current_thread):
+                            thread_info.append({
+                                "name": f"{name} #{i+1}" if len(current_thread) > 1 else name,
                             "state": thread.m_running_state
                         })
                 self._emitter.emit_threads(thread_info)

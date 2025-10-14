@@ -5,7 +5,7 @@ This module provides real-time monitoring of running threads with a modern
 card-based interface showing console output, logs, and process information.
 """
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, flash
 from ..modules import displayer
 from ..modules.threaded import threaded_manager
 
@@ -35,26 +35,26 @@ def threads():
         action = request.form.get('action')
         thread_name = request.form.get('thread_name')
         
-        if action == 'stop' and thread_name:
+        if manager and action == 'stop' and thread_name:
             thread = manager.get_thread(thread_name)
             if thread:
                 manager.del_thread(thread)
-                disp.add_alert("✓ Stopped thread: {}".format(thread_name), displayer.BSstyle.WARNING)
+                flash("✓ Stopped thread: {}".format(thread_name), "warning")
             else:
-                disp.add_alert("✗ Thread not found: {}".format(thread_name), displayer.BSstyle.ERROR)
-        elif action == 'force_kill' and thread_name:
+                flash("✗ Thread not found: {}".format(thread_name), "error")
+        elif manager and action == 'force_kill' and thread_name:
             thread = manager.get_thread(thread_name)
             if thread:
                 # Force kill: stop thread and remove from manager
                 if hasattr(thread, 'stop'):
                     thread.stop()
                 manager.del_thread(thread)
-                disp.add_alert("✓ Force killed thread: {}".format(thread_name), displayer.BSstyle.ERROR)
+                flash("✓ Force killed thread: {}".format(thread_name), "error")
             else:
-                disp.add_alert("✗ Thread not found: {}".format(thread_name), displayer.BSstyle.ERROR)
+                flash("✗ Thread not found: {}".format(thread_name), "error")
     
     if manager is None:
-        disp.add_alert("Thread manager not initialized", displayer.BSstyle.ERROR)
+        flash("Thread manager not initialized", "error")
         return render_template("base_content.j2", content=disp.display())
     
     # Statistics section

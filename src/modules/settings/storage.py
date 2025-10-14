@@ -17,7 +17,7 @@ Handles reading/writing configuration with original structure:
 """
 
 import json
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 class SettingsStorage:
@@ -26,13 +26,13 @@ class SettingsStorage:
     def __init__(self, config_path: str):
         """Initialize with config file path."""
         self.config_path = config_path
-        self._settings = None
+        self._settings: Optional[Dict[str, Any]] = None
     
     def load(self) -> Dict[str, Any]:
         """Load settings from JSON file."""
         with open(self.config_path, 'r', encoding='utf-8') as f:
             self._settings = json.load(f)
-        return self._settings
+        return self._settings if self._settings else {}
     
     def save(self, settings: Dict[str, Any]) -> None:
         """Save settings to JSON file."""
@@ -55,9 +55,11 @@ class SettingsStorage:
         category, setting = parts[0], '.'.join(parts[1:])
         
         try:
-            return self._settings[category][setting]['value']
+            if self._settings:
+                return self._settings[category][setting]['value']
         except (KeyError, TypeError):
-            return None
+            pass
+        return None
     
     def set(self, key: str, value: Any) -> None:
         """Set setting value by dot notation (category.setting)."""
@@ -70,19 +72,20 @@ class SettingsStorage:
         
         category, setting = parts[0], '.'.join(parts[1:])
         
-        if category not in self._settings:
+        if self._settings and category not in self._settings:
             raise KeyError(f"Category not found: {category}")
-        if setting not in self._settings[category]:
+        if self._settings and setting not in self._settings[category]:
             raise KeyError(f"Setting not found: {setting}")
         
-        self._settings[category][setting]['value'] = value
+        if self._settings:
+            self._settings[category][setting]['value'] = value
     
     def get_category(self, category: str) -> Dict[str, Any]:
         """Get all settings in a category (excluding 'friendly')."""
         if self._settings is None:
             self.load()
         
-        if category not in self._settings:
+        if not self._settings or category not in self._settings:
             return {}
         
         return {k: v for k, v in self._settings[category].items() if k != 'friendly'}
@@ -91,10 +94,10 @@ class SettingsStorage:
         """Get list of category names."""
         if self._settings is None:
             self.load()
-        return list(self._settings.keys())
+        return list(self._settings.keys()) if self._settings else []
     
     def get_all(self) -> Dict[str, Any]:
         """Get complete settings dictionary."""
         if self._settings is None:
             self.load()
-        return self._settings
+        return self._settings if self._settings else {}

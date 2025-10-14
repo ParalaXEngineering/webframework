@@ -1,8 +1,6 @@
-from typing import Optional, List, Dict, Any, ClassVar
-from enum import Enum
-from functools import wraps
+from typing import Optional, List, Dict, Any, ClassVar, Union
 
-from .core import DisplayerItems, DisplayerCategory, BSstyle, ResourceRegistry
+from .core import DisplayerItems, DisplayerCategory, BSstyle
 
 
 class DisplayerItem:
@@ -40,13 +38,13 @@ class DisplayerItem:
     def instantiate_test(cls):
         """
         Create a test instance of this DisplayerItem with sensible default data.
-        
+
         Override this method in child classes to provide proper test data.
         Default implementation returns a minimal instance.
-        
+
         :return: Test instance of this DisplayerItem
         :rtype: DisplayerItem
-        
+
         Example override:
             @classmethod
             def instantiate_test(cls):
@@ -66,12 +64,12 @@ class DisplayerItem:
         """
         Return list of required resources (vendors) for this displayer item.
         Override in child classes to declare dependencies.
-        
+
         Example:
             @classmethod
             def get_required_resources(cls):
                 return ['datatables', 'sweetalert']
-        
+
         :return: List of resource identifiers
         :rtype: list
         """
@@ -80,12 +78,12 @@ class DisplayerItem:
     def display(self, container: List[Dict[str, Any]], parent_id: Optional[str] = None) -> None:
         """
         Add this item to a container view.
-        
+
         This method serializes the item's attributes and appends the resulting
         dictionary to the provided container list. The container will be rendered
         by Jinja2 templates.
 
-        :param container: The container in which the display item should be appended. 
+        :param container: The container in which the display item should be appended.
                          The items are added by order of adding in the code
         :type container: list
         :param parent_id: If we are in a form, each different form will have a parent id
@@ -102,15 +100,17 @@ class DisplayerItem:
 
         # Handle special cases for IDs (m_ids takes precedence over m_id)
         if hasattr(self, "m_ids"):
+            m_ids = getattr(self, "m_ids")
             if parent_id:
-                item["id"] = [f"{parent_id}.{id}" for id in self.m_ids]
+                item["id"] = [f"{parent_id}.{id}" for id in m_ids]  # type: ignore[assignment]
             else:
-                item["id"] = self.m_ids
+                item["id"] = m_ids  # type: ignore[assignment]
         elif hasattr(self, "m_id"):
+            m_id = getattr(self, "m_id")
             if parent_id:
-                item["id"] = f"{parent_id}.{self.m_id}"
+                item["id"] = f"{parent_id}.{m_id}"
             else:
-                item["id"] = self.m_id
+                item["id"] = m_id
 
         container.append(item)
         return
@@ -125,7 +125,7 @@ class DisplayerItem:
         self.m_disabled = disabled
         return
 
-    def setId(self, id: str = None) -> None:
+    def setId(self, id: Optional[str] = None) -> None:
         """Set an id to the current item. This way, the item can easily be replaced by something else with some javascript
 
         :param id: The id of the item, defaults to None
@@ -140,25 +140,25 @@ class DisplayerItem:
 class DisplayerItemPlaceholder(DisplayerItem):
     """
     Specialized display item to set a placeholder with an id which can be filled later.
-    
+
     Useful for creating dynamic content areas that can be updated via JavaScript.
     """
 
     def __init__(self, id: str, data: str = "") -> None:
         """
         Initialize a placeholder item.
-        
+
         Args:
             id: Unique identifier for the placeholder
             data: Initial placeholder content (default: "")
-            
+
         Example:
             >>> placeholder = DisplayerItemPlaceholder(id="dynamic_area", data="Loading...")
         """
         super().__init__(DisplayerItems.PLACEHOLDER)
         self.m_id = id
         self.m_data = data
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample placeholder."""
@@ -169,7 +169,7 @@ class DisplayerItemPlaceholder(DisplayerItem):
 class DisplayerItemAlert(DisplayerItem):
     """
     Specialized display item to display an alert with a Bootstrap style.
-    
+
     Alerts are used to provide feedback messages to users with different
     color schemes based on the alert type (success, warning, danger, info).
     """
@@ -177,12 +177,12 @@ class DisplayerItemAlert(DisplayerItem):
     def __init__(self, text: str, highlightType: BSstyle = BSstyle.SUCCESS) -> None:
         """
         Initialize an alert item.
-        
+
         Args:
             text: The alert message text
             highlightType: The Bootstrap style for the alert (default: BSstyle.SUCCESS)
                           Determines the color scheme of the alert
-            
+
         Example:
             >>> alert = DisplayerItemAlert(text="Operation completed!", highlightType=BSstyle.SUCCESS)
             >>> warning = DisplayerItemAlert(text="Please check your input", highlightType=BSstyle.WARNING)
@@ -195,7 +195,7 @@ class DisplayerItemAlert(DisplayerItem):
         """Update the alert text."""
         self.m_text = text
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample alert."""
@@ -206,23 +206,23 @@ class DisplayerItemAlert(DisplayerItem):
 class DisplayerItemText(DisplayerItem):
     """
     Specialized display item to display a simple line of text.
-    
+
     Basic text display component for showing static or dynamic text content.
     """
 
     def __init__(self, text: str) -> None:
         """
         Initialize a text display item.
-        
+
         Args:
             text: The text content to display
-            
+
         Example:
             >>> text_item = DisplayerItemText(text="Hello, World!")
         """
         super().__init__(DisplayerItems.TEXT)
         self.m_text = text
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample text."""
@@ -233,19 +233,19 @@ class DisplayerItemText(DisplayerItem):
 class DisplayerItemSeparator(DisplayerItem):
     """
     Specialized display item to display a visual separator/divider line.
-    
+
     Renders a Bootstrap horizontal rule to visually separate content sections.
     """
 
     def __init__(self) -> None:
         """
         Initialize a separator item.
-        
+
         Example:
             >>> separator = DisplayerItemSeparator()
         """
         super().__init__(DisplayerItems.SEPARATOR)
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance of separator."""
@@ -256,18 +256,18 @@ class DisplayerItemSeparator(DisplayerItem):
 class DisplayerItemHidden(DisplayerItem):
     """
     Specialized display item for a hidden form field.
-    
+
     Hidden fields are not visible to the user but their values are submitted with forms.
     """
 
-    def __init__(self, id: str, value: str = None) -> None:
+    def __init__(self, id: str, value: Optional[str] = None) -> None:
         """
         Initialize a hidden input field.
-        
+
         Args:
             id: Unique identifier for the hidden field
             value: The value to store in the hidden field (default: None)
-            
+
         Example:
             >>> hidden = DisplayerItemHidden(id="user_id", value="12345")
         """
@@ -275,7 +275,7 @@ class DisplayerItemHidden(DisplayerItem):
         self.m_value = value
         self.m_id = id
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample hidden field."""
@@ -292,12 +292,12 @@ class DisplayerItemIconLink(DisplayerItem):
         text: str,
         icon: str,
         link: str = "",
-        parameters: list = None,
+        parameters: Optional[list] = None,
         color: BSstyle = BSstyle.PRIMARY,
     ) -> None:
         """
         Initialize an icon link item.
-        
+
         Args:
             id: Unique identifier for the icon link
             text: Tooltip or accessibility text for the icon
@@ -307,7 +307,7 @@ class DisplayerItemIconLink(DisplayerItem):
             parameters: GET parameters to append to the link (default: None)
                        List of strings like ["param1=value1", "param2=value2"]
             color: Bootstrap style for icon color (default: BSstyle.PRIMARY)
-            
+
         Example:
             >>> iconlink = DisplayerItemIconLink(
             ...     id="edit_icon",
@@ -326,13 +326,13 @@ class DisplayerItemIconLink(DisplayerItem):
         self.m_parameters = parameters
         self.m_style = color.value
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample icon link."""
-        return cls(id="test_icon_link", text="View Details", icon="information", 
+        return cls(id="test_icon_link", text="View Details", icon="information",
                    link="#details", parameters=["id=123", "action=view"], color=BSstyle.PRIMARY)
-    
+
 @DisplayerCategory.BUTTON
 class DisplayerItemButtonLink(DisplayerItem):
     """Specialized display item to display a link icon"""
@@ -343,12 +343,12 @@ class DisplayerItemButtonLink(DisplayerItem):
         text: str,
         icon: str,
         link: str = "",
-        parameters: list = None,
+        parameters: Optional[list] = None,
         color: BSstyle = BSstyle.PRIMARY,
     ) -> None:
         """
         Initialize a button link item.
-        
+
         Args:
             id: Unique identifier for the button
             text: Button text content
@@ -356,7 +356,7 @@ class DisplayerItemButtonLink(DisplayerItem):
             link: Flask endpoint or URL to link to
             parameters: GET parameters to append to the link (default: None)
             color: Bootstrap style for button color (default: BSstyle.PRIMARY)
-            
+
         Example:
             >>> button = DisplayerItemButtonLink(
             ...     id="submit_btn",
@@ -376,17 +376,17 @@ class DisplayerItemButtonLink(DisplayerItem):
         self.m_style = color.value
         return
 
-    def display(self, container: list, parent_id: str = None) -> None:
+    def display(self, container: list, parent_id: Optional[str] = None) -> None:
         """Add button to container with icon and parameters."""
         super().display(container, parent_id)
         container[-1]["icon"] = self.m_icon
         container[-1]["parameters"] = self.m_parameters
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample button link."""
-        return cls(id="test_button_link", text="Submit Form", icon="check", 
+        return cls(id="test_button_link", text="Submit Form", icon="check",
                    link="#action", parameters=["form_id=456"], color=BSstyle.SUCCESS)
 
 
@@ -397,12 +397,12 @@ class DisplayerItemButton(DisplayerItem):
     def __init__(self, id: str, text: str, focus: bool = False) -> None:
         """
         Initialize a simple button item.
-        
+
         Args:
             id: Unique identifier for the button
             text: Button label text
             focus: Whether the button should have focus on page load (default: False)
-            
+
         Example:
             >>> button = DisplayerItemButton(id="confirm_btn", text="Confirm", focus=True)
         """
@@ -411,12 +411,12 @@ class DisplayerItemButton(DisplayerItem):
         self.m_id = id
         self.m_focus = focus
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample button."""
         return cls(id="test_button", text="Click Me", focus=False)
-    
+
 @DisplayerCategory.BUTTON
 class DisplayerItemModalButton(DisplayerItem):
     """Specialized display item to display a button that opens a modal dialog."""
@@ -424,11 +424,11 @@ class DisplayerItemModalButton(DisplayerItem):
     def __init__(self, text: str, link: str) -> None:
         """
         Initialize a modal trigger button.
-        
+
         Args:
             text: Button label text
             link: Flask route that returns the modal content
-            
+
         Example:
             >>> modal_btn = DisplayerItemModalButton(text="Show Details", link="modal_details")
         """
@@ -436,12 +436,12 @@ class DisplayerItemModalButton(DisplayerItem):
         self.m_text = text
         self.m_path = link
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample modal button."""
         return cls(text="Open Modal", link="test_modal_route")
-    
+
 @DisplayerCategory.BUTTON
 class DisplayerItemModalLink(DisplayerItem):
     """Specialized display item to display an icon link that opens a modal dialog."""
@@ -455,13 +455,13 @@ class DisplayerItemModalLink(DisplayerItem):
     ) -> None:
         """
         Initialize a modal trigger icon link.
-        
+
         Args:
             text: Tooltip text for the icon link
             icon: MDI icon name (without 'mdi-' prefix)
             link: Flask route that returns the modal content (default: "")
             color: Bootstrap style for the icon color (default: BSstyle.PRIMARY)
-            
+
         Example:
             >>> modal_link = DisplayerItemModalLink(
             ...     text="View Details",
@@ -476,7 +476,7 @@ class DisplayerItemModalLink(DisplayerItem):
         self.m_icon = icon
         self.m_style = color.value
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample modal link."""
@@ -490,12 +490,12 @@ class DisplayerItemBadge(DisplayerItem):
     def __init__(self, text: str, highlightType: BSstyle = BSstyle.SUCCESS) -> None:
         """
         Initialize a badge item.
-        
+
         Args:
             text: The badge text content
             highlightType: The Bootstrap style for the badge color (default: BSstyle.SUCCESS)
                           Determines the color scheme of the badge
-                          
+
         Example:
             >>> badge = DisplayerItemBadge(text="New", highlightType=BSstyle.PRIMARY)
         """
@@ -507,7 +507,7 @@ class DisplayerItemBadge(DisplayerItem):
         """Update the badge text."""
         self.m_text = text
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample badge."""
@@ -521,12 +521,12 @@ class DisplayerItemDownload(DisplayerItem):
     def __init__(self, id: str, text: str, link) -> None:
         """
         Initialize a download button.
-        
+
         Args:
             id: Unique identifier for the button
             text: Button label text
             link: URL or path to the file to download
-            
+
         Example:
             >>> download = DisplayerItemDownload(id="dl_report", text="Download Report", link="/files/report.pdf")
         """
@@ -536,7 +536,7 @@ class DisplayerItemDownload(DisplayerItem):
         self.m_data = link
 
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample download button."""
@@ -548,16 +548,16 @@ class DisplayerItemDownload(DisplayerItem):
 class DisplayerItemImage(DisplayerItem):
     """Specialized display item to display an image."""
 
-    def __init__(self, height: str, link: str, endpoint: str = None, path: str = None) -> None:
+    def __init__(self, height: str, link: str, endpoint: Optional[str] = None, path: Optional[str] = None) -> None:
         """
         Initialize an image item.
-        
+
         Args:
             height: The height of the image (CSS value, e.g., "200px", "50%")
             link: URL to the image (can be full HTTP address or filename)
             endpoint: Endpoint name from site_conf for local files (default: None)
             path: Path relative to the endpoint for local files (default: None)
-            
+
         Example:
             >>> # Remote image
             >>> img1 = DisplayerItemImage(height="300px", link="https://example.com/image.jpg")
@@ -571,27 +571,27 @@ class DisplayerItemImage(DisplayerItem):
         self.m_endpoint = endpoint
 
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample image."""
-        return cls(height="200px", link="https://tse3.mm.bing.net/th/id/OIP.GGAs1O-ZmfBJGBCDcj0KpgHaDd?rs=1&pid=ImgDetMain", endpoint=None, path=None)
+        return cls(height="200px", link="https://tse3.mm.bing.net/th/id/OIP.GGAs1O-ZmfBJGBCDcj0KpgHaDd?rs=1&pid=ImgDetMain")
 
 @DisplayerCategory.MEDIA
 class DisplayerItemFile(DisplayerItem):
     """Specialized display item to display a file link with metadata."""
 
-    def __init__(self, link: str, endpoint: str = None, path: str = None, text: str = None, creation_date: str = None) -> None:
+    def __init__(self, link: str, endpoint: Optional[str] = None, path: Optional[str] = None, text: Optional[str] = None, creation_date: Optional[str] = None) -> None:
         """
         Initialize a file item.
-        
+
         Args:
             link: Filename or URL to the file
             endpoint: Endpoint name from site_conf for local files (default: None)
             path: Path relative to the endpoint for local files (default: None)
             text: Display text or description for the file (default: None)
             creation_date: File creation date string (default: None)
-            
+
         Example:
             >>> file = DisplayerItemFile(
             ...     link="report.pdf",
@@ -608,26 +608,26 @@ class DisplayerItemFile(DisplayerItem):
         self.m_path = path
         self.m_endpoint = endpoint
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample file."""
-        return cls(link="test_document.pdf", endpoint="common", path="/files", 
+        return cls(link="test_document.pdf", endpoint="common", path="/files",
                    text="Sample Document", creation_date="2024-01-15")
-    
+
 @DisplayerCategory.INPUT
 class DisplayerItemInputBox(DisplayerItem):
     """Specialized display to display an input checkbox."""
 
-    def __init__(self, id: str, text: str = None, value: bool = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[bool] = None) -> None:
         """
         Initialize a checkbox input.
-        
+
         Args:
             id: Unique identifier for the checkbox
             text: Label text for the checkbox (default: None)
             value: Initial checked state (default: None)
-            
+
         Example:
             >>> checkbox = DisplayerItemInputBox(id="agree_terms", text="I agree to terms", value=False)
         """
@@ -636,7 +636,7 @@ class DisplayerItemInputBox(DisplayerItem):
         self.m_value = value
         self.m_id = id
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample checkbox."""
@@ -647,18 +647,18 @@ class DisplayerItemInputBox(DisplayerItem):
 class DisplayerItemGraph(DisplayerItem):
     """Specialized display to display a graph using ApexCharts."""
 
-    def __init__(self, id: str, text: str = None, x: list = [], y: list = [], data_type="date") -> None:
+    def __init__(self, id: str, text: Optional[str] = None, x: Optional[Union[list, dict]] = None, y: Optional[Union[list, dict]] = None, data_type="date") -> None:
         """
         Initialize a graph item.
-        
+
         Args:
             id: Unique identifier for the graph element
             text: Optional title or description text (default: None)
             x: List of x-axis values (default: [])
-            y: List of y-axis data values (default: [])
+            y: List of y-axis data values or dict of series (default: [])
             data_type: Data type for x-axis, e.g., "date", "numeric", "category" (default: "date")
                       See ApexCharts documentation for available types
-                      
+
         Example:
             >>> graph = DisplayerItemGraph(
             ...     id="sales_chart",
@@ -672,8 +672,8 @@ class DisplayerItemGraph(DisplayerItem):
         self.m_text = text
         self.m_id = id
 
-        self.m_graphx = x
-        self.m_graphy = y
+        self.m_graphx = x if x is not None else []
+        self.m_graphy = y if y is not None else []
         self.m_datatype = data_type
         return
 
@@ -682,7 +682,7 @@ class DisplayerItemGraph(DisplayerItem):
         """Graph requires ApexCharts library."""
         return ['apexcharts']
 
-    def display(self, container: list, parent_id: str = None) -> None:
+    def display(self, container: list, parent_id: Optional[str] = None) -> None:
         """Add graph to container with chart configuration."""
         super().display(container, parent_id)
         container[-1]["id"] = self.m_id.replace(" ", "_")
@@ -691,14 +691,14 @@ class DisplayerItemGraph(DisplayerItem):
         container[-1]["graph_type"] = self.m_datatype
         container[-1]["id"] = container[-1]["id"].replace(".", "")  # Forbidden in javascript variables
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample graph."""
         # y should be dict of series name -> list of values matching x length
-        return cls(id="test_graph", text="Sample Graph", 
+        return cls(id="test_graph", text="Sample Graph",
                    x=[1640995200000, 1641081600000, 1641168000000],  # Unix timestamps for date type
-                   y={"Series1": [10, 25, 15], "Series2": [15, 30, 20]}, 
+                   y={"Series1": [10, 25, 15], "Series2": [15, 30, 20]},
                    data_type="date")
 
 
@@ -709,7 +709,7 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
     def __init__(
         self,
         id: str,
-        text: str = None,
+        text: Optional[str] = None,
         files: list = [],
         title: list = [],
         icons: list = [],
@@ -718,7 +718,7 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
     ) -> None:
         """
         Initialize a file explorer input.
-        
+
         Args:
             id: Unique identifier for the file explorer element
             text: Optional accompanying text or label (default: None)
@@ -731,7 +731,7 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
                     e.g., "primary", "success", "danger"
             hiddens: List of boolean values indicating if category is collapsible (default: [])
                     True means the category has a collapse button
-                    
+
         Example:
             >>> explorer = DisplayerItemInputFileExplorer(
             ...     id="file_manager",
@@ -753,18 +753,18 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
         self.m_explorerClasses = classes
         self.m_explorerHiddens = hiddens
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample file explorer."""
-        return cls(id="test_fileexplorer", text="File Explorer", 
+        return cls(id="test_fileexplorer", text="File Explorer",
                    files=[["file1.txt", "file2.pdf"], ["image1.png"]],
                    title=["Documents", "Images"],
                    icons=["file-document", "file-image"],
                    classes=["primary", "success"],
                    hiddens=[False, True])
 
-    def display(self, container: list, parent_id: str = None) -> None:
+    def display(self, container: list, parent_id: Optional[str] = None) -> None:
         """Add file explorer to container with all category configurations."""
         super().display(container, parent_id)
         container[-1]["explorer_files"] = self.m_explorerFiles
@@ -778,10 +778,10 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
 class DisplayerItemInputCascaded(DisplayerItem):
     """Specialized display to have multiple select choices where each level depends on the previous one."""
 
-    def __init__(self, ids: list, text: str = None, value: list = None, choices: list = [], level: int = -1) -> None:
+    def __init__(self, ids: list, text: Optional[str] = None, value: Optional[list] = None, choices: Optional[Union[list, dict]] = None, level: int = -1) -> None:
         """
         Initialize a cascaded select input.
-        
+
         Args:
             ids: List of unique identifiers for each cascade level
             text: Optional label text (default: None)
@@ -791,7 +791,7 @@ class DisplayerItemInputCascaded(DisplayerItem):
                     Nested structure where each level's choices depend on parent selection
             level: Specific level to display, or -1 to display all levels (default: -1)
                   If value exceeds available levels, it's clamped to max level
-                  
+
         Example:
             >>> cascaded = DisplayerItemInputCascaded(
             ...     ids=["country", "state", "city"],
@@ -813,6 +813,8 @@ class DisplayerItemInputCascaded(DisplayerItem):
         self.m_text = text
         self.m_value = value
         self.m_ids = ids
+        if choices is None:
+            choices = []
         for items in choices:
             if isinstance(items, list):
                 items.sort()
@@ -821,7 +823,7 @@ class DisplayerItemInputCascaded(DisplayerItem):
             level = len(choices)
         self.m_level = level
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample cascaded select."""
@@ -843,10 +845,10 @@ class DisplayerItemInputCascaded(DisplayerItem):
 class DisplayerItemInputSelect(DisplayerItem):
     """Specialized display to display an input select box."""
 
-    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = [], tooltips: list = []) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None, choices: list = [], tooltips: list = []) -> None:
         """
         Initialize a select dropdown input.
-        
+
         Args:
             id: Unique identifier for the select element
             text: Optional label text (default: None)
@@ -855,7 +857,7 @@ class DisplayerItemInputSelect(DisplayerItem):
                     Automatically sorted alphabetically
             tooltips: List of tooltip texts for each choice (default: [])
                      Must match length of choices for proper pairing
-                     
+
         Example:
             >>> select = DisplayerItemInputSelect(
             ...     id="priority",
@@ -869,7 +871,7 @@ class DisplayerItemInputSelect(DisplayerItem):
         self.m_text = text
         self.m_value = value
         self.m_id = id
-        
+
         # Ensure choices and tooltips have the same length before zipping
         if isinstance(choices, list) and isinstance(tooltips, list):
             if len(choices) == len(tooltips) and len(choices) > 0:
@@ -879,16 +881,16 @@ class DisplayerItemInputSelect(DisplayerItem):
                 choices, tooltips = map(list, zip(*combined))
             elif len(choices) > 0:
                 choices.sort()
-        
+
         self.m_data = choices
         self.m_tooltips = tooltips
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample select."""
         return cls(id="test_select", text="Choose an option", value="option2",
-                   choices=["option1", "option2", "option3"], 
+                   choices=["option1", "option2", "option3"],
                    tooltips=["First option", "Second option", "Third option"])
 
 
@@ -896,10 +898,10 @@ class DisplayerItemInputSelect(DisplayerItem):
 class DisplayerItemInputMultiSelect(DisplayerItem):
     """Specialized display to display a multiple select with a possibility to add them on the fly."""
 
-    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None, choices: list = []) -> None:
         """
         Initialize a multi-select input.
-        
+
         Args:
             id: Unique identifier for the multi-select element
             text: Optional label text (default: None)
@@ -907,7 +909,7 @@ class DisplayerItemInputMultiSelect(DisplayerItem):
             choices: List of selectable options (default: [])
                     Automatically sorted alphabetically
                     Allows adding new options dynamically
-                    
+
         Example:
             >>> multiselect = DisplayerItemInputMultiSelect(
             ...     id="tags",
@@ -923,11 +925,11 @@ class DisplayerItemInputMultiSelect(DisplayerItem):
         self.m_id = id
         self.m_data = choices
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample multi-select."""
-        return cls(id="test_multiselect", text="Select multiple items", 
+        return cls(id="test_multiselect", text="Select multiple items",
                    value=["item2", "item3"], choices=["item1", "item2", "item3", "item4"])
 
 
@@ -935,10 +937,10 @@ class DisplayerItemInputMultiSelect(DisplayerItem):
 class DisplayerItemInputMapping(DisplayerItem):
     """Specialized display to display a mapping with a possibility to add them on the fly."""
 
-    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[dict] = None, choices: list = []) -> None:
         """
         Initialize a mapping input for key-value pairs.
-        
+
         Args:
             id: Unique identifier for the mapping element
             text: Optional label text (default: None)
@@ -946,7 +948,7 @@ class DisplayerItemInputMapping(DisplayerItem):
                   Keys map to lists of selected choices
             choices: List of available options to map (default: [])
                     Automatically sorted alphabetically
-                    
+
         Example:
             >>> mapping = DisplayerItemInputMapping(
             ...     id="category_mapping",
@@ -962,12 +964,12 @@ class DisplayerItemInputMapping(DisplayerItem):
         self.m_id = id
         self.m_data = choices
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample mapping."""
-        return cls(id="test_mapping", text="Key-Value Mapping", 
-                   value={"Section A": ["option1", "option2"], "Section B": ["option3"]}, 
+        return cls(id="test_mapping", text="Key-Value Mapping",
+                   value={"Section A": ["option1", "option2"], "Section B": ["option3"]},
                    choices=["option1", "option2", "option3"])
 
 
@@ -975,17 +977,17 @@ class DisplayerItemInputMapping(DisplayerItem):
 class DisplayerItemInputListSelect(DisplayerItem):
     """Specialized display to display a set of list select."""
 
-    def __init__(self, id: str, text: str = None, value: bool = None, choices: list = []) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None, choices: list = []) -> None:
         """
         Initialize a list select input.
-        
+
         Args:
             id: Unique identifier for the list select element
             text: Optional label text (default: None)
             value: Currently selected items from the lists (default: None)
             choices: List of available options (default: [])
                     Automatically sorted alphabetically
-                    
+
         Example:
             >>> listselect = DisplayerItemInputListSelect(
             ...     id="item_list",
@@ -1001,12 +1003,12 @@ class DisplayerItemInputListSelect(DisplayerItem):
         self.m_id = id
         self.m_data = choices
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample list select."""
-        return cls(id="test_listselect", text="Select from lists", 
-                   value=["list1_item2", "list2_item1"], 
+        return cls(id="test_listselect", text="Select from lists",
+                   value=["list1_item2", "list2_item1"],
                    choices=["list1_item1", "list1_item2", "list2_item1", "list2_item2"])
 
 
@@ -1014,10 +1016,10 @@ class DisplayerItemInputListSelect(DisplayerItem):
 class DisplayerItemInputTextSelect(DisplayerItem):
     """Specialized display to display a mapping for a text and a selection for the user."""
 
-    def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None, choices: list = []) -> None:
         """
         Initialize a text-select input combining text fields with selections.
-        
+
         Args:
             id: Unique identifier for the element
             text: Optional label text (default: None)
@@ -1025,7 +1027,7 @@ class DisplayerItemInputTextSelect(DisplayerItem):
                   Each pair combines a text input with a dropdown choice
             choices: List of available options for the select portion (default: [])
                     Automatically sorted alphabetically
-                    
+
         Example:
             >>> textselect = DisplayerItemInputTextSelect(
             ...     id="config_pairs",
@@ -1041,7 +1043,7 @@ class DisplayerItemInputTextSelect(DisplayerItem):
         self.m_id = id
         self.m_data = choices
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample text-select pairs (list of [text, select])."""
@@ -1054,10 +1056,10 @@ class DisplayerItemInputTextSelect(DisplayerItem):
 class DisplayerItemInputSelectText(DisplayerItem):
     """Specialized display to display a mapping for a selection followed by a text input."""
 
-    def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None, choices: list = []) -> None:
         """
         Initialize a select-text input combining selection with text.
-        
+
         Args:
             id: Unique identifier for the element
             text: Optional label text (default: None)
@@ -1065,7 +1067,7 @@ class DisplayerItemInputSelectText(DisplayerItem):
                   Each pair combines a dropdown choice with a text input
             choices: List of available options for the select portion (default: [])
                     Automatically sorted alphabetically
-                    
+
         Example:
             >>> selecttext = DisplayerItemInputSelectText(
             ...     id="reason_notes",
@@ -1081,11 +1083,11 @@ class DisplayerItemInputSelectText(DisplayerItem):
         self.m_id = id
         self.m_data = choices
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample select-text pairs (list of [select, text])."""
-        return cls(id="test_selecttext", text="Select and describe", 
+        return cls(id="test_selecttext", text="Select and describe",
                    value=[["option2", "Description for option 2"], ["option1", "Another description"]],
                    choices=["option1", "option2", "option3"])
 
@@ -1094,10 +1096,10 @@ class DisplayerItemInputSelectText(DisplayerItem):
 class DisplayerItemInputDualTextSelect(DisplayerItem):
     """Specialized display to display a mapping for two text inputs followed by a selection."""
 
-    def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None, choices: list = []) -> None:
         """
         Initialize a dual text-select input.
-        
+
         Args:
             id: Unique identifier for the element
             text: Optional label text (default: None)
@@ -1105,7 +1107,7 @@ class DisplayerItemInputDualTextSelect(DisplayerItem):
                   Each triplet combines two text inputs with a dropdown choice
             choices: List of available options for the select portion (default: [])
                     Automatically sorted alphabetically
-                    
+
         Example:
             >>> dualtextselect = DisplayerItemInputDualTextSelect(
             ...     id="metric_config",
@@ -1121,11 +1123,11 @@ class DisplayerItemInputDualTextSelect(DisplayerItem):
         self.m_id = id
         self.m_data = choices
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample dual text-select (list of [text1, text2, select])."""
-        return cls(id="test_dualtextselect", text="Dual text with select", 
+        return cls(id="test_dualtextselect", text="Dual text with select",
                    value=[["First text", "Second text", "choice2"], ["Another first", "Another second", "choice1"]],
                    choices=["choice1", "choice2", "choice3"])
 
@@ -1134,10 +1136,10 @@ class DisplayerItemInputDualTextSelect(DisplayerItem):
 class DisplayerItemInputDualSelectText(DisplayerItem):
     """Specialized display to display a mapping for two selections followed by a text input."""
 
-    def __init__(self, id: str, text: str = None, value: str = None, choices: list = []) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None, choices: list = []) -> None:
         """
         Initialize a dual select-text input.
-        
+
         Args:
             id: Unique identifier for the element
             text: Optional label text (default: None)
@@ -1145,7 +1147,7 @@ class DisplayerItemInputDualSelectText(DisplayerItem):
                   Each triplet combines two dropdown choices with a text input
             choices: List of available options for both select portions (default: [])
                     Automatically sorted alphabetically
-                    
+
         Example:
             >>> dualselecttext = DisplayerItemInputDualSelectText(
             ...     id="rule_config",
@@ -1161,11 +1163,11 @@ class DisplayerItemInputDualSelectText(DisplayerItem):
         self.m_id = id
         self.m_data = choices
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample dual select-text (list of [select1, select2, text])."""
-        return cls(id="test_dualselecttext", text="Dual select with text", 
+        return cls(id="test_dualselecttext", text="Dual select with text",
                    value=[["opt1", "opt2", "Combined result"], ["opt2", "opt3", "Another combination"]],
                    choices=["opt1", "opt2", "opt3"])
 
@@ -1174,16 +1176,16 @@ class DisplayerItemInputDualSelectText(DisplayerItem):
 class DisplayerItemInputTextText(DisplayerItem):
     """Specialized display to display a mapping with two text inputs."""
 
-    def __init__(self, id: str, text: str = None, value: str = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None) -> None:
         """
         Initialize a text-text input pair.
-        
+
         Args:
             id: Unique identifier for the element
             text: Optional label text (default: None)
             value: Current value as list of [text1, text2] pairs (default: None)
                   Each pair combines two related text inputs
-                  
+
         Example:
             >>> texttext = DisplayerItemInputTextText(
             ...     id="key_value_pairs",
@@ -1196,11 +1198,11 @@ class DisplayerItemInputTextText(DisplayerItem):
         self.m_value = value
         self.m_id = id
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample text-text pairs (list of [text1, text2])."""
-        return cls(id="test_texttext", text="Two text fields", 
+        return cls(id="test_texttext", text="Two text fields",
                    value=[["First field", "Second field"], ["Another first", "Another second"]])
 
 
@@ -1208,16 +1210,16 @@ class DisplayerItemInputTextText(DisplayerItem):
 class DisplayerItemInputListText(DisplayerItem):
     """Specialized display to display a list of input text fields."""
 
-    def __init__(self, id: str, text: str = None, value: dict = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[dict] = None) -> None:
         """
         Initialize a list text input.
-        
+
         Args:
             id: Unique identifier for the element
             text: Optional label text (default: None)
             value: Current value as dictionary mapping item keys to text values (default: None)
                   Each key-value pair creates a separate text input
-                  
+
         Example:
             >>> listtext = DisplayerItemInputListText(
             ...     id="settings",
@@ -1230,11 +1232,11 @@ class DisplayerItemInputListText(DisplayerItem):
         self.m_value = value
         self.m_id = id
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample list of texts."""
-        return cls(id="test_listtext", text="List of text inputs", 
+        return cls(id="test_listtext", text="List of text inputs",
                    value={"item1": "Text 1", "item2": "Text 2", "item3": "Text 3"})
 
 
@@ -1242,16 +1244,16 @@ class DisplayerItemInputListText(DisplayerItem):
 class DisplayerItemInputNumeric(DisplayerItem):
     """Specialized display to display an input number field."""
 
-    def __init__(self, id: str, text: str = None, value: float = None, focus: bool = False) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[float] = None, focus: bool = False) -> None:
         """
         Initialize a numeric input.
-        
+
         Args:
             id: Unique identifier for the input element
             text: Optional label text (default: None)
             value: Initial numeric value (default: None)
             focus: Whether the input should have focus on page load (default: False)
-            
+
         Example:
             >>> numeric = DisplayerItemInputNumeric(
             ...     id="quantity",
@@ -1266,7 +1268,7 @@ class DisplayerItemInputNumeric(DisplayerItem):
         self.m_id = id
         self.m_focus = focus
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample numeric input."""
@@ -1278,15 +1280,15 @@ class DisplayerItemInputDate(DisplayerItem):
     """Specialized display to display an input date.
     Date shall be in format YYYY-MM-DD or YYYY-MM-DDT000:00 if the minute and hour is also needed."""
 
-    def __init__(self, id: str, text: str = None, value: str = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None) -> None:
         """
         Initialize a date input.
-        
+
         Args:
             id: Unique identifier for the input element
             text: Optional label text (default: None)
             value: Initial date value in format YYYY-MM-DD or YYYY-MM-DDTHH:MM (default: None)
-                  
+
         Example:
             >>> date = DisplayerItemInputDate(
             ...     id="start_date",
@@ -1304,7 +1306,7 @@ class DisplayerItemInputDate(DisplayerItem):
         self.m_value = value
         self.m_id = id
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample date input."""
@@ -1315,16 +1317,16 @@ class DisplayerItemInputDate(DisplayerItem):
 class DisplayerItemInputText(DisplayerItem):
     """Specialized display to display a multi-line text area input."""
 
-    def __init__(self, id: str, text: str = None, value: str = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None) -> None:
         """
         Initialize a text area input.
-        
+
         Args:
             id: Unique identifier for the textarea element
             text: Optional label text (default: None)
             value: Initial text content (default: None)
                   Supports multi-line text input
-                  
+
         Example:
             >>> textarea = DisplayerItemInputText(
             ...     id="description",
@@ -1337,25 +1339,25 @@ class DisplayerItemInputText(DisplayerItem):
         self.m_value = value
         self.m_id = id
         return
-    
+
     @classmethod
     def get_required_resources(cls) -> list:
         """Text input requires TinyMCE library for rich text editing."""
         return ['tinymce']
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample text input."""
         return cls(id="test_text", text="Enter text", value="Sample text value")
-    
+
 @DisplayerCategory.INPUT
 class DisplayerItemInputTextJS(DisplayerItem):
     """Specialized display to display an input text with a JS function execution on change."""
 
-    def __init__(self, id: str, text: str = None, value: str = None, js: str = None, focus = False) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None, js: Optional[str] = None, focus = False) -> None:
         """
         Initialize a text input with JavaScript onChange handler.
-        
+
         Args:
             id: Unique identifier for the input element
             text: Optional label text (default: None)
@@ -1363,7 +1365,7 @@ class DisplayerItemInputTextJS(DisplayerItem):
             js: JavaScript code to execute on change event (default: None)
                Code has access to 'this' referring to the input element
             focus: Whether the input should have focus on page load (default: False)
-            
+
         Example:
             >>> textjs = DisplayerItemInputTextJS(
             ...     id="uppercase_input",
@@ -1380,33 +1382,33 @@ class DisplayerItemInputTextJS(DisplayerItem):
         self.m_data = js
         self.m_focus = focus
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample text-JS input."""
         # JS function to capitalize input
         js_code = "this.value = this.value.toUpperCase();"
-        return cls(id="test_textjs", text="Text with JS (auto-capitalize)", value="type here", 
+        return cls(id="test_textjs", text="Text with JS (auto-capitalize)", value="type here",
                    js=js_code, focus=False)
-    
+
 @DisplayerCategory.INPUT
 class DisplayerItemInputString(DisplayerItem):
     """
     Specialized display item for a text string input field.
-    
+
     Standard single-line text input for collecting string data from users.
     """
 
-    def __init__(self, id: str, text: str = None, value: str = None, focus: bool = False) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None, focus: bool = False) -> None:
         """
         Initialize a string input field.
-        
+
         Args:
             id: Unique identifier for the input field
             text: Label text displayed above the input (default: None)
             value: Pre-filled value in the input field (default: None)
             focus: Whether this field should receive focus on page load (default: False)
-            
+
         Example:
             >>> name_input = DisplayerItemInputString(
             ...     id="user_name",
@@ -1421,26 +1423,26 @@ class DisplayerItemInputString(DisplayerItem):
         self.m_id = id
         self.m_focus = focus
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample string input."""
         return cls(id="test_string", text="Enter a string", value="Sample string", focus=False)
-    
+
 @DisplayerCategory.INPUT
 class DisplayerItemInputStringIcon(DisplayerItem):
     """Specialized display to display an input string that also displays an associated MDI icon if valid."""
 
-    def __init__(self, id: str, text: str = None, value: str = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None) -> None:
         """
         Initialize a string input with icon preview.
-        
+
         Args:
             id: Unique identifier for the input element
             text: Optional label text (default: None)
             value: Initial value, typically an MDI icon name (default: None)
                   Icon will be displayed if value is a valid MDI icon name
-                  
+
         Example:
             >>> stringicon = DisplayerItemInputStringIcon(
             ...     id="icon_selector",
@@ -1453,7 +1455,7 @@ class DisplayerItemInputStringIcon(DisplayerItem):
         self.m_value = value
         self.m_id = id
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample string-icon input."""
@@ -1464,16 +1466,16 @@ class DisplayerItemInputStringIcon(DisplayerItem):
 class DisplayerItemInputMultiText(DisplayerItem):
     """Specialized display to display a multi-line text list input."""
 
-    def __init__(self, id: str, text: str = None, value: str = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None) -> None:
         """
         Initialize a multi-text input.
-        
+
         Args:
             id: Unique identifier for the input element
             text: Optional label text (default: None)
             value: Initial value as list of text lines (default: None)
                   Each element in the list represents a separate line of text
-                  
+
         Example:
             >>> multitext = DisplayerItemInputMultiText(
             ...     id="todo_list",
@@ -1486,11 +1488,11 @@ class DisplayerItemInputMultiText(DisplayerItem):
         self.m_value = value
         self.m_id = id
         return
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample multi-line text input."""
-        return cls(id="test_multitext", text="Enter multiple lines", 
+        return cls(id="test_multitext", text="Enter multiple lines",
                    value=["Line 1", "Line 2", "Line 3"])
 
 
@@ -1498,14 +1500,14 @@ class DisplayerItemInputMultiText(DisplayerItem):
 class DisplayerItemInputFolder(DisplayerItem):
     """Specialized display to display a folder selection input."""
 
-    def __init__(self, id: str, text: str = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None) -> None:
         """
         Initialize a folder input.
-        
+
         Args:
             id: Unique identifier for the input element
             text: Optional label text (default: None)
-            
+
         Example:
             >>> folder = DisplayerItemInputFolder(
             ...     id="upload_folder",
@@ -1516,12 +1518,12 @@ class DisplayerItemInputFolder(DisplayerItem):
         self.m_text = text
         self.m_id = id
         return
-    
+
     @classmethod
     def get_required_resources(cls) -> list:
         """Folder input requires FilePond library."""
         return ['filepond']
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample folder input."""
@@ -1531,14 +1533,14 @@ class DisplayerItemInputFolder(DisplayerItem):
 class DisplayerItemInputFile(DisplayerItem):
     """Specialized display to display a file upload input."""
 
-    def __init__(self, id: str, text: str = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None) -> None:
         """
         Initialize a file input.
-        
+
         Args:
             id: Unique identifier for the input element
             text: Optional label text (default: None)
-            
+
         Example:
             >>> file = DisplayerItemInputFile(
             ...     id="document_upload",
@@ -1549,29 +1551,29 @@ class DisplayerItemInputFile(DisplayerItem):
         self.m_text = text
         self.m_id = id
         return
-    
+
     @classmethod
     def get_required_resources(cls) -> list:
         """File input requires FilePond library."""
         return ['filepond']
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample file input."""
         return cls(id="test_file", text="Select File")
-    
+
 @DisplayerCategory.INPUT
 class DisplayerItemInputImage(DisplayerItem):
     """Specialized display to display an image upload input box."""
 
-    def __init__(self, id: str, text: str = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None) -> None:
         """
         Initialize an image input.
-        
+
         Args:
             id: Unique identifier for the input element
             text: Optional label text (default: None)
-            
+
         Example:
             >>> image = DisplayerItemInputImage(
             ...     id="profile_picture",
@@ -1582,12 +1584,12 @@ class DisplayerItemInputImage(DisplayerItem):
         self.m_text = text
         self.m_id = id
         return
-    
+
     @classmethod
     def get_required_resources(cls) -> list:
         """Image input requires FilePond library."""
         return ['filepond']
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample image input."""
@@ -1597,17 +1599,17 @@ class DisplayerItemInputImage(DisplayerItem):
 class DisplayerItemCalendar(DisplayerItem):
     """Specialized display to display a full size calendar using FullCalendar library."""
 
-    def __init__(self, id: str, view: str = "dayGridMonth", events: dict = {}) -> None:
+    def __init__(self, id: str, view: str = "dayGridMonth", events: Optional[Union[Dict, List]] = None) -> None:
         """
         Initialize a calendar display.
-        
+
         Args:
             id: Unique identifier for the calendar element
             view: FullCalendar view mode (default: "dayGridMonth")
                  Options include: "dayGridMonth", "timeGridWeek", "timeGridDay", "listWeek"
             events: Events to display in FullCalendar format (default: {})
                    Dictionary with event data following FullCalendar's event object structure
-                   
+
         Example:
             >>> calendar = DisplayerItemCalendar(
             ...     id="schedule",
@@ -1623,18 +1625,18 @@ class DisplayerItemCalendar(DisplayerItem):
         super().__init__(DisplayerItems.CALENDAR)
         self.m_value = view
         self.m_id = id
-        self.m_data = events
+        self.m_data = events if events is not None else {}
         return
-    
+
     @classmethod
     def get_required_resources(cls) -> list:
         """Calendar requires FullCalendar library."""
         return ['fullcalendar']
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample calendar."""
-        return cls(id="test_calendar", view="dayGridMonth", 
+        return cls(id="test_calendar", view="dayGridMonth",
                    events=[
                        {"title": "Event 1", "start": "2024-01-15"},
                        {"title": "Event 2", "start": "2024-01-20", "end": "2024-01-22"}
@@ -1645,10 +1647,10 @@ class DisplayerItemCalendar(DisplayerItem):
 class DisplayerItemCard(DisplayerItem):
     """
     Card component with colored header, icon, title, and body content.
-    
+
     Creates a Bootstrap card with customizable header color, MDI icon,
     and optional footer buttons.
-    
+
     Example:
         >>> card = DisplayerItemCard(
         ...     id="demo_card",
@@ -1661,19 +1663,19 @@ class DisplayerItemCard(DisplayerItem):
         ...     ]
         ... )
     """
-    
+
     def __init__(
         self,
         id: str,
         title: str,
         body: str,
-        icon: str = None,
+        icon: Optional[str] = None,
         header_color: BSstyle = BSstyle.PRIMARY,
-        footer_buttons: List[Dict[str, str]] = None
+        footer_buttons: Optional[List[Dict[str, str]]] = None
     ) -> None:
         """
         Initialize a card display item.
-        
+
         Args:
             id: Unique identifier for the card
             title: Title text shown in the header
@@ -1689,7 +1691,7 @@ class DisplayerItemCard(DisplayerItem):
         self.m_icon = icon
         self.m_style = header_color.value if isinstance(header_color, BSstyle) else header_color
         self.m_data = footer_buttons or []
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample card."""
@@ -1709,10 +1711,10 @@ class DisplayerItemCard(DisplayerItem):
 class DisplayerItemAlertBox(DisplayerItem):
     """
     Bootstrap alert box with icon and optional title.
-    
+
     Creates a dismissible or static alert with icon support.
     Different from DisplayerItemAlert which is simpler.
-    
+
     Example:
         >>> alert = DisplayerItemAlertBox(
         ...     id="info_alert",
@@ -1723,19 +1725,19 @@ class DisplayerItemAlertBox(DisplayerItem):
         ...     dismissible=True
         ... )
     """
-    
+
     def __init__(
         self,
         id: str,
         text: str,
         style: BSstyle = BSstyle.INFO,
-        icon: str = None,
-        title: str = None,
+        icon: Optional[str] = None,
+        title: Optional[str] = None,
         dismissible: bool = False
     ) -> None:
         """
         Initialize an alert box display item.
-        
+
         Args:
             id: Unique identifier for the alert
             text: Alert message content (HTML supported)
@@ -1751,7 +1753,7 @@ class DisplayerItemAlertBox(DisplayerItem):
         self.m_icon = icon
         self.m_header = title  # Using header for title
         self.m_disabled = dismissible  # Reusing disabled flag for dismissible
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample alert box."""
@@ -1769,24 +1771,24 @@ class DisplayerItemAlertBox(DisplayerItem):
 class DisplayerItemDynamicContent(DisplayerItem):
     """
     Placeholder div for content that will be updated dynamically.
-    
+
     Creates a container with an ID that can be targeted by emit_reload()
     for dynamic updates without page refresh.
-    
+
     Example:
         >>> content = DisplayerItemDynamicContent(
         ...     id="live_status",
         ...     initial_content="<p>Waiting for updates...</p>",
         ...     card=True
         ... )
-        
+
         # Later in threaded action:
         scheduler.emit_reload([{
             'id': 'live_status',
             'content': '<p>Updated at 12:45!</p>'
         }])
     """
-    
+
     def __init__(
         self,
         id: str,
@@ -1795,7 +1797,7 @@ class DisplayerItemDynamicContent(DisplayerItem):
     ) -> None:
         """
         Initialize a dynamic content placeholder.
-        
+
         Args:
             id: Unique identifier (used by emit_reload to target this element)
             initial_content: Initial HTML/text content
@@ -1805,7 +1807,7 @@ class DisplayerItemDynamicContent(DisplayerItem):
         self.m_itemId = id
         self.m_text = initial_content
         self.m_disabled = card  # Reusing disabled flag for card styling
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample dynamic content."""
@@ -1820,9 +1822,9 @@ class DisplayerItemDynamicContent(DisplayerItem):
 class DisplayerItemButtonGroup(DisplayerItem):
     """
     Group of buttons displayed horizontally or vertically.
-    
+
     Creates multiple buttons in a Bootstrap button group layout.
-    
+
     Example:
         >>> btn_group = DisplayerItemButtonGroup(
         ...     id="demo_controls",
@@ -1834,7 +1836,7 @@ class DisplayerItemButtonGroup(DisplayerItem):
         ...     layout="horizontal"
         ... )
     """
-    
+
     def __init__(
         self,
         id: str,
@@ -1843,7 +1845,7 @@ class DisplayerItemButtonGroup(DisplayerItem):
     ) -> None:
         """
         Initialize a button group display item.
-        
+
         Args:
             id: Unique identifier for the button group
             buttons: List of button dicts with keys:
@@ -1858,7 +1860,7 @@ class DisplayerItemButtonGroup(DisplayerItem):
         self.m_itemId = id
         self.m_data = buttons
         self.m_value = layout  # horizontal or vertical
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample button group."""
@@ -1877,10 +1879,10 @@ class DisplayerItemButtonGroup(DisplayerItem):
 class DisplayerItemIconText(DisplayerItem):
     """
     Simple line with icon and text displayed inline.
-    
+
     Creates a compact icon + text combination, useful for feature lists
     or quick information display.
-    
+
     Example:
         >>> icon_text = DisplayerItemIconText(
         ...     id="feature1",
@@ -1889,18 +1891,18 @@ class DisplayerItemIconText(DisplayerItem):
         ...     color=BSstyle.SUCCESS
         ... )
     """
-    
+
     def __init__(
         self,
         id: str,
         icon: str,
         text: str,
-        color: BSstyle = None,
-        link: str = None
+        color: Optional[BSstyle] = None,
+        link: Optional[str] = None
     ) -> None:
         """
         Initialize an icon+text display item.
-        
+
         Args:
             id: Unique identifier
             icon: MDI icon name (e.g., "mdi-check")
@@ -1914,7 +1916,7 @@ class DisplayerItemIconText(DisplayerItem):
         self.m_text = text
         self.m_style = color.value if isinstance(color, BSstyle) and color else None
         self.m_path = link  # Using path for link URL
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample icon+text."""
@@ -1930,17 +1932,17 @@ class DisplayerItemIconText(DisplayerItem):
 class DisplayerItemActionButtons(DisplayerItem):
     """
     Row action buttons for CRUD operations (View, Edit, Delete).
-    
+
     Creates a compact inline button group with icon-based action buttons,
     commonly used in table rows or list items for quick actions.
-    
+
     Each button can have:
     - Icon (MDI or Bootstrap Icons)
     - Tooltip
     - URL/Link
     - Color style
     - Enable/disable state
-    
+
     Example:
         >>> # Full custom actions
         >>> actions = DisplayerItemActionButtons(
@@ -1951,7 +1953,7 @@ class DisplayerItemActionButtons(DisplayerItem):
         ...         {"type": "delete", "url": "/users/123/delete", "tooltip": "Delete user", "disabled": False}
         ...     ]
         ... )
-        
+
         >>> # Quick default actions with URLs
         >>> actions = DisplayerItemActionButtons(
         ...     id="item_456_actions",
@@ -1959,7 +1961,7 @@ class DisplayerItemActionButtons(DisplayerItem):
         ...     edit_url="/items/456/edit",
         ...     delete_url="/items/456/delete"
         ... )
-        
+
         >>> # Only edit and delete
         >>> actions = DisplayerItemActionButtons(
         ...     id="comment_789_actions",
@@ -1967,7 +1969,7 @@ class DisplayerItemActionButtons(DisplayerItem):
         ...     delete_url="/comments/789/delete"
         ... )
     """
-    
+
     # Default action configurations
     DEFAULT_ACTIONS = {
         "view": {
@@ -1996,20 +1998,20 @@ class DisplayerItemActionButtons(DisplayerItem):
             "tooltip": "Copy"
         }
     }
-    
+
     def __init__(
         self,
         id: str,
-        actions: List[Dict[str, Any]] = None,
-        view_url: str = None,
-        edit_url: str = None,
-        delete_url: str = None,
+        actions: Optional[List[Dict[str, Any]]] = None,
+        view_url: Optional[str] = None,
+        edit_url: Optional[str] = None,
+        delete_url: Optional[str] = None,
         size: str = "sm",
         style: str = "buttons"  # "buttons" or "icons"
     ) -> None:
         """
         Initialize action buttons display item.
-        
+
         Args:
             id: Unique identifier for the button group
             actions: List of custom action dicts with keys:
@@ -2029,7 +2031,7 @@ class DisplayerItemActionButtons(DisplayerItem):
         self.m_itemId = id
         self.m_value = size  # sm, md, lg
         self.m_style = style  # buttons or icons
-        
+
         # Build actions list
         if actions is not None:
             self.m_data = actions
@@ -2054,7 +2056,7 @@ class DisplayerItemActionButtons(DisplayerItem):
                     "url": delete_url,
                     **self.DEFAULT_ACTIONS["delete"]
                 })
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample action buttons."""
@@ -2070,16 +2072,16 @@ class DisplayerItemActionButtons(DisplayerItem):
 class DisplayerItemConsole(DisplayerItem):
     """
     Console output display with monospace font and dark terminal-like styling.
-    
+
     Displays text content in a styled console/terminal format with:
     - Dark background (#1e1e1e)
     - Light text color (#d4d4d4)
     - Monospace font
     - Scrollable container
     - Optional max height
-    
+
     Perfect for showing command output, logs, or terminal sessions.
-    
+
     Example:
         >>> console = DisplayerItemConsole(
         ...     id="build_output",
@@ -2087,17 +2089,17 @@ class DisplayerItemConsole(DisplayerItem):
         ...     max_height="400px"
         ... )
     """
-    
+
     def __init__(
         self,
         id: str,
         lines: List[str],
         max_height: str = "300px",
-        title: str = None
+        title: Optional[str] = None
     ) -> None:
         """
         Initialize a console display item.
-        
+
         Args:
             id: Unique identifier
             lines: List of console output lines to display
@@ -2109,7 +2111,7 @@ class DisplayerItemConsole(DisplayerItem):
         self.m_data = lines  # Using m_data for lines list
         self.m_style = max_height  # Using m_style for max_height
         self.m_header = title  # Using m_header for optional title
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample console output."""
@@ -2133,16 +2135,16 @@ class DisplayerItemConsole(DisplayerItem):
 class DisplayerItemCode(DisplayerItem):
     """
     Code block display with syntax highlighting support.
-    
+
     Displays formatted code with:
     - Syntax highlighting (via highlight.js or Prism.js)
     - Line numbers (optional)
     - Copy button (optional)
     - Language badge
     - Light/dark theme support
-    
+
     Supports many languages: python, javascript, java, c++, sql, json, yaml, etc.
-    
+
     Example:
         >>> code = DisplayerItemCode(
         ...     id="sample_code",
@@ -2152,23 +2154,23 @@ class DisplayerItemCode(DisplayerItem):
         ...     title="Example Function"
         ... )
     """
-    
+
     def __init__(
         self,
         id: str,
         code: str,
         language: str = "text",
         show_line_numbers: bool = False,
-        title: str = None,
+        title: Optional[str] = None,
         max_height: str = "500px"
     ) -> None:
         """
         Initialize a code display item.
-        
+
         Args:
             id: Unique identifier
             code: Source code content to display
-            language: Programming language for syntax highlighting 
+            language: Programming language for syntax highlighting
                      (python, javascript, java, cpp, sql, json, yaml, bash, etc.)
             show_line_numbers: Whether to show line numbers in gutter
             title: Optional title/filename for the code block
@@ -2181,7 +2183,7 @@ class DisplayerItemCode(DisplayerItem):
         self.m_header = title  # Using m_header for title
         self.m_style = max_height  # Using m_style for max_height
         self.m_disabled = show_line_numbers  # Using m_disabled for line numbers flag
-    
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample code."""
@@ -2194,7 +2196,7 @@ class DisplayerItemCode(DisplayerItem):
 # Test the function
 for i in range(10):
     print(f"F({i}) = {fibonacci(i)}")'''
-        
+
         return cls(
             id="test_code",
             code=sample_code,
@@ -2202,5 +2204,3 @@ for i in range(10):
             show_line_numbers=True,
             title="fibonacci.py"
         )
-
-

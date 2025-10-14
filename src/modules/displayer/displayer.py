@@ -55,7 +55,7 @@ class Displayer:
         self.m_modals: List[Dict[str, Any]] = []
         self.g_next_layout: int = 0
         self.m_all_layout: Dict[str, Any] = {}
-        self.m_breadcrumbs: Dict[str, str] = {}
+        self.m_breadcrumbs: Dict[str, Dict[str, Any]] = {}
         self.m_title: Optional[str] = None
         self.m_active_module: Optional[str] = None
         self.m_last_layout: Optional[DisplayerLayout] = None
@@ -236,18 +236,19 @@ class Displayer:
                 return None
             searchable_layout = self.m_modules[self.m_active_module]["layouts"]
 
-        for potential_layout in searchable_layout:
-            if not isinstance(potential_layout, dict) or potential_layout.get("object") != "layout":
-                continue
-                
-            # Found the layout
-            if potential_layout.get("id") == layout_id:
-                return potential_layout
+        if searchable_layout:
+            for potential_layout in searchable_layout:
+                if not isinstance(potential_layout, dict) or potential_layout.get("object") != "layout":
+                    continue
+                    
+                # Found the layout
+                if potential_layout.get("id") == layout_id:
+                    return potential_layout
             
-            # Search recursively in children
-            found = self._search_layout_children(potential_layout, layout_id)
-            if found is not None:
-                return found
+                # Search recursively in children
+                found = self._search_layout_children(potential_layout, layout_id)
+                if found is not None:
+                    return found
 
         return None
     
@@ -287,7 +288,7 @@ class Displayer:
         column: int = 0,
         layout_id: int = -1,
         disabled: bool = False,
-        id: int = None,
+        id: Optional[int] = None,
         line: int = -1,
     ) -> bool:
         """
@@ -381,10 +382,10 @@ class Displayer:
         
         Args:
             id: Unique identifier for the modal
-            modal: Modal content object with display() method
+            modal: Modal content as HTML string
             header: Optional header text
         """
-        self.m_modals.append({"id": id, "content": modal.display(), "header": header})
+        self.m_modals.append({"id": id, "content": modal, "header": header})
 
     def add_slave_layout(
         self,
@@ -465,6 +466,8 @@ class Displayer:
                 else:
                     self.m_all_layout[item] = layout.m_all_layout[item]
             return self.g_next_layout - 1
+        
+        return -1  # Unsupported layout type
 
     def add_master_layout(self, layout: DisplayerLayout) -> int:
         """
@@ -476,6 +479,9 @@ class Displayer:
         Returns:
             The layout ID
         """
+        if not self.m_active_module:
+            return -1
+            
         if "layouts" not in self.m_modules[self.m_active_module]:
             self.m_modules[self.m_active_module]["layouts"] = []
 
@@ -500,7 +506,7 @@ class Displayer:
         Returns:
             The new layout ID, or None if no previous layout exists
         """
-        if self.m_last_layout:
+        if self.m_last_layout and self.m_active_module:
             self.m_last_layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
             self.g_next_layout += 1
             return self.g_next_layout - 1

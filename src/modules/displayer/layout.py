@@ -6,7 +6,7 @@ are arranged on the page (vertical, horizontal, table, tabs, spacer).
 """
 
 import warnings
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 
 from .core import Layouts, TableMode, BSalign, BSstyle, MAZERStyles, ResourceRegistry
 
@@ -36,7 +36,7 @@ class DisplayerLayout:
         layoutType: Layouts,
         columns: Optional[List[Any]] = None,
         subtitle: Optional[str] = None,
-        alignment: Optional[BSalign] = None,
+        alignment: Optional[Union[BSalign, List[BSalign]]] = None,
         spacing: Any = 0,
         height: int = 0,
         background: Optional[BSstyle] = None,
@@ -87,7 +87,13 @@ class DisplayerLayout:
         self.m_type = layoutType.value
         self.m_column = columns if columns is not None else []
         self.m_subtitle = subtitle
-        self.m_alignement = alignment
+        # Normalize alignment to always be a list for consistent handling
+        if alignment is None:
+            self.m_alignement = None
+        elif isinstance(alignment, list):
+            self.m_alignement = alignment
+        else:
+            self.m_alignement = [alignment]
         self.m_height = height
         self.m_background = background
         self.m_userid = userid

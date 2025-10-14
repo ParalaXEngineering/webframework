@@ -78,7 +78,7 @@ class Threaded_action:
         self.m_running_state = -1  # -1 indicates a task running without percentage info
 
         # Process management
-        self.m_process = None
+        self.m_process: Optional[subprocess.Popen] = None
         self.m_process_running = False
         self.m_process_results = []
         self.m_stderr = None
@@ -101,7 +101,8 @@ class Threaded_action:
         self._init_logger()
 
         # Register the thread
-        threaded_manager.thread_manager_obj.add_thread(self)
+        if threaded_manager.thread_manager_obj:
+            threaded_manager.thread_manager_obj.add_thread(self)
 
         self.m_scheduler = scheduler.scheduler_obj
 
@@ -189,14 +190,15 @@ class Threaded_action:
             self._console_output.append(formatted_msg)
             
             # Also log it
-            if level == "ERROR":
-                self.m_logger.error(message)
-            elif level == "WARNING":
-                self.m_logger.warning(message)
-            elif level == "DEBUG":
-                self.m_logger.debug(message)
-            else:
-                self.m_logger.info(message)
+            if self.m_logger:
+                if level == "ERROR":
+                    self.m_logger.error(message)
+                elif level == "WARNING":
+                    self.m_logger.warning(message)
+                elif level == "DEBUG":
+                    self.m_logger.debug(message)
+                else:
+                    self.m_logger.info(message)
 
     def console_write_raw(self, message: str):
         """Write raw message to console without timestamp or level.
@@ -407,7 +409,8 @@ class Threaded_action:
             self.m_error = "Aborted by user"
             self.console_write("Thread aborted by user", "ERROR")
         
-        threaded_manager.thread_manager_obj.del_thread(self)
+        if threaded_manager.thread_manager_obj:
+            threaded_manager.thread_manager_obj.del_thread(self)
 
     # ============================================================================
     # PROCESS MANAGEMENT
@@ -452,7 +455,8 @@ class Threaded_action:
             self.console_write(f"Process started (PID: {self.m_process.pid})", "INFO")
         except Exception as e:
             self.console_write(f"Failed to start process: {e}", "ERROR")
-            self.m_logger.error(f"Process execution failed: {e}")
+            if self.m_logger:
+                self.m_logger.error(f"Process execution failed: {e}")
 
     def process_close(self):
         """Kill and close the local process"""
@@ -482,51 +486,55 @@ class Threaded_action:
         """Read thread for the error output of the currently executing local process"""
         while self.m_process and self.m_process.poll() is None:
             try:
-                line = self.m_process.stderr.readline()
-                if line:
-                    self.m_process_results.append(line)
-                    self.console_write_raw(f"[STDERR] {line.strip()}")
+                if self.m_process.stderr:
+                    line = self.m_process.stderr.readline()
+                    if line:
+                        self.m_process_results.append(line)
+                        self.console_write_raw(f"[STDERR] {line.strip()}")
             except Exception as e:
                 self.console_write(f"Error reading stderr: {e}", "ERROR")
                 self.m_process_running = False
             time.sleep(0.1)
 
         # Process is done, read any remaining lines
-        try:
-            lines = self.m_process.stderr.readlines()
-            for line in lines:
-                self.m_process_results.append(line)
-                self.console_write_raw(f"[STDERR] {line.strip()}")
-            self.m_process_running = False
-        except Exception:
-            self.m_process_running = False
+        if self.m_process and self.m_process.stderr:
+            try:
+                lines = self.m_process.stderr.readlines()
+                for line in lines:
+                    self.m_process_results.append(line)
+                    self.console_write_raw(f"[STDERR] {line.strip()}")
+                self.m_process_running = False
+            except Exception:
+                self.m_process_running = False
         return
 
     def process_read_stdout(self):
         """Read thread for the standard output of the currently executing local process"""
-        while self.m_process_running and self.m_process.poll() is None:
+        while self.m_process_running and self.m_process and self.m_process.poll() is None:
             try:
-                line = self.m_process.stdout.readline()
-                if line:
-                    if self.m_process_input:
-                        if self.m_process_input[0] in line:
-                            self.m_process.communicate(input=self.m_process_input[1])
-                    self.m_process_results.append(line)
-                    self.console_write_raw(f"[STDOUT] {line.strip()}")
+                if self.m_process.stdout:
+                    line = self.m_process.stdout.readline()
+                    if line:
+                        if self.m_process_input:
+                            if self.m_process_input[0] in line:
+                                self.m_process.communicate(input=self.m_process_input[1])
+                        self.m_process_results.append(line)
+                        self.console_write_raw(f"[STDOUT] {line.strip()}")
             except Exception as e:
                 self.console_write(f"Error reading stdout: {e}", "ERROR")
                 self.m_process_running = False
             time.sleep(0.1)
 
         # Process is done, read any remaining lines
-        try:
-            lines = self.m_process.stdout.readlines()
-            for line in lines:
-                self.m_process_results.append(line)
-                self.console_write_raw(f"[STDOUT] {line.strip()}")
-            self.m_process_running = False
-        except Exception:
-            self.m_process_running = False
+        if self.m_process and self.m_process.stdout:
+            try:
+                lines = self.m_process.stdout.readlines()
+                for line in lines:
+                    self.m_process_results.append(line)
+                    self.console_write_raw(f"[STDOUT] {line.strip()}")
+                self.m_process_running = False
+            except Exception:
+                self.m_process_running = False
         return
 
     def process_wait(self, timeout: Optional[float] = None):
@@ -579,8 +587,9 @@ class Threaded_action:
         except Exception as e:
             traceback_str = traceback.format_exc()
             self.console_write(f"Thread failed: {e}", "ERROR")
-            self.m_logger.warning(f"Thread '{self.get_name()}' failed: {e}")
-            self.m_logger.info(f"Traceback: {traceback_str}")
+            if self.m_logger:
+                self.m_logger.warning(f"Thread '{self.get_name()}' failed: {e}")
+                self.m_logger.info(f"Traceback: {traceback_str}")
             self.m_error = str(e)
             
         self.m_running = False

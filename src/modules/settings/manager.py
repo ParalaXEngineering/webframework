@@ -4,7 +4,7 @@ Settings Manager - Business logic layer for settings management.
 Simple wrapper around SettingsStorage with convenience methods.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from .storage import SettingsStorage
 
 
@@ -14,7 +14,7 @@ class SettingsManager:
     def __init__(self, config_path: str):
         """Initialize manager with config file path."""
         self.storage = SettingsStorage(config_path)
-        self._settings = None
+        self._settings: Optional[Dict[str, Any]] = None
     
     def load(self) -> None:
         """Load settings from storage."""
@@ -41,7 +41,9 @@ class SettingsManager:
         """Get friendly name for a category."""
         if self._settings is None:
             self.load()
-        return self._settings.get(category, {}).get('friendly', category)
+        if self._settings:
+            return self._settings.get(category, {}).get('friendly', category)
+        return category
     
     def list_categories(self) -> List[str]:
         """Get list of all categories."""

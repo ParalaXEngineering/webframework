@@ -130,7 +130,7 @@ def get_items_with_resources() -> List[type]:
     
     # Get all DisplayerItem classes from all categories
     all_categories = displayer.DisplayerCategory.get_all()
-    for category_name, item_classes in all_categories.items():
+    for category_name, item_classes in all_categories.items():  # type: ignore
         for item_class in item_classes:
             # Check if class has get_required_resources method
             if hasattr(item_class, 'get_required_resources'):
@@ -204,7 +204,7 @@ def test_resource_isolation():
             item_class_2 = (item, resources)
             break
     
-    if not item_class_2:
+    if not item_class_1 or not item_class_2:
         pytest.skip("Could not find items with different resource requirements")
     
     # Test item 1

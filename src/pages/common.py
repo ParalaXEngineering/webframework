@@ -7,6 +7,7 @@ assets, login, and help pages.
 
 from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash, session
 from functools import wraps
+from typing import Dict, Any, cast
 
 from ..modules import utilities
 from ..modules import displayer
@@ -93,7 +94,10 @@ def download():
 @bp.route("/assets/<asset_type>/", methods=["GET"])
 def assets(asset_type):
     """Serve asset files based on type."""
-    asset_paths = site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path)
+    if not site_conf.site_conf_obj:
+        return "Site configuration not initialized", 500
+        
+    asset_paths = cast(Dict[str, Any], site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path))
     print(asset_paths)
 
     folder_path = None
@@ -106,8 +110,12 @@ def assets(asset_type):
         return "Invalid folder type", 404
 
     file_name = request.args.get("filename")
-    if file_name[0] == ".":
+    if file_name and file_name[0] == ".":
         file_name = file_name[2:]
+    
+    if not file_name:
+        return "Filename required", 400
+        
     file_path = os.path.join(folder_path, file_name)
 
     print(file_path)
@@ -122,6 +130,9 @@ def assets(asset_type):
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     """Login page with user authentication."""
+    if not auth_manager:
+        return "Authentication system not initialized", 500
+        
     # Logout current user
     auth_manager.logout_current_user()
     session.pop('username', None)  # Clear legacy session key too

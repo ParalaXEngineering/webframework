@@ -46,10 +46,12 @@ class Threaded_manager:
         
         try:
             if thread in self.m_running_threads:
-                self.m_logger.debug(f"Thread '{thread.get_name()}' already in pool")
+                thread_name = getattr(thread, 'name', str(thread))
+                self.m_logger.debug(f"Thread '{thread_name}' already in pool")
                 return
             self.m_running_threads.append(thread)
-            self.m_logger.info(f"Added thread '{thread.get_name()}' to pool")
+            thread_name = getattr(thread, 'name', str(thread))
+            self.m_logger.info(f"Added thread '{thread_name}' to pool")
         finally:
             self._lock.release()
 
@@ -59,18 +61,18 @@ class Threaded_manager:
         Args:
             thread: The thread to delete
         """
-        thread_name = thread.get_name() if hasattr(thread, 'get_name') else str(thread)
+        thread_name = getattr(thread, 'name', str(thread))
         
         # Try to close connections and processes
         try:
             if hasattr(thread, 'command_close'):
-                thread.command_close()
+                thread.command_close()  # type: ignore
         except Exception as e:
             self.m_logger.debug(f"Thread '{thread_name}' command_close failed: {e}")
             
         try:
             if hasattr(thread, 'process_close'):
-                thread.process_close()
+                thread.process_close()  # type: ignore
         except Exception as e:
             self.m_logger.debug(f"Thread '{thread_name}' process_close failed: {e}")
 
@@ -124,7 +126,7 @@ class Threaded_manager:
         finally:
             self._lock.release()
 
-    def get_all_threads_with_history(self) -> tuple:
+    def get_all_threads_with_history(self) -> tuple[list, list]:
         """Return both running and completed threads.
         
         Returns:

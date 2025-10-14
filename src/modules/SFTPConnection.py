@@ -2,6 +2,7 @@ import paramiko
 import socket
 import os
 import stat
+import logging
 
 class SFTPConnection:
     def __init__(self, host, username, password, port=22):
@@ -21,7 +22,7 @@ class SFTPConnection:
 
                 # Étape 2 : Créer le transport avec le socket
                 self.transport = paramiko.Transport(sock)
-                paramiko.util.logging.getLogger().setLevel(paramiko.util.logging.WARNING)
+                logging.getLogger("paramiko").setLevel(logging.WARNING)
 
                 # Étape 3 : Connexion
                 self.transport.connect(username=self.username, password=self.password)
@@ -104,7 +105,7 @@ class SFTPConnection:
             remote_path = f"{remote_dir}/{item.filename}"
             local_path = os.path.join(local_dir, item.filename)
 
-            if stat.S_ISDIR(item.st_mode):
+            if item.st_mode and stat.S_ISDIR(item.st_mode):
                 self.download_dir(remote_path, local_path)
             else:
                 try:

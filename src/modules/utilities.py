@@ -7,31 +7,37 @@ import zlib
 import tarfile
 import time
 import re
+from typing import TYPE_CHECKING, Optional, Callable
+
+if TYPE_CHECKING:
+    from . import displayer
 
 # Optional dependencies - only import what's available
 try:
     import serial
 except ImportError:
-    serial = None
+    serial = None  # type: ignore
 
 try:
     from jinja2 import Environment, FileSystemLoader
 except ImportError:
-    Environment = None
-    FileSystemLoader = None
+    Environment = None  # type: ignore
+    FileSystemLoader = None  # type: ignore
 
 try:
     from flask import session
 except ImportError:
-    session = None
+    session = None  # type: ignore
 
-try:
-    from . import displayer
-except ImportError:
+# displayer is only imported at runtime, not for type checking
+if not TYPE_CHECKING:
     try:
-        import displayer
+        from . import displayer
     except ImportError:
-        displayer = None
+        try:
+            import displayer  # type: ignore
+        except ImportError:
+            displayer = None  # type: ignore
 
 CONFIG_GLOBAL = {}
 LAST_ACCESS_CONFIG = None
@@ -39,8 +45,10 @@ LAST_ACCESS_CONFIG = None
 def get_breadcrumbs():
     """
     Return the breadcrumbs"""
-    breadcrumbs = session.get('breadcrumbs', [])
-    return breadcrumbs
+    if session:
+        breadcrumbs = session.get('breadcrumbs', [])
+        return breadcrumbs
+    return []
 
 def update_breadcrumbs(disp, level, title, endpoint, params=None, style=None):
     """
@@ -51,6 +59,9 @@ def update_breadcrumbs(disp, level, title, endpoint, params=None, style=None):
     params: list of query-string fragments like 'key=value'
     style: a bootstrap style
     """
+    if not session:
+        return
+    
     # initialize or retrieve existing trail
     breadcrumbs = session.get('breadcrumbs', [])
     new = {'title': title, 'endpoint': endpoint, 'params': params, 'style': style}
@@ -138,6 +149,9 @@ def util_list_serial() -> list:
     :return: The serial ports on the machine
     :rtype: list
     """
+    if not serial:
+        return []
+    
     if sys.platform.startswith("win"):
         ports = [f"COM{i + 1}" for i in range(256)]
     elif sys.platform.startswith("linux") or sys.platform.startswith("cygwin"):
@@ -155,7 +169,7 @@ def util_list_serial() -> list:
                 s = serial.Serial(port)
                 s.close()
                 result.append(port)
-            except (OSError, serial.SerialException):
+            except (OSError, serial.SerialException):  # type: ignore
                 pass
 
     return result
@@ -339,7 +353,7 @@ def util_post_to_json(data: dict) -> dict:
 
     return formated
 
-def util_view_reload_displayer(id: str, disp: displayer) -> dict:
+def util_view_reload_displayer(id: str, disp: "displayer.Displayer") -> list:
     """Reload a multi-user input with new data while using a displayer as input
 
     :param id: The id of the div text
@@ -350,15 +364,17 @@ def util_view_reload_displayer(id: str, disp: displayer) -> dict:
     :rtype: dict
     """
     # And update display
-    env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
-    template = env.get_template("base_content_reloader.j2")
-    reloader = template.render(content=disp.display(True))  # Bypass authentification here
+    if Environment and FileSystemLoader:
+        env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
+        template = env.get_template("base_content_reloader.j2")
+        reloader = template.render(content=disp.display(True))  # Bypass authentification here
 
-    to_render = [{"id": id, "content": reloader}]
-    return to_render
+        to_render = [{"id": id, "content": reloader}]
+        return to_render
+    return []
 
 
-def util_view_reload_text(index: str, content: str) -> dict:
+def util_view_reload_text(index: str, content: str) -> list:
     """Reload a multi-user input with new data
 
     :param index: The id of the div text
@@ -372,7 +388,7 @@ def util_view_reload_text(index: str, content: str) -> dict:
     return to_render
 
 
-def util_view_create_modal(index: str, modal_displayer: displayer, base_displayer: displayer, header: str = None) -> str:
+def util_view_create_modal(index: str, modal_displayer: "displayer.Displayer", base_displayer: "displayer.Displayer", header: Optional[str] = None) -> str:
     """Add the content of a displayer as a modal in a second displayer. Return the link to use to access the modal
 
     :param index: The id of the modal to use
@@ -387,12 +403,12 @@ def util_view_create_modal(index: str, modal_displayer: displayer, base_displaye
     :rtype: dict
     """
     index = index.replace(" ", "_").replace(".", "_").replace('/', '_')
-    base_displayer.add_modal("modal_" + index, modal_displayer, header)
+    base_displayer.add_modal("modal_" + index, modal_displayer.display(True), header or "")  # type: ignore
 
     return index
 
 
-def util_view_reload_multi_input(index: str, inputs: dict) -> dict:
+def util_view_reload_multi_input(index: str, inputs: dict) -> list:
     """Reload a multi-user input with new data
 
     :param index: The id of the form
@@ -403,6 +419,8 @@ def util_view_reload_multi_input(index: str, inputs: dict) -> dict:
     :return: The rendered form to be displayed
     :rtype: dict
     """
+    if not Environment or not FileSystemLoader:
+        return []
 
     env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
     to_render = []
@@ -523,7 +541,7 @@ def util_view_reload_input_file_manager(
     icons: list = [],
     classes: list = [],
     hiddens: list = [],
-) -> dict:
+) -> list:
     """Create the content necessary to reload a given input file manager
 
     :param name: The name of the calling module
@@ -544,6 +562,9 @@ def util_view_reload_input_file_manager(
     :rtype: dict
 
     """
+    if not Environment or not FileSystemLoader:
+        return []
+    
     env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
     template = env.get_template("reload/files.j2")
     to_render = []
@@ -565,7 +586,7 @@ def util_view_reload_input_file_manager(
     return to_render
 
 
-def util_dir_list(root: str, inclusion: list = None, modifier: str = None) -> list:
+def util_dir_list(root: str, inclusion: Optional[list] = None, modifier: Optional[Callable] = None) -> list:
     """Scan a directory, without it's children and return a list of the file that have the inclusion information given by the user
 
     :param root: The root folder
@@ -595,7 +616,7 @@ def util_dir_list(root: str, inclusion: list = None, modifier: str = None) -> li
     return results
 
 
-def util_find_files(root: str, inclusion: list = None) -> list:
+def util_find_files(root: str, inclusion: Optional[list] = None) -> list:
     """Find all the files in a directory structure that fit the inclusion description, and return a list of the files with respect to the root path
 
     :param root: The root folder
@@ -620,7 +641,7 @@ def util_find_files(root: str, inclusion: list = None) -> list:
 
 
 def util_dir_structure(
-    root: str, inclusion: list = None, modifier=None, clean=True
+    root: str, inclusion: Optional[list] = None, modifier: Optional[Callable] = None, clean: bool = True
 ) -> dict:
     """Create the directory structure (all the directories and subfiles) recursively from a root folder
 

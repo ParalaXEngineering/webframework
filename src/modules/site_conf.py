@@ -1,3 +1,5 @@
+from typing import Optional
+
 try:
     from . import scheduler
 except ImportError:
@@ -52,8 +54,9 @@ class Site_conf:
         """
         Register all the functions that are set in the m_scheduler_lt_functions, which must be populated by the child class
         """
-        for func in self.m_scheduler_lt_functions:
-            scheduler.scheduler_ltobj.register_function(func[0], func[1])
+        if scheduler.scheduler_ltobj:
+            for func in self.m_scheduler_lt_functions:
+                scheduler.scheduler_ltobj.register_function(func[0], func[1])
 
     def add_sidebar_title(self, title: str):
         """Add a sidebar title, which can logically seperate several parts of the sidebar
@@ -117,7 +120,7 @@ class Site_conf:
             }
         )
 
-    def add_sidebar_subsubmenu(self, name: str, url: str, submenu: str, parameter: str = None, endpoint: str = None):
+    def add_sidebar_subsubmenu(self, name: str, url: str, submenu: str, parameter: Optional[str] = None, endpoint: Optional[str] = None):
         url_endpoint = url.split(".")[0]
         if not endpoint:
             endpoint = url_endpoint
@@ -145,7 +148,7 @@ class Site_conf:
                             self.m_sidebar[i]["submenu"][j]["subsubmenu"][-1]["param"] = parameter
 
     def add_sidebar_submenu(
-        self, name: str, url: str, parameter: str = None, endpoint: str = None
+        self, name: str, url: str, parameter: Optional[str] = None, endpoint: Optional[str] = None
     ):
         """Add a submenu to the sidebar. It uses the url in order to extract the section. The url must be in the form endpoint.page
 
@@ -178,7 +181,7 @@ class Site_conf:
                 if parameter:
                     self.m_sidebar[i]["submenu"][-1]["param"] = parameter
 
-    def add_topbar_textfield(self, id: str, icon: str, text: str, area: str, link: str = None, color: str = "primary"
+    def add_topbar_textfield(self, id: str, icon: str, text: str, area: str, link: Optional[str] = None, color: str = "primary"
     ):
         """Add a new button to the topbar
 
@@ -211,7 +214,7 @@ class Site_conf:
             )
 
     def add_topbar_button(
-        self, id: str, icon: str, text: str, area: str, link: str = None
+        self, id: str, icon: str, text: str, area: str, link: Optional[str] = None
     ):
         """Add a new button to the topbar
 
@@ -320,7 +323,7 @@ class Site_conf:
         text: str,
         area: str,
         color: str = "secondary",
-        link: str = None,
+        link: Optional[str] = None,
     ):
         """Update a new button to the topbar, works also for modals
 
@@ -377,7 +380,7 @@ class Site_conf:
         # Login functionality is now always available through auth_manager
         return
 
-    def app_details(self, name: str, version: str, icon: str, footer: str = None, index: str = None):
+    def app_details(self, name: str, version: str, icon: str, footer: Optional[str] = None, index: Optional[str] = None):
         """Set the application details
 
         :param name: The name of the application
@@ -398,7 +401,7 @@ class Site_conf:
         if index:
             self.m_index = index
 
-    def add_tar_gz(self, list_tar_gz: []):
+    def add_tar_gz(self, list_tar_gz: list):
         if self.m_app["name"] == "OuFNis_DFDIG":
             self.m_include_tar_gz_dirs = list_tar_gz
 

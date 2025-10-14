@@ -63,6 +63,9 @@ def auth_app(test_app):
         if 'user' not in session:
             return redirect(url_for('common.login'))
         
+        if not auth_module.auth_manager:
+            return 'Auth system not initialized', 500
+            
         username = session['user']
         user = auth_module.auth_manager.get_user(username)
         
