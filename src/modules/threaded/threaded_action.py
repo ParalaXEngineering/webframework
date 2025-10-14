@@ -21,11 +21,11 @@ from typing import Optional, List, Dict, Any
 try:
     from . import threaded_manager
     from .. import scheduler
-    from ..logger_factory import get_logger
+    from ..log.logger_factory import get_logger
 except ImportError:
     import threaded_manager
     import scheduler
-    from logger_factory import get_logger
+    from log.logger_factory import get_logger
 
 
 class Threaded_action:

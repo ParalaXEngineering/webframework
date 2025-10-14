@@ -16,7 +16,7 @@ from src.modules.auth.auth_manager import auth_manager
 from src.modules.auth.auth_utils import validate_username, validate_password_strength
 from src.modules.auth.permission_registry import permission_registry
 from src.modules import utilities
-from src.modules.logger_factory import get_logger
+from src.modules.log.logger_factory import get_logger
 
 logger = get_logger("admin_auth")
 admin_auth_bp = Blueprint('admin_auth', __name__, url_prefix='/admin')

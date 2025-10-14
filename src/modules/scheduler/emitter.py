@@ -7,9 +7,9 @@ Decoupled from message queueing for better testability.
 from typing import Protocol, List, Dict, Any
 
 try:
-    from ..logger_factory import get_logger
+    from ..log.logger_factory import get_logger
 except ImportError:
-    from logger_factory import get_logger
+    from log.logger_factory import get_logger
 
 
 class SocketIOProtocol(Protocol):

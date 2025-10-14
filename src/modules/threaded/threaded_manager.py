@@ -8,9 +8,9 @@ the Threaded_action base class.
 import threading
 
 try:
-    from ..logger_factory import get_logger
+    from ..log.logger_factory import get_logger
 except ImportError:
-    from logger_factory import get_logger
+    from log.logger_factory import get_logger
 
 thread_manager_obj = None
 

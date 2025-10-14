@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request
 
 from ..modules import utilities
-from ..modules import access_manager
+from ..modules.auth.auth_manager import auth_manager
+from ..modules.auth import User
 from ..modules import site_conf
 from ..modules import displayer
 from ..modules import SFTPConnection
@@ -443,7 +444,12 @@ def update():
     disp.set_title(f"Website engine update creation")
     config = utilities.util_read_parameters()
 
-    if access_manager.auth_object.authorize_group("admin") and not ((getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"))):
+    # Check if user is admin
+    current_user_name = auth_manager.get_current_user()
+    user = auth_manager.get_user(current_user_name) if current_user_name else None
+    is_admin = user and "admin" in user.groups if user else False
+    
+    if is_admin and not ((getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"))):
         disp.add_master_layout(
             displayer.DisplayerLayout(
                 displayer.Layouts.VERTICAL,

@@ -12,9 +12,9 @@ from typing import Optional, List, Dict
 
 try:
     from .logger_factory import get_logger
-    from . import displayer
+    from .. import displayer
 except ImportError:
-    from logger_factory import get_logger
+    from log.logger_factory import get_logger
     import displayer
 
 

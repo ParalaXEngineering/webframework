@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, request
 
 from ..modules import utilities
-from ..modules import access_manager
 from ..modules import displayer
 from ..modules import site_conf
 from ..modules import User_defined_module
+from ..modules.auth.auth_manager import auth_manager
 
 from redminelib import Redmine
 
@@ -47,9 +47,10 @@ def bugtracker():
                     version_redmine = version.id
 
             try:
+                current_user = auth_manager.get_current_user() or "GUEST"
                 redmine.issue.create(
                     subject=data_in["subject"],
-                    description=data_in["description"] + '\r\n' + "Added by OuFNis User " + access_manager.auth_object.get_user(),
+                    description=data_in["description"] + '\r\n' + f"Added by User {current_user}",
                     project_id=project_id,
                     custom_fields=[{"id": 10, "value": version_redmine}, {"id": 11, "value": "-"}, {"id": 16, "value": "-"}, {"id": 20, "value": "-"}, {"id": 20, "value": "-"}],
                     uploads=[{'path': 'website.log', 'description': 'Website log'}, {'path': 'root.log', 'description': 'Root log'}]

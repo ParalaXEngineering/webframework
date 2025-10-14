@@ -5,29 +5,20 @@ Tests for new TableMode API and backward compatibility.
 import pytest
 import warnings
 import os
-from flask import Flask
+from unittest.mock import MagicMock, patch
 from src.modules.displayer import (
     Displayer, DisplayerLayout, Layouts, TableMode,
     DisplayerItemText, DisplayerItemButton
 )
-from src.modules import access_manager
-
-
-# Mock access manager for tests
-class MockAuthObject:
-    def authorize_module(self, module):
-        return True
-    
-    def get_user(self):
-        return "test_user"
+from src.modules.auth.auth_manager import auth_manager
 
 
 @pytest.fixture(autouse=True)
-def mock_access():
-    """Mock access manager for all tests."""
-    access_manager.auth_object = MockAuthObject()
-    yield
-    access_manager.auth_object = None
+def mock_auth_and_session():
+    """Mock authentication for all tests."""
+    # Mock session
+    with patch('src.modules.displayer.displayer.session', {'user': 'test_user', 'username': 'test_user'}):
+        yield
 
 
 def test_table_mode_enum():
@@ -38,7 +29,7 @@ def test_table_mode_enum():
     assert TableMode.SERVER_SIDE.value == "server_side"
 
 
-def test_simple_table_no_datatable(mock_access):
+def test_simple_table_no_datatable():
     """Test simple HTML table without DataTables."""
     disp = Displayer()
     disp.add_generic("Test")
@@ -59,7 +50,7 @@ def test_simple_table_no_datatable(mock_access):
     assert "layouts" in result["Test"]
 
 
-def test_interactive_mode_with_new_api(mock_access):
+def test_interactive_mode_with_new_api():
     """Test interactive mode with manual item population."""
     disp = Displayer()
     disp.add_generic("Interactive Table")
@@ -87,7 +78,7 @@ def test_interactive_mode_with_new_api(mock_access):
     assert config["columns"] == [0]
 
 
-def test_bulk_data_mode(mock_access):
+def test_bulk_data_mode():
     """Test bulk data mode with pre-loaded data."""
     disp = Displayer()
     disp.add_generic("Bulk Data Table")
@@ -125,7 +116,7 @@ def test_bulk_data_mode(mock_access):
     assert config["columns"] == [0, 1]
 
 
-def test_server_side_mode(mock_access):
+def test_server_side_mode():
     """Test server-side mode with AJAX endpoint."""
     disp = Displayer()
     disp.add_generic("Server-Side Table")
@@ -157,7 +148,7 @@ def test_server_side_mode(mock_access):
     assert config["refresh_interval"] == 3000
 
 
-def test_backward_compatibility_basic(mock_access):
+def test_backward_compatibility_basic():
     """Test that old 'responsive' with type='basic' still works."""
     disp = Displayer()
     disp.add_generic("Old API Basic")
@@ -186,7 +177,7 @@ def test_backward_compatibility_basic(mock_access):
     assert "old_basic" in result["all_layout"]["responsive_addon"]
 
 
-def test_backward_compatibility_advanced(mock_access):
+def test_backward_compatibility_advanced():
     """Test that old 'responsive' with type='advanced' still works."""
     disp = Displayer()
     disp.add_generic("Old API Advanced")
@@ -230,7 +221,7 @@ def test_cannot_use_both_apis():
         )
 
 
-def test_layout_preserves_standard_parameters(mock_access):
+def test_layout_preserves_standard_parameters():
     """Test that standard layout parameters are preserved."""
     disp = Displayer()
     disp.add_generic("Standard Params")
@@ -260,7 +251,7 @@ def test_layout_preserves_standard_parameters(mock_access):
     assert layout["user_id"] == "custom_id"
 
 
-def test_table_mode_string_values(mock_access):
+def test_table_mode_string_values():
     """Test using string values instead of enum."""
     disp = Displayer()
     disp.add_generic("String Mode")

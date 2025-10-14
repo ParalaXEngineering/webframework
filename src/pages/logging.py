@@ -162,7 +162,7 @@ def logs():
                 datatable_config={
                     "table_id": f"log_table_{log_file['name'].replace('.', '_')}",
                     "mode": displayer.TableMode.SERVER_SIDE,
-                    "api_endpoint": "logging.api_log_data",  # Blueprint.function
+                    "api_endpoint": "logging.get_logs",  # Blueprint.function
                     "api_params": {"log_file": log_file['name']},  # URL parameters
                     "columns": [
                         {"data": "line_num"},

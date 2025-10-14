@@ -8,10 +8,10 @@ import time
 from typing import Optional
 
 try:
-    from ..logger_factory import get_logger
+    from ..log.logger_factory import get_logger
     from . import threaded_manager
 except ImportError:
-    from logger_factory import get_logger
+    from log.logger_factory import get_logger
     import threaded_manager
 
 

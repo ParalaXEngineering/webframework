@@ -11,11 +11,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 try:
-    from .. import access_manager
     # Import the module, not the object, so we get the updated value
     from ..auth import auth_manager as auth_manager_module
 except ImportError:
-    import access_manager
     from auth import auth_manager as auth_manager_module
 
 try:

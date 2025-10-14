@@ -4,12 +4,12 @@ from enum import Enum
 
 try:
     from ..threaded import threaded_manager
-    from ..logger_factory import get_logger
+    from ..log.logger_factory import get_logger
     from .message_queue import MessageQueue, MessageType
     from .emitter import MessageEmitter
 except ImportError:
     from threaded import threaded_manager
-    from logger_factory import get_logger
+    from log.logger_factory import get_logger
     from message_queue import MessageQueue, MessageType
     from emitter import MessageEmitter
 

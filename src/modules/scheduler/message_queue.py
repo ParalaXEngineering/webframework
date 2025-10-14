@@ -10,9 +10,9 @@ from typing import List, Any, Dict
 from enum import Enum
 
 try:
-    from ..logger_factory import get_logger
+    from ..log.logger_factory import get_logger
 except ImportError:
-    from logger_factory import get_logger
+    from log.logger_factory import get_logger
 
 
 class MessageType(Enum):

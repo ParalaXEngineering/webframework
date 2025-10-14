@@ -9,7 +9,6 @@ from flask import Blueprint, render_template, request, send_file, redirect, url_
 from functools import wraps
 
 from ..modules import utilities
-from ..modules import access_manager
 from ..modules import displayer
 from ..modules import site_conf
 from ..modules import User_defined_module
@@ -124,88 +123,31 @@ def assets(asset_type):
 def login():
     """Login page with user authentication."""
     # Logout current user
-    if access_manager.auth_object:
-        access_manager.auth_object.unlog()
+    auth_manager.logout_current_user()
+    session.pop('username', None)  # Clear legacy session key too
     
-    # Try to use new auth_manager if available
-    try:
-        from src.modules.auth.auth_manager import auth_manager as new_auth_manager
-        if new_auth_manager:
-            error_message = None
-            
-            # Get all users
-            users = [u.username for u in new_auth_manager.get_all_users()]
-            users.sort()
-            
-            if request.method == "POST":
-                data_in = utilities.util_post_to_json(request.form.to_dict())
-                username = data_in.get("user", "")
-                password = data_in.get("password", "")
-                
-                # Use check_login_attempt for security features (lockout, attempt tracking)
-                success, error_message = new_auth_manager.check_login_attempt(username, password)
-                
-                if success:
-                    # Set old auth object for compatibility FIRST
-                    if access_manager.auth_object:
-                        access_manager.auth_object.set_user(username, True)
-                    # Then set new session (this takes priority)
-                    new_auth_manager.set_current_user(username)
-                    return redirect("/")
-                # else: error_message is already set by check_login_attempt
-            
-            return render_template("login.j2", target="common.login", users=users, message=error_message)
-    except ImportError:
-        pass
+    error_message = None
     
-    # Fallback to old auth system (if config.json exists)
-    try:
-        config = utilities.util_read_parameters()
-        users = config["access"]["users"]["value"]
-        users_password = config["access"]["users_password"]["value"]
-
-        error_message = None
-
-        # Sort users
-        users.sort()
-        if "GUEST" not in users:
-            users = ["GUEST"] + users
-
-        if request.method == "POST":
-            data_in = utilities.util_post_to_json(request.form.to_dict())
-
-            username = data_in["user"]
-            password_attempt = data_in["password"].encode('utf-8')
-
-            redirect_path = config["core"]["redirect"]["value"] if "core" in config else "/"
-
-            if username in users:
-                if username not in users_password:
-                    # No password is always allowed for now
-                    access_manager.auth_object.set_user(username, True)
-                    return redirect(redirect_path)
-                else:
-                    stored_password = users_password[username][0]
-                    stored_hash = stored_password.encode('utf-8')
-
-                    # Verify password with bcrypt
-                    try:
-                        if bcrypt.checkpw(password_attempt, stored_hash):
-                            # Successful login
-                            access_manager.auth_object.set_user(username, True)
-                            return redirect(redirect_path)
-                        else:
-                            error_message = "Bad Password for this user"
-                    except Exception:
-                        access_manager.auth_object.set_user(username, True)
-                        return redirect(redirect_path)
-            else:
-                error_message = "User does not exist"
-
-        return render_template("login.j2", target="common.login", users=users, message=error_message)
-    except Exception:
-        # No auth configured - show empty login page
-        return render_template("login.j2", target="common.login", users=["GUEST"], message=None)
+    # Get all users
+    users = [u.username for u in auth_manager.get_all_users()]
+    users.sort()
+    
+    if request.method == "POST":
+        data_in = utilities.util_post_to_json(request.form.to_dict())
+        username = data_in.get("user", "")
+        password = data_in.get("password", "")
+        
+        # Use check_login_attempt for security features (lockout, attempt tracking)
+        success, error_message = auth_manager.check_login_attempt(username, password)
+        
+        if success:
+            # Set session with both keys for compatibility
+            auth_manager.set_current_user(username)
+            session['username'] = username
+            return redirect("/")
+        # else: error_message is already set by check_login_attempt
+    
+    return render_template("login.j2", target="common.login", users=users, message=error_message)
 
 
 @bp.route("/help", methods=["GET"])

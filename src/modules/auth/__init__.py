@@ -10,5 +10,6 @@ This module provides:
 
 from .auth_manager import AuthManager
 from .permission_registry import PermissionRegistry
+from .auth_models import User
 
-__all__ = ['AuthManager', 'PermissionRegistry']
+__all__ = ['AuthManager', 'PermissionRegistry', 'User']

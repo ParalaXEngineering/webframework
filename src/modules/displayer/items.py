@@ -1,8 +1,3 @@
-try:
-    from .. import access_manager
-except ImportError:
-    import access_manager
-
 from typing import Optional, List, Dict, Any, ClassVar
 from enum import Enum
 from functools import wraps

@@ -13,18 +13,18 @@ HTTP-related code should be in src.pages instead.
 """
 
 from . import config_manager
-from . import log_parser
+from .log import log_parser  # Moved to log subpackage
 from . import displayer
-from . import access_manager
 from . import action
 from . import scheduler
 from . import threaded  # New threaded package
 from . import workflow
 from . import utilities
 from . import site_conf
+from . import auth  # New auth package
 
 __all__ = [
     'config_manager', 'log_parser', 'displayer',
-    'access_manager', 'action', 'scheduler', 'scheduler_classes',
-    'threaded', 'workflow', 'utilities', 'site_conf'
+    'action', 'scheduler', 'scheduler_classes',
+    'threaded', 'workflow', 'utilities', 'site_conf', 'auth'
 ]

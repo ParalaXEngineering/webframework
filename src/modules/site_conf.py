@@ -1,8 +1,6 @@
 try:
-    from . import access_manager
     from . import scheduler
 except ImportError:
-    import access_manager
     import scheduler
 
 import os
@@ -376,7 +374,7 @@ class Site_conf:
     def use_login(self):
         """Indicate that this website uses login"""
         self.m_topbar["login"] = True
-        access_manager.auth_object.use_login(True)
+        # Login functionality is now always available through auth_manager
         return
 
     def app_details(self, name: str, version: str, icon: str, footer: str = None, index: str = None):

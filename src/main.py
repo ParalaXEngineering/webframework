@@ -32,15 +32,15 @@ import traceback
 try:
     from .modules import scheduler
     from .modules.threaded import threaded_manager
-    from .modules import access_manager
+    from .modules.auth.auth_manager import auth_manager
     from .modules import site_conf
-    from .modules.logger_factory import get_logger
+    from .modules.log.logger_factory import get_logger
 except ImportError:
     import scheduler
     from threaded import threaded_manager
-    import access_manager
+    from auth.auth_manager import auth_manager
     import site_conf
-    from logger_factory import get_logger
+    from log.logger_factory import get_logger
 
 # Create Flask app only if Flask is available
 if FLASK_AVAILABLE:
@@ -142,8 +142,8 @@ def setup_app(app):
         except Exception as e:
             logger.warning(f"Failed to register blueprint for {page_name}: {e}")
 
-    # Register access manager
-    access_manager.auth_object = access_manager.Access_manager()
+    # Auth manager is already initialized as a module-level singleton
+    # No need to create instance here
 
     # Start scheduler
     if os.path.isfile(os.path.join(app_path, "website", "scheduler.py")):
@@ -165,9 +165,9 @@ def setup_app(app):
 
     # Initialize log emitter for real-time log viewing
     try:
-        from .modules import log_emitter
+        from .modules.log import log_emitter
     except ImportError:
-        from modules import log_emitter
+        from modules.log import log_emitter
     
     logs_dir = os.path.join(app_path, 'logs')
     log_emitter.initialize_log_emitter(socketio_obj, logs_dir, interval=2.0, app=app)
@@ -225,12 +225,8 @@ def setup_app(app):
         if "page_info" not in session:
             session["page_info"] = ""
 
-        # Try new auth system first
-        user = session.get('user')
-        
-        # Fallback to old auth system if new auth not set
-        if not user and access_manager.auth_object and access_manager.auth_object.get_login():
-            user = access_manager.auth_object.get_user()
+        # Get current user from session
+        user = session.get('user') or session.get('username') or auth_manager.get_current_user()
         
         return dict(
             endpoint=request.endpoint, page_info=session["page_info"], user=user

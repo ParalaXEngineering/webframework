@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(project_root, 'tests'))  # Add tests to path for
 
 # Import framework setup
 from src.main import app, setup_app, FLASK_AVAILABLE
-from src.modules.logger_factory import get_logger
+from src.modules.log.logger_factory import get_logger
 from src.modules import site_conf
 from src.modules.auth.auth_manager import AuthManager
 
