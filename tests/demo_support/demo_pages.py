@@ -35,7 +35,7 @@ def index():
 @demo_bp.route('/threading-demo', methods=['GET', 'POST'])
 @require_login
 def threading_demo():
-    """Threading demo with clear examples and code."""
+    """Threading demo with table of examples and code."""
     from demo_support.demo_threaded_complete import DemoThreadedAction
     from src.modules.threaded import threaded_manager
     
@@ -46,7 +46,7 @@ def threading_demo():
     disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Threading Demo", "demo.threading_demo", [])
     
-    # Handle POST requests (button clicks)
+    # Handle POST requests
     message = None
     if request.method == 'POST':
         data_in = utilities.util_post_to_json(request.form.to_dict())
@@ -54,43 +54,33 @@ def threading_demo():
         if DemoThreadedAction.m_default_name in data_in:
             module_data = data_in[DemoThreadedAction.m_default_name]
             
-            if 'btn_complete' in module_data:
-                thread = DemoThreadedAction("complete")
-                thread.start()
-                message = ("✓ Started Complete Demo Thread", displayer.BSstyle.SUCCESS)
-            elif 'btn_console' in module_data:
+            if 'btn_console' in module_data:
                 thread = DemoThreadedAction("console")
                 thread.start()
-                message = ("✓ Started Console Demo Thread", displayer.BSstyle.SUCCESS)
+                message = ("✓ Console Demo Started", displayer.BSstyle.SUCCESS)
             elif 'btn_logging' in module_data:
                 thread = DemoThreadedAction("logging")
                 thread.start()
-                message = ("✓ Started Logging Demo Thread", displayer.BSstyle.SUCCESS)
+                message = ("✓ Logging Demo Started", displayer.BSstyle.SUCCESS)
             elif 'btn_process' in module_data:
                 thread = DemoThreadedAction("process")
                 thread.start()
-                message = ("✓ Started Process Demo Thread", displayer.BSstyle.SUCCESS)
+                message = ("✓ Process Demo Started", displayer.BSstyle.SUCCESS)
             elif 'btn_stop' in module_data:
                 count = threaded_manager.thread_manager_obj.get_thread_count()
                 threaded_manager.thread_manager_obj.kill_all_threads()
                 message = (f"✓ Stopped {count} threads", displayer.BSstyle.WARNING)
     
-    # Show message if any
     if message:
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [12]
-        ))
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         disp.add_display_item(displayer.DisplayerItemAlert(message[0], message[1]), 0)
     
     # Overview
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12]
-    ))
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
     disp.add_display_item(displayer.DisplayerItemAlert(
-        "<strong>Threading System Overview</strong><br>"
-        "The framework's threading system provides background task execution with real-time monitoring, "
-        "progress tracking, console output capture, and process management. "
-        "Visit the <a href='/threads/' class='alert-link'>Threads Monitor</a> to see threads in action!",
+        "<strong>Threading System</strong><br>"
+        "Background task execution with real-time monitoring. "
+        "Visit <a href='/threads/' class='alert-link'>Threads Monitor</a> to see running threads.",
         displayer.BSstyle.INFO
     ), 0)
     
@@ -100,180 +90,131 @@ def threading_demo():
         displayer.Layouts.VERTICAL, [3, 3, 3, 3],
         subtitle="Current Status"
     ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        f"<strong>Total</strong><br><h3>{stats['total']}</h3>"), 0)
+    disp.add_display_item(displayer.DisplayerItemText(
+        f"<strong>Running</strong><br><h3>{stats['running']}</h3>"), 1)
+    disp.add_display_item(displayer.DisplayerItemText(
+        f"<strong>With Process</strong><br><h3>{stats['with_process']}</h3>"), 2)
+    disp.add_display_item(displayer.DisplayerItemText(
+        f"<strong>Errors</strong><br><h3>{stats['with_error']}</h3>"), 3)
     
-    disp.add_display_item(displayer.DisplayerItemText(
-        f"<strong>Total Threads</strong><br><h3>{stats['total']}</h3>"
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemText(
-        f"<strong>Running</strong><br><h3>{stats['running']}</h3>"
-    ), 1)
-    disp.add_display_item(displayer.DisplayerItemText(
-        f"<strong>With Process</strong><br><h3>{stats['with_process']}</h3>"
-    ), 2)
-    disp.add_display_item(displayer.DisplayerItemText(
-        f"<strong>With Errors</strong><br><h3>{stats['with_error']}</h3>"
-    ), 3)
-    
-    # Quick Start
+    # Demo table with examples
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12],
-        subtitle="Quick Start - Basic Thread"
+        subtitle="Try Demo Threads"
     ))
+    
+    table_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Demo", "Action", "Code Example"]
+    ))
+    
+    # Console Demo
     disp.add_display_item(displayer.DisplayerItemText(
-        "<p>Create a thread by inheriting from <code>Threaded_action</code>:</p>"
-    ), 0)
+        "<strong>Console Output</strong><br>Capture custom console messages"
+    ), column=0, line=0, layout_id=table_id)
     
-    code_basic = '''from src.modules.threaded.threaded_action import Threaded_action
-import time
-
-class MyThread(Threaded_action):
-    """A simple background thread."""
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_console", "", icon="console"
+    ), column=1, line=0, layout_id=table_id)
     
-    m_default_name = "MyThread"  # Unique identifier
-    
-    def __init__(self):
-        super().__init__()
-        self.m_name = self.m_default_name
-    
-    def run(self):
-        """Main thread execution - runs in background."""
-        self.m_logger.info("Thread started!")
-        
-        for i in range(5):
-            # Update progress (0-100)
-            self.m_running_state = (i + 1) * 20
-            self.m_logger.info(f"Step {i+1}/5")
-            time.sleep(1)
-        
-        self.m_logger.info("Thread completed!")
-        self.m_running = False  # Mark as finished
-
-# Start the thread
-thread = MyThread()
-thread.start()'''
-    
+    code_console = '''def run(self):
+    self.m_process_results.append("Custom console output")
+    self.m_process_results.append("Another line")
+    self.m_running = False'''
     disp.add_display_item(displayer.DisplayerItemCode(
-        id="code_basic_thread",
-        code=code_basic,
+        id="code_console",
+        code=code_console,
         language="python",
-        show_line_numbers=True
-    ), 0)
+        show_line_numbers=False
+    ), column=2, line=0, layout_id=table_id)
     
-    # Try It Section
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12],
-        subtitle="Try It - Demo Threads"
-    ))
+    # Logging Demo
     disp.add_display_item(displayer.DisplayerItemText(
-        "<p>Click a button to start a demo thread showcasing different features:</p>"
-    ), 0)
-    
-    # Demo buttons
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [6, 6]
-    ))
+        "<strong>Structured Logging</strong><br>Use logger for tracked messages"
+    ), column=0, line=1, layout_id=table_id)
     
     disp.add_display_item(displayer.DisplayerItemButton(
-        "btn_complete", "🤖 Complete Demo",
-        tooltip="Shows all features: progress, console, logging, and process execution"
-    ), 0)
+        "btn_logging", "", icon="text-box"
+    ), column=1, line=1, layout_id=table_id)
+    
+    code_logging = '''def run(self):
+    self.m_logger.info("Thread started")
+    self.m_logger.warning("A warning")
+    self.m_logger.error("An error")
+    self.m_running = False'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_logging",
+        code=code_logging,
+        language="python",
+        show_line_numbers=False
+    ), column=2, line=1, layout_id=table_id)
+    
+    # Process Demo
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>External Process</strong><br>Run subprocess with output capture"
+    ), column=0, line=2, layout_id=table_id)
     
     disp.add_display_item(displayer.DisplayerItemButton(
-        "btn_console", "📋 Console Demo",
-        tooltip="Demonstrates console output capture"
-    ), 0)
+        "btn_process", "", icon="cog"
+    ), column=1, line=2, layout_id=table_id)
     
-    disp.add_display_item(displayer.DisplayerItemButton(
-        "btn_logging", "📝 Logging Demo",
-        tooltip="Shows structured logging integration"
-    ), 1)
-    
-    disp.add_display_item(displayer.DisplayerItemButton(
-        "btn_process", "⚙️ Process Demo",
-        tooltip="Demonstrates subprocess execution with output capture"
-    ), 1)
+    code_process = '''def run(self):
+    self.run_process_command(
+        "python --version",
+        cwd=os.getcwd()
+    )
+    # Access output
+    print(self.m_process_stdout)
+    self.m_running = False'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_process",
+        code=code_process,
+        language="python",
+        show_line_numbers=False
+    ), column=2, line=2, layout_id=table_id)
     
     # Control buttons
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [6, 6]
     ))
-    
     disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_monitor", "📊 Monitor Threads →", "monitor-eye",
+        "btn_monitor", "Monitor Threads", "monitor-eye",
         "/threads/", [], displayer.BSstyle.SECONDARY
     ), 0)
-    
     disp.add_display_item(displayer.DisplayerItemButton(
-        "btn_stop", "🛑 Stop All Threads",
-        color=displayer.BSstyle.WARNING
+        "btn_stop", "Stop All Threads", icon="stop-circle", color=displayer.BSstyle.WARNING
     ), 1)
     
-    # Advanced Features
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12],
-        subtitle="Advanced Features"
-    ))
-    
-    code_advanced = '''# Console Output Capture
-self.m_process_results.append("Custom console output")
-
-# Run External Process
-self.run_process_command(
-    "python script.py",
-    cwd="/path/to/dir"
-)
-
-# Access captured stdout/stderr
-stdout = self.m_process_stdout
-stderr = self.m_process_stderr
-
-# Background Mode (no monitoring)
-self.m_background = True
-
-# Error Handling
-try:
-    # Your code
-    pass
-except Exception as e:
-    self.m_logger.error(f"Error: {e}")
-    self.m_running = False'''
-    
-    disp.add_display_item(displayer.DisplayerItemCode(
-        id="code_advanced_thread",
-        code=code_advanced,
-        language="python",
-        show_line_numbers=True
-    ), 0)
-    
-    # Key Properties
+    # API Reference
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12],
         subtitle="Key Properties & Methods"
     ))
     
-    table_id = disp.add_master_layout(displayer.DisplayerLayout(
+    api_table = disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.TABLE,
         columns=["Property/Method", "Type", "Description"]
     ))
     
     properties = [
         ("m_running", "bool", "True while thread is running"),
-        ("m_running_state", "int", "Progress percentage (0-100), or -1 for indeterminate"),
+        ("m_running_state", "int", "Progress (0-100), or -1 for indeterminate"),
         ("m_process_results", "list", "Console output lines"),
-        ("m_logger", "Logger", "Logger instance for structured logging"),
-        ("m_background", "bool", "Set True to hide from monitoring UI"),
-        ("run()", "method", "Main execution method (override this)"),
-        ("start()", "method", "Start the thread"),
-        ("run_process_command()", "method", "Execute external process with output capture"),
+        ("m_logger", "Logger", "Logger for structured logging"),
+        ("m_background", "bool", "Hide from monitoring UI"),
+        ("run()", "method", "Main execution (override this)"),
+        ("run_process_command()", "method", "Execute subprocess"),
     ]
     
     for line, (prop, ptype, desc) in enumerate(properties):
         disp.add_display_item(displayer.DisplayerItemText(f"<code>{prop}</code>"), 
-                             column=0, line=line, layout_id=table_id)
+                             column=0, line=line, layout_id=api_table)
         disp.add_display_item(displayer.DisplayerItemBadge(ptype, displayer.BSstyle.INFO), 
-                             column=1, line=line, layout_id=table_id)
+                             column=1, line=line, layout_id=api_table)
         disp.add_display_item(displayer.DisplayerItemText(desc), 
-                             column=2, line=line, layout_id=table_id)
+                             column=2, line=line, layout_id=api_table)
     
     return render_template("base_content.j2", content=disp.display(), target="demo.threading_demo")
 
@@ -281,53 +222,56 @@ except Exception as e:
 @demo_bp.route('/scheduler-demo', methods=['GET', 'POST'])
 @require_login
 def scheduler_demo():
-    """Demonstrate scheduler functionality with clear examples and code."""
+    """Scheduler/Action system demo with real-time UI updates."""
     from demo_support.demo_scheduler_action import DemoSchedulerAction
     from src.modules.threaded import threaded_manager
     from src.modules.displayer import ResourceRegistry
     
-    # Require jQuery for SocketIO functionality
+    # Require jQuery for SocketIO
     ResourceRegistry.require('jquery')
     
-    # Handle form submission
+    # Handle POST
     message = None
     if request.method == 'POST':
         data_in = utilities.util_post_to_json(request.form.to_dict())
         
         if DemoSchedulerAction.m_default_name in data_in:
             action_data = data_in[DemoSchedulerAction.m_default_name]
-            
-            # Check if an action is already running
-            thread = threaded_manager.thread_manager_obj.get_thread(
-                DemoSchedulerAction.m_default_name
-            )
+            thread = threaded_manager.thread_manager_obj.get_thread(DemoSchedulerAction.m_default_name)
             
             if not thread:
-                # Start new action based on button pressed
                 demo_action = DemoSchedulerAction()
                 
-                if "simple_demo" in action_data:
-                    demo_action.set_demo_type("simple")
+                if "btn_single" in action_data:
+                    demo_action.set_demo_type("single_progress")
                     demo_action.start()
-                    message = ("✓ Started Simple Demo", displayer.BSstyle.SUCCESS)
-                elif "complex_demo" in action_data:
-                    demo_action.set_demo_type("complex")
+                    message = ("✓ Single Progress Started", displayer.BSstyle.SUCCESS)
+                elif "btn_parallel" in action_data:
+                    demo_action.set_demo_type("parallel_progress")
                     demo_action.start()
-                    message = ("✓ Started Complex Demo", displayer.BSstyle.SUCCESS)
-                elif "error_demo" in action_data:
-                    demo_action.set_demo_type("error")
+                    message = ("✓ Parallel Progress Started", displayer.BSstyle.SUCCESS)
+                elif "btn_popup" in action_data:
+                    demo_action.set_demo_type("popup_demo")
                     demo_action.start()
-                    message = ("✓ Started Error Demo", displayer.BSstyle.SUCCESS)
-                elif "multi_step_demo" in action_data:
-                    demo_action.set_demo_type("multi_step")
+                    message = ("✓ Popup Demo Started", displayer.BSstyle.SUCCESS)
+                elif "btn_alert" in action_data:
+                    demo_action.set_demo_type("alert_progress")
                     demo_action.start()
-                    message = ("✓ Started Multi-Step Demo", displayer.BSstyle.SUCCESS)
-                elif "all_features_demo" in action_data:
+                    message = ("✓ Alert in Progress Started", displayer.BSstyle.SUCCESS)
+                elif "btn_button_control" in action_data:
+                    demo_action.set_demo_type("button_control")
+                    demo_action.start()
+                    message = ("✓ Button Control Started", displayer.BSstyle.SUCCESS)
+                elif "btn_dynamic" in action_data:
+                    demo_action.set_demo_type("dynamic_content")
+                    demo_action.start()
+                    message = ("✓ Dynamic Content Started", displayer.BSstyle.SUCCESS)
+                elif "btn_all_features" in action_data:
                     demo_action.set_demo_type("all_features")
                     demo_action.start()
-                    message = ("✓ Started All Features Demo", displayer.BSstyle.SUCCESS)
+                    message = ("✓ All Features Demo Started", displayer.BSstyle.SUCCESS)
             else:
-                message = ("⚠ A demo action is already running", displayer.BSstyle.WARNING)
+                message = ("⚠ Demo already running", displayer.BSstyle.WARNING)
     
     disp = displayer.Displayer()
     disp.add_module(DemoSchedulerAction)
@@ -336,234 +280,223 @@ def scheduler_demo():
     disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Scheduler", "demo.scheduler_demo", [])
     
-    # Show message if any
     if message:
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [12]
-        ))
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         disp.add_display_item(displayer.DisplayerItemAlert(message[0], message[1]), 0)
     
     # Overview
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12]
-    ))
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
     disp.add_display_item(displayer.DisplayerItemAlert(
         "<strong>Scheduler & Action System</strong><br>"
-        "The scheduler system enables actions to communicate with the UI in real-time using SocketIO. "
-        "Update progress bars, show popups, reload content, and control buttons - all from background threads!",
+        "Real-time UI updates via SocketIO. Update progress, show popups, reload content, control buttons!",
         displayer.BSstyle.INFO
     ), 0)
     
-    # Quick Start
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12],
-        subtitle="Quick Start - Basic Action"
-    ))
-    disp.add_display_item(displayer.DisplayerItemText(
-        "<p>Create an action by inheriting from <code>Action</code> and add it to a displayer:</p>"
-    ), 0)
-    
-    code_basic = '''from src.modules.action import Action
-from src.modules import displayer
-import time
-
-class MyAction(Action):
-    """A simple scheduler action."""
-    
-    m_default_name = "MyAction"  # Unique identifier
-    
-    def __init__(self):
-        super().__init__()
-        self.m_name = self.m_default_name
-    
-    def run(self):
-        """Main execution - runs when action is triggered."""
-        # Update progress (0-100)
-        for i in range(5):
-            progress = (i + 1) * 20
-            self.emit_status(
-                category="progress",
-                string=f"Step {i+1}/5",
-                status=progress,
-                supplement=f"{progress}%"
-            )
-            time.sleep(1)
-        
-        # Show completion popup
-        self.emit_popup("success", "Task completed!")
-        self.m_running = False
-
-# Add to displayer
-disp = displayer.Displayer()
-disp.add_module(MyAction)  # Automatically creates UI and hooks up events'''
-    
-    disp.add_display_item(displayer.DisplayerItemCode(
-        id="code_basic_action",
-        code=code_basic,
-        language="python",
-        show_line_numbers=True
-    ), 0)
-    
-    # Key Methods
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12],
-        subtitle="Real-Time UI Control Methods"
-    ))
-    
-    table_id = disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.TABLE,
-        columns=["Method", "Purpose", "Example"]
-    ))
-    
-    methods = [
-        ("emit_status()", "Update progress bars and status text", "emit_status('progress', 'Loading', 50, '50%')"),
-        ("emit_popup()", "Show toast notifications", "emit_popup('success', 'Task done!')"),
-        ("emit_reload()", "Update page content dynamically", "emit_reload({'#div_id': '<p>New content</p>'})"),
-        ("disable_button()", "Disable UI buttons", "disable_button('btn_start')"),
-        ("enable_button()", "Re-enable UI buttons", "enable_button('btn_start')"),
-    ]
-    
-    for line, (method, purpose, example) in enumerate(methods):
-        disp.add_display_item(displayer.DisplayerItemText(f"<code>{method}</code>"), 
-                             column=0, line=line, layout_id=table_id)
-        disp.add_display_item(displayer.DisplayerItemText(purpose), 
-                             column=1, line=line, layout_id=table_id)
-        disp.add_display_item(displayer.DisplayerItemText(f"<code>{example}</code>"), 
-                             column=2, line=line, layout_id=table_id)
-    
-    # Try It Section
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12],
-        subtitle="Try It - Demo Actions"
-    ))
-    disp.add_display_item(displayer.DisplayerItemText(
-        "<p>Click buttons below to see different scheduler features in action:</p>"
-    ), 0)
-    
-    # Status display (updated by SocketIO)
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12]
-    ))
-    disp.add_display_item(
-        displayer.DisplayerItemAlert("No action running", displayer.BSstyle.NONE),
-        0,
-        id="scheduler_demo_status"
-    )
-    
-    # Dynamic content area (updated by SocketIO)
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12]
-    ))
+    # Dynamic content area
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
     disp.add_display_item(
         displayer.DisplayerItemPlaceholder(
             "scheduler_demo_dynamic_content",
-            '<div class="alert alert-secondary">Dynamic content area - will update when action runs</div>'
+            '<div class="alert alert-secondary">Dynamic content area - will update during demos</div>'
         ),
         0
     )
     
-    # Demo buttons in a clean layout
+    # Demo table
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12]
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="Real-Time UI Demos"
     ))
     
-    demos = [
-        ("simple_demo", "1. Single Progress", "Updates one progress bar"),
-        ("multi_step_demo", "2. Parallel Progress", "Multiple concurrent progress bars"),
-        ("error_demo", "3. Popup Notifications", "Success, warning, error, and info popups"),
-        ("complex_demo", "4. Button Control", "Disable/enable buttons dynamically"),
-        ("all_features_demo", "5. Dynamic Content", "Real-time page content updates"),
+    table_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Demo", "Action", "Code Example"]
+    ))
+    
+    # 1. Single Progress
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>Single Progress</strong><br>Simple progress bar update"
+    ), column=0, line=0, layout_id=table_id)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_single", "", icon="progress-check"
+    ), column=1, line=0, layout_id=table_id)
+    
+    code_single = '''for i in range(10):
+    self.emit_status(
+        category="progress",
+        string=f"Processing {i+1}/10",
+        status=(i+1) * 10,
+        supplement=f"{(i+1)*10}%"
+    )
+    time.sleep(0.5)'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_single", code=code_single, language="python", show_line_numbers=False
+    ), column=2, line=0, layout_id=table_id)
+    
+    # 2. Parallel Progress
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>Parallel Progress</strong><br>Multiple concurrent progress bars"
+    ), column=0, line=1, layout_id=table_id)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_parallel", "", icon="progress-star"
+    ), column=1, line=1, layout_id=table_id)
+    
+    code_parallel = '''# Update multiple progress bars
+self.emit_status("progress", "Task 1", 33, 
+    "33%", status_id="task1")
+self.emit_status("progress", "Task 2", 67, 
+    "67%", status_id="task2")
+self.emit_status("progress", "Task 3", 100, 
+    "Done", status_id="task3")'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_parallel", code=code_parallel, language="python", show_line_numbers=False
+    ), column=2, line=1, layout_id=table_id)
+    
+    # 3. Popup Demo
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>Popup Notifications</strong><br>Toast messages: success, error, warning, info"
+    ), column=0, line=2, layout_id=table_id)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_popup", "", icon="bell-ring"
+    ), column=1, line=2, layout_id=table_id)
+    
+    code_popup = '''self.emit_popup("info", "Starting process")
+time.sleep(1)
+self.emit_popup("success", "Task completed!")
+time.sleep(1)
+self.emit_popup("warning", "Check settings")
+time.sleep(1)
+self.emit_popup("error", "Error occurred")'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_popup", code=code_popup, language="python", show_line_numbers=False
+    ), column=2, line=2, layout_id=table_id)
+    
+    # 4. Alert in Progress
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>Alert in Action</strong><br>Show alert while progress updates"
+    ), column=0, line=3, layout_id=table_id)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_alert", "", icon="alert-circle"
+    ), column=1, line=3, layout_id=table_id)
+    
+    code_alert = '''for i in range(5):
+    self.emit_status(
+        category="progress",
+        string=f"Step {i+1}",
+        status=(i+1) * 20
+    )
+    if i == 2:
+        self.emit_popup("warning", 
+            "Halfway done!")
+    time.sleep(0.8)'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_alert", code=code_alert, language="python", show_line_numbers=False
+    ), column=2, line=3, layout_id=table_id)
+    
+    # 5. Button Control
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>Button Control</strong><br>Disable/enable buttons dynamically"
+    ), column=0, line=4, layout_id=table_id)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_button_control", "", icon="toggle-switch"
+    ), column=1, line=4, layout_id=table_id)
+    
+    code_button = '''# Disable button during processing
+self.disable_button("btn_button_control")
+for i in range(5):
+    self.emit_status("progress", 
+        f"Working {i+1}/5", (i+1)*20)
+    time.sleep(0.5)
+# Re-enable when done
+self.enable_button("btn_button_control")'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_button", code=code_button, language="python", show_line_numbers=False
+    ), column=2, line=4, layout_id=table_id)
+    
+    # 6. Dynamic Content
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>Dynamic Content</strong><br>Update page content in real-time"
+    ), column=0, line=5, layout_id=table_id)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_dynamic", "", icon="refresh"
+    ), column=1, line=5, layout_id=table_id)
+    
+    code_dynamic = '''for i in range(5):
+    html = f\'\'\'<div class="alert 
+        alert-info">Update {i+1}/5 
+        - {time.strftime("%H:%M:%S")}
+        </div>\'\'\'
+    self.emit_reload({
+        "#scheduler_demo_dynamic_content": html
+    })
+    time.sleep(1)'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_dynamic", code=code_dynamic, language="python", show_line_numbers=False
+    ), column=2, line=5, layout_id=table_id)
+    
+    # 7. All Features
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<strong>All Features Combined</strong><br>Progress + popup + button control + dynamic content"
+    ), column=0, line=6, layout_id=table_id)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_all_features", "", icon="star-circle", color=displayer.BSstyle.PRIMARY
+    ), column=1, line=6, layout_id=table_id)
+    
+    code_all = '''# Comprehensive example
+self.disable_button("btn_all_features")
+self.emit_popup("info", "Starting...")
+
+for i in range(5):
+    # Update progress
+    self.emit_status("progress", 
+        f"Step {i+1}/5", (i+1)*20, 
+        f"{(i+1)*20}%")
+    
+    # Update content
+    html = f"<div>Processing step {i+1}</div>"
+    self.emit_reload({"#scheduler_demo_dynamic_content": html})
+    
+    time.sleep(1)
+
+self.emit_popup("success", "Complete!")
+self.enable_button("btn_all_features")'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_all", code=code_all, language="python", show_line_numbers=False
+    ), column=2, line=6, layout_id=table_id)
+    
+    # API Reference
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="Key Methods"
+    ))
+    
+    api_table = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Method", "Parameters", "Description"]
+    ))
+    
+    methods = [
+        ("emit_status()", "category, string, status, supplement, status_id", "Update progress bars"),
+        ("emit_popup()", "type, message", "Show toast notification"),
+        ("emit_reload()", "dict of {selector: html}", "Update page content"),
+        ("disable_button()", "button_id", "Disable UI button"),
+        ("enable_button()", "button_id", "Enable UI button"),
     ]
     
-    for btn_id, title, description in demos:
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [9, 3]
-        ))
-        disp.add_display_item(
-            displayer.DisplayerItemText(f"<strong>{title}</strong> - {description}"),
-            0
-        )
-        disp.add_display_item(
-            displayer.DisplayerItemButton(btn_id, "Run"),
-            1,
-            id=f"demo_action_btn_{btn_id}"
-        )
-    
-    # Code Examples
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12],
-        subtitle="Code Examples"
-    ))
-    
-    code_examples = '''# Progress Updates
-self.emit_status(
-    category="progress",      # Category identifier
-    string="Processing...",   # Status text
-    status=75,                # Progress value (0-100)
-    supplement="75%",         # Additional info
-    status_id="task_1"        # Optional: specific progress bar ID
-)
-
-# Popup Notifications
-self.emit_popup("success", "Operation completed successfully!")
-self.emit_popup("error", "Something went wrong!")
-self.emit_popup("warning", "Please review settings")
-self.emit_popup("info", "Processing started")
-
-# Dynamic Content Updates
-self.emit_reload({
-    "#div_results": "<div>New results here</div>",
-    "#status_text": "<span>Updated status</span>"
-})
-
-# Button Control
-self.disable_button("btn_start")  # Prevent clicks during processing
-# ... do work ...
-self.enable_button("btn_start")   # Re-enable when done
-
-# Multiple Progress Bars
-self.emit_status("progress", "Task 1", 50, "50%", status_id="task1")
-self.emit_status("progress", "Task 2", 75, "75%", status_id="task2")
-self.emit_status("progress", "Task 3", 100, "Done", status_id="task3")'''
-    
-    disp.add_display_item(displayer.DisplayerItemCode(
-        id="code_examples",
-        code=code_examples,
-        language="python",
-        show_line_numbers=True
-    ), 0)
-    
-    # Advanced: Dynamic Content Placeholder
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12],
-        subtitle="Advanced - Dynamic Content"
-    ))
-    disp.add_display_item(displayer.DisplayerItemText(
-        "<p>Use <code>DisplayerItemDynamicContent</code> for content that updates in real-time:</p>"
-    ), 0)
-    
-    code_dynamic = '''# In your page route:
-disp.add_display_item(
-    displayer.DisplayerItemDynamicContent(
-        id="live_updates",
-        initial_content='<div class="alert alert-secondary">Waiting...</div>',
-        card=True  # Optional: wrap in card
-    ),
-    0
-)
-
-# In your action:
-def run(self):
-    # Update the content area
-    new_html = '<div class="alert alert-success">Data loaded!</div>'
-    self.emit_reload({"#live_updates": new_html})'''
-    
-    disp.add_display_item(displayer.DisplayerItemCode(
-        id="code_dynamic_content",
-        code=code_dynamic,
-        language="python",
-        show_line_numbers=True
-    ), 0)
+    for line, (method, params, desc) in enumerate(methods):
+        disp.add_display_item(displayer.DisplayerItemText(f"<code>{method}</code>"), 
+                             column=0, line=line, layout_id=api_table)
+        disp.add_display_item(displayer.DisplayerItemText(f"<small>{params}</small>"), 
+                             column=1, line=line, layout_id=api_table)
+        disp.add_display_item(displayer.DisplayerItemText(desc), 
+                             column=2, line=line, layout_id=api_table)
     
     return render_template("base_content.j2", content=disp.display(), target="demo.scheduler_demo")
 

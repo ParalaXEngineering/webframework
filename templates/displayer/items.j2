@@ -16,7 +16,7 @@
     {% elif item["type"] == "PLACEHOLDER" %}
         {{placeholder(item["id"], item["data"])}}
     {% elif item["type"] == "BUTTON" %}
-        {{button(item["id"], item["text"], item["disabled"], item["focus"])}}
+        {{button(item["id"], item["text"], item["disabled"], item["focus"], item["icon"] if "icon" in item else None)}}
     {% elif item["type"] == "MODALBUTTON" %}
         {{modalbutton(item["path"], item["text"], item["disabled"])}}
     {% elif item["type"] == "MODALLINK" %}
@@ -274,9 +274,10 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="{{id}}">{{data}}</div>
 {% endmacro %}
 
-{% macro button(id, text, disabled = false, focus = false) %}
-    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn btn-primary {%if disabled %} disabled {%endif%} {%if focus %} focusable {%endif%}" </button>
-        {{text}}
+{% macro button(id, text, disabled = false, focus = false, icon = None) %}
+    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn btn-primary {%if disabled %} disabled {%endif%} {%if focus %} focusable {%endif%}">
+        {% if icon %}<i class="mdi mdi-{{icon}}"></i>{% endif %}
+        {% if text %}{{text}}{% endif %}
     </button>
 {% endmacro %}
 

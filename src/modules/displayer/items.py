@@ -405,32 +405,49 @@ class DisplayerItemButtonLink(DisplayerItem):
 class DisplayerItemButton(DisplayerItem):
     """Specialized display item to display a simple button."""
 
-    def __init__(self, id: str, text: str, focus: bool = False, tooltip: Optional[str] = None, color: Optional[BSstyle] = None) -> None:
+    def __init__(
+        self,
+        id: str,
+        text: str,
+        icon: Optional[str] = None,
+        focus: bool = False,
+        tooltip: Optional[str] = None,
+        color: Optional[BSstyle] = None
+    ) -> None:
         """
         Initialize a simple button item.
 
         Args:
             id: Unique identifier for the button
             text: Button label text
+            icon: Optional MDI icon name (without 'mdi-' prefix)
             focus: Whether the button should have focus on page load (default: False)
             tooltip: Optional tooltip text to display on hover
             color: Optional button color/style (BSstyle)
 
         Example:
-            >>> button = DisplayerItemButton(id="confirm_btn", text="Confirm", focus=True, tooltip="Click to confirm action")
+            >>> button = DisplayerItemButton(id="confirm_btn", text="Confirm", icon="check", focus=True, tooltip="Click to confirm action")
         """
         super().__init__(DisplayerItems.BUTTON)
         self.m_text = text
         self.m_id = id
+        self.m_icon = icon
         self.m_focus = focus
         self.m_tooltips = tooltip
         self.m_style = color
         return
 
+    def display(self, container: list, parent_id: Optional[str] = None) -> None:
+        """Add button to container with optional icon."""
+        super().display(container, parent_id)
+        if self.m_icon:
+            container[-1]["icon"] = self.m_icon
+        return
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample button."""
-        return cls(id="test_button", text="Click Me", focus=False, tooltip="This is a test button")
+        return cls(id="test_button", text="Click Me", icon="check-circle", focus=False, tooltip="This is a test button")
 
 @DisplayerCategory.BUTTON
 class DisplayerItemModalButton(DisplayerItem):
