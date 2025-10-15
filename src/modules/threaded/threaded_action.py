@@ -593,10 +593,15 @@ class Threaded_action:
             self.m_error = str(e)
             
         self.m_running = False
+        
+        # Clean up and unregister from thread manager
         if not self.m_background:
             # Small delay to allow reading threads to finish
             time.sleep(0.5)
-            self.delete()
+            
+            # Unregister from thread manager (but don't force-stop ourselves)
+            if threaded_manager.thread_manager_obj:
+                threaded_manager.thread_manager_obj.del_thread(self)
         return
 
     def start(self):
