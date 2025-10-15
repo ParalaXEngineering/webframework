@@ -3,8 +3,7 @@ User profile and preferences management blueprint.
 User self-service for password, avatar, and personal settings.
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
-from werkzeug.utils import secure_filename
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from PIL import Image
 import os
 
@@ -14,12 +13,26 @@ from src.modules.displayer import (
     DisplayerItemInputSelect, DisplayerItemImage, DisplayerItemInputFile,
     DisplayerItemAlert, BSstyle
 )
-from src.modules.auth.auth_manager import auth_manager
-from src.modules.auth.auth_utils import verify_password, validate_password_strength
-from src.modules import utilities
+
+# Import with fallback for different execution contexts
+try:
+    from src.modules.auth.auth_utils import verify_password, validate_password_strength
+    from src.modules import utilities
+except ImportError:
+    from modules.auth.auth_utils import verify_password, validate_password_strength
+    from modules import utilities
 
 
 user_profile_bp = Blueprint('user_profile', __name__, url_prefix='/user')
+
+
+def _get_auth_manager():
+    """Get the auth_manager instance. Import here to avoid None at module load time."""
+    try:
+        from src.modules.auth.auth_manager import auth_manager
+    except ImportError:
+        from modules.auth.auth_manager import auth_manager
+    return auth_manager
 
 
 def resize_image(image_path: str, max_size: tuple = (1024, 1024)):
@@ -38,6 +51,7 @@ def resize_image(image_path: str, max_size: tuple = (1024, 1024)):
 @user_profile_bp.route('/profile', methods=['GET', 'POST'])
 def profile():
     """User profile page - password, avatar, display name, email."""
+    auth_manager = _get_auth_manager()
     
     # Get current user
     current_user = auth_manager.get_current_user()
@@ -241,6 +255,7 @@ def profile():
 @user_profile_bp.route('/preferences', methods=['GET', 'POST'])
 def preferences():
     """User preferences page - theme, notifications, module settings."""
+    auth_manager = _get_auth_manager()
     
     # Get current user
     current_user = auth_manager.get_current_user()

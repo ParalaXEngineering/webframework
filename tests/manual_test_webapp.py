@@ -11,17 +11,25 @@ Usage:
 import sys
 import os
 
-# Add project root to path
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
-sys.path.insert(0, os.path.join(project_root, 'src'))
-sys.path.insert(0, os.path.join(project_root, 'tests'))  # Add tests to path for website module
-
 # Import framework setup
 from src.main import app, setup_app, FLASK_AVAILABLE
 from src.modules.log.logger_factory import get_logger
 from src.modules import site_conf
 from src.modules.auth.auth_manager import AuthManager
+
+import src.modules.auth.auth_manager as auth_module
+from demo_support.demo_pages import demo_bp
+from demo_support.component_showcase import showcase_bp
+from demo_support.layout_showcase import layout_bp
+from website.pages.user_profile_bp import user_profile_bp
+from website.pages.admin_auth_bp import admin_auth_bp
+from src.modules.auth.permission_registry import permission_registry
+
+# Add project root to path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+sys.path.insert(0, os.path.join(project_root, 'src'))
+sys.path.insert(0, os.path.join(project_root, 'tests'))  # Add tests to path for website module
 
 # Initialize auth manager BEFORE creating app
 auth_manager_instance = AuthManager(auth_dir="tests/website/auth")
@@ -52,17 +60,12 @@ class TestSiteConf(site_conf.Site_conf):
         # Configure sidebar with demo pages
         self.add_sidebar_title("Demo Pages")
         self.add_sidebar_section("Demos", "test-tube", "demo")
-        self.add_sidebar_submenu("Home", "demo.index")
-        self.add_sidebar_submenu("Layouts", "demo.layouts")
-        self.add_sidebar_submenu("Text & Display", "demo.text_display")
-        self.add_sidebar_submenu("Inputs", "demo.inputs")
-        self.add_sidebar_submenu("Table Modes", "demo.table_modes")
         self.add_sidebar_submenu("Threading Demo", "demo.threading_demo")
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo")
         
         # Component Showcase - Auto-generated from DisplayerCategory
-        self.add_sidebar_title("Component Showcase")
-        self.add_sidebar_section("All Components", "palette", "showcase_main")
+        self.add_sidebar_title("Displayer Showcase")
+        self.add_sidebar_section("Components", "palette", "showcase_main")
         self.add_sidebar_submenu("Overview", "showcase.index", endpoint="showcase_main")
         
         # Add categories dynamically
@@ -77,7 +80,6 @@ class TestSiteConf(site_conf.Site_conf):
             )
         
         # Layout Showcase
-        self.add_sidebar_title("Layout Showcase")
         self.add_sidebar_section("All Layouts", "view-dashboard", "layout_main")
         self.add_sidebar_submenu("Overview", "layouts.index", endpoint="layout_main")
         
@@ -93,20 +95,18 @@ class TestSiteConf(site_conf.Site_conf):
             )
         
         # Authorization demos
-        self.add_sidebar_title("Authorization Examples")
-        self.add_sidebar_section("Auth Demos", "shield-check", "auth")
+        self.add_sidebar_section("Authorization Demos", "shield-check", "auth")
         self.add_sidebar_submenu("Accessible Page", "demo.auth_accessible", endpoint="auth")
         self.add_sidebar_submenu("Restricted Page", "demo.auth_restricted", endpoint="auth")
         self.add_sidebar_submenu("Admin Only", "demo.auth_admin", endpoint="auth")
         
         # Add User Management section
         self.add_sidebar_title("User Management")
-        self.add_sidebar_section("Account", "person", "user")
+        self.add_sidebar_section("Account", "account-circle", "user")
         self.add_sidebar_submenu("My Profile", "user_profile.profile", endpoint="user")
         self.add_sidebar_submenu("My Preferences", "user_profile.preferences", endpoint="user")
         
         # Add Admin section
-        self.add_sidebar_title("Administration")
         self.add_sidebar_section("Admin", "shield-lock", "admin")
         self.add_sidebar_submenu("Users", "admin_auth.manage_users", endpoint="admin")
         self.add_sidebar_submenu("Permissions", "admin_auth.manage_permissions", endpoint="admin")
@@ -150,29 +150,22 @@ site_conf.site_conf_obj = TestSiteConf()
 site_conf.site_conf_app_path = project_root
 
 # Inject auth_manager into auth module
-import src.modules.auth.auth_manager as auth_module
 auth_module.auth_manager = auth_manager_instance
 
 socketio = setup_app(app)
 
 # Register demo pages blueprint
-from demo_support.demo_pages import demo_bp
-from demo_support.component_showcase import showcase_bp, get_all_components_for_sidebar
-from demo_support.layout_showcase import layout_bp, get_all_layouts_for_sidebar
+
 app.register_blueprint(demo_bp)
 app.register_blueprint(showcase_bp)
 app.register_blueprint(layout_bp)
+app.register_blueprint(admin_auth_bp)
 logger.info("Registered demo pages, component showcase, and layout showcase blueprints")
 
 # Register user profile and admin blueprints
-from website.pages.user_profile_bp import user_profile_bp
-from website.pages.admin_auth_bp import admin_auth_bp
-app.register_blueprint(user_profile_bp)
-app.register_blueprint(admin_auth_bp)
-logger.info("Registered auth management blueprints")
 
-# Register demo module permissions
-from src.modules.auth.permission_registry import permission_registry
+app.register_blueprint(user_profile_bp)
+logger.info("Registered auth management blueprints")
 
 # Register real demo modules with appropriate permissions
 permission_registry.register_module("Demo_Layouts", ["view", "edit"])

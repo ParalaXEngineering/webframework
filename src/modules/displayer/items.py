@@ -24,6 +24,7 @@ class DisplayerItem:
         'm_focus': 'focus',
         'm_date': 'date',
         'm_itemId': 'itemId',
+        'm_id': 'id',
     }
 
     def __init__(self, itemType: DisplayerItems) -> None:
@@ -350,6 +351,7 @@ class DisplayerItemButtonLink(DisplayerItem):
         link: str = "",
         parameters: Optional[list] = None,
         color: BSstyle = BSstyle.PRIMARY,
+        tooltip: Optional[str] = None,
     ) -> None:
         """
         Initialize a button link item.
@@ -361,6 +363,7 @@ class DisplayerItemButtonLink(DisplayerItem):
             link: Flask endpoint or URL to link to
             parameters: GET parameters to append to the link (default: None)
             color: Bootstrap style for button color (default: BSstyle.PRIMARY)
+            tooltip: Optional tooltip text to display on hover
 
         Example:
             >>> button = DisplayerItemButtonLink(
@@ -369,7 +372,8 @@ class DisplayerItemButtonLink(DisplayerItem):
             ...     icon="check",
             ...     link="process_form",
             ...     parameters=["form_id=123"],
-            ...     color=BSstyle.SUCCESS
+            ...     color=BSstyle.SUCCESS,
+            ...     tooltip="Click to submit the form"
             ... )
         """
         super().__init__(DisplayerItems.BUTTONLINK)
@@ -379,6 +383,7 @@ class DisplayerItemButtonLink(DisplayerItem):
         self.m_icon = icon
         self.m_parameters = parameters
         self.m_style = color.value
+        self.m_tooltips = tooltip
         return
 
     def display(self, container: list, parent_id: Optional[str] = None) -> None:
@@ -392,14 +397,15 @@ class DisplayerItemButtonLink(DisplayerItem):
     def instantiate_test(cls):
         """Create test instance with sample button link."""
         return cls(id="test_button_link", text="Submit Form", icon="check",
-                   link="#action", parameters=["form_id=456"], color=BSstyle.SUCCESS)
+                   link="#action", parameters=["form_id=456"], color=BSstyle.SUCCESS,
+                   tooltip="This is a test button link")
 
 
 @DisplayerCategory.BUTTON
 class DisplayerItemButton(DisplayerItem):
     """Specialized display item to display a simple button."""
 
-    def __init__(self, id: str, text: str, focus: bool = False) -> None:
+    def __init__(self, id: str, text: str, focus: bool = False, tooltip: Optional[str] = None, color: Optional[BSstyle] = None) -> None:
         """
         Initialize a simple button item.
 
@@ -407,20 +413,24 @@ class DisplayerItemButton(DisplayerItem):
             id: Unique identifier for the button
             text: Button label text
             focus: Whether the button should have focus on page load (default: False)
+            tooltip: Optional tooltip text to display on hover
+            color: Optional button color/style (BSstyle)
 
         Example:
-            >>> button = DisplayerItemButton(id="confirm_btn", text="Confirm", focus=True)
+            >>> button = DisplayerItemButton(id="confirm_btn", text="Confirm", focus=True, tooltip="Click to confirm action")
         """
         super().__init__(DisplayerItems.BUTTON)
         self.m_text = text
         self.m_id = id
         self.m_focus = focus
+        self.m_tooltips = tooltip
+        self.m_style = color
         return
 
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample button."""
-        return cls(id="test_button", text="Click Me", focus=False)
+        return cls(id="test_button", text="Click Me", focus=False, tooltip="This is a test button")
 
 @DisplayerCategory.BUTTON
 class DisplayerItemModalButton(DisplayerItem):

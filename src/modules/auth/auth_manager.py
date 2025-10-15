@@ -456,6 +456,10 @@ class AuthManager:
         if not user:
             return False
         
+        # Admin group has access to everything
+        if 'admin' in user.groups:
+            return True
+        
         # Get module permissions
         module_perm = self._permissions.get(module_name)
         if not module_perm:
@@ -483,6 +487,18 @@ class AuthManager:
         user = self._users.get(username)
         if not user:
             return []
+        
+        # Admin group has all permissions
+        if 'admin' in user.groups:
+            module_perm = self._permissions.get(module_name)
+            if module_perm:
+                # Return all possible actions for this module
+                all_actions = set()
+                for group_actions in module_perm.groups.values():
+                    all_actions.update(group_actions)
+                return sorted(all_actions) if all_actions else ['view', 'edit', 'delete', 'execute']
+            # If module has no permissions defined, return default admin actions
+            return ['view', 'edit', 'delete', 'execute']
         
         module_perm = self._permissions.get(module_name)
         if not module_perm:

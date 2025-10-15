@@ -8,24 +8,41 @@ from functools import wraps
 
 from src.modules.displayer import (
     Displayer, DisplayerLayout, Layouts,
-    DisplayerItemText, DisplayerItemButton, DisplayerItemButtonLink, DisplayerItemInputText,
+    DisplayerItemText, DisplayerItemButton, DisplayerItemButtonLink,
     DisplayerItemInputSelect, DisplayerItemAlert, DisplayerItemInputString,
     DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
 )
-from src.modules.auth.auth_manager import auth_manager
-from src.modules.auth.auth_utils import validate_username, validate_password_strength
-from src.modules.auth.permission_registry import permission_registry
-from src.modules import utilities
-from src.modules.log.logger_factory import get_logger
+
+# Import with fallback for different execution contexts
+try:
+    from src.modules.auth.auth_utils import validate_username, validate_password_strength
+    from src.modules.auth.permission_registry import permission_registry
+    from src.modules import utilities
+    from src.modules.log.logger_factory import get_logger
+except ImportError:
+    from modules.auth.auth_utils import validate_username, validate_password_strength
+    from modules.auth.permission_registry import permission_registry
+    from modules import utilities
+    from modules.log.logger_factory import get_logger
 
 logger = get_logger("admin_auth")
 admin_auth_bp = Blueprint('admin_auth', __name__, url_prefix='/admin')
+
+
+def _get_auth_manager():
+    """Get the auth_manager instance. Import here to avoid None at module load time."""
+    try:
+        from src.modules.auth.auth_manager import auth_manager
+    except ImportError:
+        from modules.auth.auth_manager import auth_manager
+    return auth_manager
 
 
 def require_admin(f):
     """Decorator to require admin group."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        auth_manager = _get_auth_manager()
         current_user = auth_manager.get_current_user()
         if not current_user:
             flash("Please log in.", "warning")
@@ -69,6 +86,7 @@ def require_admin(f):
 @require_admin
 def manage_users():
     """User management page - CRUD operations."""
+    auth_manager = _get_auth_manager()
     
     # Create displayer
     disp = Displayer()
@@ -273,6 +291,7 @@ def manage_users():
 @require_admin
 def manage_permissions():
     """Module permissions matrix management."""
+    auth_manager = _get_auth_manager()
     
     # Create displayer
     disp = Displayer()
@@ -292,7 +311,7 @@ def manage_permissions():
             # Save permissions
             if "btn_save_permissions" in module_data:
                 # Debug: print what we received
-                logger.info(f"Received form data for permission save:")
+                logger.info("Received form data for permission save:")
                 for key, value in module_data.items():
                     if key.startswith("checkbox_"):
                         logger.info(f"  {key} = {value} (type: {type(value)})")
@@ -398,6 +417,7 @@ def manage_permissions():
 @require_admin
 def manage_groups():
     """Group management page."""
+    auth_manager = _get_auth_manager()
     
     # Create displayer
     disp = Displayer()

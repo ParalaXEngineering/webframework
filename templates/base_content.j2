@@ -286,28 +286,27 @@
 
                     {% if "error" in content[module] and content[module]["error"] %}
                         <div class="text-center">
-                            <img src="{{ url_for('static', filename='images/status/error.svg')}}" style="width: 500px; max-width: 100%;">
+                            <img src="{{ url_for('static', filename='images/site/500.png')}}" style="width: 500px; max-width: 100%;">
                             <h3 class="error-title mt-3">This page can't be displayed with the current configuration</h3>
                             <p class="fs-5 text-gray-600">{{content[module]["error"]}}</p>
                         </div>
                     {% elif "access_denied" in content[module] and content[module]["access_denied"] %}
                         <div class="text-center">
-                            <img src="{{ url_for('static', filename='images/status/error.svg')}}" style="width: 500px; max-width: 100%;">
-                            <h3 class="error-title mt-3">🔒 Access Denied</h3>
+                            <img src="{{ url_for('static', filename='images/site/unauthorized.png')}}" style="width: 500px; max-width: 100%;">
+                            <div class="alert alert-light-danger color-danger"><i class="mdi mdi-close-octagon"></i>Access Denied</div>
                             <p class="fs-5 text-gray-600">
                                 {% if "denied_reason" in content[module] and content[module]["denied_reason"] %}
                                     {{content[module]["denied_reason"]}}
                                 {% else %}
-                                    You don't have permission to access this module.
+                                    {% if "required_permission" in content[module] and content[module]["required_permission"] %}
+                                      <p class="text-muted">
+                                          <small>
+                                              Required: '{{ content[module]["required_action"] }}' permission for '{{ content[module]["required_permission"] }}' module
+                                          </small>
+                                      </p>
+                                  {% endif %}
                                 {% endif %}
                             </p>
-                            {% if "required_permission" in content[module] and content[module]["required_permission"] %}
-                                <p class="text-muted">
-                                    <small>
-                                        Required: '{{ content[module]["required_action"] }}' permission for '{{ content[module]["required_permission"] }}' module
-                                    </small>
-                                </p>
-                            {% endif %}
                         </div>
                     {% else %}
 

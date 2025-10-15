@@ -287,10 +287,10 @@ disp.add_display_item(displayer.DisplayerItemButton("btn3", "Reset"), layout_id=
 
 
 def show_table_layout():
-    """Show table layout examples."""
+    """Show table layout examples with all table modes."""
     disp = displayer.Displayer()
     disp.add_generic("Table Layout")
-    disp.set_title("Table Layout - Tabular Data")
+    disp.set_title("Table Layout - All Table Modes")
     
     disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "layouts.index", [])
@@ -301,61 +301,274 @@ def show_table_layout():
         displayer.Layouts.VERTICAL, [12]
     ))
     disp.add_display_item(displayer.DisplayerItemAlert(
-        "<strong>Table Layout</strong><br>"
-        "Creates a structured table with headers and rows. Supports DataTables integration for "
-        "advanced features like sorting, searching, and pagination. See the Table Modes demo for advanced examples.",
+        "<strong>Table Layout - All Modes</strong><br>"
+        "Tables support multiple rendering modes for different use cases: "
+        "<strong>SIMPLE</strong> (plain HTML), <strong>INTERACTIVE</strong> (DataTables with manual population), "
+        "<strong>BULK_DATA</strong> (JSON pre-loaded for large datasets), and <strong>SERVER_SIDE</strong> (AJAX endpoint).",
         displayer.BSstyle.INFO
     ), 0)
     
-    # Example 1: Simple table
+    # ===== Mode 1: SIMPLE - Plain HTML Table =====
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12],
-        subtitle="Example 1: Simple Table"
+        subtitle="1. TableMode.SIMPLE - Plain HTML Table"
     ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<p>Basic HTML table without DataTables JavaScript. Best for small datasets (< 20 rows). "
+        "No search, sorting, or pagination features.</p>"
+    ), 0)
     
     table_id = disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.TABLE,
-        columns=["Name", "Role", "Status"]
+        columns=["Name", "Email", "Role"]
+        # No datatable_config = plain HTML
     ))
     
     disp.add_display_item(displayer.DisplayerItemText("Alice Smith"), column=0, line=0, layout_id=table_id)
-    disp.add_display_item(displayer.DisplayerItemText("Developer"), column=1, line=0, layout_id=table_id)
-    disp.add_display_item(displayer.DisplayerItemBadge("Active", displayer.BSstyle.SUCCESS), column=2, line=0, layout_id=table_id)
+    disp.add_display_item(displayer.DisplayerItemText("alice@example.com"), column=1, line=0, layout_id=table_id)
+    disp.add_display_item(displayer.DisplayerItemBadge("Admin", displayer.BSstyle.PRIMARY), column=2, line=0, layout_id=table_id)
     
     disp.add_display_item(displayer.DisplayerItemText("Bob Johnson"), column=0, line=1, layout_id=table_id)
-    disp.add_display_item(displayer.DisplayerItemText("Designer"), column=1, line=1, layout_id=table_id)
-    disp.add_display_item(displayer.DisplayerItemBadge("Away", displayer.BSstyle.WARNING), column=2, line=1, layout_id=table_id)
+    disp.add_display_item(displayer.DisplayerItemText("bob@example.com"), column=1, line=1, layout_id=table_id)
+    disp.add_display_item(displayer.DisplayerItemBadge("User", displayer.BSstyle.SUCCESS), column=2, line=1, layout_id=table_id)
     
-    # Code snippet
+    # Code snippet for SIMPLE mode
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12]
     ))
-    code_example = '''table_id = disp.add_master_layout(displayer.DisplayerLayout(
+    code_simple = '''# SIMPLE Mode - Plain HTML table (no DataTables)
+table_id = disp.add_master_layout(displayer.DisplayerLayout(
     displayer.Layouts.TABLE,
-    columns=["Name", "Role", "Status"]
+    columns=["Name", "Email", "Role"]
+    # No datatable_config = plain HTML table
 ))
 
-# Add rows
+# Add rows using DisplayerItems
 disp.add_display_item(displayer.DisplayerItemText("Alice"), column=0, line=0, layout_id=table_id)
-disp.add_display_item(displayer.DisplayerItemText("Developer"), column=1, line=0, layout_id=table_id)
-disp.add_display_item(displayer.DisplayerItemBadge("Active", BSstyle.SUCCESS), column=2, line=0, layout_id=table_id)'''
+disp.add_display_item(displayer.DisplayerItemText("alice@example.com"), column=1, line=0, layout_id=table_id)
+disp.add_display_item(displayer.DisplayerItemBadge("Admin", BSstyle.PRIMARY), column=2, line=0, layout_id=table_id)'''
     disp.add_display_item(displayer.DisplayerItemCode(
-        id="code_table_1",
-        code=code_example,
+        id="code_table_simple",
+        code=code_simple,
         language="python",
         show_line_numbers=True
     ), 0)
     
-    # Link to advanced table demo
+    # ===== Mode 2: INTERACTIVE - Manual Row Population =====
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="2. TableMode.INTERACTIVE - DataTables with Manual Population"
+    ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<p>Uses DataTables for rendering with DisplayerItems for content. Best for medium datasets (20-100 rows). "
+        "Includes search, sorting, and optional search panes on specific columns.</p>"
+    ), 0)
+    
+    table_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Product", "Price", "Stock", "Actions"],
+        datatable_config={
+            "table_id": "interactive_demo",
+            "mode": displayer.TableMode.INTERACTIVE,
+            "searchable_columns": [0, 2]  # Search panes on Product and Stock columns
+        }
+    ))
+    
+    products = [
+        ("Laptop", "$1,299", "In Stock", "primary"),
+        ("Mouse", "$29", "Low Stock", "warning"),
+        ("Keyboard", "$89", "In Stock", "success"),
+        ("Monitor", "$349", "Out of Stock", "error"),
+    ]
+    
+    for line, (product, price, stock, badge_style) in enumerate(products):
+        disp.add_display_item(displayer.DisplayerItemText(product), column=0, line=line, layout_id=table_id)
+        disp.add_display_item(displayer.DisplayerItemText(price), column=1, line=line, layout_id=table_id)
+        disp.add_display_item(
+            displayer.DisplayerItemBadge(stock, getattr(displayer.BSstyle, badge_style.upper())), 
+            column=2, line=line, layout_id=table_id
+        )
+        disp.add_display_item(displayer.DisplayerItemButton(f"buy_{line}", "Buy Now"), column=3, line=line, layout_id=table_id)
+    
+    # Code snippet for INTERACTIVE mode
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12]
     ))
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        '<strong>Advanced Table Features</strong><br>'
-        'For DataTables integration, search panes, server-side processing, and more, '
-        'see the <a href="/demo/table-modes" class="alert-link">Table Modes Demo</a>.',
-        displayer.BSstyle.INFO
+    code_interactive = '''# INTERACTIVE Mode - DataTables with manual row population
+table_id = disp.add_master_layout(displayer.DisplayerLayout(
+    displayer.Layouts.TABLE,
+    columns=["Product", "Price", "Stock", "Actions"],
+    datatable_config={
+        "table_id": "interactive_demo",
+        "mode": displayer.TableMode.INTERACTIVE,
+        "searchable_columns": [0, 2]  # Search panes on Product & Stock columns
+    }
+))
+
+# Add rows with DisplayerItems
+products = [("Laptop", "$1,299", "In Stock"), ("Mouse", "$29", "Low Stock")]
+for line, (product, price, stock) in enumerate(products):
+    disp.add_display_item(DisplayerItemText(product), column=0, line=line, layout_id=table_id)
+    disp.add_display_item(DisplayerItemText(price), column=1, line=line, layout_id=table_id)
+    disp.add_display_item(DisplayerItemBadge(stock, BSstyle.SUCCESS), column=2, line=line, layout_id=table_id)'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_table_interactive",
+        code=code_interactive,
+        language="python",
+        show_line_numbers=True
     ), 0)
+    
+    # ===== Mode 3: BULK_DATA - Pre-loaded JSON =====
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="3. TableMode.BULK_DATA - Pre-loaded JSON Data"
+    ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<p>Most efficient for large datasets (100s-1000s of rows). Data is loaded as JSON array. "
+        "Full DataTables features with search panes, sorting, and pagination.</p>"
+    ), 0)
+    
+    bulk_data = [
+        {"User": "Alice Cooper", "Department": "Engineering", "Status": "Active", "Projects": 5},
+        {"User": "Bob Dylan", "Department": "Marketing", "Status": "Active", "Projects": 3},
+        {"User": "Charlie Brown", "Department": "Engineering", "Status": "On Leave", "Projects": 2},
+        {"User": "Diana Ross", "Department": "Sales", "Status": "Active", "Projects": 8},
+        {"User": "Eddie Vedder", "Department": "Engineering", "Status": "Active", "Projects": 4},
+        {"User": "Frank Sinatra", "Department": "Sales", "Status": "Active", "Projects": 6},
+        {"User": "Grace Jones", "Department": "Marketing", "Status": "Active", "Projects": 7},
+        {"User": "Henry Rollins", "Department": "Engineering", "Status": "On Leave", "Projects": 1},
+    ]
+    
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["User", "Department", "Status", "Projects"],
+        datatable_config={
+            "table_id": "bulk_demo",
+            "mode": displayer.TableMode.BULK_DATA,
+            "data": bulk_data,
+            "columns": [
+                {"data": "User"},
+                {"data": "Department"},
+                {"data": "Status"},
+                {"data": "Projects"}
+            ],
+            "searchable_columns": [1, 2]  # Search panes on Department & Status
+        }
+    ))
+    
+    # Code snippet for BULK_DATA mode
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12]
+    ))
+    code_bulk = '''# BULK_DATA Mode - Pre-loaded JSON (best for large datasets)
+bulk_data = [
+    {"User": "Alice", "Department": "Engineering", "Status": "Active", "Projects": 5},
+    {"User": "Bob", "Department": "Marketing", "Status": "Active", "Projects": 3},
+    # ... hundreds or thousands of rows
+]
+
+disp.add_master_layout(displayer.DisplayerLayout(
+    displayer.Layouts.TABLE,
+    columns=["User", "Department", "Status", "Projects"],
+    datatable_config={
+        "table_id": "bulk_demo",
+        "mode": displayer.TableMode.BULK_DATA,
+        "data": bulk_data,  # Direct JSON data
+        "columns": [
+            {"data": "User"},
+            {"data": "Department"},
+            {"data": "Status"},
+            {"data": "Projects"}
+        ],
+        "searchable_columns": [1, 2]  # Search panes on Department & Status
+    }
+))'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_table_bulk",
+        code=code_bulk,
+        language="python",
+        show_line_numbers=True
+    ), 0)
+    
+    # ===== Mode 4: SERVER_SIDE - AJAX Endpoint =====
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="4. TableMode.SERVER_SIDE - AJAX Data Source"
+    ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<p>For dynamic or real-time data. Fetches data from an API endpoint using AJAX. "
+        "Supports auto-refresh, server-side pagination, and real-time updates.</p>"
+    ), 0)
+    
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        "<strong>Note:</strong> SERVER_SIDE mode requires a Flask API endpoint. "
+        "See code example below for implementation details.",
+        displayer.BSstyle.WARNING
+    ), 0)
+    
+    # Code snippet for SERVER_SIDE mode
+    code_server = '''# SERVER_SIDE Mode - AJAX endpoint (for dynamic/real-time data)
+disp.add_master_layout(displayer.DisplayerLayout(
+    displayer.Layouts.TABLE,
+    columns=["Name", "Status", "Last Update"],
+    datatable_config={
+        "table_id": "ajax_demo",
+        "mode": displayer.TableMode.SERVER_SIDE,
+        "api_endpoint": "api.get_users",  # Flask route name
+        "columns": [
+            {"data": "Name"},
+            {"data": "Status"},
+            {"data": "LastUpdate"}
+        ],
+        "refresh_interval": 3000  # Auto-refresh every 3 seconds
+    }
+))
+
+# API endpoint implementation (Flask route):
+@api_bp.route('/get-users')
+def get_users():
+    """API endpoint for SERVER_SIDE table mode."""
+    # Return JSON in DataTables format
+    return jsonify({
+        "data": [
+            {"Name": "Alice", "Status": "Online", "LastUpdate": "2 min ago"},
+            {"Name": "Bob", "Status": "Away", "LastUpdate": "15 min ago"}
+        ]
+    })'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_table_server",
+        code=code_server,
+        language="python",
+        show_line_numbers=True
+    ), 0)
+    
+    # Summary table
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="Quick Comparison"
+    ))
+    
+    summary_id = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Mode", "Best For", "Features", "Performance"]
+    ))
+    
+    comparisons = [
+        ("SIMPLE", "< 20 rows", "Basic HTML table", "Fast"),
+        ("INTERACTIVE", "20-100 rows", "Search, sort, pagination", "Medium"),
+        ("BULK_DATA", "100s-1000s rows", "All DataTables features", "Fast"),
+        ("SERVER_SIDE", "Real-time data", "AJAX, auto-refresh", "Depends on API"),
+    ]
+    
+    for line, (mode, best_for, features, performance) in enumerate(comparisons):
+        disp.add_display_item(displayer.DisplayerItemBadge(mode, displayer.BSstyle.PRIMARY), 
+                             column=0, line=line, layout_id=summary_id)
+        disp.add_display_item(displayer.DisplayerItemText(best_for), 
+                             column=1, line=line, layout_id=summary_id)
+        disp.add_display_item(displayer.DisplayerItemText(features), 
+                             column=2, line=line, layout_id=summary_id)
+        disp.add_display_item(displayer.DisplayerItemText(performance), 
+                             column=3, line=line, layout_id=summary_id)
     
     return render_template("base_content.j2", content=disp.display())
 
