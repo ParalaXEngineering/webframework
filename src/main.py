@@ -14,11 +14,6 @@ except ImportError:
     SocketIO = None
     FLASK_AVAILABLE = False
 
-try:
-    from .modules import utilities
-except ImportError:
-    import utilities
-
 import time
 import os
 import webbrowser
@@ -36,11 +31,11 @@ try:
     from .modules import site_conf
     from .modules.log.logger_factory import get_logger
 except ImportError:
-    import scheduler
-    from threaded import threaded_manager
-    from auth.auth_manager import auth_manager
-    import site_conf
-    from log.logger_factory import get_logger
+    from modules import scheduler
+    from modules.threaded import threaded_manager
+    from modules.auth.auth_manager import auth_manager
+    from modules import site_conf
+    from modules.log.logger_factory import get_logger
 
 # Create Flask app only if Flask is available
 if FLASK_AVAILABLE:
@@ -142,8 +137,24 @@ def setup_app(app):
         except Exception as e:
             logger.warning(f"Failed to register blueprint for {page_name}: {e}")
 
-    # Auth manager is already initialized as a module-level singleton
-    # No need to create instance here
+    # Initialize auth manager with default configuration
+    # The auth_manager variable is imported at the top of this file
+    # We need to update the module-level singleton
+    try:
+        from .modules.auth import auth_manager as auth_manager_module
+        from .modules.auth.auth_manager import AuthManager
+    except ImportError:
+        from modules.auth import auth_manager as auth_manager_module
+        from modules.auth.auth_manager import AuthManager
+    
+    # Create and set the global auth_manager instance
+    auth_manager_instance = AuthManager(auth_dir=os.path.join(app_path, "website", "auth"))
+    auth_manager_module.auth_manager = auth_manager_instance
+    
+    # Also update the local module reference so the inject_endpoint function can access it
+    globals()['auth_manager'] = auth_manager_instance
+    
+    logger.info("Auth manager initialized")
 
     # Start scheduler
     if os.path.isfile(os.path.join(app_path, "website", "scheduler.py")):
@@ -177,7 +188,7 @@ def setup_app(app):
     try:
         from .modules.threaded import thread_emitter
     except ImportError:
-        from threaded import thread_emitter
+        from modules.threaded import thread_emitter
     
     thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=0.5)
     thread_emitter.thread_emitter_obj.start()
@@ -226,7 +237,10 @@ def setup_app(app):
             session["page_info"] = ""
 
         # Get current user from session
-        user = session.get('user') or session.get('username') or auth_manager.get_current_user()
+        # Use auth_manager only if it's initialized
+        user = session.get('user') or session.get('username')
+        if not user and auth_manager is not None:
+            user = auth_manager.get_current_user()
         
         return dict(
             endpoint=request.endpoint, page_info=session["page_info"], user=user

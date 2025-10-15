@@ -390,8 +390,6 @@ class Site_conf:
         :param icon: The icon of the application, in mdi format
         :type icon: str
         """
-        m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
-    
         self.m_app["name"] = name
         self.m_app["icon"] = icon
         self.m_app["version"] = version
