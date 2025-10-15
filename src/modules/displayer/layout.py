@@ -17,18 +17,30 @@ class DisplayerLayout:
     
     Layouts define how displayer items are organized on the page.
     Supported layout types:
-    - VERTICAL: Stack items vertically in columns
-    - HORIZONTAL: Arrange items horizontally
+    - VERTICAL: Items in columns flow naturally (wrap if small, stack if large).
+                Multiple items in same column appear left-to-right if they fit.
+    - HORIZONTAL: Items always stack vertically, one per row (forced block display).
+                  Each item takes full column width, appearing one below the other.
     - TABLE: Display items in a table with headers
     - TABS: Show items in tabbed interface
     - SPACER: Add empty space between items
     
     Example:
+        >>> # VERTICAL: Items flow naturally in columns
         >>> layout = DisplayerLayout(
-        ...     layoutType=Layouts.HORIZONTAL,
+        ...     layoutType=Layouts.VERTICAL,
         ...     columns=[6, 6],  # Two equal columns
         ...     alignment=[BSalign.L, BSalign.R]
         ... )
+        >>> # Small items (like badges) will appear left-to-right
+        >>> 
+        >>> # HORIZONTAL: Items forced to stack vertically
+        >>> layout = DisplayerLayout(
+        ...     layoutType=Layouts.HORIZONTAL,
+        ...     columns=[12],  # Single column with full width
+        ...     alignment=[BSalign.L]
+        ... )
+        >>> # Each item gets its own row, stacked vertically
     """
 
     def __init__(
@@ -50,9 +62,12 @@ class DisplayerLayout:
 
         Args:
             layoutType: The layout type (Layouts enum)
-            columns: Column sizes (int list). Sum should not exceed 12. For TABLE/TABS, these are header labels.
+            columns: Column sizes (int list). 
+                - For VERTICAL/HORIZONTAL: Bootstrap column widths (1-12). Sum should not exceed 12.
+                - For HORIZONTAL: Use single value like [12] for full width, [8] for centered column, etc.
+                - For TABLE/TABS: These are header labels (strings).
             subtitle: Optional subtitle for the layout
-            alignment: Alignment for each column (BSalign list)
+            alignment: Alignment for each column (BSalign list or single BSalign)
             spacing: Bootstrap spacing format {property}{sides}-{size}, or int for py-{size}
             height: Height value for the layout (default line height)
             background: Background color/style (BSstyle enum)
@@ -63,13 +78,21 @@ class DisplayerLayout:
             style: Custom style override (MAZERStyles enum)
             
         Example:
-            >>> # Simple horizontal layout
+            >>> # VERTICAL layout: side-by-side columns
             >>> layout = DisplayerLayout(
-            ...     layoutType=Layouts.HORIZONTAL,
+            ...     layoutType=Layouts.VERTICAL,
             ...     columns=[8, 4],
             ...     alignment=[BSalign.L, BSalign.R],
             ...     spacing=3,
             ...     background=BSstyle.LIGHT
+            ... )
+            
+            >>> # HORIZONTAL layout: stacked items in single column
+            >>> layout = DisplayerLayout(
+            ...     layoutType=Layouts.HORIZONTAL,
+            ...     columns=[12],  # Full width
+            ...     alignment=[BSalign.C],  # Center aligned
+            ...     spacing=2
             ... )
             
             >>> # New DataTable API

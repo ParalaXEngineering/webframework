@@ -30,8 +30,8 @@ def get_all_layouts():
         list: List of tuples (layout_name, layout_enum, description)
     """
     layouts = [
-        ("Vertical", displayer.Layouts.VERTICAL, "Columns arranged horizontally with customizable widths (Bootstrap grid)"),
-        ("Horizontal", displayer.Layouts.HORIZONTAL, "Items arranged horizontally in a single row"),
+        ("Vertical", displayer.Layouts.VERTICAL, "Items flow naturally in columns (small items left-to-right, large items stack)"),
+        ("Horizontal", displayer.Layouts.HORIZONTAL, "Items always stack vertically (forced block display, one per row)"),
         ("Table", displayer.Layouts.TABLE, "Tabular layout with rows and columns"),
         ("Tabs", displayer.Layouts.TABS, "Tabbed interface for organizing content"),
         ("Spacer", displayer.Layouts.SPACER, "Empty space for visual separation"),
@@ -236,7 +236,7 @@ def show_horizontal_layout():
     """Show horizontal layout examples."""
     disp = displayer.Displayer()
     disp.add_generic("Horizontal Layout")
-    disp.set_title("Horizontal Layout - Inline Items")
+    disp.set_title("Horizontal Layout - Force Vertical Stacking")
     
     disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "layouts.index", [])
@@ -246,41 +246,154 @@ def show_horizontal_layout():
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12]
     ))
-    disp.add_display_item(displayer.DisplayerItemAlert(
-        "<strong>Horizontal Layout</strong><br>"
-        "Arranges items in a single horizontal row. Items are displayed inline with minimal spacing. "
-        "Useful for toolbars, button groups, and inline elements.",
-        displayer.BSstyle.INFO
+    disp.add_display_item(displayer.DisplayerItemAlertBox(
+        id="desc",
+        text="<strong>HORIZONTAL Layout - Forced Vertical Stacking</strong><br>"
+        "Forces each item to take full column width and stack vertically, one per row. "
+        "Unlike VERTICAL layout where small items flow left-to-right if they fit, "
+        "HORIZONTAL wraps each item in a block-level div (mb-2) ensuring they always stack. "
+        "Use [12] for full width, [8] for centered column, etc.",
+        style=displayer.BSstyle.INFO,
+        icon="information"
     ), 0)
     
-    # Example 1: Button group
+    # Example 1: Full width stacked items
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12],
-        subtitle="Example 1: Button Group"
+        subtitle="Example 1: Full Width Stacked Items [12]"
     ))
     
     h_layout = disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.HORIZONTAL
+        displayer.Layouts.HORIZONTAL,
+        columns=[12]
     ))
-    disp.add_display_item(displayer.DisplayerItemButton("btn1", "Save"), layout_id=h_layout)
-    disp.add_display_item(displayer.DisplayerItemButton("btn2", "Cancel"), layout_id=h_layout)
-    disp.add_display_item(displayer.DisplayerItemButton("btn3", "Reset"), layout_id=h_layout)
+    disp.add_display_item(displayer.DisplayerItemAlertBox(
+        id="alert1",
+        text="First item - Full width alert box",
+        style=displayer.BSstyle.PRIMARY,
+        icon="information"
+    ), column=0, layout_id=h_layout)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<p>Second item - Regular text content that flows naturally.</p>"
+    ), column=0, layout_id=h_layout)
+    disp.add_display_item(displayer.DisplayerItemAlertBox(
+        id="alert2",
+        text="Third item - Another alert box stacked below",
+        style=displayer.BSstyle.SUCCESS,
+        icon="check-circle"
+    ), column=0, layout_id=h_layout)
     
     # Code snippet
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12]
     ))
     code_example = '''h_layout = disp.add_master_layout(displayer.DisplayerLayout(
-    displayer.Layouts.HORIZONTAL
+    displayer.Layouts.HORIZONTAL,
+    columns=[12]  # Full width
 ))
-disp.add_display_item(displayer.DisplayerItemButton("btn1", "Save"), layout_id=h_layout)
-disp.add_display_item(displayer.DisplayerItemButton("btn2", "Cancel"), layout_id=h_layout)
-disp.add_display_item(displayer.DisplayerItemButton("btn3", "Reset"), layout_id=h_layout)'''
+disp.add_display_item(displayer.DisplayerItemAlertBox(...), column=0, layout_id=h_layout)
+disp.add_display_item(displayer.DisplayerItemText(...), column=0, layout_id=h_layout)
+disp.add_display_item(displayer.DisplayerItemAlertBox(...), column=0, layout_id=h_layout)'''
     disp.add_display_item(displayer.DisplayerItemCode(
         id="code_horizontal_1",
         code=code_example,
         language="python",
         show_line_numbers=True
+    ), 0)
+    
+    # Example 2: Centered narrower column
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="Example 2: Centered Column [8] with Alignment"
+    ))
+    
+    h_layout2 = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.HORIZONTAL,
+        columns=[8],
+        alignment=[displayer.BSalign.C]
+    ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<h5>Centered Content</h5>"
+    ), column=0, layout_id=h_layout2)
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<p>This column is only 8/12 width, creating margins on both sides. "
+        "Items are center-aligned within the column.</p>"
+    ), column=0, layout_id=h_layout2)
+    disp.add_display_item(displayer.DisplayerItemBadge(
+        "Centered Badge",
+        displayer.BSstyle.INFO
+    ), column=0, layout_id=h_layout2)
+    
+    # Code snippet
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12]
+    ))
+    code_example2 = '''h_layout = disp.add_master_layout(displayer.DisplayerLayout(
+    displayer.Layouts.HORIZONTAL,
+    columns=[8],  # Narrower, centered column
+    alignment=[displayer.BSalign.C]  # C = center
+))
+disp.add_display_item(displayer.DisplayerItemText("<h5>Centered</h5>"), column=0, layout_id=h_layout)
+disp.add_display_item(displayer.DisplayerItemText("<p>Content</p>"), column=0, layout_id=h_layout)
+disp.add_display_item(displayer.DisplayerItemBadge("Badge", BSstyle.INFO), column=0, layout_id=h_layout)'''
+    disp.add_display_item(displayer.DisplayerItemCode(
+        id="code_horizontal_2",
+        code=code_example2,
+        language="python",
+        show_line_numbers=True
+    ), 0)
+    
+    # Example 3: Comparison with VERTICAL - Key Difference
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="Example 3: Key Difference - HORIZONTAL vs VERTICAL"
+    ))
+    
+    # Show VERTICAL behavior with badges
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="VERTICAL [12] - Small items flow left-to-right"
+    ))
+    v_layout = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL,
+        columns=[12]
+    ))
+    disp.add_display_item(displayer.DisplayerItemBadge("Badge 1", displayer.BSstyle.PRIMARY), column=0, layout_id=v_layout)
+    disp.add_display_item(displayer.DisplayerItemBadge("Badge 2", displayer.BSstyle.SUCCESS), column=0, layout_id=v_layout)
+    disp.add_display_item(displayer.DisplayerItemBadge("Badge 3", displayer.BSstyle.WARNING), column=0, layout_id=v_layout)
+    disp.add_display_item(displayer.DisplayerItemText("<p class='mt-2'>↑ Notice badges appear left-to-right (natural flow)</p>"), column=0, layout_id=v_layout)
+    
+    # Show HORIZONTAL behavior with same badges
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="HORIZONTAL [12] - All items forced vertically"
+    ))
+    h_layout3 = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.HORIZONTAL,
+        columns=[12]
+    ))
+    disp.add_display_item(displayer.DisplayerItemBadge("Badge 1", displayer.BSstyle.PRIMARY), column=0, layout_id=h_layout3)
+    disp.add_display_item(displayer.DisplayerItemBadge("Badge 2", displayer.BSstyle.SUCCESS), column=0, layout_id=h_layout3)
+    disp.add_display_item(displayer.DisplayerItemBadge("Badge 3", displayer.BSstyle.WARNING), column=0, layout_id=h_layout3)
+    disp.add_display_item(displayer.DisplayerItemText("<p>↑ Notice badges stack vertically (forced block display)</p>"), column=0, layout_id=h_layout3)
+    
+    # Explanation
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12]
+    ))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<div class='alert alert-warning'>"
+        "<h5><i class='mdi mdi-lightbulb'></i> Key Difference</h5>"
+        "<ul>"
+        "<li><strong>VERTICAL layout:</strong> Items flow naturally. Small items (badges, buttons) "
+        "appear <strong>left-to-right</strong> if they fit in the column width. "
+        "This is standard Bootstrap behavior.</li>"
+        "<li><strong>HORIZONTAL layout:</strong> Each item is wrapped in a block-level div with mb-2 spacing. "
+        "Items <strong>always stack vertically</strong>, one per row, regardless of their size.</li>"
+        "</ul>"
+        "<p><strong>Use HORIZONTAL when:</strong> You want guaranteed vertical stacking (forms, card lists, sequential content).<br>"
+        "<strong>Use VERTICAL when:</strong> You want natural flow or need multiple columns.</p>"
+        "</div>"
     ), 0)
     
     return render_template("base_content.j2", content=disp.display())

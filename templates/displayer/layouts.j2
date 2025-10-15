@@ -16,7 +16,28 @@
 {% endmacro %}
 
 {% macro display_horizontal_layout(columns=[], containers = [], align = [], spacing = 0) %}
-    TOCODE
+    {# HORIZONTAL layout: single column with items stacked vertically #}
+    {# columns[0] defines the Bootstrap column width (e.g., 12 for full width) #}
+    {% if columns and columns|length > 0 %}
+        <div class="row my-1 {{spacing}}">
+            <div class="col-{{columns[0]}} text-{{align[0] if align else 'left'}}">
+                {# Display all items in the single container, stacked vertically #}
+                {% for element in containers[0] %}
+                    {% if element["object"] == "item" %}
+                        <div class="mb-2">
+                            {{ disp_item.display_item(element) }}
+                        </div>
+                    {% elif element["object"] == "layout" %}
+                        <div class="mb-2">
+                            {{ display_layout(element) }}
+                        </div>
+                    {% else %}
+                        NOT SUPPORTED
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
 {% endmacro %}
 
 {% macro display_vertical_layout(columns=[], containers = [], align = [], spacing = 0, height = 0, background = none, user_id = none, style = none) %}

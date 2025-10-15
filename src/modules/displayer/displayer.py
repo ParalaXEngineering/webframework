@@ -41,8 +41,19 @@ class Displayer:
     Example:
         >>> disp = Displayer()
         >>> disp.add_generic("MyModule")
-        >>> layout_id = disp.add_master_layout(DisplayerLayout(Layouts.HORIZONTAL, columns=[6, 6]))
-        >>> disp.add_display_item(DisplayerItemText("Hello"), column=0)
+        >>> 
+        >>> # VERTICAL layout: Items flow naturally
+        >>> layout_id = disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, columns=[6, 6]))
+        >>> disp.add_display_item(DisplayerItemText("Left"), column=0)
+        >>> disp.add_display_item(DisplayerItemText("Right"), column=1)
+        >>> # Small items in same column appear left-to-right if they fit
+        >>> 
+        >>> # HORIZONTAL layout: Items always stack vertically
+        >>> layout_id = disp.add_master_layout(DisplayerLayout(Layouts.HORIZONTAL, columns=[12]))
+        >>> disp.add_display_item(DisplayerItemBadge("Item 1"), column=0)
+        >>> disp.add_display_item(DisplayerItemBadge("Item 2"), column=0)
+        >>> # Even small badges stack vertically (forced block display)
+        >>> 
         >>> data = disp.display()
     """
 
@@ -325,7 +336,7 @@ class Displayer:
         if layout is None:
             return False
 
-        if layout["type"] == Layouts.VERTICAL.value:
+        if layout["type"] == Layouts.VERTICAL.value or layout["type"] == Layouts.HORIZONTAL.value:
             # Check that there are enough columns
             if column >= len(layout["containers"]):
                 return False
@@ -360,7 +371,7 @@ class Displayer:
             item.setId(id)
 
         # Add the display item
-        if layout["type"] == Layouts.VERTICAL.value:
+        if layout["type"] == Layouts.VERTICAL.value or layout["type"] == Layouts.HORIZONTAL.value:
             item.display(layout["containers"][column], self.m_modules[self.m_active_module]["id"])
         elif layout["type"] == Layouts.TABLE.value:
             item.display(
@@ -413,7 +424,7 @@ class Displayer:
         if master_layout is None:
             return -1
 
-        if layout.m_type == Layouts.VERTICAL.value:
+        if layout.m_type == Layouts.VERTICAL.value or layout.m_type == Layouts.HORIZONTAL.value:
             # Check that there are enough columns
             if "header" in master_layout and column >= len(master_layout["header"]):
                 return -1 
@@ -421,7 +432,7 @@ class Displayer:
                 return -1
             
         # Add the display item
-        if layout.m_type == Layouts.VERTICAL.value:
+        if layout.m_type == Layouts.VERTICAL.value or layout.m_type == Layouts.HORIZONTAL.value:
             if "lines" in master_layout:
                 # Do we have at least a line?
                 if not master_layout["lines"]:

@@ -257,7 +257,26 @@ class DisplayerCategory:
 # ============================================================================
 
 class Layouts(Enum):
-    """Available layout types for organizing displayer items."""
+    """
+    Available layout types for organizing displayer items.
+    
+    - VERTICAL: Bootstrap grid layout with columns. Items flow naturally within columns.
+                Small items (badges, buttons) appear left-to-right if they fit,
+                larger items stack vertically. Standard Bootstrap behavior.
+                Example: [6, 6] creates two columns side by side.
+                
+    - HORIZONTAL: Single column where each item is forced to take full width.
+                  Items always stack vertically, one per row, regardless of size.
+                  Each item wrapped in block-level div (mb-2 spacing).
+                  Example: [12] creates full-width stacked items.
+                  
+    - TABLE: Tabular layout with rows and columns, headers at the top.
+             Supports DataTables for interactive features.
+             
+    - TABS: Tabbed interface for organizing content in separate tabs.
+    
+    - SPACER: Empty vertical space for visual separation between sections.
+    """
     VERTICAL = "VERT"
     HORIZONTAL = "HORIZ"
     TABLE = "TABLE"
