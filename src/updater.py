@@ -317,6 +317,13 @@ class SETUP_Updater(threaded_action.Threaded_action):
                             archive.write(
                                 file_path, arcname=file_path.relative_to(directory)
                             )
+            
+            # Nettoyer le fichier .beta après la création du package
+            beta_file = os.path.join("updater", self.m_distribution, "dist", "core", "website", ".beta")
+            if os.path.exists(beta_file):
+                os.remove(beta_file)
+                self.m_logger.info(f"Cleaned up beta marker file: {beta_file}")
+            
             self.m_scheduler.emit_status(
                 self.get_name(), f"Creation of the update package for {self.m_distribution}", 100
             )
