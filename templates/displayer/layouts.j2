@@ -8,7 +8,7 @@
     {% elif layout["type"] == "TABLE" %}
         {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"], layout["user_id"]) }}
     {% elif layout["type"] == "TABS" %}
-        {{ display_tabs_layout(layout["header"], layout["lines"]) }}
+        {{ display_tabs_layout(layout["header"], layout["lines"], layout["user_id"]) }}
     {% elif layout["type"] == "SPACER" %}
         <div><p style="margin-bottom:1cm;"></p></div>
           
@@ -92,16 +92,17 @@
     </div>
 {% endmacro %}
 
-{% macro display_tabs_layout(header=[], lines=[]) %}
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
+{% macro display_tabs_layout(header=[], lines=[], user_id=none) %}
+    {% set tab_id = user_id if user_id else 'myTab' %}
+    <ul class="nav nav-tabs" id="{{ tab_id }}" role="tablist">
     {% for head in header %}
     <li class="nav-item" role="presentation">
         <a class="nav-link {% if loop.first %}active{% endif %}" 
-        id="tab{{ loop.index }}-tab" 
+        id="{{ tab_id }}_tab{{ loop.index }}" 
         data-bs-toggle="tab" 
-        href="#tab{{ loop.index }}" 
+        href="#{{ tab_id }}_pane{{ loop.index }}" 
         role="tab" 
-        aria-controls="tab{{ loop.index }}" 
+        aria-controls="{{ tab_id }}_pane{{ loop.index }}" 
         aria-selected="{{ 'true' if loop.first else 'false' }}">
         {{ head }}
         </a>
@@ -109,12 +110,12 @@
     {% endfor %}
     </ul>
 
-    <div class="tab-content" id="myTabContent">
+    <div class="tab-content" id="{{ tab_id }}_content">
     {% for items in lines[0] %}
         <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
-            id="tab{{ loop.index }}" 
+            id="{{ tab_id }}_pane{{ loop.index }}" 
             role="tabpanel" 
-            aria-labelledby="tab{{ loop.index }}-tab">
+            aria-labelledby="{{ tab_id }}_tab{{ loop.index }}">
             {% for element in items %}
                 {% if element["object"] == "item" %}
                     {{ disp_item.display_item(element) }}

@@ -533,7 +533,9 @@ $(document).ready(function() {
      * Preserves state like active tabs, scroll position, user interactions
      */
     function smartUpdateContent(element, newHtmlString) {
+        console.log("[SMART_UPDATE] ========== START ==========");
         console.log("[SMART_UPDATE] Called for element:", element.id, "current children:", element.childNodes.length);
+        
         // Create temporary container with new content
         const temp = document.createElement('div');
         temp.innerHTML = newHtmlString;
@@ -546,14 +548,25 @@ $(document).ready(function() {
         }
         
         // STEP 1: Find all currently active tabs/content BEFORE updating
+        // Store active tab info with more context (which card/thread it belongs to)
         const activeStates = new Map();
+        const allTabs = element.querySelectorAll('[role="tab"]');
+        console.log(`[SMART_UPDATE] Found ${allTabs.length} total tabs in element`);
+        
         element.querySelectorAll('[role="tab"][aria-selected="true"]').forEach(tab => {
             const tabId = tab.getAttribute('id');
             const targetId = tab.getAttribute('data-bs-target') || tab.getAttribute('href');
-            if (tabId) {
-                activeStates.set(tabId, targetId);
+            const tabList = tab.closest('[role="tablist"]');
+            
+            if (tabId && targetId && tabList) {
+                // Store the tab index within its tab list to help identify it later
+                const tabIndex = Array.from(tabList.querySelectorAll('[role="tab"]')).indexOf(tab);
+                const tabListId = tabList.getAttribute('id');
+                activeStates.set(tabId, { targetId, tabIndex, tabListId });
+                console.log(`[SMART_UPDATE] ✓ Saved active tab: tabId="${tabId}", targetId="${targetId}", tabListId="${tabListId}", index=${tabIndex}`);
             }
         });
+        console.log(`[SMART_UPDATE] Total active tabs saved: ${activeStates.size}`);
         
         // STEP 2: Compare children of old and new
         const oldChildren = Array.from(element.childNodes);
@@ -576,34 +589,57 @@ $(document).ready(function() {
         }
         
         // STEP 3: Restore active states AFTER updating
-        activeStates.forEach((targetId, tabId) => {
+        console.log(`[SMART_UPDATE] ========== RESTORE PHASE ==========`);
+        console.log(`[SMART_UPDATE] Attempting to restore ${activeStates.size} tab states`);
+        
+        activeStates.forEach((state, tabId) => {
+            console.log(`[SMART_UPDATE] Restoring: tabId="${tabId}", targetId="${state.targetId}", tabListId="${state.tabListId}"`);
+            
             const tab = element.querySelector(`#${CSS.escape(tabId)}`);
-            const target = element.querySelector(targetId?.replace('#', '#'));
+            const target = state.targetId ? element.querySelector(state.targetId) : null;
+            
+            console.log(`[SMART_UPDATE]   - Found tab element:`, !!tab);
+            console.log(`[SMART_UPDATE]   - Found target element:`, !!target);
             
             if (tab && target) {
-                // Deactivate all tabs in this group first
+                // Find the tab list and tab content
                 const tabList = tab.closest('[role="tablist"]');
-                if (tabList) {
-                    tabList.querySelectorAll('[role="tab"]').forEach(t => {
+                const tabContent = target.parentElement;
+                
+                console.log(`[SMART_UPDATE]   - Found tabList:`, !!tabList, tabList?.id);
+                console.log(`[SMART_UPDATE]   - Found tabContent:`, !!tabContent, tabContent?.id);
+                
+                if (tabList && tabContent?.classList.contains('tab-content')) {
+                    // Deactivate all tabs in THIS specific tab list
+                    const tabsInList = tabList.querySelectorAll('[role="tab"]');
+                    console.log(`[SMART_UPDATE]   - Deactivating ${tabsInList.length} tabs in list`);
+                    tabsInList.forEach(t => {
                         t.classList.remove('active');
                         t.setAttribute('aria-selected', 'false');
                     });
-                }
-                
-                // Deactivate all tab panes in this group
-                const tabContent = target.parentElement;
-                if (tabContent?.classList.contains('tab-content')) {
-                    tabContent.querySelectorAll('.tab-pane').forEach(pane => {
+                    
+                    // Deactivate all panes in THIS specific tab content
+                    const panesInContent = tabContent.querySelectorAll('.tab-pane');
+                    console.log(`[SMART_UPDATE]   - Deactivating ${panesInContent.length} panes in content`);
+                    panesInContent.forEach(pane => {
                         pane.classList.remove('active', 'show');
                     });
+                    
+                    // Activate the preserved tab and its pane
+                    tab.classList.add('active');
+                    tab.setAttribute('aria-selected', 'true');
+                    target.classList.add('active', 'show');
+                    
+                    console.log(`[SMART_UPDATE]   ✓ SUCCESS: Activated tab "${tabId}" and pane "${target.id}"`);
+                } else {
+                    console.log(`[SMART_UPDATE]   ✗ FAILED: Missing tabList or tabContent`);
                 }
-                
-                // Activate the preserved tab
-                tab.classList.add('active');
-                tab.setAttribute('aria-selected', 'true');
-                target.classList.add('active', 'show');
+            } else {
+                console.log(`[SMART_UPDATE]   ✗ FAILED: Could not find tab or target element`);
             }
         });
+        
+        console.log("[SMART_UPDATE] ========== END ==========");
     }
     
     /**

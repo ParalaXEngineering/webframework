@@ -196,7 +196,9 @@ class ThreadEmitter:
             is_running: Whether thread is currently running
         """
         thread_name = thread.get_name()
-        thread_id = thread_name.replace(' ', '_').replace(':', '_')
+        # Use thread object id to ensure uniqueness when multiple threads have the same name
+        thread_unique_id = id(thread)
+        thread_id = f"{thread_name.replace(' ', '_').replace(':', '_')}_{thread_unique_id}"
         
         # Get thread status using proper getters
         progress = thread.get_progress()
@@ -267,9 +269,9 @@ class ThreadEmitter:
             tab_titles.append("Logs")
         tab_titles.append("Info")
         
-        # Add TABS layout
+        # Add TABS layout with unique ID for this thread
         tabs_layout_id = disp.add_master_layout(
-            DisplayerLayout(Layouts.TABS, tab_titles)
+            DisplayerLayout(Layouts.TABS, tab_titles, userid=f"{thread_id}_tabs")
         )
         
         tab_col = 0
