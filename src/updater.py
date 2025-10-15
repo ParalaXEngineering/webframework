@@ -41,8 +41,9 @@ class SETUP_Updater(threaded_action.Threaded_action):
         """
         self.m_file = file
 
-    def set_distribution(self, distribution: str) -> None:
+    def set_distribution(self, distribution: str, is_beta: bool = False) -> None:
         self.m_distribution = distribution
+        self.m_is_beta = is_beta
 
     def set_action(self, action: str) -> None:
         """Set the action to perform
@@ -279,9 +280,9 @@ class SETUP_Updater(threaded_action.Threaded_action):
             self.m_scheduler.emit_status(
                 self.get_name(), f"Creation of the update package for {self.m_distribution}", 103
             )
-            # Create the package with pyinstaller
+
             try:
-                site_conf_obj.create_distribuate(self.m_distribution)
+                site_conf_obj.create_distribuate(self.m_distribution, self.m_is_beta)
             except Exception as e:
                 traceback_str = traceback.format_exc()
                 self.m_logger.warning("Update creation failed: " + str(e))
@@ -295,6 +296,8 @@ class SETUP_Updater(threaded_action.Threaded_action):
                 return
             directories = [os.path.join("updater", self.m_distribution, "dist")]
             version = site_conf_obj.m_app["version"].split("_")[0]
+            if getattr(self, 'm_is_beta', False):
+                version += "_Beta"
             if (self.m_distribution == "Windows"):
                 with zipfile.ZipFile(
                     os.path.join(
@@ -407,7 +410,7 @@ def update():
         if "create" in data_in:
             packager = SETUP_Updater()
             packager.set_action("create")
-            packager.set_distribution(data_in["distrib"])
+            packager.set_distribution(data_in["distrib"], data_in["is_beta"])
             packager.start()
         elif "upload" in data_in:
             packager = SETUP_Updater()
@@ -447,9 +450,10 @@ def update():
         disp.add_master_layout(
             displayer.DisplayerLayout(
                 displayer.Layouts.VERTICAL,
-                [3, 6, 3],
+                [3, 3, 3, 3],
                 subtitle="Update Creation",
                 alignment=[
+                    displayer.BSalign.L,
                     displayer.BSalign.L,
                     displayer.BSalign.L,
                     displayer.BSalign.R,
@@ -459,7 +463,8 @@ def update():
 
         disp.add_display_item(displayer.DisplayerItemText("Create a new update with installer"), 0)
         disp.add_display_item(displayer.DisplayerItemInputSelect("distrib", None, None, ["Windows", "Linux"]), 1)
-        disp.add_display_item(displayer.DisplayerItemButton("create", "Create"), 2)
+        disp.add_display_item(displayer.DisplayerItemInputBox("is_beta", "Beta Version", False), 2)
+        disp.add_display_item(displayer.DisplayerItemButton("create", "Create"), 3)
 
         disp.add_master_layout(
             displayer.DisplayerLayout(
