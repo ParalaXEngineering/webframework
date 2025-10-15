@@ -143,8 +143,12 @@ class MessageEmitter:
         Args:
             reloads: List of [id, content]
         """
+        if reloads:
+            self.logger.info(f"[EMITTER] emit_reloads: {len(reloads)} reload messages")
+        
         for item_id, content in reloads:
             try:
+                self.logger.info(f"[EMITTER] Emitting reload for ID: {item_id}, content length: {len(content)} chars")
                 self.socket.emit("reload", {
                     "id": item_id,
                     "content": content

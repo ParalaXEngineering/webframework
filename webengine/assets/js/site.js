@@ -508,7 +508,9 @@ $(document).ready(function() {
         }
     })
     socket.on( 'reload', function( msg ) {
+        console.log("[SOCKET] Received reload event:", msg["id"], "content length:", msg["content"].length);
         let div = document.getElementById(msg["id"])
+        console.log("[SOCKET] Target div found:", div !== null);
         if(div) {
             smartUpdateContent(div, msg["content"]);
         }
@@ -531,12 +533,14 @@ $(document).ready(function() {
      * Preserves state like active tabs, scroll position, user interactions
      */
     function smartUpdateContent(element, newHtmlString) {
+        console.log("[SMART_UPDATE] Called for element:", element.id, "current children:", element.childNodes.length);
         // Create temporary container with new content
         const temp = document.createElement('div');
         temp.innerHTML = newHtmlString;
         
         // If element is currently empty, just set innerHTML
         if (!element.firstChild) {
+            console.log("[SMART_UPDATE] Element empty, setting innerHTML directly");
             element.innerHTML = newHtmlString;
             return;
         }

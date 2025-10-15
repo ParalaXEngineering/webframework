@@ -34,8 +34,8 @@ class DemoSchedulerAction(Threaded_action):
             self._demo_parallel_progress()
         elif self.demo_type == "popup_demo":
             self._demo_popup()
-        elif self.demo_type == "alert_progress":
-            self._demo_alert_progress()
+        elif self.demo_type == "status_codes":
+            self._demo_status_codes()
         elif self.demo_type == "button_control":
             self._demo_button_control()
         elif self.demo_type == "dynamic_content":
@@ -45,8 +45,6 @@ class DemoSchedulerAction(Threaded_action):
         else:
             # Default to simple if unknown
             self._demo_single_progress()
-        
-        self.delete()
     
     def _demo_single_progress(self):
         """Simple progress bar demo."""
@@ -60,11 +58,6 @@ class DemoSchedulerAction(Threaded_action):
                 status_id="single_progress"
             )
             time.sleep(0.5)
-        
-        self.m_scheduler.emit_popup(
-            scheduler.logLevel.success,
-            "Single progress completed!"
-        )
     
     def _demo_parallel_progress(self):
         """Multiple concurrent progress bars."""
@@ -89,11 +82,6 @@ class DemoSchedulerAction(Threaded_action):
                         status_id=task_id
                     )
             time.sleep(0.6)
-        
-        self.m_scheduler.emit_popup(
-            scheduler.logLevel.success,
-            "All parallel tasks completed!"
-        )
     
     def _demo_popup(self):
         """Shows all 4 popup types."""
@@ -124,31 +112,28 @@ class DemoSchedulerAction(Threaded_action):
             "<strong>Error occurred</strong><br>(Just a demo - nothing's wrong!)"
         )
     
-    def _demo_alert_progress(self):
-        """Shows alert popup during progress."""
-        for i in range(5):
-            progress = (i + 1) * 20
+    def _demo_status_codes(self):
+        """Demonstrates all special status codes >100."""
+        statuses = [
+            (103, "In progress (spinner)", "Starting task..."),
+            (50, "Processing", "50% complete"),
+            (100, "Done (success)", "Task completed"),
+            (101, "Failed (error)", "Task failed"),
+            (102, "Readme (info)", "Read documentation"),
+            (105, "Not needed", "Skipped task"),
+            (106, "Pending", "Waiting in queue"),
+            (104, "Hidden", "This status is hidden"),
+        ]
+        
+        for status_code, label, description in statuses:
             self.m_scheduler.emit_status(
                 self.get_name(),
-                f"Step {i+1}/5",
-                progress,
-                f"{progress}%",
-                status_id="alert_progress"
+                description,
+                status_code,
+                label,
+                status_id="status_code_demo"
             )
-            
-            # Show alert at halfway point
-            if i == 2:
-                self.m_scheduler.emit_popup(
-                    scheduler.logLevel.warning,
-                    "Halfway done! Keep going..."
-                )
-            
-            time.sleep(0.8)
-        
-        self.m_scheduler.emit_popup(
-            scheduler.logLevel.success,
-            "Progress with alerts complete!"
-        )
+            time.sleep(1.2)
     
     def _demo_button_control(self):
         """Button control: disable and enable dynamically."""
@@ -168,11 +153,6 @@ class DemoSchedulerAction(Threaded_action):
         
         # Re-enable the button
         self.m_scheduler.enable_button("btn_button_control")
-        
-        self.m_scheduler.emit_popup(
-            scheduler.logLevel.success,
-            "Button control demo complete - button re-enabled!"
-        )
     
     def _demo_dynamic_content(self):
         """Updates page content dynamically without page refresh."""
@@ -191,7 +171,7 @@ class DemoSchedulerAction(Threaded_action):
             current_time = time.strftime("%H:%M:%S")
             alert_class = ["info", "success", "warning", "primary", "secondary"][i]
             reloader = [{
-                'id': 'scheduler_demo_dynamic_content',
+                'id': 'Scheduler Demo.scheduler_demo_dynamic_content',
                 'content': f'''
                 <div class="alert alert-{alert_class}">
                     <h5>Update {i+1}/5</h5>
@@ -202,11 +182,6 @@ class DemoSchedulerAction(Threaded_action):
             }]
             self.m_scheduler.emit_reload(reloader)
             time.sleep(1)
-        
-        self.m_scheduler.emit_popup(
-            scheduler.logLevel.success,
-            "Dynamic content demo complete!"
-        )
     
     def _demo_all_features(self):
         """Comprehensive demo with all features combined."""
@@ -236,7 +211,7 @@ class DemoSchedulerAction(Threaded_action):
             # Update dynamic content
             current_time = time.strftime("%H:%M:%S")
             reloader = [{
-                'id': 'scheduler_demo_dynamic_content',
+                'id': 'Scheduler Demo.scheduler_demo_dynamic_content',
                 'content': f'''
                 <div class="alert alert-primary">
                     <h5>Step {i+1}/5</h5>

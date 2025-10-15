@@ -255,9 +255,9 @@ def scheduler_demo():
                     demo_action.start()
                     message = ("✓ Popup Demo Started", displayer.BSstyle.SUCCESS)
                 elif "btn_alert" in action_data:
-                    demo_action.set_demo_type("alert_progress")
+                    demo_action.set_demo_type("status_codes")
                     demo_action.start()
-                    message = ("✓ Alert in Progress Started", displayer.BSstyle.SUCCESS)
+                    message = ("✓ Status Codes Demo Started", displayer.BSstyle.SUCCESS)
                 elif "btn_button_control" in action_data:
                     demo_action.set_demo_type("button_control")
                     demo_action.start()
@@ -292,16 +292,6 @@ def scheduler_demo():
         displayer.BSstyle.INFO
     ), 0)
     
-    # Dynamic content area
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-    disp.add_display_item(
-        displayer.DisplayerItemPlaceholder(
-            "scheduler_demo_dynamic_content",
-            '<div class="alert alert-secondary">Dynamic content area - will update during demos</div>'
-        ),
-        0
-    )
-    
     # Demo table
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12],
@@ -312,15 +302,15 @@ def scheduler_demo():
         displayer.Layouts.TABLE,
         columns=["Demo", "Action", "Code Example"]
     ))
-    
+        
     # 1. Single Progress
     disp.add_display_item(displayer.DisplayerItemText(
         "<strong>Single Progress</strong><br>Simple progress bar update"
-    ), column=0, line=0, layout_id=table_id)
+    ), column=0, line=1, layout_id=table_id)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_single", "", icon="progress-check"
-    ), column=1, line=0, layout_id=table_id)
+    ), column=1, line=1, layout_id=table_id)
     
     code_single = '''for i in range(10):
     self.emit_status(
@@ -332,16 +322,16 @@ def scheduler_demo():
     time.sleep(0.5)'''
     disp.add_display_item(displayer.DisplayerItemCode(
         id="code_single", code=code_single, language="python", show_line_numbers=False
-    ), column=2, line=0, layout_id=table_id)
+    ), column=2, line=1, layout_id=table_id)
     
     # 2. Parallel Progress
     disp.add_display_item(displayer.DisplayerItemText(
         "<strong>Parallel Progress</strong><br>Multiple concurrent progress bars"
-    ), column=0, line=1, layout_id=table_id)
+    ), column=0, line=2, layout_id=table_id)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_parallel", "", icon="progress-star"
-    ), column=1, line=1, layout_id=table_id)
+    ), column=1, line=2, layout_id=table_id)
     
     code_parallel = '''# Update multiple progress bars
 self.emit_status("progress", "Task 1", 33, 
@@ -352,16 +342,16 @@ self.emit_status("progress", "Task 3", 100,
     "Done", status_id="task3")'''
     disp.add_display_item(displayer.DisplayerItemCode(
         id="code_parallel", code=code_parallel, language="python", show_line_numbers=False
-    ), column=2, line=1, layout_id=table_id)
+    ), column=2, line=2, layout_id=table_id)
     
     # 3. Popup Demo
     disp.add_display_item(displayer.DisplayerItemText(
         "<strong>Popup Notifications</strong><br>Toast messages: success, error, warning, info"
-    ), column=0, line=2, layout_id=table_id)
+    ), column=0, line=3, layout_id=table_id)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_popup", "", icon="bell-ring"
-    ), column=1, line=2, layout_id=table_id)
+    ), column=1, line=3, layout_id=table_id)
     
     code_popup = '''self.emit_popup("info", "Starting process")
 time.sleep(1)
@@ -372,39 +362,40 @@ time.sleep(1)
 self.emit_popup("error", "Error occurred")'''
     disp.add_display_item(displayer.DisplayerItemCode(
         id="code_popup", code=code_popup, language="python", show_line_numbers=False
-    ), column=2, line=2, layout_id=table_id)
+    ), column=2, line=3, layout_id=table_id)
     
-    # 4. Alert in Progress
+    # 4. Special Status Codes
     disp.add_display_item(displayer.DisplayerItemText(
-        "<strong>Alert in Action</strong><br>Show alert while progress updates"
-    ), column=0, line=3, layout_id=table_id)
+        "<strong>Special Status Codes</strong><br>Status codes >100 show special icons in action progress"
+    ), column=0, line=4, layout_id=table_id)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_alert", "", icon="alert-circle"
-    ), column=1, line=3, layout_id=table_id)
+    ), column=1, line=4, layout_id=table_id)
     
-    code_alert = '''for i in range(5):
-    self.emit_status(
-        category="progress",
-        string=f"Step {i+1}",
-        status=(i+1) * 20
-    )
-    if i == 2:
-        self.emit_popup("warning", 
-            "Halfway done!")
-    time.sleep(0.8)'''
+    code_alert = '''# Special status codes:
+# 100 = Done (green check)
+# 101 = Failed (red X)
+# 102 = Readme (info icon)
+# 103 = In progress (spinner)
+# 104 = (empty)
+# 105 = Not needed (minus icon)
+# 106 = Pending (hourglass)
+self.emit_status("progress", 
+    "Task description", 103, 
+    "In progress...")'''
     disp.add_display_item(displayer.DisplayerItemCode(
         id="code_alert", code=code_alert, language="python", show_line_numbers=False
-    ), column=2, line=3, layout_id=table_id)
+    ), column=2, line=4, layout_id=table_id)
     
     # 5. Button Control
     disp.add_display_item(displayer.DisplayerItemText(
         "<strong>Button Control</strong><br>Disable/enable buttons dynamically"
-    ), column=0, line=4, layout_id=table_id)
+    ), column=0, line=5, layout_id=table_id)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_button_control", "", icon="toggle-switch"
-    ), column=1, line=4, layout_id=table_id)
+    ), column=1, line=5, layout_id=table_id)
     
     code_button = '''# Disable button during processing
 self.disable_button("btn_button_control")
@@ -416,16 +407,22 @@ for i in range(5):
 self.enable_button("btn_button_control")'''
     disp.add_display_item(displayer.DisplayerItemCode(
         id="code_button", code=code_button, language="python", show_line_numbers=False
-    ), column=2, line=4, layout_id=table_id)
+    ), column=2, line=5, layout_id=table_id)
     
     # 6. Dynamic Content
     disp.add_display_item(displayer.DisplayerItemText(
         "<strong>Dynamic Content</strong><br>Update page content in real-time"
-    ), column=0, line=5, layout_id=table_id)
+    ), column=0, line=6, layout_id=table_id)
+
+    # Row 0: Dynamic content area (spans all columns)
+    disp.add_display_item(displayer.DisplayerItemPlaceholder(
+        "scheduler_demo_dynamic_content",
+        '<div class="alert alert-secondary"><i class="mdi mdi-information-outline"></i> <strong>Dynamic Content Area</strong> - Will update in real-time during demos (no page refresh needed!)</div>'
+    ), column=0, line=6, layout_id=table_id)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_dynamic", "", icon="refresh"
-    ), column=1, line=5, layout_id=table_id)
+    ), column=1, line=6, layout_id=table_id)
     
     code_dynamic = '''for i in range(5):
     html = f\'\'\'<div class="alert 
@@ -438,16 +435,16 @@ self.enable_button("btn_button_control")'''
     time.sleep(1)'''
     disp.add_display_item(displayer.DisplayerItemCode(
         id="code_dynamic", code=code_dynamic, language="python", show_line_numbers=False
-    ), column=2, line=5, layout_id=table_id)
+    ), column=2, line=6, layout_id=table_id)
     
     # 7. All Features
     disp.add_display_item(displayer.DisplayerItemText(
         "<strong>All Features Combined</strong><br>Progress + popup + button control + dynamic content"
-    ), column=0, line=6, layout_id=table_id)
+    ), column=0, line=7, layout_id=table_id)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_all_features", "", icon="star-circle", color=displayer.BSstyle.PRIMARY
-    ), column=1, line=6, layout_id=table_id)
+    ), column=1, line=7, layout_id=table_id)
     
     code_all = '''# Comprehensive example
 self.disable_button("btn_all_features")
@@ -469,7 +466,7 @@ self.emit_popup("success", "Complete!")
 self.enable_button("btn_all_features")'''
     disp.add_display_item(displayer.DisplayerItemCode(
         id="code_all", code=code_all, language="python", show_line_numbers=False
-    ), column=2, line=6, layout_id=table_id)
+    ), column=2, line=7, layout_id=table_id)
     
     # API Reference
     disp.add_master_layout(displayer.DisplayerLayout(
@@ -489,6 +486,35 @@ self.enable_button("btn_all_features")'''
         ("disable_button()", "button_id", "Disable UI button"),
         ("enable_button()", "button_id", "Enable UI button"),
     ]
+    
+    # Add special status codes info
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12],
+        subtitle="Special Status Codes (>100)"
+    ))
+    
+    status_codes_table = disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.TABLE,
+        columns=["Code", "Icon", "Meaning"]
+    ))
+    
+    status_codes = [
+        ("100", '<i class="mdi mdi-check text-success mx-1"></i>', "Done / Success"),
+        ("101", '<i class="mdi mdi-close text-danger mx-1"></i>', "Failed / Error"),
+        ("102", '<i class="mdi mdi-information-outline text-info mx-1"></i>', "Information / Readme"),
+        ("103", '<div class="spinner-border spinner-border-sm text-primary" role="status"></div>', "In Progress"),
+        ("104", "", "Hidden status"),
+        ("105", '<i class="mdi mdi-minus-circle-outline text-secondary mx-1"></i>', "Not needed / Skipped"),
+        ("106", '<i class="mdi mdi-timer-sand text-primary mx-1"></i>', "Pending / Waiting"),
+    ]
+    
+    for line, (code, icon, meaning) in enumerate(status_codes):
+        disp.add_display_item(displayer.DisplayerItemText(f"<code>{code}</code>"), 
+                             column=0, line=line, layout_id=status_codes_table)
+        disp.add_display_item(displayer.DisplayerItemText(icon), 
+                             column=1, line=line, layout_id=status_codes_table)
+        disp.add_display_item(displayer.DisplayerItemText(meaning), 
+                             column=2, line=line, layout_id=status_codes_table)
     
     for line, (method, params, desc) in enumerate(methods):
         disp.add_display_item(displayer.DisplayerItemText(f"<code>{method}</code>"), 
