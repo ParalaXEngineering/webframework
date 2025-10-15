@@ -30,6 +30,57 @@ def index():
     disp.add_generic("Demo Landing")
     disp.set_title("ParalaX Framework Demos")
     
+    # Add demo links
+    disp.add_master_layout(
+        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12],
+                                 subtitle="Available Demos")
+    )
+    
+    demos_html = """
+    <div class="list-group">
+        <a href="/threading-demo" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">Threading System</h5>
+                <span class="badge bg-primary">Core System</span>
+            </div>
+            <p class="mb-1">Background task execution with real-time monitoring</p>
+        </a>
+        <a href="/scheduler-demo" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">Scheduler & Actions</h5>
+                <span class="badge bg-primary">Core System</span>
+            </div>
+            <p class="mb-1">Real-time UI updates, button control, and alert system</p>
+        </a>
+        <a href="/workflow-demo" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">Workflow System</h5>
+                <span class="badge bg-success">New!</span>
+            </div>
+            <p class="mb-1">Multi-step wizards with state persistence and conditional steps</p>
+        </a>
+        <a href="/component-showcase" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">Component Showcase</h5>
+                <span class="badge bg-info">UI Components</span>
+            </div>
+            <p class="mb-1">All available displayer items and layouts</p>
+        </a>
+        <a href="/auth-demo" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">Authentication System</h5>
+                <span class="badge bg-warning">Security</span>
+            </div>
+            <p class="mb-1">Role-based access control and permissions</p>
+        </a>
+    </div>
+    """
+    
+    disp.add_display_item(
+        displayer.DisplayerItemText(demos_html),
+        0
+    )
+    
     return render_template("base_content.j2", content=disp.display())
 
 @demo_bp.route('/threading-demo', methods=['GET', 'POST'])
@@ -689,3 +740,61 @@ def auth_admin():
     ), 1)
     
     return render_template("base_content.j2", content=disp.display())
+
+
+@demo_bp.route('/workflow-demo', methods=['GET', 'POST'])
+@require_login
+def workflow_demo():
+    """
+    Workflow system demo - Product registration with batch operations.
+    
+    Demonstrates:
+    - Multi-step forms with data persistence
+    - Threaded actions with progress
+    - Redo functionality for batch operations
+    - Code examples alongside each step
+    """
+    from demo_support.demo_workflow_new import SimplifiedDemoWorkflow
+    import pickle
+    
+    disp = displayer.Displayer()
+    disp.set_title("Workflow System Demo")
+    
+    # Get or create workflow instance from session
+    if 'workflow_demo_instance' in session and request.method == 'POST':
+        try:
+            workflow = pickle.loads(session['workflow_demo_instance'])
+        except Exception:
+            workflow = SimplifiedDemoWorkflow()
+    else:
+        workflow = SimplifiedDemoWorkflow()
+    
+    # Handle POST requests
+    if request.method == 'POST':
+        data_in = utilities.util_post_to_json(request.form.to_dict())
+        # Redo is now handled automatically in workflow.prepare_workflow()
+        workflow.prepare_workflow(data_in)
+    else:
+        workflow.prepare_workflow(None)
+    
+    # Generate display first (this may start a thread)
+    workflow.add_display(disp)
+    
+    # Check if thread just finished - auto-advance to next step
+    if workflow.m_active_thread and not workflow.m_active_thread.is_running():
+        # Thread finished, move to next step
+        workflow._go_next()
+        workflow.m_active_thread = None
+        # Regenerate display for new step
+        disp = displayer.Displayer()
+        disp.set_title("Workflow System Demo")
+        workflow.add_display(disp)
+    
+    # Save workflow to session (clear thread reference before pickling)
+    active_thread = workflow.m_active_thread
+    workflow.m_active_thread = None
+    session['workflow_demo_instance'] = pickle.dumps(workflow)
+    workflow.m_active_thread = active_thread  # Restore it
+    
+    return render_template("base_content.j2", content=disp.display(), target="demo.workflow_demo")
+

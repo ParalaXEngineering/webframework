@@ -87,6 +87,7 @@ from .items import (
     DisplayerItemIconText,
     DisplayerItemConsole,
     DisplayerItemCode,
+    DisplayerItemProgressBar,
 )
 
 __all__ = [
@@ -157,6 +158,7 @@ __all__ = [
     'DisplayerItemIconText',
     'DisplayerItemConsole',
     'DisplayerItemCode',
+    'DisplayerItemProgressBar',
 ]
 
 # Backward compatibility aliases for clearer naming

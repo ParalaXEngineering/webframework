@@ -347,6 +347,7 @@ class DisplayerItems(Enum):
     ACTIONBUTTONS = "ACTIONBUTTONS"
     CONSOLE = "CONSOLE"
     CODE = "CODE"
+    PROGRESSBAR = "PROGRESSBAR"
 
 
 class BSstyle(Enum):

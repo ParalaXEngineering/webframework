@@ -109,6 +109,8 @@
         {{console(item["itemId"], item["data"], item["style"], item["header"])}}
     {% elif item["type"] == "CODE" %}
         {{code(item["itemId"], item["text"], item["path"], item["header"], item["style"], item["disabled"])}}
+    {% elif item["type"] == "PROGRESSBAR" %}
+        {{progressbar(item["itemId"], item["value"], item["text"], item["style"], item["data"])}}
     {% endif %}
 
     {% if "itemId" in item %}
@@ -1095,5 +1097,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 </script>
 {% endmacro %}
+
+{% macro progressbar(id, value, label, style, data) %}
+<div id="{{id}}" class="progress-container mb-3">
+    {% if label %}
+    <label class="form-label">{{label}}</label>
+    {% endif %}
+    <div class="progress" {% if data.height %}style="height: {{data.height}}px;"{% endif %}>
+        <div class="progress-bar {% if style != 'DEFAULT' %}bg-{{style|lower}}{% endif %} {% if data.striped %}progress-bar-striped{% endif %} {% if data.animated %}progress-bar-animated{% endif %}" 
+             role="progressbar" 
+             style="width: {{value}}%;" 
+             aria-valuenow="{{value}}" 
+             aria-valuemin="0" 
+             aria-valuemax="100">
+            {% if data.show_percentage %}{{value}}%{% endif %}
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
 
 

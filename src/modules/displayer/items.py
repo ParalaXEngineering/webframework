@@ -2243,3 +2243,78 @@ for i in range(10):
             show_line_numbers=True,
             title="fibonacci.py"
         )
+
+
+@DisplayerCategory.DISPLAY
+class DisplayerItemProgressBar(DisplayerItem):
+    """
+    Display a Bootstrap progress bar.
+    
+    Shows visual progress indicator with percentage, label, and optional animation.
+    Supports different styles (colors) and can show striped/animated bars.
+    
+    Example:
+        >>> # Simple progress bar
+        >>> item = DisplayerItemProgressBar("progress1", 75)
+        >>> 
+        >>> # Styled with label
+        >>> item = DisplayerItemProgressBar(
+        ...     "progress2", 
+        ...     60, 
+        ...     label="Uploading...",
+        ...     style=BSstyle.SUCCESS,
+        ...     striped=True,
+        ...     animated=True
+        ... )
+        >>> 
+        >>> # Custom height
+        >>> item = DisplayerItemProgressBar("progress3", 90, height=30)
+    """
+    
+    def __init__(
+        self,
+        id: str,
+        value: int,
+        label: Optional[str] = None,
+        style: BSstyle = BSstyle.PRIMARY,
+        striped: bool = False,
+        animated: bool = False,
+        height: int = 25,
+        show_percentage: bool = True
+    ) -> None:
+        """
+        Initialize a progress bar item.
+        
+        Args:
+            id: Unique identifier
+            value: Progress percentage (0-100)
+            label: Optional text label to display
+            style: Bootstrap style (color) - PRIMARY, SUCCESS, INFO, WARNING, ERROR
+            striped: Whether to show striped pattern
+            animated: Whether to animate the stripes
+            height: Height of the progress bar in pixels
+            show_percentage: Whether to show percentage number inside bar
+        """
+        super().__init__(DisplayerItems.PROGRESSBAR)
+        self.m_itemId = id
+        self.m_value = max(0, min(100, value))  # Clamp between 0-100
+        self.m_text = label
+        self.m_style = style.value if isinstance(style, BSstyle) else style
+        self.m_data = {
+            "striped": striped,
+            "animated": animated,
+            "height": height,
+            "show_percentage": show_percentage
+        }
+    
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample progress."""
+        return cls(
+            id="test_progress",
+            value=65,
+            label="Processing...",
+            style=BSstyle.INFO,
+            striped=True,
+            animated=True
+        )
