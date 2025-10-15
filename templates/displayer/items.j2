@@ -78,7 +78,15 @@
     {% elif item["type"] == "INMAPPING" %}
         {{inmapping(item["id"], item["data"], item["value"], item["text"])}}
     {% elif item["type"] == "ALERT" %}
-        {{alert(item["text"], item["style"], item["header"] if "header" in item else None, item["icon"] if "icon" in item else "alert-circle")}}
+        {{alert(
+            item["text"], 
+            item["style"], 
+            item["header"] if "header" in item else None, 
+            item["icon"] if "icon" in item else "alert-circle",
+            item["itemId"] if "itemId" in item else None,
+            item["disabled"] if "disabled" in item else False,
+            item["fancy_header"] if "fancy_header" in item else False
+        )}}
     {% elif item["type"] == "BADGE" %}
         {{badge(item["text"], item["style"])}}
     {% elif item["type"] == "INFILEEXPLORER"%}
@@ -89,8 +97,6 @@
         {{calendar(item["id"], item["value"], item["data"])}}
     {% elif item["type"] == "CARD" %}
         {{card(item["itemId"], item["text"], item["value"], item["icon"], item["style"], item["data"])}}
-    {% elif item["type"] == "ALERTBOX" %}
-        {{alertbox(item["itemId"], item["text"], item["style"], item["icon"], item["header"], item["disabled"])}}
     {% elif item["type"] == "DYNAMICCONTENT" %}
         {{dynamiccontent(item["itemId"], item["text"], item["disabled"])}}
     {% elif item["type"] == "BUTTONGROUP" %}
@@ -167,22 +173,56 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 {% endmacro %}
 
-{% macro alert(text, style, header, icon) %}
+{% macro alert(text, style, header, icon, id, dismissible, fancy_header) %}
     {% if style != "none" %}
-        <div class="alert-box mb-3">
-            {% if header %}
-            <div class="d-flex align-items-center justify-content-between alert-{{style}} p-2 border border-bottom-0 rounded-top">
-                <div>
-                    <i class="mdi mdi-{{icon}} me-2"></i>
-                    <strong>{{header}}</strong>
+        {% if fancy_header %}
+            {# Legacy two-part alert with colored header bar #}
+            <div class="alert-box mb-3" {% if id %}id="{{id}}"{% endif %}>
+                {% if header %}
+                <div class="d-flex align-items-center justify-content-between alert-{{style}} p-2 border border-bottom-0 rounded-top">
+                    <div>
+                        <i class="mdi mdi-{{icon}} me-2"></i>
+                        <strong>{{header}}</strong>
+                    </div>
+                    <span class="badge bg-{{style}}">{{style|upper}}</span>
                 </div>
-                <span class="badge bg-{{style}}">{{style|upper}}</span>
+                {% endif %}
+                <div class="alert alert-light-{{style}} border {% if header %}rounded-0 rounded-bottom{% endif %} m-0">
+                    {{text | safe}}
+                </div>
             </div>
+        {% else %}
+            {# Standard Bootstrap alert with header/content split #}
+            {% if header %}
+                {# Two-part: dark header + light content #}
+                <div class="alert-box mb-3" {% if id %}id="{{id}}"{% endif %}>
+                    <div class="alert alert-{{style}} p-2 border border-bottom-0 rounded-top mb-0 d-flex align-items-center">
+                        {% if icon %}
+                        <i class="mdi mdi-{{icon}} me-2"></i>
+                        {% endif %}
+                        <strong>{{header}}</strong>
+                        {% if dismissible %}
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close" onclick="document.getElementById('{{id}}').parentElement.remove()"></button>
+                        {% endif %}
+                    </div>
+                    <div class="alert alert-light-{{style}} border border-top-0 rounded-bottom mb-0">
+                        {{text | safe}}
+                    </div>
+                </div>
+            {% else %}
+                {# Simple single alert (no header) #}
+                <div class="alert alert-{{style}} {% if dismissible %}alert-dismissible fade show{% endif %}" 
+                     role="alert" {% if id %}id="{{id}}"{% endif %}>
+                    {% if icon %}
+                    <i class="mdi mdi-{{icon}}"></i> 
+                    {% endif %}
+                    {{text | safe}}
+                    {% if dismissible %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    {% endif %}
+                </div>
             {% endif %}
-            <div class="alert alert-light-{{style}} border {% if header %}rounded-0 rounded-bottom{% endif %} m-0">
-                {{text}}
-            </div>
-        </div>
+        {% endif %}
     {% else %}
         <div>{{text}}</div>
     {% endif %}
@@ -930,22 +970,6 @@ document.addEventListener('DOMContentLoaded', function() {
         </button>
         {% endfor %}
     </div>
-    {% endif %}
-</div>
-{% endmacro %}
-
-{% macro alertbox(id, text, style, icon, title, dismissible) %}
-<div class="alert alert-{{style}} {% if dismissible %}alert-dismissible fade show{% endif %}" 
-     role="alert" id="{{id}}">
-    {% if icon %}
-    <i class="mdi mdi-{{icon}}"></i> 
-    {% endif %}
-    {% if title %}
-    <strong>{{title}}</strong><br>
-    {% endif %}
-    {{text | safe}}
-    {% if dismissible %}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     {% endif %}
 </div>
 {% endmacro %}

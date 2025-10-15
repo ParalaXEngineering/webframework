@@ -246,14 +246,15 @@ def show_horizontal_layout():
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12]
     ))
-    disp.add_display_item(displayer.DisplayerItemAlertBox(
+    disp.add_display_item(displayer.DisplayerItemAlert(
         id="desc",
-        text="<strong>HORIZONTAL Layout - Forced Vertical Stacking</strong><br>"
-        "Forces each item to take full column width and stack vertically, one per row. "
+        title="HORIZONTAL Layout - Forced Vertical Stacking",
+        fancy_header=True,
+        text="Forces each item to take full column width and stack vertically, one per row. "
         "Unlike VERTICAL layout where small items flow left-to-right if they fit, "
         "HORIZONTAL wraps each item in a block-level div (mb-2) ensuring they always stack. "
         "Use [12] for full width, [8] for centered column, etc.",
-        style=displayer.BSstyle.INFO,
+        highlightType=displayer.BSstyle.INFO,
         icon="information"
     ), 0)
     
@@ -267,19 +268,19 @@ def show_horizontal_layout():
         displayer.Layouts.HORIZONTAL,
         columns=[12]
     ))
-    disp.add_display_item(displayer.DisplayerItemAlertBox(
+    disp.add_display_item(displayer.DisplayerItemAlert(
         id="alert1",
         text="First item - Full width alert box",
-        style=displayer.BSstyle.PRIMARY,
+        highlightType=displayer.BSstyle.PRIMARY,
         icon="information"
     ), column=0, layout_id=h_layout)
     disp.add_display_item(displayer.DisplayerItemText(
         "<p>Second item - Regular text content that flows naturally.</p>"
     ), column=0, layout_id=h_layout)
-    disp.add_display_item(displayer.DisplayerItemAlertBox(
+    disp.add_display_item(displayer.DisplayerItemAlert(
         id="alert2",
         text="Third item - Another alert box stacked below",
-        style=displayer.BSstyle.SUCCESS,
+        highlightType=displayer.BSstyle.SUCCESS,
         icon="check-circle"
     ), column=0, layout_id=h_layout)
     
@@ -291,9 +292,9 @@ def show_horizontal_layout():
     displayer.Layouts.HORIZONTAL,
     columns=[12]  # Full width
 ))
-disp.add_display_item(displayer.DisplayerItemAlertBox(...), column=0, layout_id=h_layout)
+disp.add_display_item(displayer.DisplayerItemAlert(id="a1", text="...", highlightType=BSstyle.PRIMARY), column=0, layout_id=h_layout)
 disp.add_display_item(displayer.DisplayerItemText(...), column=0, layout_id=h_layout)
-disp.add_display_item(displayer.DisplayerItemAlertBox(...), column=0, layout_id=h_layout)'''
+disp.add_display_item(displayer.DisplayerItemAlert(id="a2", text="...", highlightType=BSstyle.SUCCESS), column=0, layout_id=h_layout)'''
     disp.add_display_item(displayer.DisplayerItemCode(
         id="code_horizontal_1",
         code=code_example,
@@ -381,9 +382,12 @@ disp.add_display_item(displayer.DisplayerItemBadge("Badge", BSstyle.INFO), colum
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [12]
     ))
-    disp.add_display_item(displayer.DisplayerItemText(
-        "<div class='alert alert-warning'>"
-        "<h5><i class='mdi mdi-lightbulb'></i> Key Difference</h5>"
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        id="alert_key_difference",
+        fancy_header=True,
+        title="Key Difference",
+        icon="lightbulb",
+        text=
         "<ul>"
         "<li><strong>VERTICAL layout:</strong> Items flow naturally. Small items (badges, buttons) "
         "appear <strong>left-to-right</strong> if they fit in the column width. "
@@ -392,8 +396,8 @@ disp.add_display_item(displayer.DisplayerItemBadge("Badge", BSstyle.INFO), colum
         "Items <strong>always stack vertically</strong>, one per row, regardless of their size.</li>"
         "</ul>"
         "<p><strong>Use HORIZONTAL when:</strong> You want guaranteed vertical stacking (forms, card lists, sequential content).<br>"
-        "<strong>Use VERTICAL when:</strong> You want natural flow or need multiple columns.</p>"
-        "</div>"
+        "<strong>Use VERTICAL when:</strong> You want natural flow or need multiple columns.</p>",
+        highlightType=displayer.BSstyle.PRIMARY,
     ), 0)
     
     return render_template("base_content.j2", content=disp.display())

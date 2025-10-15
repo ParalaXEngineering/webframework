@@ -169,33 +169,83 @@ class DisplayerItemPlaceholder(DisplayerItem):
 @DisplayerCategory.DISPLAY
 class DisplayerItemAlert(DisplayerItem):
     """
-    Specialized display item to display an alert with a Bootstrap style.
+    Flexible Bootstrap alert with icon, optional title, and dismissible support.
+
+    Supports two visual styles:
+    - fancy_header=True: Two-part alert with colored header bar and badge (legacy style)
+    - fancy_header=False: Standard Bootstrap alert (default, recommended)
 
     Alerts are used to provide feedback messages to users with different
     color schemes based on the alert type (success, warning, danger, info).
     """
 
-    def __init__(self, text: str, highlightType: BSstyle = BSstyle.SUCCESS, title: Optional[str] = None, icon: Optional[str] = None) -> None:
+    def __init__(
+        self, 
+        text: str, 
+        highlightType: BSstyle = BSstyle.SUCCESS, 
+        title: Optional[str] = None, 
+        icon: Optional[str] = None,
+        id: Optional[str] = None,
+        dismissible: bool = False,
+        fancy_header: bool = False
+    ) -> None:
         """
         Initialize an alert item.
 
         Args:
-            text: The alert message text
+            text: The alert message text (HTML supported)
             highlightType: The Bootstrap style for the alert (default: BSstyle.SUCCESS)
                           Determines the color scheme of the alert
-            title: Optional title/header for the alert (appears as a badge/label)
-            icon: Optional MDI icon name (default: "alert-circle" if None)
+            title: Optional title/header for the alert
+                  - fancy_header=True: appears as badge/label in header bar
+                  - fancy_header=False: appears as bold text before content
+            icon: Optional MDI icon name (with or without "mdi-" prefix)
                  Examples: "information", "check-circle", "alert-octagon", "alert"
+                 Default: "alert-circle"
+            id: Optional unique identifier for the alert (required if dismissible=True)
+            dismissible: If True, adds close button (requires id parameter)
+            fancy_header: If True, uses two-part layout with colored header bar (legacy style)
+                         If False, uses standard Bootstrap alert (default, recommended)
 
         Example:
-            >>> alert = DisplayerItemAlert(text="Operation completed!", highlightType=BSstyle.SUCCESS)
-            >>> warning = DisplayerItemAlert(text="Please check your input", highlightType=BSstyle.WARNING, title="Warning", icon="alert-octagon")
+            >>> # Standard alert (recommended)
+            >>> alert = DisplayerItemAlert(
+            ...     text="Operation completed!", 
+            ...     highlightType=BSstyle.SUCCESS,
+            ...     icon="check-circle"
+            ... )
+            >>> 
+            >>> # Dismissible alert
+            >>> warning = DisplayerItemAlert(
+            ...     id="warn1",
+            ...     text="Please check your input", 
+            ...     highlightType=BSstyle.WARNING, 
+            ...     title="Warning", 
+            ...     icon="alert-octagon",
+            ...     dismissible=True
+            ... )
+            >>> 
+            >>> # Fancy header style (legacy)
+            >>> info = DisplayerItemAlert(
+            ...     text="Important information",
+            ...     highlightType=BSstyle.INFO,
+            ...     title="Notice",
+            ...     icon="information",
+            ...     fancy_header=True
+            ... )
         """
         super().__init__(DisplayerItems.ALERT)
         self.m_text = text
-        self.m_style = highlightType.value
+        self.m_style = highlightType.value if isinstance(highlightType, BSstyle) else highlightType
         self.m_header = title
         self.m_icon = icon if icon is not None else "alert-circle"
+        self.m_itemId = id
+        self.m_disabled = dismissible
+        self.m_fancy_header = fancy_header
+        
+        # Validation: dismissible alerts require an ID
+        if dismissible and not id:
+            raise ValueError("Dismissible alerts require an 'id' parameter")
 
     def setText(self, text: str):
         """Update the alert text."""
@@ -205,7 +255,14 @@ class DisplayerItemAlert(DisplayerItem):
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample alert."""
-        return cls(text="This is a test alert message", highlightType=BSstyle.WARNING, title="Test Alert", icon="alert-octagon")
+        return cls(
+            text="This is a test alert message", 
+            highlightType=BSstyle.WARNING, 
+            title="Test Alert", 
+            icon="alert-octagon",
+            id="test_alert",
+            dismissible=False
+        )
 
 
 @DisplayerCategory.DISPLAY
@@ -1744,65 +1801,6 @@ class DisplayerItemCard(DisplayerItem):
 
 
 @DisplayerCategory.DISPLAY
-class DisplayerItemAlertBox(DisplayerItem):
-    """
-    Bootstrap alert box with icon and optional title.
-
-    Creates a dismissible or static alert with icon support.
-    Different from DisplayerItemAlert which is simpler.
-
-    Example:
-        >>> alert = DisplayerItemAlertBox(
-        ...     id="info_alert",
-        ...     style=BSstyle.INFO,
-        ...     icon="mdi-information-outline",
-        ...     title="Important Information",
-        ...     text="Please read this carefully.",
-        ...     dismissible=True
-        ... )
-    """
-
-    def __init__(
-        self,
-        id: str,
-        text: str,
-        style: BSstyle = BSstyle.INFO,
-        icon: Optional[str] = None,
-        title: Optional[str] = None,
-        dismissible: bool = False
-    ) -> None:
-        """
-        Initialize an alert box display item.
-
-        Args:
-            id: Unique identifier for the alert
-            text: Alert message content (HTML supported)
-            style: Bootstrap alert style (info, success, warning, danger)
-            icon: MDI icon name (e.g., "mdi-alert")
-            title: Optional bold title before text
-            dismissible: If True, adds close button
-        """
-        super().__init__(DisplayerItems.ALERTBOX)
-        self.m_itemId = id
-        self.m_text = text
-        self.m_style = style.value if isinstance(style, BSstyle) else style
-        self.m_icon = icon
-        self.m_header = title  # Using header for title
-        self.m_disabled = dismissible  # Reusing disabled flag for dismissible
-
-    @classmethod
-    def instantiate_test(cls):
-        """Create test instance with sample alert box."""
-        return cls(
-            id="test_alert",
-            style=BSstyle.INFO,
-            icon="mdi mdi-information",
-            title="Test Alert",
-            text="This is a test alert box.",
-            dismissible=True
-        )
-
-
 @DisplayerCategory.DISPLAY
 class DisplayerItemDynamicContent(DisplayerItem):
     """

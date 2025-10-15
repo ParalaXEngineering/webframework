@@ -14,7 +14,7 @@ try:
     from . import threaded_manager
     from ..displayer import (
         Displayer, DisplayerLayout, Layouts, BSstyle, BSalign,
-        DisplayerItemText, DisplayerItemSeparator, DisplayerItemAlertBox,
+        DisplayerItemText, DisplayerItemSeparator, DisplayerItemAlert,
         DisplayerItemActionButtons, DisplayerItemConsole, DisplayerItemBadge,
         DisplayerItemIconText
     )
@@ -23,7 +23,7 @@ except ImportError:
     import threaded_manager
     from displayer import (
         Displayer, DisplayerLayout, Layouts, BSstyle, BSalign,
-        DisplayerItemText, DisplayerItemSeparator, DisplayerItemAlertBox,
+        DisplayerItemText, DisplayerItemSeparator, DisplayerItemAlert,
         DisplayerItemActionButtons, DisplayerItemConsole, DisplayerItemBadge,
         DisplayerItemIconText
     )
@@ -119,10 +119,10 @@ class ThreadEmitter:
         
         if not running_threads and not completed_threads:
             disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-            disp.add_display_item(DisplayerItemAlertBox(
+            disp.add_display_item(DisplayerItemAlert(
                 id="no_threads",
                 text="No threads currently running. Visit the Threading Demo to start some!",
-                style=BSstyle.INFO,
+                highlightType=BSstyle.INFO,
                 icon="information"
             ), 0)
             return self._render_displayer(disp)
@@ -250,10 +250,10 @@ class ThreadEmitter:
         
         #=== Row 1: Tabs or "No Data" ===
         if not console_data:
-            disp.add_display_item(DisplayerItemAlertBox(
+            disp.add_display_item(DisplayerItemAlert(
                 id=f"{thread_id}_nodata",
                 text="No data available",
-                style=BSstyle.LIGHT,
+                highlightType=BSstyle.LIGHT,
                 icon="mdi-information-outline"
             ), column=0, layout_id=master)
             return
@@ -357,10 +357,10 @@ class ThreadEmitter:
         
         #=== Row 2: Error (if present) ===
         if error:
-            disp.add_display_item(DisplayerItemAlertBox(
+            disp.add_display_item(DisplayerItemAlert(
                 id=f"{thread_id}_error",
                 text=f"<strong>Error:</strong> {error}",
-                style=BSstyle.ERROR,
+                highlightType=BSstyle.ERROR,
                 icon="mdi-alert-circle"
             ), column=2, layout_id=master)
         

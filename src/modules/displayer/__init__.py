@@ -81,7 +81,6 @@ from .items import (
     DisplayerItemCalendar,
     # New items
     DisplayerItemCard,
-    DisplayerItemAlertBox,
     DisplayerItemDynamicContent,
     DisplayerItemButtonGroup,
     DisplayerItemActionButtons,
@@ -152,7 +151,6 @@ __all__ = [
     
     # New items
     'DisplayerItemCard',
-    'DisplayerItemAlertBox',
     'DisplayerItemDynamicContent',
     'DisplayerItemButtonGroup',
     'DisplayerItemActionButtons',
