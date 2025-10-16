@@ -107,7 +107,7 @@
 {% endmacro %}
 
 {% macro hidden(name, value) %}
-    <input type="hidden" name="{{ name }}" id="{{ name }}" value="{{ value }}">
+    <input type="hidden" name="{{ name }}" id="{{ name }}" value="{{ value | e }}">
 {% endmacro %}
 
 {% macro number(name, default=None) %}

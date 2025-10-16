@@ -777,24 +777,19 @@ def workflow_demo():
     else:
         workflow.prepare_workflow(None)
     
-    # Generate display first (this may start a thread)
+    # Generate display (this may start a NEW thread if action creates one)
     workflow.add_display(disp)
     
-    # Check if thread just finished - auto-advance to next step
+    # Save workflow to session
+    # Store which step had a finished thread (for next POST request)
     if workflow.m_active_thread and not workflow.m_active_thread.is_running():
-        # Thread finished, move to next step
-        workflow._go_next()
-        workflow.m_active_thread = None
-        # Regenerate display for new step
-        disp = displayer.Displayer()
-        disp.set_title("Workflow System Demo")
-        workflow.add_display(disp)
+        workflow.m_workflow_data['_thread_finished_step'] = workflow.m_current_step_index
     
-    # Save workflow to session (clear thread reference before pickling)
+    # Clear thread reference before pickling (threads can't be pickled)
     active_thread = workflow.m_active_thread
     workflow.m_active_thread = None
     session['workflow_demo_instance'] = pickle.dumps(workflow)
-    workflow.m_active_thread = active_thread  # Restore it
+    workflow.m_active_thread = active_thread  # Restore for current response
     
     return render_template("base_content.j2", content=disp.display(), target="demo.workflow_demo")
 

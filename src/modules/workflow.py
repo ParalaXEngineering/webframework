@@ -69,7 +69,8 @@ class WorkflowStep:
         condition_func: Optional[Callable[[Dict], bool]] = None,
         action_type: StepActionType = StepActionType.FUNCTION,
         description: Optional[str] = None,
-        icon: Optional[str] = None
+        icon: Optional[str] = None,
+        allow_redo: bool = False
     ):
         """
         Initialize a workflow step.
@@ -83,6 +84,7 @@ class WorkflowStep:
             action_type: Type of action (NONE, FUNCTION, THREADED)
             description: Optional description for this step
             icon: Optional icon class for breadcrumbs
+            allow_redo: If True, shows a "Redo" button on this step to repeat the previous step
         """
         self.name = name
         self.display_func = display_func
@@ -92,6 +94,7 @@ class WorkflowStep:
         self.action_type = action_type
         self.description = description
         self.icon = icon or "bi-circle"
+        self.allow_redo = allow_redo
         
     def is_visible(self, workflow_data: Dict) -> bool:
         """
@@ -271,16 +274,22 @@ class Workflow:
         # Restore workflow state
         if "workflow_state" in workflow_data:
             try:
-                self.m_workflow_data = json.loads(workflow_data["workflow_state"])
+                state_json = workflow_data["workflow_state"]
+                self.m_logger.debug(f"Raw workflow_state received: {repr(state_json)[:200]}")
+                self.m_workflow_data = json.loads(state_json)
                 self.m_logger.debug(f"Restored workflow state: {len(self.m_workflow_data)} keys")
             except Exception as e:
                 self.m_logger.error(f"Failed to restore workflow state: {e}")
+                self.m_logger.error(f"Invalid JSON was: {repr(workflow_data.get('workflow_state', ''))[:200]}")
         
         if "current_step" in workflow_data:
             self.m_current_step_index = int(workflow_data["current_step"])
         
         # Compute visible steps based on current data
         self.m_visible_steps = self._compute_visible_steps()
+        
+        # Try to restore thread reference if one was running on this step
+        self._restore_thread_reference()
         
         # Handle button actions
         if "workflow_prev" in workflow_data:
@@ -289,6 +298,25 @@ class Workflow:
         elif "workflow_skip" in workflow_data:
             self._execute_skip(workflow_data)
             self._go_next()
+            return True
+        elif "workflow_redo_last" in workflow_data:
+            # Redo last step button clicked - go back to previous step and preserve data
+            # First save the form data (which may include new scan input)
+            self._save_step_data(workflow_data)
+            self._redo_last_step()
+            
+            # Auto-execute the action if the step has one (for batch operations)
+            current_step = self.m_steps[self.m_current_step_index]
+            if current_step.action_func is not None:
+                self.m_logger.info(f"Auto-executing action after redo on step {self.m_current_step_index}")
+                self._execute_action(workflow_data)
+                
+                # If a thread was created, mark it
+                if self.m_active_thread:
+                    thread_step_flag = f'_thread_on_step_{self.m_current_step_index}'
+                    self.m_workflow_data[thread_step_flag] = True
+                    self.m_logger.info(f"Thread created on redo, staying on step {self.m_current_step_index}")
+            
             return True
         elif "workflow_redo" in workflow_data:
             # Redo button clicked - handle redo with workflow data
@@ -305,11 +333,40 @@ class Workflow:
             return True
         elif "workflow_next" in workflow_data:
             self._save_step_data(workflow_data)
-            self._execute_action(workflow_data)
-            # Only advance if no thread was started
-            # If a thread was started, stay on current step to show thread progress
-            if not self.m_active_thread:
-                self._go_next()
+            
+            # Check if a thread was started on THIS step
+            thread_step_flag = f'_thread_on_step_{self.m_current_step_index}'
+            thread_was_started = self.m_workflow_data.get(thread_step_flag, False)
+            
+            self.m_logger.info(f"Current step: {self.m_current_step_index}, Thread flag: {thread_was_started}, Active thread: {self.m_active_thread is not None}")
+            
+            # Case 1: Thread was previously started on this step
+            if thread_was_started:
+                # Check if thread is still running
+                if self.m_active_thread and self.m_active_thread.is_running():
+                    # Thread still running - stay on step
+                    self.m_logger.info(f"Thread still running on step {self.m_current_step_index}, staying")
+                else:
+                    # Thread completed - advance to next step
+                    self.m_logger.info(f"Thread completed on step {self.m_current_step_index}, advancing")
+                    self.m_workflow_data.pop(thread_step_flag, None)
+                    self.m_active_thread = None
+                    self._go_next()
+            # Case 2: No thread started yet on this step
+            else:
+                # Execute action normally
+                self.m_logger.info("Executing action (no thread flag detected)")
+                self._execute_action(workflow_data)
+                
+                # Check if a NEW thread was just started
+                if self.m_active_thread:
+                    # Mark that a thread was started on this step
+                    self.m_workflow_data[thread_step_flag] = True
+                    self.m_logger.info(f"Thread created on step {self.m_current_step_index}, staying and setting flag")
+                else:
+                    # No thread created - advance normally
+                    self.m_logger.info("No thread created, advancing")
+                    self._go_next()
             return True
         
         return False
@@ -375,12 +432,76 @@ class Workflow:
     
     def _go_previous(self) -> None:
         """Move to the previous visible step."""
+        # Clear thread flag for current step when going back
+        thread_step_flag = f'_thread_on_step_{self.m_current_step_index}'
+        self.m_workflow_data.pop(thread_step_flag, None)
+        self.m_active_thread = None
+        
         # Find previous visible step
         for i in range(self.m_current_step_index - 1, -1, -1):
             if i in self.m_visible_steps:
                 self.m_current_step_index = i
                 self.m_logger.debug(f"Moving back to step {i}: {self.m_steps[i].name}")
                 return
+    
+    def _redo_last_step(self) -> None:
+        """
+        Redo the last step - go back to previous step while preserving workflow data.
+        
+        This is called when the "Redo Last Step" button is clicked on the last step.
+        Unlike _go_previous(), this doesn't clear the thread flag immediately,
+        allowing the previous step to be re-executed with the same or updated data.
+        """
+        # Find previous visible step
+        for i in range(self.m_current_step_index - 1, -1, -1):
+            if i in self.m_visible_steps:
+                # Clear only the thread flag for the target step to allow re-execution
+                target_thread_flag = f'_thread_on_step_{i}'
+                self.m_workflow_data.pop(target_thread_flag, None)
+                
+                self.m_current_step_index = i
+                self.m_active_thread = None
+                self.m_logger.info(f"Redo: Moving back to step {i}: {self.m_steps[i].name}")
+                return
+        
+        self.m_logger.warning("Cannot redo - no previous step available")
+    
+    def _clear_all_thread_flags(self) -> None:
+        """Clear all thread flags from workflow data."""
+        keys_to_remove = [k for k in self.m_workflow_data.keys() if k.startswith('_thread_on_step_')]
+        for key in keys_to_remove:
+            self.m_workflow_data.pop(key, None)
+        self.m_logger.debug(f"Cleared {len(keys_to_remove)} thread flags")
+    
+    def _restore_thread_reference(self) -> None:
+        """
+        Try to restore the thread reference from the thread manager.
+        
+        This is called when restoring workflow state from a POST request.
+        If a thread was started on the current step, we try to find it
+        in the thread manager to restore the reference.
+        """
+        thread_step_flag = f'_thread_on_step_{self.m_current_step_index}'
+        if not self.m_workflow_data.get(thread_step_flag, False):
+            # No thread flag for this step
+            return
+        
+        # Check if there's a running thread with our workflow name
+        try:
+            from . import threaded
+            if threaded.threaded_manager.thread_manager_obj:
+                manager = threaded.threaded_manager.thread_manager_obj
+                # Look for a thread with our workflow name
+                for thread in manager.m_running_threads:
+                    if hasattr(thread, 'get_name') and thread.get_name() == self.m_name:
+                        self.m_active_thread = thread
+                        self.m_logger.debug(f"Restored thread reference: {thread.get_name()}")
+                        return
+                
+                # Thread not found in running threads - it might have completed
+                self.m_logger.debug(f"Thread flag set but no running thread found for '{self.m_name}'")
+        except Exception as e:
+            self.m_logger.warning(f"Failed to restore thread reference: {e}")
     
     def is_first_step(self) -> bool:
         """Check if we're on the first visible step."""
@@ -436,8 +557,9 @@ class Workflow:
         self.m_current_step_index = target_step_index
         self.m_visible_steps = self._compute_visible_steps()
         
-        # Clear any active thread
+        # Clear any active thread and thread flags for all steps
         self.m_active_thread = None
+        self._clear_all_thread_flags()
         
         self.m_logger.info(f"Redo: Jumped to step {target_step_index} ({self.m_steps[target_step_index].name})")
     
@@ -597,7 +719,18 @@ class Workflow:
                     disabled=thread_running,  # Disable during thread
                 )
         else:
-            # Last step - show finish button
+            # Last step - show finish button and optional redo button
+            current_step = self.get_current_step()
+            
+            # Show redo button first if enabled
+            if current_step and current_step.allow_redo:
+                disp.add_display_item(
+                    displayer.DisplayerItemButton("workflow_redo_last", "🔄 Redo Last Step"),
+                    0,
+                    disabled=False,
+                )
+            
+            # Then show finish button
             disp.add_display_item(
                 displayer.DisplayerItemButton("workflow_next", "✓ Finish"),
                 0,
