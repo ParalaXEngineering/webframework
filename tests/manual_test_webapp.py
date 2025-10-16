@@ -22,6 +22,7 @@ import src.modules.auth.auth_manager as auth_module
 from demo_support.demo_pages import demo_bp
 from demo_support.component_showcase import showcase_bp
 from demo_support.layout_showcase import layout_bp
+from demo_support.demo_user_defined_layout import user_defined_bp
 from website.pages.user_profile_bp import user_profile_bp
 from website.pages.admin_auth_bp import admin_auth_bp
 from src.modules.auth.permission_registry import permission_registry
@@ -161,8 +162,9 @@ socketio = setup_app(app)
 app.register_blueprint(demo_bp)
 app.register_blueprint(showcase_bp)
 app.register_blueprint(layout_bp)
+app.register_blueprint(user_defined_bp)
 app.register_blueprint(admin_auth_bp)
-logger.info("Registered demo pages, component showcase, and layout showcase blueprints")
+logger.info("Registered demo pages, component showcase, layout showcase, and user-defined layout blueprints")
 
 # Register user profile and admin blueprints
 

@@ -1,0 +1,197 @@
+/**
+ * GridStack Bootstrap Styling
+ * 
+ * Makes GridStack grid items look like native Bootstrap cards and components.
+ */
+
+/* Make grid container match Bootstrap container styling */
+.grid-stack {
+    background: transparent;
+    margin-bottom: 1rem;
+}
+
+/* Style grid items to look like Bootstrap cards */
+.grid-stack-item > .grid-stack-item-content {
+    /* Bootstrap card styling */
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    overflow: visible;
+    padding: 1rem;
+    inset: 4px 4px 4px 4px !important; /* Override GridStack default */
+}
+
+/* Hover effect for draggable items */
+.grid-stack-item.ui-draggable-dragging > .grid-stack-item-content {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-color: #0d6efd;
+    cursor: move;
+}
+
+/* Field selector dropdown in editor */
+.grid-stack-item-content .field-selector {
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.grid-stack-item-content .field-selector:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Field info display */
+.grid-stack-item-content .field-info {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.5rem;
+}
+
+/* Grid column guides (show 12-column grid) */
+.grid-stack.show-grid {
+    background-image: repeating-linear-gradient(
+        90deg,
+        rgba(13, 110, 253, 0.1) 0px,
+        rgba(13, 110, 253, 0.1) 1px,
+        transparent 1px,
+        transparent calc(100% / 12)
+    );
+}
+
+/* Resize handle styling */
+.ui-resizable-handle {
+    background: transparent;
+}
+
+.ui-resizable-se {
+    bottom: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(
+        135deg,
+        transparent 0%,
+        transparent 50%,
+        rgba(13, 110, 253, 0.5) 50%,
+        rgba(13, 110, 253, 0.5) 100%
+    );
+    border-radius: 0 0 0.375rem 0;
+    cursor: se-resize;
+}
+
+/* Editor toolbar */
+.layout-editor-toolbar {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.layout-editor-toolbar .btn {
+    margin-right: 0.5rem;
+}
+
+/* JSON preview */
+.json-preview {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* Placeholder for empty grid cells */
+.grid-stack-item-content.placeholder {
+    background: #e9ecef;
+    border-style: dashed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Active/selected item highlight */
+.grid-stack-item.selected > .grid-stack-item-content {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Remove button in editor */
+.grid-stack-item-content .remove-item {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.grid-stack-item:hover .remove-item {
+    opacity: 1;
+}
+
+.remove-item:hover {
+    background: #bb2d3b;
+}
+
+/* Column span indicator */
+.grid-stack-item-content .span-indicator {
+    position: absolute;
+    bottom: 0.25rem;
+    left: 0.25rem;
+    background: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Readonly view (non-editor) */
+.grid-stack.readonly .grid-stack-item {
+    cursor: default !important;
+}
+
+.grid-stack.readonly .ui-resizable-handle,
+.grid-stack.readonly .remove-item {
+    display: none !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .grid-stack-item > .grid-stack-item-content {
+        padding: 0.75rem;
+    }
+    
+    .layout-editor-toolbar {
+        padding: 0.75rem;
+    }
+    
+    .layout-editor-toolbar .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+}

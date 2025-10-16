@@ -11,6 +11,8 @@
         {{ display_tabs_layout(layout["header"], layout["lines"], layout["user_id"]) }}
     {% elif layout["type"] == "SPACER" %}
         <div><p style="margin-bottom:1cm;"></p></div>
+    {% elif layout["type"] == "USER_DEF" %}
+        {{ display_user_defined_layout(layout["user_defined_config"], layout["containers"], layout["user_id"]) }}
           
     {% endif %}
 {% endmacro %}
@@ -148,5 +150,43 @@
             {% endfor %}
         </div>
     {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro display_user_defined_layout(config={}, containers={}, user_id=none) %}
+    {# USER_DEFINED layout: Custom grid based on GridStack configuration #}
+    <div class="row my-1" {% if user_id %}id="{{user_id}}"{% endif %}>
+        {# Render items based on their configured positions #}
+        {% if config and config.items %}
+            {% for item_config in config.items %}
+                {% set field_id = item_config.field_id %}
+                {% set x = item_config.x %}
+                {% set y = item_config.y %}
+                {% set w = item_config.w %}
+                {% set h = item_config.h %}
+                
+                {# Create a Bootstrap column for this item #}
+                <div class="col-{{w}}" style="order: {{y * 12 + x}};">
+                    {# Display all elements in this field's container #}
+                    {% if field_id in containers %}
+                        {% for element in containers[field_id] %}
+                            {% if element["object"] == "item" %}
+                                {{ disp_item.display_item(element) }}
+                            {% elif element["object"] == "layout" %}
+                                {{ display_layout(element) }}
+                            {% else %}
+                                NOT SUPPORTED
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    No USER_DEFINED layout configuration provided
+                </div>
+            </div>
+        {% endif %}
     </div>
 {% endmacro %}

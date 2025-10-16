@@ -336,7 +336,16 @@ class Displayer:
         if layout is None:
             return False
 
-        if layout["type"] == Layouts.VERTICAL.value or layout["type"] == Layouts.HORIZONTAL.value:
+        if layout["type"] == Layouts.USER_DEFINED.value:
+            # For USER_DEFINED, column parameter is interpreted as field_id string
+            # Convert to string if it's a number (for backward compatibility)
+            field_id = str(column) if isinstance(column, int) else column
+            
+            # Check if field_id exists in containers
+            if field_id not in layout["containers"]:
+                return False
+        
+        elif layout["type"] == Layouts.VERTICAL.value or layout["type"] == Layouts.HORIZONTAL.value:
             # Check that there are enough columns
             if column >= len(layout["containers"]):
                 return False
@@ -371,7 +380,11 @@ class Displayer:
             item.setId(id)
 
         # Add the display item
-        if layout["type"] == Layouts.VERTICAL.value or layout["type"] == Layouts.HORIZONTAL.value:
+        if layout["type"] == Layouts.USER_DEFINED.value:
+            # For USER_DEFINED, use field_id as key
+            field_id = str(column) if isinstance(column, int) else column
+            item.display(layout["containers"][field_id], self.m_modules[self.m_active_module]["id"])
+        elif layout["type"] == Layouts.VERTICAL.value or layout["type"] == Layouts.HORIZONTAL.value:
             item.display(layout["containers"][column], self.m_modules[self.m_active_module]["id"])
         elif layout["type"] == Layouts.TABLE.value:
             item.display(
@@ -545,6 +558,7 @@ class Displayer:
         serve_modules["required_css"] = ResourceRegistry.get_required_css()
         serve_modules["required_js"] = ResourceRegistry.get_required_js()
         serve_modules["required_cdn"] = ResourceRegistry.get_required_js_cdn()
+        serve_modules["required_css_cdn"] = ResourceRegistry.get_required_css_cdn()
 
         for module in self.m_modules:  
             # Authorization is now handled in add_module(), so we just check the flag

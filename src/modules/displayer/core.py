@@ -38,6 +38,12 @@ class ResourceRegistry:
             'css': ['vendors/datatables.net/datatables.min.css'],
             'js': ['vendors/datatables.net/datatables.min.js', 'js/datatables-init.js']
         },
+        'gridstack': {
+            'css': ['css/gridstack-bootstrap.css'],
+            'css_cdn': ['https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack.min.css'],
+            'js': ['js/user-defined-layout-editor.js'],
+            'js_cdn': ['https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.min.js']
+        },
         'sweetalert': {
             'css': ['vendors/sweetalert/sweetalert2.min.css'],
             'js': ['vendors/sweetalert/sweetalert2.min.js']
@@ -276,12 +282,17 @@ class Layouts(Enum):
     - TABS: Tabbed interface for organizing content in separate tabs.
     
     - SPACER: Empty vertical space for visual separation between sections.
+    
+    - USER_DEFINED: Custom grid layout designed by the user via visual editor.
+                    Uses GridStack.js for drag-and-drop layout configuration.
+                    JSON configuration maps field IDs to grid positions.
     """
     VERTICAL = "VERT"
     HORIZONTAL = "HORIZ"
     TABLE = "TABLE"
     SPACER = "SPACER"
     TABS = "TABS"
+    USER_DEFINED = "USER_DEF"
 
 
 class TableMode(Enum):
