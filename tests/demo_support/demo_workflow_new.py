@@ -1,10 +1,11 @@
 """
-Simplified Workflow Demo - Production Scanning Example
+Workflow Demo - Interactive Examples
 
-This demo shows:
-- Basic form with code example
-- Threaded action with progress tracking
-- Redo functionality for batch operations
+Demonstrates different workflow patterns:
+- Simple: Basic two-step workflow
+- Threaded: Workflow with background processing
+- Redo: Continuous input loop with redo button
+- Threaded + Redo: Combined threaded processing with redo
 """
 
 import time
@@ -13,424 +14,456 @@ from src.modules import displayer
 from src.modules.threaded import Threaded_action
 
 
-class ScanProcessingAction(Threaded_action):
-    """Simulates scanning and registering a product"""
+class DemoProcessingThread(Threaded_action):
+    """Simple demo thread that simulates processing"""
     
-    m_default_name = "Product Registration"
+    m_default_name = "Processing"
     
-    def __init__(self, serial_number: str, batch_size: int = 1):
+    def __init__(self, item_name: str, workflow_name: str = None):
         super().__init__()
-        self.serial_number = serial_number
-        self.batch_size = batch_size
+        self.item_name = item_name
+        # Set a unique name that includes the workflow name for thread restoration
+        if workflow_name:
+            self.m_name = f"{workflow_name}_thread"
+            # Set the category for status reporting (workflow name with underscores for HTML IDs)
+            self.m_category = workflow_name.replace(" ", "_")
+            # Button ID uses full module name with dot separator
+            self.button_id = f"{workflow_name}.workflow_next"
+        else:
+            self.m_name = f"Processing_{item_name}"
+            self.m_category = None
+            self.button_id = "workflow_next"
     
     def action(self):
-        """Simulate scanning and registering products"""
-        self.console_write(f"Starting registration for {self.batch_size} product(s)...")
-        
+        """Simulate processing with progress updates"""
+        # Change button to "Processing..." and disable it
         if self.m_scheduler:
-            self.m_scheduler.emit_status(
-                self.get_name(),
-                f"Registering {self.batch_size} product(s)...",
-                0,
-                "Initializing scanner...",
-                status_id="scan_progress"
-            )
+            self.m_scheduler.emit_button(self.button_id, "", "⏳ Processing...", "primary")
+            self.m_scheduler.disable_button(self.button_id)
         
-        time.sleep(1)
-        
-        for i in range(self.batch_size):
+        steps = 10
+        for i in range(steps):
             if not self.m_running:
                 break
             
-            progress = int((i + 1) / self.batch_size * 100)
+            progress = int((i + 1) / steps * 100)
             self.m_running_state = progress
+            self.console_write(f"Processing {self.item_name}: {progress}%")
             
-            msg = f"Registering product {i+1}/{self.batch_size}"
-            self.console_write(msg)
-            
-            if self.m_scheduler:
+            # Emit status to the correct workflow table if category is set
+            # Category uses underscores for HTML table ID
+            if self.m_scheduler and self.m_category:
                 self.m_scheduler.emit_status(
-                    self.get_name(),
-                    msg,
+                    self.m_category,
+                    f"Processing {self.item_name}",
                     progress,
-                    f"Serial: {self.serial_number}-{i+1:03d} ({progress}%)",
-                    status_id="scan_progress"
+                    f"{progress}%",
+                    status_id="workflow_processing"
                 )
             
-            time.sleep(0.8)  # Simulate processing time
+            time.sleep(0.2)  # 2 seconds total
         
-        self.console_write(f"✓ Registered {self.batch_size} product(s)!")
         self.m_running_state = 100
+        self.console_write(f"Completed: {self.item_name}")
         
-        # Emit final status and re-enable navigation buttons
+        # Change button back to "Next →" and enable it
         if self.m_scheduler:
-            self.m_scheduler.emit_status(
-                self.get_name(),
-                f"Complete! Registered {self.batch_size} product(s)",
-                100,
-                "✓ Registration complete",
-                status_id="scan_progress"
-            )
-            # Re-enable workflow navigation buttons
-            time.sleep(0.5)  # Brief delay to show completion
-            self.m_scheduler.enable_button("Product Registration.workflow_next")
-            self.m_scheduler.enable_button("Product Registration.workflow_prev")
+            self.m_scheduler.emit_button(self.button_id, "", "Next →", "primary")
+            self.m_scheduler.enable_button(self.button_id)
 
 
-class SimplifiedDemoWorkflow(Workflow):
+class WorkflowDemo(Workflow):
     """
-    Simplified workflow demo - Product Registration System
-    
-    Simulates scanning products with serial numbers and registering them.
-    Shows threaded actions and redo functionality.
+    Interactive workflow demonstration with multiple workflow patterns
     """
-    
-    m_default_name = "Product Registration"
     
     def __init__(self):
-        super().__init__("Product Registration")
+        super().__init__("Workflow Demo")
+        # Initialize with default workflow type so conditional steps are visible
+        self.m_workflow_data["workflow_type"] = "simple"
         self._setup_steps()
     
+    # Condition functions (picklable methods instead of lambdas)
+    def _condition_simple(self, data):
+        result = data.get("workflow_type") == "simple"
+        self.m_logger.debug(f"_condition_simple: workflow_type={data.get('workflow_type')}, result={result}")
+        return result
+    
+    def _condition_threaded(self, data):
+        result = data.get("workflow_type") == "threaded"
+        self.m_logger.debug(f"_condition_threaded: workflow_type={data.get('workflow_type')}, result={result}")
+        return result
+    
+    def _condition_redo(self, data):
+        result = data.get("workflow_type") == "redo"
+        self.m_logger.debug(f"_condition_redo: workflow_type={data.get('workflow_type')}, result={result}")
+        return result
+    
+    def _condition_threaded_redo(self, data):
+        result = data.get("workflow_type") == "threaded_redo"
+        self.m_logger.debug(f"_condition_threaded_redo: workflow_type={data.get('workflow_type')}, result={result}")
+        return result
+    
     def _setup_steps(self):
-        """Define workflow steps"""
+        """Define all workflow steps with conditional visibility"""
         
-        # Step 1: Scan Product - with immediate threaded processing
+        # Step 1: Select workflow type (always visible)
         self.add_step(WorkflowStep(
-            name="Scan Product",
-            display_func=self._display_scan,
-            action_func=self._action_process_threaded,  # Thread starts immediately on Next
-            action_type=StepActionType.THREADED,
-            description="Scan product serial number"
+            name="Select Type",
+            display_func=self._display_select_type,
+            description="Choose workflow pattern"
         ))
         
-        # Step 2: Complete with Redo Option
+        # Step 2a: Simple - Done (visible if type == "simple")
+        self.add_step(WorkflowStep(
+            name="Done",
+            display_func=self._display_simple_done,
+            condition_func=self._condition_simple,
+            description="Workflow complete"
+        ))
+        
+        # Step 2b: Threaded - Processing (visible if type == "threaded")
+        self.add_step(WorkflowStep(
+            name="Processing",
+            display_func=self._display_threaded_process,
+            action_func=self._action_create_demo_thread,
+            action_type=StepActionType.THREADED,
+            condition_func=self._condition_threaded,
+            description="Background processing"
+        ))
+        
+        # Step 3b: Threaded - Complete (visible if type == "threaded")
         self.add_step(WorkflowStep(
             name="Complete",
-            display_func=self._display_complete,
-            description="Registration complete",
-            allow_redo=True  # Enable built-in redo button
+            display_func=self._display_threaded_complete,
+            condition_func=self._condition_threaded,
+            description="Processing finished"
+        ))
+        
+        # Step 2c: Redo - Input (visible if type == "redo")
+        self.add_step(WorkflowStep(
+            name="Input",
+            display_func=self._display_redo_input,
+            condition_func=self._condition_redo,
+            description="Enter data"
+        ))
+        
+        # Step 3c: Redo - Complete (visible if type == "redo")
+        self.add_step(WorkflowStep(
+            name="Complete",
+            display_func=self._display_redo_complete,
+            condition_func=self._condition_redo,
+            allow_redo=True,
+            description="Scan complete"
+        ))
+        
+        # Step 2d: Threaded+Redo - Input with Thread (visible if type == "threaded_redo")
+        self.add_step(WorkflowStep(
+            name="Scan",
+            display_func=self._display_threaded_redo_input,
+            action_func=self._action_create_demo_thread,
+            action_type=StepActionType.THREADED,
+            condition_func=self._condition_threaded_redo,
+            description="Scan and process"
+        ))
+        
+        # Step 3d: Threaded+Redo - Complete (visible if type == "threaded_redo")
+        self.add_step(WorkflowStep(
+            name="Complete",
+            display_func=self._display_threaded_redo_complete,
+            condition_func=self._condition_threaded_redo,
+            allow_redo=True,
+            description="Processing complete"
         ))
     
-    # ===== Step 1: Scan Product =====
+    # ===== Step 1: Select Workflow Type =====
     
-    def _display_scan(self, disp, workflow_data):
-        """Display product scanning form with code example"""
+    def _display_select_type(self, disp, workflow_data):
+        """Display workflow type selection"""
         
-        # Check if there's an active thread (we're processing)
-        if self.m_active_thread and self.m_active_thread.is_running():
-            # Show processing status
-            disp.add_master_layout(
-                displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
-            )
-            
-            serial = workflow_data.get("serial_number", "Unknown")
-            batch = workflow_data.get("batch_size", "1")
-            
-            disp.add_display_item(
-                displayer.DisplayerItemAlert(
-                    f"<strong>⏳ Processing Registration</strong><br>"
-                    f"Serial: <code>{serial}</code> | Batch: {batch} unit(s)<br>"
-                    f"<small>Please wait for processing to complete...</small>",
-                    displayer.BSstyle.WARNING
-                ),
-                0
-            )
-            
-            # Add the thread as a module to show progress
-            disp.add_module(self.m_active_thread)
-            return disp
-        
-        # Main form section (when no thread running)
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
         )
+        
         disp.add_display_item(
-            displayer.DisplayerItemAlert(
-                "<strong>📦 Product Registration System</strong><br>"
-                "Scan or enter the product serial number. Click Next to start registration.",
-                displayer.BSstyle.INFO
-            ),
+            displayer.DisplayerItemText("<h4>Workflow Demo</h4>"),
             0
         )
         
-        # Serial number input
-        disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [6, 6])
-        )
         disp.add_display_item(
-            displayer.DisplayerItemText("<strong>Serial Number:</strong>"),
+            displayer.DisplayerItemText("Select a workflow pattern to demonstrate:"),
             0
         )
-        serial = workflow_data.get("serial_number", "")
-        disp.add_display_item(
-            displayer.DisplayerItemInputString("serial_number", None, serial, focus=True),
-            1
-        )
         
-        # Batch size input
-        disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [6, 6])
-        )
-        disp.add_display_item(
-            displayer.DisplayerItemText("<strong>Batch Size:</strong>"),
-            0
-        )
-        batch = workflow_data.get("batch_size", "1")
-        disp.add_display_item(
-            displayer.DisplayerItemInputNumeric("batch_size", None, batch),
-            1
-        )
+        # Workflow type selection
+        workflow_types = [
+            ("simple", "Simple - Basic two-step workflow"),
+            ("threaded", "Threaded - Workflow with background processing"),
+            ("redo", "Redo - Continuous input loop"),
+            ("threaded_redo", "Threaded + Redo - Combined pattern")
+        ]
         
-        # Code example
-        disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12],
-                                     subtitle="💡 Code Example")
-        )
-        
-        code_example = '''# Optimized 2-Step Workflow with Immediate Processing
-# Step 1 - Scan (with threaded action that starts on Next)
-def display_scan(disp, workflow_data):
-    """Show form or thread progress"""
-    # If thread is running, show progress
-    if workflow.m_active_thread and workflow.m_active_thread.is_running():
-        disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
-        )
-        serial = workflow_data.get("serial_number", "Unknown")
-        disp.add_display_item(
-            displayer.DisplayerItemAlert(
-                f"⏳ Processing: {serial}",
-                displayer.BSstyle.WARNING
-            ), 0
-        )
-        disp.add_module(workflow.m_active_thread)  # Show progress bar
-        return disp
-    
-    # Show scan form
-    disp.add_master_layout(
-        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
-    )
-    serial = workflow_data.get("serial_number", "")
-    disp.add_display_item(
-        displayer.DisplayerItemInputString("serial_number", None, serial), 0
-    )
-    return disp
-
-def start_processing(workflow, form_data):
-    """Create and return thread (started automatically)"""
-    serial = workflow.m_workflow_data["serial_number"]
-    return ProcessingThread(serial)
-
-# Add step with THREADED action
-workflow.add_step(WorkflowStep(
-    name="Scan Product",
-    display_func=display_scan,
-    action_func=start_processing,
-    action_type=StepActionType.THREADED  # Thread starts when leaving step
-))'''
+        current_type = workflow_data.get("workflow_type", "simple")
         
         disp.add_display_item(
-            displayer.DisplayerItemCode(
-                "scan_code",
-                code_example,
-                language="python",
-                title="Creating a Form Step",
-                show_line_numbers=True
+            displayer.DisplayerItemInputSelect(
+                "workflow_type",
+                "Workflow Type",
+                current_type,
+                [t[0] for t in workflow_types],
+                [t[1] for t in workflow_types]
             ),
             0
         )
         
         return disp
     
-    def _action_process_threaded(self, workflow, form_data):
-        """Create and return thread for processing"""
-        serial = workflow.m_workflow_data.get("serial_number", "UNKNOWN")
-        batch = int(workflow.m_workflow_data.get("batch_size", 1))
-        
-        thread = ScanProcessingAction(serial, batch)
-        return thread  # Workflow will start it automatically
+    # ===== Step 2a: Simple - Done =====
     
-    # ===== Step 2: Complete =====
-
-    
-    def _display_complete(self, disp, workflow_data):
-        """Display completion with scan input for next item"""
+    def _display_simple_done(self, disp, workflow_data):
+        """Display simple completion message"""
         
-        serial = workflow_data.get("serial_number", "Unknown")
-        batch = workflow_data.get("batch_size", "1")
-        
-        # Show completion message
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
         )
+        
         disp.add_display_item(
             displayer.DisplayerItemAlert(
-                f"<strong>✓ Registration Complete!</strong><br>"
-                f"Successfully registered {batch} product(s) with serial: <code>{serial}</code>",
+                "Workflow complete!",
                 displayer.BSstyle.SUCCESS
             ),
             0
         )
         
-        # Show registered data
-        disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12],
-                                     subtitle="📋 Registration Details")
-        )
-        
-        details_html = '<div class="card"><div class="card-body">'
-        details_html += f'<p><strong>Serial Number:</strong> {serial}</p>'
-        details_html += f'<p><strong>Batch Size:</strong> {batch} unit(s)</p>'
-        details_html += '<p><strong>Status:</strong> <span class="badge bg-success">Registered</span></p>'
-        details_html += '</div></div>'
-        
         disp.add_display_item(
-            displayer.DisplayerItemText(details_html),
-            0
-        )
-        
-        # Scan next product section - KEY FEATURE
-        disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12],
-                                     subtitle="🔄 Scan Next Product")
-        )
-        
-        disp.add_display_item(
-            displayer.DisplayerItemAlert(
-                "<strong>Batch Scanning Mode</strong><br>"
-                "Scan the next product barcode below. If your scanner has auto-enter, "
-                "just scan and it will automatically process!",
-                displayer.BSstyle.INFO
+            displayer.DisplayerItemText(
+                "This demonstrates a basic workflow with two steps: "
+                "selection and completion."
             ),
-            0
-        )
-        
-        # Serial number input - SAME FIELD NAME as step 1
-        # This allows the redo to overwrite the previous value
-        disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [6, 6])
-        )
-        disp.add_display_item(
-            displayer.DisplayerItemText("<strong>Next Serial Number:</strong>"),
-            0
-        )
-        # Clear the field for next scan (empty string)
-        disp.add_display_item(
-            displayer.DisplayerItemInputString("serial_number", None, "", focus=True),
-            1
-        )
-        
-        # Batch size input - SAME FIELD NAME
-        disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [6, 6])
-        )
-        disp.add_display_item(
-            displayer.DisplayerItemText("<strong>Batch Size:</strong>"),
-            0
-        )
-        disp.add_display_item(
-            displayer.DisplayerItemInputNumeric("batch_size", None, batch),
-            1
-        )
-        
-        # Code example for batch scanning
-        disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12],
-                                     subtitle="💡 Code Example: Batch Scanning Pattern")
-        )
-        
-        code_example = '''# Batch Scanning Pattern - Continuous 2-Step Workflow
-# Step 1: Scan (with immediate threaded processing)
-# Step 2: Complete (with same field names for next scan)
-
-def display_complete(disp, workflow_data):
-    # Show what was just registered
-    serial = workflow_data.get("serial_number", "Unknown")
-    disp.add_display_item(
-        DisplayerItemAlert(f"✓ Registered: {serial}", BSstyle.SUCCESS)
-    )
-    
-    # Add scan inputs for NEXT item
-    # CRITICAL: Use the SAME field names as Step 1
-    # This overwrites previous values when "Redo Last Step" is clicked
-    disp.add_display_item(
-        DisplayerItemInputString("serial_number", None, "", focus=True)
-    )
-    disp.add_display_item(
-        DisplayerItemInputNumeric("batch_size", None, "1")
-    )
-    return disp
-
-# Define Complete step with allow_redo=True
-workflow.add_step(WorkflowStep(
-    name="Complete",
-    display_func=display_complete,
-    allow_redo=True  # Enables "Redo Last Step" button
-))
-
-# User workflow:
-# 1. Scan → Enter serial & batch → Click Next
-# 2. Thread processes immediately (still on Scan step during processing)
-# 3. Auto-advances to Complete when thread finishes
-# 4. Shows success + empty scan field
-# 5. Scan next item → Click "Redo Last Step"
-# 6. New values overwrite old values
-# 7. Thread processes new item → Back to Complete
-# 8. Repeat!
-
-# Perfect for: warehouse scanning, batch registration, inventory management'''
-        
-        disp.add_display_item(
-            displayer.DisplayerItemCode(
-                "redo_code",
-                code_example,
-                language="python",
-                title="Continuous Batch Scanning",
-                show_line_numbers=True
-            ),
-            0
-        )
-        
-        # Summary of all features
-        disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12],
-                                     subtitle="🎯 Workflow System Features")
-        )
-        
-        features = '''<div class="row">
-            <div class="col-md-6">
-                <div class="card bg-light">
-                    <div class="card-body">
-                        <h6 class="card-title">✨ Core Features</h6>
-                        <ul class="mb-0">
-                            <li>Automatic state persistence</li>
-                            <li>Breadcrumb navigation</li>
-                            <li>Progress tracking</li>
-                            <li>Go back to any step</li>
-                            <li>Form validation</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card bg-light">
-                    <div class="card-body">
-                        <h6 class="card-title">🚀 Advanced Features</h6>
-                        <ul class="mb-0">
-                            <li>Conditional steps</li>
-                            <li>Skippable steps</li>
-                            <li>Threaded actions</li>
-                            <li>Built-in redo for batch operations</li>
-                            <li>Easy integration</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>'''
-        
-        disp.add_display_item(
-            displayer.DisplayerItemText(features),
             0
         )
         
         return disp
+    
+    # ===== Step 2b & 3b: Threaded Workflow =====
+    
+    def _display_threaded_process(self, disp, workflow_data):
+        """Display threaded processing step"""
+        
+        disp.add_master_layout(
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
+        )
+        
+        # If thread is running, show progress
+        if self.m_active_thread and self.m_active_thread.is_running():
+            disp.add_display_item(
+                displayer.DisplayerItemAlert(
+                    "Processing in background...",
+                    displayer.BSstyle.INFO
+                ),
+                0
+            )
+            # Don't add thread as separate module - it will be displayed in the workflow's progress table
+            # The thread progress is automatically updated via Socket.IO
+        else:
+            disp.add_display_item(
+                displayer.DisplayerItemText(
+                    "Click Next to start background processing. "
+                    "The thread will run for approximately 2 seconds."
+                ),
+                0
+            )
+        
+        return disp
+    
+    def _display_threaded_complete(self, disp, workflow_data):
+        """Display threaded completion"""
+        
+        disp.add_master_layout(
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
+        )
+        
+        disp.add_display_item(
+            displayer.DisplayerItemAlert(
+                "Background processing complete!",
+                displayer.BSstyle.SUCCESS
+            ),
+            0
+        )
+        
+        disp.add_display_item(
+            displayer.DisplayerItemText(
+                "This demonstrates a workflow with threaded action. "
+                "The processing happened in the background without blocking the UI."
+            ),
+            0
+        )
+        
+        return disp
+    
+    # ===== Step 2c & 3c: Redo Workflow =====
+    
+    def _display_redo_input(self, disp, workflow_data):
+        """Display input form for redo demo"""
+        
+        disp.add_master_layout(
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
+        )
+        
+        disp.add_display_item(
+            displayer.DisplayerItemText(
+                "Enter an item name to process:"
+            ),
+            0
+        )
+        
+        item_name = workflow_data.get("item_name", "")
+        
+        disp.add_display_item(
+            displayer.DisplayerItemInputString(
+                "item_name",
+                "Item Name",
+                item_name,
+                focus=True
+            ),
+            0
+        )
+        
+        return disp
+    
+    def _display_redo_complete(self, disp, workflow_data):
+        """Display completion with redo option"""
+        
+        disp.add_master_layout(
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
+        )
+        
+        item_name = workflow_data.get("item_name", "Unknown")
+        
+        disp.add_display_item(
+            displayer.DisplayerItemAlert(
+                f"Item processed: {item_name}",
+                displayer.BSstyle.SUCCESS
+            ),
+            0
+        )
+        
+        disp.add_display_item(
+            displayer.DisplayerItemText(
+                "This demonstrates the redo pattern. "
+                "Use the 'Redo Last Step' button below to process another item."
+            ),
+            0
+        )
+        
+        # Input for next item (same field name = overwrites previous)
+        disp.add_master_layout(
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12],
+                                     subtitle="Process Another Item")
+        )
+        
+        disp.add_display_item(
+            displayer.DisplayerItemInputString(
+                "item_name",
+                "Next Item Name",
+                "",
+                focus=True
+            ),
+            0
+        )
+        
+        return disp
+    
+    # ===== Step 2d & 3d: Threaded + Redo Workflow =====
+    
+    def _display_threaded_redo_input(self, disp, workflow_data):
+        """Display input with thread processing"""
+        
+        disp.add_master_layout(
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
+        )
+        
+        # If thread is running, show progress
+        if self.m_active_thread and self.m_active_thread.is_running():
+            item_name = workflow_data.get("item_name", "Unknown")
+            disp.add_display_item(
+                displayer.DisplayerItemAlert(
+                    f"Processing: {item_name}",
+                    displayer.BSstyle.INFO
+                ),
+                0
+            )
+            # Don't add thread as separate module - it will be displayed in the workflow's progress table
+        else:
+            # Show input form
+            disp.add_display_item(
+                displayer.DisplayerItemText(
+                    "Enter an item name. Processing will start automatically when you click Next."
+                ),
+                0
+            )
+            
+            item_name = workflow_data.get("item_name", "")
+            
+            disp.add_display_item(
+                displayer.DisplayerItemInputString(
+                    "item_name",
+                    "Item Name",
+                    item_name,
+                    focus=True
+                ),
+                0
+            )
+        
+        return disp
+    
+    def _display_threaded_redo_complete(self, disp, workflow_data):
+        """Display completion with thread+redo"""
+        
+        disp.add_master_layout(
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
+        )
+        
+        item_name = workflow_data.get("item_name", "Unknown")
+        
+        disp.add_display_item(
+            displayer.DisplayerItemAlert(
+                f"Processing complete: {item_name}",
+                displayer.BSstyle.SUCCESS
+            ),
+            0
+        )
+        
+        disp.add_display_item(
+            displayer.DisplayerItemText(
+                "This combines threaded processing with the redo pattern. "
+                "Enter a new item below and click 'Redo Last Step' to process it immediately."
+            ),
+            0
+        )
+        
+        # Input for next item
+        disp.add_master_layout(
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12],
+                                     subtitle="Process Another Item")
+        )
+        
+        disp.add_display_item(
+            displayer.DisplayerItemInputString(
+                "item_name",
+                "Next Item Name",
+                "",
+                focus=True
+            ),
+            0
+        )
+        
+        return disp
+    
+    # ===== Action Functions =====
+    
+    def _action_create_demo_thread(self, workflow, form_data):
+        """Create demo processing thread"""
+        item_name = workflow.m_workflow_data.get("item_name", "Item")
+        # Pass workflow name to thread for unique identification
+        return DemoProcessingThread(item_name, workflow.m_name)

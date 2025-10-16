@@ -10,6 +10,7 @@ Usage:
 
 import sys
 import os
+import logging
 
 # Import framework setup
 from src.main import app, setup_app, FLASK_AVAILABLE
@@ -198,5 +199,9 @@ if __name__ == "__main__":
     print("  Press CTRL+C to stop the server")
     print("=" * 60)
     
-    socketio.run(app, debug=False, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)
+    # Disable Flask/Werkzeug HTTP request logging
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
+    
+    socketio.run(app, debug=False, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True, log_output=False)
 

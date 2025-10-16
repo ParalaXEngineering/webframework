@@ -754,7 +754,7 @@ def workflow_demo():
     - Redo functionality for batch operations
     - Code examples alongside each step
     """
-    from demo_support.demo_workflow_new import SimplifiedDemoWorkflow
+    from demo_support.demo_workflow_new import WorkflowDemo
     import pickle
     
     disp = displayer.Displayer()
@@ -765,9 +765,9 @@ def workflow_demo():
         try:
             workflow = pickle.loads(session['workflow_demo_instance'])
         except Exception:
-            workflow = SimplifiedDemoWorkflow()
+            workflow = WorkflowDemo()
     else:
-        workflow = SimplifiedDemoWorkflow()
+        workflow = WorkflowDemo()
     
     # Handle POST requests
     if request.method == 'POST':

@@ -265,11 +265,18 @@ class Workflow:
             self.m_visible_steps = self._compute_visible_steps()
             return True
         
+        # DEBUG: Log the entire data_in structure
+        self.m_logger.debug(f"POST data_in keys: {list(data_in.keys())}")
+        self.m_logger.debug(f"POST data_in full: {data_in}")
+        
         # Check if this POST is for our workflow
         if self.m_name not in data_in:
             return False
         
         workflow_data = data_in[self.m_name]
+        
+        # DEBUG: Log POST data structure
+        self.m_logger.debug(f"POST data keys in workflow_data: {list(workflow_data.keys())}")
         
         # Restore workflow state
         if "workflow_state" in workflow_data:
@@ -491,15 +498,21 @@ class Workflow:
             from . import threaded
             if threaded.threaded_manager.thread_manager_obj:
                 manager = threaded.threaded_manager.thread_manager_obj
-                # Look for a thread with our workflow name
+                # Look for a thread with our workflow name (threads should set m_name to include workflow name)
+                thread_name_pattern = f"{self.m_name}_thread"
                 for thread in manager.m_running_threads:
-                    if hasattr(thread, 'get_name') and thread.get_name() == self.m_name:
+                    if hasattr(thread, 'm_name') and thread.m_name == thread_name_pattern:
+                        self.m_active_thread = thread
+                        self.m_logger.debug(f"Restored thread reference: {thread.m_name}")
+                        return
+                    # Fallback: check get_name() method
+                    elif hasattr(thread, 'get_name') and thread.get_name() == thread_name_pattern:
                         self.m_active_thread = thread
                         self.m_logger.debug(f"Restored thread reference: {thread.get_name()}")
                         return
                 
                 # Thread not found in running threads - it might have completed
-                self.m_logger.debug(f"Thread flag set but no running thread found for '{self.m_name}'")
+                self.m_logger.debug(f"Thread flag set but no running thread found for '{thread_name_pattern}'")
         except Exception as e:
             self.m_logger.warning(f"Failed to restore thread reference: {e}")
     
@@ -703,13 +716,20 @@ class Workflow:
         
         if not self.is_last_step():
             current_step = self.get_current_step()
-            next_label = "Next →"
+            
+            # Determine button label based on thread state
+            if thread_running:
+                next_label = "⏳ Processing..."
+            else:
+                next_label = "Next →"
+            
             skip_enabled = current_step and current_step.skip_func is not None
             
+            # Always show Next button, disabled during thread execution
             disp.add_display_item(
                 displayer.DisplayerItemButton("workflow_next", next_label),
                 0,
-                disabled=thread_running,  # Disable during thread
+                disabled=thread_running,
             )
             
             if skip_enabled:

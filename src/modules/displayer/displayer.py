@@ -85,8 +85,8 @@ class Displayer:
             name_override: An optional name overriding, instead of the default name
             display: Display the title
         """
-        # Safely get m_default_name, or use "Generic" if it doesn't exist
-        default_name = getattr(module, 'm_default_name', 'Generic')
+        # Get module name: prefer m_name (instance name), then m_default_name (class name), then "Generic"
+        default_name = getattr(module, 'm_name', getattr(module, 'm_default_name', 'Generic'))
 
         error_module = None
         if hasattr(module, "m_error"):

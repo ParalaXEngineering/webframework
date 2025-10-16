@@ -328,11 +328,11 @@
 
                     </div>
 
-                    {% if content[module]["type"] == "threaded_action" or content[module]["type"] == "worfklow" %}
+                    {% if content[module]["type"] == "threaded_action" or content[module]["type"] == "workflow" %}
                         <div class="card-footer alert-light-secondary theme-aware">
                             <h4 class="theme-text">Action progress</h4>
                             <div class="table-responsive">
-                                <table class="table-light table-striped mb-0 theme-aware" id="{{module}}_result">
+                                <table class="table-light table-striped mb-0 theme-aware" id="{{module | replace(' ', '_')}}_result">
                                     <thead>
                                         <tr>
                                             <th style="width: 50%;">Task</th>
@@ -342,7 +342,7 @@
                                     <tbody></tbody>
                                 </table>
                             </div>
-                            <div id="progress_result"></div>
+                            <div id="{{module | replace(' ', '_')}}_progress"></div>
                         </div>
                     {% endif %}
                 {% endif %}
