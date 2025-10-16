@@ -717,7 +717,7 @@ class Workflow:
         # Navigation buttons
         if not self.is_first_step():
             disp.add_display_item(
-                displayer.DisplayerItemButton("workflow_prev", "← Previous"),
+                displayer.DisplayerItemButton("workflow_prev", "Previous"),
                 0,
                 disabled=thread_running,  # Disable during thread
             )
@@ -727,9 +727,9 @@ class Workflow:
             
             # Determine button label based on thread state
             if thread_running:
-                next_label = "⏳ Processing..."
+                next_label = "Processing..."
             else:
-                next_label = "Next →"
+                next_label = "Next"
             
             skip_enabled = current_step and current_step.skip_func is not None
             
@@ -753,14 +753,14 @@ class Workflow:
             # Show redo button first if enabled
             if current_step and current_step.allow_redo:
                 disp.add_display_item(
-                    displayer.DisplayerItemButton("workflow_redo_last", "🔄 Redo Last Step"),
+                    displayer.DisplayerItemButton("workflow_redo_last", "Redo Last Step"),
                     0,
                     disabled=False,
                 )
             
             # Then show finish button
             disp.add_display_item(
-                displayer.DisplayerItemButton("workflow_next", "✓ Finish"),
+                displayer.DisplayerItemButton("workflow_next", "Finish"),
                 0,
                 disabled=False,
             )
