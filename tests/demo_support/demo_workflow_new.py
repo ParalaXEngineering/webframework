@@ -27,19 +27,22 @@ class DemoProcessingThread(Threaded_action):
             self.m_name = f"{workflow_name}_thread"
             # Set the category for status reporting (workflow name with underscores for HTML IDs)
             self.m_category = workflow_name.replace(" ", "_")
-            # Button ID uses full module name with dot separator
+            # Button IDs must include module name prefix (matches HTML name attribute)
             self.button_id = f"{workflow_name}.workflow_next"
+            self.prev_button_id = f"{workflow_name}.workflow_prev"
         else:
             self.m_name = f"Processing_{item_name}"
             self.m_category = None
             self.button_id = "workflow_next"
+            self.prev_button_id = "workflow_prev"
     
     def action(self):
         """Simulate processing with progress updates"""
-        # Change button to "Processing..." and disable it
+        # Change button to "Processing..." and disable both navigation buttons
         if self.m_scheduler:
             self.m_scheduler.emit_button(self.button_id, "", "⏳ Processing...", "primary")
             self.m_scheduler.disable_button(self.button_id)
+            self.m_scheduler.disable_button(self.prev_button_id)
         
         steps = 10
         for i in range(steps):
@@ -66,10 +69,13 @@ class DemoProcessingThread(Threaded_action):
         self.m_running_state = 100
         self.console_write(f"Completed: {self.item_name}")
         
-        # Change button back to "Next →" and enable it
+        # Change button back to "Next →" and enable both navigation buttons
         if self.m_scheduler:
             self.m_scheduler.emit_button(self.button_id, "", "Next →", "primary")
             self.m_scheduler.enable_button(self.button_id)
+            self.m_scheduler.enable_button(self.prev_button_id)
+            # Reload page so buttons are rendered properly without disabled attribute
+            self.m_scheduler.emit_reload()
 
 
 class WorkflowDemo(Workflow):
@@ -254,6 +260,9 @@ class WorkflowDemo(Workflow):
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
         )
         
+        # DEBUG: Show current state
+        self.m_logger.info(f"[DISPLAY] Step {self.m_current_step_index}, Thread: {self.m_active_thread}, Running: {self.m_active_thread.is_running() if self.m_active_thread else False}")
+        
         # If thread is running, show progress
         if self.m_active_thread and self.m_active_thread.is_running():
             disp.add_display_item(
@@ -268,7 +277,7 @@ class WorkflowDemo(Workflow):
         else:
             disp.add_display_item(
                 displayer.DisplayerItemText(
-                    "Click Next to start background processing. "
+                    f"[DEBUG: Step {self.m_current_step_index}] Click Next to start background processing. "
                     "The thread will run for approximately 2 seconds."
                 ),
                 0

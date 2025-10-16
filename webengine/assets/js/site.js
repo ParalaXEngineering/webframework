@@ -788,9 +788,9 @@ $(document).ready(function() {
             if(div)
                 // div.outerHTML = '<button class="mx-1 btn btn-' + msg[id][2] + '" id="' + id + '"><h2><i class="mdi mdi-' + msg[id][0] + ' text-light mx-1"></i></h2>' + msg[id][1] + '</button>'
                 if (id == "ppu_stat" || id == "hmi_stat")
-                    div.outerHTML = '<button class="mx-1 btn btn-' + msg[id][2] + '" id="' + id + '"><h2><i class="mdi mdi-' + msg[id][0] + ' text-light mx-1"></i></h2>' + msg[id][1] + '</button>'
+                    div.outerHTML = '<button class="mx-1 btn btn-' + msg[id][2] + '" id="' + id + '" name="' + id + '"><h2><i class="mdi mdi-' + msg[id][0] + ' text-light mx-1"></i></h2>' + msg[id][1] + '</button>'
                 else
-                div.outerHTML = '<button class="mx-1 btn btn-' + msg[id][2] + '" id="' + id + '" style="font-size: 0.7em; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0;"><i class="mdi mdi-' + msg[id][0] + ' text-light mx-1" style="font-size: 2em; margin: 0; padding: 0;"><br></i>' + msg[id][1] + '</button>'
+                div.outerHTML = '<button class="mx-1 btn btn-' + msg[id][2] + '" id="' + id + '" name="' + id + '" type="submit" onclick="saveScrollPosition()" style="font-size: 0.7em; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0;"><i class="mdi mdi-' + msg[id][0] + ' text-light mx-1" style="font-size: 2em; margin: 0; padding: 0;"><br></i>' + msg[id][1] + '</button>'
         }
     })
 
@@ -799,8 +799,10 @@ $(document).ready(function() {
         {
             let button = document.getElementById(msg[i])
             console.log(button)
-            if(button)
+            if(button) {
                 button.classList.remove("disabled")
+                button.removeAttribute("disabled")  // Remove HTML disabled attribute
+            }
         }
     })
 
@@ -809,7 +811,10 @@ $(document).ready(function() {
         {
             console.log(msg[i])
             let button = document.getElementById(msg[i])
-            button.classList.add("disabled")
+            if(button) {
+                button.classList.add("disabled")
+                button.setAttribute("disabled", "disabled")  // Add HTML disabled attribute
+            }
         }
     })
 

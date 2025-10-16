@@ -265,18 +265,14 @@ class Workflow:
             self.m_visible_steps = self._compute_visible_steps()
             return True
         
-        # DEBUG: Log the entire data_in structure
-        self.m_logger.debug(f"POST data_in keys: {list(data_in.keys())}")
-        self.m_logger.debug(f"POST data_in full: {data_in}")
-        
         # Check if this POST is for our workflow
         if self.m_name not in data_in:
             return False
         
         workflow_data = data_in[self.m_name]
         
-        # DEBUG: Log POST data structure
-        self.m_logger.debug(f"POST data keys in workflow_data: {list(workflow_data.keys())}")
+        # DEBUG: Log what we received
+        self.m_logger.info(f"POST received for workflow. Keys in workflow_data: {list(workflow_data.keys())}")
         
         # Restore workflow state
         if "workflow_state" in workflow_data:
@@ -341,39 +337,51 @@ class Workflow:
         elif "workflow_next" in workflow_data:
             self._save_step_data(workflow_data)
             
-            # Check if a thread was started on THIS step
+            # Get current step info before potential navigation
+            current_step = self.get_current_step()
             thread_step_flag = f'_thread_on_step_{self.m_current_step_index}'
             thread_was_started = self.m_workflow_data.get(thread_step_flag, False)
             
             self.m_logger.info(f"Current step: {self.m_current_step_index}, Thread flag: {thread_was_started}, Active thread: {self.m_active_thread is not None}")
             
-            # Case 1: Thread was previously started on this step
-            if thread_was_started:
-                # Check if thread is still running
+            # Check if current step has a THREADED action
+            is_threaded_step = current_step and current_step.action_type == StepActionType.THREADED
+            
+            if is_threaded_step and thread_was_started:
+                # Thread was already started on this THREADED step
                 if self.m_active_thread and self.m_active_thread.is_running():
                     # Thread still running - stay on step
                     self.m_logger.info(f"Thread still running on step {self.m_current_step_index}, staying")
                 else:
-                    # Thread completed - advance to next step
-                    self.m_logger.info(f"Thread completed on step {self.m_current_step_index}, advancing")
+                    # Thread completed (or lost reference) - advance to next step
+                    self.m_logger.info(f"Thread completed/finished on step {self.m_current_step_index}, advancing")
                     self.m_workflow_data.pop(thread_step_flag, None)
                     self.m_active_thread = None
                     self._go_next()
-            # Case 2: No thread started yet on this step
-            else:
-                # Execute action normally
-                self.m_logger.info("Executing action (no thread flag detected)")
+            elif is_threaded_step and not thread_was_started:
+                # First time on THREADED step - start the thread
+                self.m_logger.info(f"Starting thread on THREADED step {self.m_current_step_index}")
                 self._execute_action(workflow_data)
-                
-                # Check if a NEW thread was just started
                 if self.m_active_thread:
-                    # Mark that a thread was started on this step
                     self.m_workflow_data[thread_step_flag] = True
-                    self.m_logger.info(f"Thread created on step {self.m_current_step_index}, staying and setting flag")
-                else:
-                    # No thread created - advance normally
-                    self.m_logger.info("No thread created, advancing")
-                    self._go_next()
+                    self.m_logger.info(f"Thread created on step {self.m_current_step_index}, staying")
+            else:
+                # Non-threaded step - execute action (if any) and advance
+                self.m_logger.info(f"Non-threaded step {self.m_current_step_index}, executing action and advancing")
+                self._execute_action(workflow_data)
+                self._go_next()
+                
+                # Check if we landed on a THREADED step after advancing
+                new_step = self.get_current_step()
+                if new_step and new_step.action_type == StepActionType.THREADED:
+                    new_thread_flag = f'_thread_on_step_{self.m_current_step_index}'
+                    if not self.m_workflow_data.get(new_thread_flag, False):
+                        # Auto-start thread on the new THREADED step
+                        self.m_logger.info(f"Auto-starting thread on new THREADED step {self.m_current_step_index}")
+                        self._execute_action(self.m_workflow_data)
+                        if self.m_active_thread:
+                            self.m_workflow_data[new_thread_flag] = True
+            
             return True
         
         return False
