@@ -77,41 +77,31 @@ def setup_app(app):
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         app_path = sys._MEIPASS
     else:
-        app_path = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        )
+        # Go up 2 levels from src/main.py to get framework root
+        # src/main.py -> src/ -> webframework/
+        app_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     # Get all Python files in the "pages" directory (if it exists)
     website_pages_path = os.path.join(app_path, "website", "pages")
     if os.path.exists(website_pages_path):
-        files = [f for f in os.listdir(website_pages_path) if f.endswith(".py")]
+        files = [f for f in os.listdir(website_pages_path) if f.endswith(".py") and not f.startswith("__")]
         
-        # Dictionary to store the modules that need to be imported first
-        modules_to_load_first = {}
-
-        # Identify files with the same base name (e.g., "xxx" and "xxx_abcdef")
+        # Import each module and register its blueprint
         for file in files:
             module_name = file[:-3]  # Remove the ".py" extension
-            base_name = module_name.split('_')[0]  # Get the base name (before the first "_")
-
-            # Organize the modules with the same base name
-            if base_name not in modules_to_load_first:
-                modules_to_load_first[base_name] = []
-            if module_name != base_name:
-                modules_to_load_first[base_name].append(module_name)
-
-        # Import all modules and register the blueprint from the main module (e.g., "xxx.py")
-        for base_name, module_names in modules_to_load_first.items():
-            # Import all related modules first (e.g., "xxx_abcdef.py")
-            for module_name in sorted(module_names):
-                importlib.import_module(f"website.pages.{module_name}")
-
-            # Finally, import and register the blueprint from the main module (e.g., "xxx.py")
-            main_module = importlib.import_module(f"website.pages.{base_name}")
-
-            # Register the blueprint if it exists in the main module
-            if hasattr(main_module, 'bp'):
-                app.register_blueprint(main_module.bp)
+            
+            try:
+                # Import the module
+                page_module = importlib.import_module(f"website.pages.{module_name}")
+                
+                # Register the blueprint if it exists
+                if hasattr(page_module, 'bp'):
+                    app.register_blueprint(page_module.bp)
+                    logger.info(f"Registered website page blueprint: {module_name}")
+            except ImportError as e:
+                logger.warning(f"Failed to import website page {module_name}: {e}")
+            except Exception as e:
+                logger.warning(f"Failed to register blueprint for {module_name}: {e}")
 
     # Auto-discover and register framework internal pages
     try:

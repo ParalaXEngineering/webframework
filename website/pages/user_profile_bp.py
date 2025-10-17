@@ -18,12 +18,21 @@ from src.modules.displayer import (
 try:
     from src.modules.auth.auth_utils import verify_password, validate_password_strength
     from src.modules import utilities
+    from src.modules.log.logger_factory import get_logger
 except ImportError:
     from modules.auth.auth_utils import verify_password, validate_password_strength
     from modules import utilities
+    from modules.log.logger_factory import get_logger
 
 
+logger = get_logger("user_profile")
+
+# Create blueprint
 user_profile_bp = Blueprint('user_profile', __name__, url_prefix='/user')
+
+# Export as 'bp' for framework auto-discovery
+bp = user_profile_bp
+
 
 
 def _get_auth_manager():

@@ -1,6 +1,9 @@
 {
   "groups": [
     "admin",
-    "guest"
+    "guest",
+    "qual",
+    "tecx",
+    "toto"
   ]
 }

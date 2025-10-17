@@ -13,7 +13,6 @@ from ..modules import utilities
 from ..modules import displayer
 from ..modules import site_conf
 from ..modules import User_defined_module
-from ..modules.auth.auth_manager import auth_manager
 
 import os
 import sys
@@ -23,10 +22,17 @@ import bcrypt
 bp = Blueprint("common", __name__, url_prefix="/common")
 
 
+def _get_auth_manager():
+    """Get auth_manager dynamically to avoid initialization issues."""
+    from ..modules.auth.auth_manager import auth_manager
+    return auth_manager
+
+
 def require_admin(f):
     """Decorator to require admin group for accessing a page."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        auth_manager = _get_auth_manager()
         if not auth_manager:
             # If no auth manager, allow access (backwards compatibility)
             return f(*args, **kwargs)
@@ -130,6 +136,7 @@ def assets(asset_type):
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     """Login page with user authentication."""
+    auth_manager = _get_auth_manager()
     if not auth_manager:
         return "Authentication system not initialized", 500
         

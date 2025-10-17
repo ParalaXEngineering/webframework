@@ -6,20 +6,24 @@ Manage users, groups, and module permissions.
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from functools import wraps
 
-from src.modules.displayer import (
-    Displayer, DisplayerLayout, Layouts,
-    DisplayerItemText, DisplayerItemButton, DisplayerItemButtonLink,
-    DisplayerItemInputSelect, DisplayerItemAlert, DisplayerItemInputString,
-    DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
-)
-
-# Import with fallback for different execution contexts
 try:
-    from src.modules.auth.auth_utils import validate_username, validate_password_strength
-    from src.modules.auth.permission_registry import permission_registry
-    from src.modules import utilities
-    from src.modules.log.logger_factory import get_logger
+    from ..modules.displayer import (
+        Displayer, DisplayerLayout, Layouts,
+        DisplayerItemText, DisplayerItemButton, DisplayerItemButtonLink,
+        DisplayerItemInputSelect, DisplayerItemAlert, DisplayerItemInputString,
+        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
+    )
+    from ..modules.auth.auth_utils import validate_username, validate_password_strength
+    from ..modules.auth.permission_registry import permission_registry
+    from ..modules import utilities
+    from ..modules.log.logger_factory import get_logger
 except ImportError:
+    from modules.displayer import (
+        Displayer, DisplayerLayout, Layouts,
+        DisplayerItemText, DisplayerItemButton, DisplayerItemButtonLink,
+        DisplayerItemInputSelect, DisplayerItemAlert, DisplayerItemInputString,
+        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
+    )
     from modules.auth.auth_utils import validate_username, validate_password_strength
     from modules.auth.permission_registry import permission_registry
     from modules import utilities
@@ -28,11 +32,14 @@ except ImportError:
 logger = get_logger("admin_auth")
 admin_auth_bp = Blueprint('admin_auth', __name__, url_prefix='/admin')
 
+# Export as 'bp' for framework auto-discovery
+bp = admin_auth_bp
+
 
 def _get_auth_manager():
-    """Get the auth_manager instance. Import here to avoid None at module load time."""
+    """Get the auth_manager instance. Import at runtime to avoid circular imports."""
     try:
-        from src.modules.auth.auth_manager import auth_manager
+        from ..modules.auth.auth_manager import auth_manager
     except ImportError:
         from modules.auth.auth_manager import auth_manager
     return auth_manager
@@ -352,9 +359,9 @@ def manage_permissions():
                 
                 flash("Permissions saved successfully!", "success")
     
-    # Get all modules and groups
+    # Get all modules and groups (excluding admin - they have full access)
     all_modules = permission_registry.get_all_modules()
-    all_groups = auth_manager.get_all_groups()
+    all_groups = [g for g in auth_manager.get_all_groups() if g != 'admin']
     
     if not all_modules:
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -369,6 +376,8 @@ def manage_permissions():
     disp.add_display_item(DisplayerItemText("<h3>Module Permission Matrix</h3>"), column=0)
     disp.add_display_item(DisplayerItemText(
         "<p>Check boxes to grant permissions to groups for each module action.</p>"
+        "<div class='alert alert-info'><i class='bi bi-info-circle'></i> "
+        "The <strong>admin</strong> group has full access to all modules and is not shown here.</div>"
     ), column=0)
     
     # Create table with modules as rows

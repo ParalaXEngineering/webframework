@@ -1,5 +1,129 @@
 {
-  "modules": {},
+  "modules": {
+    "DEV_example": {
+      "groups": {
+        "admin": [
+          "configure",
+          "delete",
+          "execute"
+        ],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Demo Layouts": {
+      "groups": {
+        "admin": [],
+        "guest": [
+          "delete",
+          "read"
+        ],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "DEV": {
+      "groups": {
+        "example": []
+      }
+    },
+    "Protected Demo": {
+      "groups": {
+        "admin": [],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Readonly Demo": {
+      "groups": {
+        "admin": [],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Demo_Authorization": {
+      "groups": {
+        "admin": [
+          "delete",
+          "read",
+          "view",
+          "write"
+        ],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Demo_Components": {
+      "groups": {
+        "admin": [
+          "delete",
+          "edit",
+          "read",
+          "view",
+          "write"
+        ],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Demo_Layouts": {
+      "groups": {
+        "admin": [
+          "delete",
+          "edit",
+          "read",
+          "view",
+          "write"
+        ],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Demo_Scheduler": {
+      "groups": {
+        "admin": [
+          "configure",
+          "delete",
+          "execute",
+          "read",
+          "view",
+          "write"
+        ],
+        "guest": [],
+        "alice": ["read", "view"],
+        "tecx": [],
+        "toto": []
+      }
+    },
+    "Demo_Threading": {
+      "groups": {
+        "admin": [
+          "delete",
+          "execute",
+          "read",
+          "view",
+          "write"
+        ],
+        "guest": [],
+        "qual": [],
+        "tecx": [],
+        "toto": []
+      }
+    }
+  },
   "pages": {
     "admin_auth.manage_users": [
       "admin"

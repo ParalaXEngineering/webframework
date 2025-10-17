@@ -1,0 +1,8 @@
+{
+  "theme": "light",
+  "dashboard_layout": "default",
+  "module_settings": {},
+  "notifications": {
+    "email_on_complete": false
+  }
+}

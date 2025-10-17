@@ -1,0 +1,18 @@
+{
+    "GUEST": {
+        "count": 0,
+        "locked_until": null
+    },
+    "admin": {
+        "count": 0,
+        "locked_until": null
+    },
+    "alice": {
+        "count": 0,
+        "locked_until": null
+    },
+    "Test": {
+        "count": 0,
+        "locked_until": null
+    }
+}
