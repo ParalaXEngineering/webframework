@@ -23,12 +23,19 @@
     function initLayoutEditor() {
         const gridContainer = document.querySelector('.grid-stack');
         if (!gridContainer) {
-            console.error('GridStack container not found');
+            console.error('GridStack container not found - missing <div class="grid-stack"></div>');
             return;
         }
         
         if (typeof GridStack === 'undefined') {
             console.error('GridStack library not loaded! Check if gridstack-all.min.js is included.');
+            // Show error message to user
+            gridContainer.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <strong>Error:</strong> GridStack library failed to load. 
+                    Please check your internet connection or contact support.
+                </div>
+            `;
             return;
         }
         
@@ -71,16 +78,20 @@
         // Default to first available field
         const defaultField = availableFields[0];
         
-        // Create item HTML
-        const content = createItemContent(defaultField);
+        // Create grid item element
+        const gridItem = document.createElement('div');
+        gridItem.className = 'grid-stack-item';
+        gridItem.setAttribute('gs-w', '6');
+        gridItem.setAttribute('gs-h', '1');
         
-        // Add to grid (auto-position)
-        grid.addWidget({
-            w: 6,  // Default width: 6 columns
-            h: 1,  // Default height: 1 row
-            content: content,
-            autoPosition: true
-        });
+        const gridItemContent = document.createElement('div');
+        gridItemContent.className = 'grid-stack-item-content';
+        gridItemContent.innerHTML = createItemContent(defaultField);
+        
+        gridItem.appendChild(gridItemContent);
+        
+        // Add to grid
+        grid.addWidget(gridItem);
         
         usedFields.add(defaultField);
         updateJSON();
@@ -91,20 +102,25 @@
      */
     function createItemContent(fieldId) {
         const fieldOptions = EXAMPLE_FIELDS
-            .map(f => `<option value="${f}" ${f === fieldId ? 'selected' : ''}>${f}</option>`)
+            .map(f => `<option value="${f}" ${f === fieldId ? 'selected' : ''}>${f.toUpperCase()}</option>`)
             .join('');
         
         return `
-            <button class="remove-item" onclick="removeGridItem(this)" title="Remove">×</button>
-            <select class="field-selector" onchange="updateFieldSelection(this)">
-                <option value="">-- Select Field --</option>
-                ${fieldOptions}
-            </select>
-            <div class="field-info">
-                <i class="bi bi-arrows-move"></i> Drag to move • 
-                <i class="bi bi-arrows-angle-expand"></i> Resize from edges/corners
+            <button class="remove-item btn btn-sm btn-danger" onclick="removeGridItem(this)" title="Remove">
+                <i class="bi bi-x"></i>
+            </button>
+            <div class="field-selector-wrapper mb-2">
+                <label class="form-label mb-1">Field ID:</label>
+                <select class="field-selector form-select form-select-sm" onchange="updateFieldSelection(this)">
+                    <option value="">-- Select Field --</option>
+                    ${fieldOptions}
+                </select>
             </div>
-            <span class="span-indicator">Span: 6</span>
+            <div class="field-info text-muted small">
+                <i class="bi bi-arrows-move"></i> Drag • 
+                <i class="bi bi-arrows-angle-expand"></i> Resize
+            </div>
+            <span class="span-indicator badge bg-primary">Span: 6</span>
         `;
     }
 
@@ -241,14 +257,22 @@
             
             if (data.items && Array.isArray(data.items)) {
                 data.items.forEach(item => {
-                    const content = createItemContent(item.field_id);
-                    grid.addWidget({
-                        x: item.x,
-                        y: item.y,
-                        w: item.w,
-                        h: item.h,
-                        content: content
-                    });
+                    // Create grid item element
+                    const gridItem = document.createElement('div');
+                    gridItem.className = 'grid-stack-item';
+                    gridItem.setAttribute('gs-x', item.x);
+                    gridItem.setAttribute('gs-y', item.y);
+                    gridItem.setAttribute('gs-w', item.w);
+                    gridItem.setAttribute('gs-h', item.h);
+                    
+                    const gridItemContent = document.createElement('div');
+                    gridItemContent.className = 'grid-stack-item-content';
+                    gridItemContent.innerHTML = createItemContent(item.field_id);
+                    
+                    gridItem.appendChild(gridItemContent);
+                    
+                    // Add to grid
+                    grid.addWidget(gridItem);
                     usedFields.add(item.field_id);
                 });
                 
@@ -303,9 +327,15 @@
     };
 
     // Initialize when DOM is ready
+    console.log('User-defined layout editor script loaded');
+    console.log('GridStack available:', typeof GridStack !== 'undefined');
+    console.log('Document state:', document.readyState);
+    
     if (document.readyState === 'loading') {
+        console.log('Waiting for DOMContentLoaded...');
         document.addEventListener('DOMContentLoaded', initLayoutEditor);
     } else {
+        console.log('DOM already loaded, initializing immediately');
         initLayoutEditor();
     }
 

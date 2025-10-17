@@ -128,7 +128,8 @@ def index():
         "</ol>"
     ), 0)
     
-    return render_template("base_content.j2", content=disp.display())
+    display_content = disp.display()
+    return render_template("base_content.j2", content=display_content, **display_content)
 
 
 @user_defined_bp.route('/editor', methods=['GET', 'POST'])
@@ -223,9 +224,12 @@ def editor():
     </form>
     """
     
-    disp.add_display_item(displayer.DisplayerItemText(editor_html), 0)
+    # Use DisplayerItemAlert with style NONE to render raw HTML
+    disp.add_display_item(displayer.DisplayerItemAlert(editor_html, displayer.BSstyle.NONE), 0)
     
-    return render_template("base_content.j2", content=disp.display())
+    # Unpack the display dict to make resources available to base.j2
+    display_content = disp.display()
+    return render_template("base_content.j2", content=display_content, **display_content)
 
 
 @user_defined_bp.route('/preview')
@@ -307,9 +311,9 @@ def preview():
             'example1': displayer.DisplayerItemAlert("Example 1: Alert Component", displayer.BSstyle.PRIMARY),
             'example2': displayer.DisplayerItemText("<strong>Example 2:</strong> Text item with HTML"),
             'example3': displayer.DisplayerItemBadge("Example 3: Badge", displayer.BSstyle.SUCCESS),
-            'example4': displayer.DisplayerItemInputString("example4_input", "Example 4: Input", placeholder="Enter text..."),
-            'example5': displayer.DisplayerItemInputNumber("example5_num", "Example 5: Number", value=42),
-            'example6': displayer.DisplayerItemSelect("example6_select", "Example 6: Select", ["Option A", "Option B", "Option C"]),
+            'example4': displayer.DisplayerItemInputString("example4_input", "Example 4: Input", value=""),
+            'example5': displayer.DisplayerItemInputNumeric("example5_num", "Example 5: Number", value=42),
+            'example6': displayer.DisplayerItemInputSelect("example6_select", "Example 6: Select", value="Option A", choices=["Option A", "Option B", "Option C"]),
             'example7': displayer.DisplayerItemButtonLink(
                 id="example7_btn",
                 text="Example 7: Button",
@@ -335,7 +339,8 @@ def preview():
             displayer.BSstyle.ERROR
         ), 0)
     
-    return render_template("base_content.j2", content=disp.display())
+    display_content = disp.display()
+    return render_template("base_content.j2", content=display_content, **display_content)
 
 
 @user_defined_bp.route('/code-example')
@@ -473,4 +478,5 @@ disp.add_display_item(
     
     disp.add_display_item(displayer.DisplayerItemText(best_practices), 0)
     
-    return render_template("base_content.j2", content=disp.display())
+    display_content = disp.display()
+    return render_template("base_content.j2", content=display_content, **display_content)

@@ -155,18 +155,37 @@
 
 {% macro display_user_defined_layout(config={}, containers={}, user_id=none) %}
     {# USER_DEFINED layout: Custom grid based on GridStack configuration #}
-    <div class="row my-1" {% if user_id %}id="{{user_id}}"{% endif %}>
-        {# Render items based on their configured positions #}
-        {% if config and config.items %}
-            {% for item_config in config.items %}
-                {% set field_id = item_config.field_id %}
-                {% set x = item_config.x %}
-                {% set y = item_config.y %}
-                {% set w = item_config.w %}
-                {% set h = item_config.h %}
+    {# Use CSS Grid to match GridStack's positioning capabilities #}
+    {% if config and config['items'] %}
+        {% set columns = config.get('columns', 12) %}
+        {# Calculate grid height: maximum y + h value #}
+        {% set max_row = namespace(value=0) %}
+        {% for item in config['items'] %}
+            {% set item_bottom = item['y'] + item['h'] %}
+            {% if item_bottom > max_row.value %}
+                {% set max_row.value = item_bottom %}
+            {% endif %}
+        {% endfor %}
+        
+        <div class="user-defined-grid" 
+             {% if user_id %}id="{{user_id}}"{% endif %}
+             style="display: grid; 
+                    grid-template-columns: repeat({{columns}}, 1fr); 
+                    grid-template-rows: repeat({{max_row.value}}, minmax(60px, auto));
+                    gap: 10px;
+                    margin: 10px 0;">
+            {# Render items with CSS Grid positioning #}
+            {% for item_config in config['items'] %}
+                {% set field_id = item_config['field_id'] %}
+                {% set x = item_config['x'] %}
+                {% set y = item_config['y'] %}
+                {% set w = item_config['w'] %}
+                {% set h = item_config['h'] %}
                 
-                {# Create a Bootstrap column for this item #}
-                <div class="col-{{w}}" style="order: {{y * 12 + x}};">
+                {# CSS Grid uses 1-based indexing, GridStack uses 0-based #}
+                <div class="user-defined-grid-item" 
+                     style="grid-column: {{x + 1}} / span {{w}}; 
+                            grid-row: {{y + 1}} / span {{h}};">
                     {# Display all elements in this field's container #}
                     {% if field_id in containers %}
                         {% for element in containers[field_id] %}
@@ -181,12 +200,14 @@
                     {% endif %}
                 </div>
             {% endfor %}
-        {% else %}
+        </div>
+    {% else %}
+        <div class="row my-1" {% if user_id %}id="{{user_id}}"{% endif %}>
             <div class="col-12">
                 <div class="alert alert-warning">
                     No USER_DEFINED layout configuration provided
                 </div>
             </div>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 {% endmacro %}

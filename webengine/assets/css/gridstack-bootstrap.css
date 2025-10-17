@@ -8,49 +8,67 @@
 .grid-stack {
     background: transparent;
     margin-bottom: 1rem;
+    min-height: 200px; /* Ensure container is visible even when empty */
 }
 
 /* Style grid items to look like Bootstrap cards */
 .grid-stack-item > .grid-stack-item-content {
     /* Bootstrap card styling */
     background: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.125);
-    border-radius: 0.375rem;
+    border: 2px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.5rem;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     overflow: visible;
-    padding: 1rem;
+    padding: 0.875rem;
     inset: 4px 4px 4px 4px !important; /* Override GridStack default */
-}
-
-/* Hover effect for draggable items */
-.grid-stack-item.ui-draggable-dragging > .grid-stack-item-content {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    border-color: #0d6efd;
+    transition: all 0.2s ease;
     cursor: move;
 }
 
-/* Field selector dropdown in editor */
-.grid-stack-item-content .field-selector {
-    width: 100%;
-    padding: 0.375rem 0.75rem;
-    font-size: 1rem;
-    border: 1px solid #ced4da;
-    border-radius: 0.375rem;
-    background-color: #fff;
-    margin-bottom: 0.5rem;
+/* Hover effect for draggable items */
+.grid-stack-item:hover > .grid-stack-item-content {
+    border-color: rgba(13, 110, 253, 0.5);
+    box-shadow: 0 0.25rem 0.5rem rgba(13, 110, 253, 0.15);
 }
 
-.grid-stack-item-content .field-selector:focus {
-    border-color: #86b7fe;
-    outline: 0;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+.grid-stack-item.ui-draggable-dragging > .grid-stack-item-content {
+    box-shadow: 0 0.75rem 1.5rem rgba(13, 110, 253, 0.3);
+    border-color: #0d6efd;
+    border-width: 3px;
+    cursor: grabbing;
+    transform: scale(1.02);
+}
+
+/* Resizing state */
+.grid-stack-item.ui-resizable-resizing > .grid-stack-item-content {
+    border-color: #0d6efd;
+    border-width: 2px;
+    box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.2);
+}
+
+/* Field selector wrapper */
+.grid-stack-item-content .field-selector-wrapper {
+    width: 100%;
+}
+
+.grid-stack-item-content .field-selector-wrapper .form-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Field selector dropdown - Bootstrap styled */
+.grid-stack-item-content .field-selector {
+    width: 100%;
+    font-size: 0.875rem;
 }
 
 /* Field info display */
 .grid-stack-item-content .field-info {
-    font-size: 0.875rem;
-    color: #6c757d;
-    margin-top: 0.5rem;
+    text-align: center;
+    padding: 0.25rem 0;
 }
 
 /* Grid column guides (show 12-column grid) */
@@ -62,6 +80,19 @@
         transparent 1px,
         transparent calc(100% / 12)
     );
+    border: 2px dashed #dee2e6;
+    border-radius: 0.375rem;
+}
+
+/* Empty grid message */
+.grid-stack.show-grid:empty::before {
+    content: 'Drag and drop area - Click "Add New Item" to get started';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: #6c757d;
+    font-style: italic;
 }
 
 /* Resize handle styling */
@@ -88,14 +119,22 @@
 /* Editor toolbar */
 .layout-editor-toolbar {
     background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 0.375rem;
+    border: 2px solid #dee2e6;
+    border-radius: 0.5rem;
     padding: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .layout-editor-toolbar .btn {
-    margin-right: 0.5rem;
+    white-space: nowrap;
+}
+
+.layout-editor-toolbar .btn i {
+    margin-right: 0.25rem;
 }
 
 /* JSON preview */
@@ -129,24 +168,18 @@
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
-/* Remove button in editor */
+/* Remove button in editor - Bootstrap styled */
 .grid-stack-item-content .remove-item {
     position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
-    background: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 0.25rem;
-    width: 1.5rem;
-    height: 1.5rem;
-    font-size: 0.875rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    top: 0.375rem;
+    right: 0.375rem;
+    z-index: 10;
+    padding: 0.125rem 0.375rem;
+    line-height: 1;
+    font-size: 1rem;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
 }
 
 .grid-stack-item:hover .remove-item {
@@ -154,20 +187,22 @@
 }
 
 .remove-item:hover {
-    background: #bb2d3b;
+    transform: scale(1.1);
 }
 
-/* Column span indicator */
+.remove-item:active {
+    transform: scale(0.95);
+}
+
+/* Column span indicator - Bootstrap badge */
 .grid-stack-item-content .span-indicator {
     position: absolute;
-    bottom: 0.25rem;
-    left: 0.25rem;
-    background: rgba(13, 110, 253, 0.1);
-    color: #0d6efd;
-    padding: 0.125rem 0.375rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
+    bottom: 0.375rem;
+    left: 0.375rem;
+    font-size: 0.7rem;
     font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    line-height: 1;
 }
 
 /* Readonly view (non-editor) */
@@ -194,4 +229,44 @@
         margin-bottom: 0.5rem;
         width: 100%;
     }
+}
+
+/* Dark mode support */
+html[data-bs-theme="dark"] .grid-stack-item > .grid-stack-item-content {
+    background: #1e1e2d;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+html[data-bs-theme="dark"] .grid-stack-item:hover > .grid-stack-item-content {
+    border-color: rgba(13, 110, 253, 0.6);
+}
+
+html[data-bs-theme="dark"] .field-selector-wrapper .form-label {
+    color: #adb5bd;
+}
+
+html[data-bs-theme="dark"] .grid-stack.show-grid {
+    border-color: rgba(255, 255, 255, 0.2);
+    background-image: repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.1) 0px,
+        rgba(255, 255, 255, 0.1) 1px,
+        transparent 1px,
+        transparent calc(100% / 12)
+    );
+}
+
+html[data-bs-theme="dark"] .grid-stack.show-grid:empty::before {
+    color: #adb5bd;
+}
+
+html[data-bs-theme="dark"] .json-preview {
+    background: #1e1e2d;
+    border-color: rgba(255, 255, 255, 0.125);
+    color: #dee2e6;
+}
+
+html[data-bs-theme="dark"] .layout-editor-toolbar {
+    background: #1e1e2d;
+    border-color: rgba(255, 255, 255, 0.125);
 }

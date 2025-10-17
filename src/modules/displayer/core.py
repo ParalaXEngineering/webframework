@@ -39,10 +39,8 @@ class ResourceRegistry:
             'js': ['vendors/datatables.net/datatables.min.js', 'js/datatables-init.js']
         },
         'gridstack': {
-            'css': ['css/gridstack-bootstrap.css'],
-            'css_cdn': ['https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack.min.css'],
-            'js': ['js/user-defined-layout-editor.js'],
-            'js_cdn': ['https://cdn.jsdelivr.net/npm/gridstack@10/dist/gridstack-all.min.js']
+            'css': ['vendors/gridstack/gridstack.min.css', 'css/gridstack-bootstrap.css'],
+            'js': ['vendors/gridstack/gridstack-all.min.js', 'js/user-defined-layout-editor.js']
         },
         'sweetalert': {
             'css': ['vendors/sweetalert/sweetalert2.min.css'],

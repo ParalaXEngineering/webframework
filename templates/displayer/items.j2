@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {% endif %}
         {% endif %}
     {% else %}
-        <div>{{text}}</div>
+        <div>{{text | safe}}</div>
     {% endif %}
 {% endmacro %}
 
