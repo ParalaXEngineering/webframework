@@ -40,7 +40,7 @@ class ResourceRegistry:
         },
         'gridstack': {
             'css': ['vendors/gridstack/gridstack.min.css', 'css/gridstack-bootstrap.css'],
-            'js': ['vendors/gridstack/gridstack-all.min.js', 'js/user-defined-layout-editor.js']
+            'js': ['vendors/gridstack/gridstack-all.min.js']
         },
         'sweetalert': {
             'css': ['vendors/sweetalert/sweetalert2.min.css'],
@@ -281,16 +281,16 @@ class Layouts(Enum):
     
     - SPACER: Empty vertical space for visual separation between sections.
     
-    - USER_DEFINED: Custom grid layout designed by the user via visual editor.
-                    Uses GridStack.js for drag-and-drop layout configuration.
-                    JSON configuration maps field IDs to grid positions.
+    - GRID: Custom grid layout designed by the user via visual editor.
+            Uses GridStack.js for drag-and-drop layout configuration.
+            JSON configuration maps field IDs to grid positions.
     """
     VERTICAL = "VERT"
     HORIZONTAL = "HORIZ"
     TABLE = "TABLE"
     SPACER = "SPACER"
     TABS = "TABS"
-    USER_DEFINED = "USER_DEF"
+    GRID = "GRID"
 
 
 class TableMode(Enum):
@@ -357,6 +357,7 @@ class DisplayerItems(Enum):
     CONSOLE = "CONSOLE"
     CODE = "CODE"
     PROGRESSBAR = "PROGRESSBAR"
+    GRIDEDITOR = "GRIDEDITOR"
 
 
 class BSstyle(Enum):

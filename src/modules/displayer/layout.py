@@ -54,7 +54,7 @@ class DisplayerLayout:
         background: Optional[BSstyle] = None,
         responsive: Optional[Dict[str, Any]] = None,
         datatable_config: Optional[Dict[str, Any]] = None,
-        user_defined_config: Optional[Dict[str, Any]] = None,
+        grid_config: Optional[Dict[str, Any]] = None,
         userid: Optional[str] = None,
         style: Optional[MAZERStyles] = None
     ) -> None:
@@ -75,7 +75,7 @@ class DisplayerLayout:
             responsive: DEPRECATED - Use datatable_config instead
             datatable_config: DataTable configuration dict.
                 Format: {"table_id": "myTable", "mode": TableMode.BULK_DATA, "data": [...], ...}
-            user_defined_config: USER_DEFINED layout configuration (GridStack JSON).
+            grid_config: GRID layout configuration (GridStack JSON).
                 Format: {"version": "1.0", "columns": 12, "items": [{"field_id": "example1", "x": 0, "y": 0, "w": 6, "h": 1}, ...]}
             userid: Custom ID for form analysis
             style: Custom style override (MAZERStyles enum)
@@ -124,18 +124,18 @@ class DisplayerLayout:
         self.m_background = background
         self.m_userid = userid
         self.m_style = style
-        self.m_user_defined_config = user_defined_config
+        self.m_grid_config = grid_config
         
         # Instance-specific layout metadata storage (replaces class variable g_all_layout)
         self.m_all_layout = {}
         
-        # For USER_DEFINED layouts, validate config
-        # Note: GridStack is NOT required for rendering USER_DEFINED layouts (uses Bootstrap grid)
+        # For GRID layouts, validate config
+        # Note: GridStack is NOT required for rendering GRID layouts (uses CSS Grid)
         # GridStack is only needed for the editor itself
-        if layoutType == Layouts.USER_DEFINED:
-            if user_defined_config is None:
-                raise ValueError("USER_DEFINED layout requires user_defined_config parameter")
-            self._validate_user_defined_config(user_defined_config)
+        if layoutType == Layouts.GRID:
+            if grid_config is None:
+                raise ValueError("GRID layout requires grid_config parameter")
+            self._validate_grid_config(grid_config)
         
         # Handle backward compatibility: responsive -> datatable_config
         if responsive is not None and datatable_config is not None:
@@ -167,9 +167,9 @@ class DisplayerLayout:
         else:
             self.m_spacing = spacing
     
-    def _validate_user_defined_config(self, config: Dict[str, Any]) -> None:
+    def _validate_grid_config(self, config: Dict[str, Any]) -> None:
         """
-        Validate USER_DEFINED layout configuration.
+        Validate GRID layout configuration.
         
         Args:
             config: The configuration dictionary to validate
@@ -178,13 +178,13 @@ class DisplayerLayout:
             ValueError: If configuration is invalid
         """
         if not isinstance(config, dict):
-            raise ValueError("user_defined_config must be a dictionary")
+            raise ValueError("grid_config must be a dictionary")
         
         if "items" not in config:
-            raise ValueError("user_defined_config must contain 'items' key")
+            raise ValueError("grid_config must contain 'items' key")
         
         if not isinstance(config["items"], list):
-            raise ValueError("user_defined_config['items'] must be a list")
+            raise ValueError("grid_config['items'] must be a list")
         
         # Validate each item
         for idx, item in enumerate(config["items"]):
@@ -277,13 +277,13 @@ class DisplayerLayout:
             "background": self.m_background.value if self.m_background else None
         }
 
-        # USER_DEFINED layout has special structure
-        if self.m_type == Layouts.USER_DEFINED.value:
-            current_layout["user_defined_config"] = self.m_user_defined_config
+        # GRID layout has special structure
+        if self.m_type == Layouts.GRID.value:
+            current_layout["grid_config"] = self.m_grid_config
             current_layout["user_id"] = self.m_userid
             # Create containers for each field_id
             containers = {}
-            for item in self.m_user_defined_config.get("items", []):
+            for item in self.m_grid_config.get("items", []):
                 containers[item["field_id"]] = []
             current_layout["containers"] = containers
             container.append(current_layout)

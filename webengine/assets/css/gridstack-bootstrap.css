@@ -86,13 +86,15 @@
 
 /* Empty grid message */
 .grid-stack.show-grid:empty::before {
-    content: 'Drag and drop area - Click "Add New Item" to get started';
+    content: 'Grid editor - Select a field above and click "Add to Grid" to start building your layout';
     display: flex;
     align-items: center;
     justify-content: center;
     height: 200px;
     color: #6c757d;
     font-style: italic;
+    text-align: center;
+    padding: 1rem;
 }
 
 /* Resize handle styling */

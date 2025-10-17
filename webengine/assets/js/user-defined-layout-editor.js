@@ -1,5 +1,5 @@
 /**
- * User-Defined Layout Editor
+ * Grid Layout Editor
  * 
  * Provides drag-and-drop interface for creating custom Bootstrap grid layouts
  * using GridStack.js. Exports configuration as JSON for use with USER_DEFINED layouts.
@@ -327,7 +327,7 @@
     };
 
     // Initialize when DOM is ready
-    console.log('User-defined layout editor script loaded');
+    console.log('Grid layout editor script loaded');
     console.log('GridStack available:', typeof GridStack !== 'undefined');
     console.log('Document state:', document.readyState);
     

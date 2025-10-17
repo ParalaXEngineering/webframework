@@ -2318,3 +2318,70 @@ class DisplayerItemProgressBar(DisplayerItem):
             striped=True,
             animated=True
         )
+
+
+class DisplayerItemGridEditor(DisplayerItem):
+    """
+    Interactive grid layout editor using GridStack.js.
+    
+    Provides a drag-and-drop interface for creating custom grid layouts.
+    The layout configuration is automatically saved to a hidden field as JSON
+    on every change (add, remove, drag, resize).
+    
+    Use this for allowing users to customize their dashboard layouts or
+    create custom form arrangements.
+    """
+
+    def __init__(
+        self, 
+        id: str, 
+        fields: Dict[str, str],
+        value: Optional[str] = None,
+        columns: int = 12
+    ) -> None:
+        """
+        Initialize a grid layout editor.
+
+        Args:
+            id: Unique identifier for the editor and hidden field
+            fields: Dictionary mapping field IDs to display names
+                   Example: {"field1": "First Field", "field2": "Second Field"}
+            value: Optional JSON string with existing layout configuration
+                  If provided, editor will load this layout on initialization
+            columns: Number of grid columns (default: 12, matching Bootstrap)
+
+        Example:
+            >>> editor = DisplayerItemGridEditor(
+            ...     id="layout_editor",
+            ...     fields={
+            ...         "user_info": "User Information",
+            ...         "stats": "Statistics",
+            ...         "activity": "Recent Activity"
+            ...     },
+            ...     value='{"version":"1.0","columns":12,"items":[...]}'
+            ... )
+        """
+        super().__init__(DisplayerItems.GRIDEDITOR)
+        self.m_id = id
+        self.m_data = fields  # field_id -> field_name mapping
+        self.m_value = value  # JSON string of layout config
+        self.m_text = str(columns)  # Store columns count in m_text
+
+    @classmethod
+    def get_required_resources(cls) -> List[str]:
+        """Grid editor requires GridStack library."""
+        return ['gridstack']
+
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample fields."""
+        return cls(
+            id="test_grid_editor",
+            fields={
+                "header": "Header Section",
+                "sidebar": "Sidebar Widget",
+                "main": "Main Content",
+                "footer": "Footer Info"
+            },
+            columns=12
+        )

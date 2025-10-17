@@ -369,8 +369,13 @@ function send_terminal() {
 function saveScrollPosition() {
     var scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
     localStorage.setItem('scrollPosition', scrollPosition);
-    // Soumettre le formulaire ou faire l'appel AJAX ici
-    document.getElementById('your-form-id').submit();
+    // Find the closest form element (buttons are already inside forms in base_content.j2)
+    var form = document.querySelector('form[method="POST"]');
+    if (form) {
+        form.submit();
+    } else {
+        console.warn('No form found to submit');
+    }
 }
 
 $(document).ready(function() {

@@ -336,8 +336,8 @@ class Displayer:
         if layout is None:
             return False
 
-        if layout["type"] == Layouts.USER_DEFINED.value:
-            # For USER_DEFINED, column parameter is interpreted as field_id string
+        if layout["type"] == Layouts.GRID.value:
+            # For GRID, column parameter is interpreted as field_id string
             # Convert to string if it's a number (for backward compatibility)
             field_id = str(column) if isinstance(column, int) else column
             
@@ -380,8 +380,8 @@ class Displayer:
             item.setId(id)
 
         # Add the display item
-        if layout["type"] == Layouts.USER_DEFINED.value:
-            # For USER_DEFINED, use field_id as key
+        if layout["type"] == Layouts.GRID.value:
+            # For GRID, use field_id as key
             field_id = str(column) if isinstance(column, int) else column
             item.display(layout["containers"][field_id], self.m_modules[self.m_active_module]["id"])
         elif layout["type"] == Layouts.VERTICAL.value or layout["type"] == Layouts.HORIZONTAL.value:

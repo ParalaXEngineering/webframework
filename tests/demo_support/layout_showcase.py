@@ -35,7 +35,7 @@ def get_all_layouts():
         ("Table", displayer.Layouts.TABLE, "Tabular layout with rows and columns"),
         ("Tabs", displayer.Layouts.TABS, "Tabbed interface for organizing content"),
         ("Spacer", displayer.Layouts.SPACER, "Empty space for visual separation"),
-        ("User-Defined", displayer.Layouts.USER_DEFINED, "Custom grid layout with visual drag-and-drop editor"),
+        ("Grid", displayer.Layouts.GRID, "Custom grid layout with visual drag-and-drop editor"),
     ]
     return layouts
 
@@ -88,9 +88,9 @@ def index():
             column=1, layout_id=layout_id, line=line
         )
         
-        # Button - Special handling for User-Defined layout
-        if layout_name.lower() == "user-defined":
-            link = url_for('user_defined_layout.index')
+        # Button - Special handling for Grid layout
+        if layout_name.lower() == "grid":
+            link = url_for('grid_layout.index')
         else:
             link = url_for('layouts.layout_detail', layout=layout_name.lower())
         
@@ -131,9 +131,9 @@ def layout_detail(layout: str = ""):
         'spacer': show_spacer_layout,
     }
     
-    # Redirect USER_DEFINED to its own blueprint
-    if layout == 'user-defined':
-        return redirect(url_for('user_defined_layout.index'))
+    # Redirect GRID to its own blueprint
+    if layout == 'grid':
+        return redirect(url_for('grid_layout.index'))
     
     if layout not in layout_functions:
         return redirect(url_for('layouts.index'))

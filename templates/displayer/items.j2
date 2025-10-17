@@ -111,6 +111,8 @@
         {{code(item["itemId"], item["text"], item["path"], item["header"], item["style"], item["disabled"])}}
     {% elif item["type"] == "PROGRESSBAR" %}
         {{progressbar(item["itemId"], item["value"], item["text"], item["style"], item["data"])}}
+    {% elif item["type"] == "GRIDEDITOR" %}
+        {{grideditor(item["id"], item["data"], item["value"], item["text"])}}
     {% endif %}
 
     {% if "itemId" in item %}
@@ -1116,5 +1118,213 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 {% endmacro %}
 
+{% macro grideditor(id, fields, value, columns) %}
+{# Interactive grid layout editor using GridStack.js
+   
+   Parameters:
+   - id: unique identifier for the editor and hidden field
+   - fields: dict mapping field_id to field_name {"field1": "Field Name", ...}
+   - value: optional JSON string with existing layout config
+   - columns: number of grid columns (default: 12)
+#}
+<div id="{{id}}_editor_container" class="grid-editor-container mb-3">
+    {# Field selector dropdown #}
+    <div class="mb-3 d-flex gap-2 align-items-center">
+        <label for="{{id}}_field_selector" class="form-label mb-0">Add Field:</label>
+        <select id="{{id}}_field_selector" class="form-select" style="max-width: 300px;">
+            <option value="">-- Select a field to add --</option>
+            {% for field_id, field_name in fields.items() %}
+            <option value="{{field_id}}">{{field_name}}</option>
+            {% endfor %}
+        </select>
+        <button type="button" class="btn btn-primary" onclick="gridEditor_{{id|replace(' ', '_')|replace('.', '_')}}.addFieldFromSelector()">
+            <i class="mdi mdi-plus"></i> Add to Grid
+        </button>
+    </div>
+    
+    {# GridStack editor area #}
+    <div class="grid-stack show-grid" id="{{id}}_grid"></div>
+    
+    {# Hidden field to store JSON configuration (for form submission) #}
+    <input type="hidden" id="{{id}}" name="{{id}}" value="">
+    
+    {# Store initial value in a script tag to avoid HTML escaping issues #}
+    {% if value %}
+    <script type="application/json" id="{{id}}_initial_data">
+        {{value|safe}}
+    </script>
+    {% endif %}
+</div>
+
+<script>
+// Initialize grid editor for {{id}}
+(function() {
+    const editorId = '{{id}}';
+    const editorIdSafe = '{{id|replace(" ", "_")|replace(".", "_")}}'; // Sanitized for JavaScript variable names
+    
+    // Create global API object immediately (will be populated when GridStack loads)
+    window['gridEditor_' + editorIdSafe] = {
+        addFieldFromSelector: function() {
+            console.warn('Grid editor not yet initialized');
+        },
+        removeItem: function() {
+            console.warn('Grid editor not yet initialized');
+        }
+    };
+    
+    // Wait for GridStack to be available
+    function initEditor() {
+        if (typeof GridStack === 'undefined') {
+            console.warn('GridStack not yet loaded, retrying...');
+            setTimeout(initEditor, 100);
+            return;
+        }
+        
+        const gridEl = document.getElementById(editorId + '_grid');
+        const hiddenField = document.getElementById(editorId);
+        const fieldSelector = document.getElementById(editorId + '_field_selector');
+        const columns = {{ columns|int if columns else 12 }};
+        const fields = {{fields | tojson | safe}};
+        
+        console.log('Grid editor config:', {editorId, columns, fieldCount: Object.keys(fields).length});
+        
+        // Initialize GridStack
+        const grid = GridStack.init({
+            column: columns,
+            cellHeight: 60,
+            margin: 10,
+            float: false,
+            removable: false,
+            acceptWidgets: false
+        }, gridEl);
+    
+    // Auto-save on any change
+    grid.on('added removed change', function(e, items) {
+        saveGridLayout();
+    });
+    
+    function saveGridLayout() {
+        const items = [];
+        grid.engine.nodes.forEach(node => {
+            items.push({
+                field_id: node.el.dataset.fieldId,
+                x: node.x,
+                y: node.y,
+                w: node.w,
+                h: node.h
+            });
+        });
+        
+        const config = {
+            version: "1.0",
+            columns: columns,
+            items: items
+        };
+        
+        hiddenField.value = JSON.stringify(config);
+    }
+    
+    function createItemContent(fieldId) {
+        const fieldName = fields[fieldId] || fieldId;
+        
+        const div = document.createElement('div');
+        div.className = 'grid-stack-item-content';
+        div.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-primary">${fieldId}</span>
+                <button type="button" class="btn-close btn-sm" onclick="gridEditor_${editorIdSafe}.removeItem(this)" aria-label="Remove"></button>
+            </div>
+            <div class="text-muted small">${fieldName}</div>
+        `;
+        
+        return div;
+    }
+    
+    function addField(fieldId, x, y, w, h) {
+        if (!fieldId || !fields[fieldId]) {
+            console.warn('Invalid field ID:', fieldId);
+            return;
+        }
+        
+        const widget = document.createElement('div');
+        widget.className = 'grid-stack-item';
+        widget.dataset.fieldId = fieldId;
+        widget.setAttribute('gs-x', x || 0);
+        widget.setAttribute('gs-y', y || 0);
+        widget.setAttribute('gs-w', w || 4);
+        widget.setAttribute('gs-h', h || 2);
+        
+        const content = createItemContent(fieldId);
+        widget.appendChild(content);
+        
+        grid.addWidget(widget);
+        saveGridLayout();
+    }
+    
+    function addFieldFromSelector() {
+        const fieldId = fieldSelector.value;
+        if (!fieldId) {
+            alert('Please select a field to add');
+            return;
+        }
+        
+        // Check if field already exists
+        const exists = Array.from(grid.engine.nodes).some(node => node.el.dataset.fieldId === fieldId);
+        if (exists) {
+            alert('This field is already in the grid');
+            return;
+        }
+        
+        // Add with default position
+        addField(fieldId, 0, 0, 4, 2);
+        fieldSelector.value = '';
+    }
+    
+    function removeItem(btnElement) {
+        const item = btnElement.closest('.grid-stack-item');
+        grid.removeWidget(item);
+        saveGridLayout();
+    }
+    
+    // Load existing layout if provided
+    const initialDataScript = document.getElementById(editorId + '_initial_data');
+    console.log('[GridEditor] Initial data script:', initialDataScript);
+    
+    if (initialDataScript) {
+        try {
+            const initialJson = initialDataScript.textContent;
+            console.log('[GridEditor] Initial JSON (first 100 chars):', initialJson.substring(0, 100));
+            const config = JSON.parse(initialJson);
+            console.log('[GridEditor] Parsed config:', config);
+            
+            if (config.items && Array.isArray(config.items)) {
+                console.log('[GridEditor] Loading', config.items.length, 'items');
+                config.items.forEach(item => {
+                    console.log('[GridEditor] Adding item:', item);
+                    addField(item.field_id, item.x, item.y, item.w, item.h);
+                });
+            } else {
+                console.log('[GridEditor] No items found in config');
+            }
+        } catch (e) {
+            console.error('[GridEditor] Failed to load grid layout:', e);
+            console.error('[GridEditor] Script content:', initialDataScript ? initialDataScript.textContent : 'N/A');
+        }
+    } else {
+        console.log('[GridEditor] No existing layout to load');
+    }
+    
+    // Update global API with actual functions (now that GridStack is loaded)
+    window['gridEditor_' + editorIdSafe].addFieldFromSelector = addFieldFromSelector;
+    window['gridEditor_' + editorIdSafe].removeItem = removeItem;
+    
+    console.log('Grid editor initialized for:', editorId);
+    }
+    
+    // Start initialization (will retry if GridStack not loaded yet)
+    initEditor();
+})();
+</script>
+{% endmacro %}
 
 

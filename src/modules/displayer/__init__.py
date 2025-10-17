@@ -88,6 +88,7 @@ from .items import (
     DisplayerItemConsole,
     DisplayerItemCode,
     DisplayerItemProgressBar,
+    DisplayerItemGridEditor,
 )
 
 __all__ = [
