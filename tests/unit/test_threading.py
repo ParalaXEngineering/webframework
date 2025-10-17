@@ -65,7 +65,7 @@ class SimpleThread(Threaded_action):
         self.console_write("Starting simple action")
         self.executed = True
         self.execution_count += 1
-        time.sleep(0.1)
+        time.sleep(0.3)  # Increased to give test time to observe running state
         self.console_write("Simple action completed")
 
 
@@ -578,11 +578,11 @@ def test_thread_lifecycle():
     
     # Start
     thread.start()
-    time.sleep(0.1)
+    time.sleep(0.2)  # Give thread time to start
     assert thread.m_running
     
     # Wait for completion
-    time.sleep(0.5)
+    time.sleep(0.5)  # Wait for the 0.3s action + buffer
     assert not thread.m_running
     assert thread.executed
     

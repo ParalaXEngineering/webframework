@@ -744,8 +744,8 @@ class TestDisplayGeneration:
         basic_workflow.add_display(disp)
         
         content = disp.display()
-        # The workflow uses its default name when displaying
-        module_name = basic_workflow.m_default_name
+        # The workflow uses its name when displaying
+        module_name = basic_workflow.m_name
         
         # Should have workflow module in content
         assert module_name in content
@@ -758,8 +758,8 @@ class TestDisplayGeneration:
         basic_workflow.add_display(disp)
         
         content = disp.display()
-        # The workflow uses its default name when displaying
-        module_name = basic_workflow.m_default_name
+        # The workflow uses its name when displaying
+        module_name = basic_workflow.m_name
         
         # Should have workflow module
         assert module_name in content

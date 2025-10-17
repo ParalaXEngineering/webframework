@@ -46,14 +46,14 @@ class FailedLoginManager:
     def __init__(self, 
                  lockout_file: str = "failed_logins.json",
                  max_attempts: int = DEFAULT_MAX_ATTEMPTS,
-                 lockout_minutes: int = DEFAULT_LOCKOUT_MINUTES):
+                 lockout_minutes: float = DEFAULT_LOCKOUT_MINUTES):
         """
         Initialize the Failed Login Manager.
         
         Args:
             lockout_file: Path to JSON file for storing failed attempts
             max_attempts: Maximum number of failed attempts before lockout (default: 5)
-            lockout_minutes: Duration of account lockout in minutes (default: 5)
+            lockout_minutes: Duration of account lockout in minutes (default: 5, accepts float)
         """
         self.lockout_file = Path(lockout_file)
         self.max_attempts = max_attempts

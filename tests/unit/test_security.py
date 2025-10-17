@@ -189,11 +189,12 @@ class TestFailedLoginManager:
         """Test account auto-unlocks after timeout expires."""
         username = "testuser"
         
-        # Create manager with short lockout (for testing)
+        # Create manager with very short lockout (for testing)
+        # Using 0.02 minutes = 1.2 seconds
         manager = FailedLoginManager(
             lockout_file=temp_lockout_file,
             max_attempts=5,
-            lockout_minutes=1  # 1 minute
+            lockout_minutes=0.02  # ~1.2 seconds
         )
         
         # Lock the account
@@ -203,8 +204,8 @@ class TestFailedLoginManager:
         is_locked, _ = manager.is_locked(username)
         assert is_locked
         
-        # Wait for lockout to expire
-        time.sleep(1)
+        # Wait for lockout to expire (1.5 seconds to be safe)
+        time.sleep(1.5)
         
         # Should be auto-unlocked
         is_locked, _ = manager.is_locked(username)

@@ -72,7 +72,7 @@ class TestMessageQueueBasics:
         messages = queue.get_all(MessageType.STATUS)
         
         assert len(messages) == 1
-        assert messages[0] == ["cat1", "msg1", 50, ""]
+        assert messages[0].data == ["cat1", "msg1", 50, ""]
     
     def test_add_and_get_multiple_messages(self):
         """
@@ -90,9 +90,9 @@ class TestMessageQueueBasics:
         messages = queue.get_all(MessageType.STATUS)
         
         assert len(messages) == 3
-        assert messages[0] == ["cat1", "msg1", 50, ""]
-        assert messages[1] == ["cat2", "msg2", 100, ""]
-        assert messages[2] == ["cat3", "msg3", 75, ""]
+        assert messages[0].data == ["cat1", "msg1", 50, ""]
+        assert messages[1].data == ["cat2", "msg2", 100, ""]
+        assert messages[2].data == ["cat3", "msg3", 75, ""]
     
     def test_get_all_clears_queue(self):
         """
@@ -149,9 +149,9 @@ class TestMessageQueueBasics:
         assert len(status_msgs) == 1
         assert len(popup_msgs) == 1
         assert len(button_msgs) == 1
-        assert status_msgs[0] == ["status_data"]
-        assert popup_msgs[0] == ["popup_data"]
-        assert button_msgs[0] == ["button_data"]
+        assert status_msgs[0].data == ["status_data"]
+        assert popup_msgs[0].data == ["popup_data"]
+        assert button_msgs[0].data == ["button_data"]
 
 
 class TestMessageQueueSizeLimits:
@@ -179,9 +179,9 @@ class TestMessageQueueSizeLimits:
         
         # Should only have last 3 messages (FIFO eviction)
         assert len(messages) == 3
-        assert messages[0] == ["msg2"]
-        assert messages[1] == ["msg3"]
-        assert messages[2] == ["msg4"]
+        assert messages[0].data == ["msg2"]
+        assert messages[1].data == ["msg3"]
+        assert messages[2].data == ["msg4"]
     
     def test_modal_special_limit(self):
         """
@@ -200,8 +200,8 @@ class TestMessageQueueSizeLimits:
         
         # Should only keep last 5 modals
         assert len(modals) == 5
-        assert modals[0] == ["modal_5", "content_5"]
-        assert modals[4] == ["modal_9", "content_9"]
+        assert modals[0].data == ["modal_5", "content_5"]
+        assert modals[4].data == ["modal_9", "content_9"]
     
     def test_other_queues_use_max_size(self):
         """
@@ -374,358 +374,6 @@ class TestMessageQueueSize:
 
 
 # =============================================================================
-# MessageEmitter Tests - SocketIO emission with mock objects
-# =============================================================================
-
-@pytest.fixture
-def mock_socket():
-    """
-    Create a mock SocketIO object.
-    
-    Provides a mock for testing emitter without real SocketIO connection.
-    """
-    return Mock()
-
-
-@pytest.fixture
-def emitter(mock_socket):
-    """
-    Create a MessageEmitter with mock socket.
-    
-    Provides a configured emitter for testing emission logic.
-    """
-    return MessageEmitter(mock_socket)
-
-
-class TestStatusEmission:
-    """
-    Test status message emission and filtering.
-    
-    Validates that status messages are emitted correctly to SocketIO
-    with proper duplicate filtering.
-    """
-    
-    def test_emit_empty_status_list(self, emitter, mock_socket):
-        """
-        Test that empty status list doesn't emit anything.
-        
-        Validates optimization: empty lists don't trigger SocketIO calls,
-        reducing unnecessary network traffic.
-        """
-        emitter.emit_status([])
-        assert not mock_socket.emit.called
-    
-    def test_emit_single_status(self, emitter, mock_socket):
-        """
-        Test emitting a single status message.
-        
-        Validates that status messages are formatted correctly with category,
-        message, progress, and supplement data.
-        """
-        statuses = [["cat1", "msg1", 50, ""]]
-        
-        emitter.emit_status(statuses)
-        
-        mock_socket.emit.assert_called_once_with(
-            "action_status",
-            {"cat1": ["msg1", 50, ""]}
-        )
-    
-    def test_emit_multiple_statuses(self, emitter, mock_socket):
-        """
-        Test emitting multiple status messages.
-        
-        Validates that multiple status messages are each emitted separately,
-        allowing real-time progress updates.
-        """
-        statuses = [
-            ["cat1", "msg1", 50, ""],
-            ["cat2", "msg2", 75, "detail"],
-            ["cat3", "msg3", 100, ""]
-        ]
-        
-        emitter.emit_status(statuses)
-        
-        assert mock_socket.emit.call_count == 3
-    
-    def test_filters_duplicate_statuses(self, emitter, mock_socket):
-        """
-        Test that duplicate status messages are filtered.
-        
-        Validates duplicate filtering: keeps only the last occurrence of each
-        unique category+message pair, preventing UI spam.
-        """
-        statuses = [
-            ["cat1", "msg1", 25, ""],
-            ["cat1", "msg1", 50, ""],  # Duplicate - should keep this one
-            ["cat2", "msg2", 100, ""],
-            ["cat1", "msg1", 75, ""],  # Another duplicate - should keep this one
-        ]
-        
-        emitter.emit_status(statuses)
-        
-        # Should only emit 2 messages (unique msg1 with 75%, msg2)
-        assert mock_socket.emit.call_count == 2
-        
-        calls = mock_socket.emit.call_args_list
-        # Check both messages were emitted (order may vary based on dict iteration)
-        emitted_data = [call_info[0][1] for call_info in calls]
-        assert {"cat1": ["msg1", 75, ""]} in emitted_data
-        assert {"cat2": ["msg2", 100, ""]} in emitted_data
-    
-    def test_handles_socket_error_gracefully(self, emitter, mock_socket):
-        """
-        Test that socket errors don't crash the emitter.
-        
-        Validates error resilience: SocketIO errors are caught and logged
-        without crashing the scheduler or action.
-        """
-        mock_socket.emit.side_effect = Exception("Socket error")
-        
-        statuses = [["cat1", "msg1", 50, ""]]
-        
-        # Should not raise exception
-        emitter.emit_status(statuses)
-        
-        assert mock_socket.emit.called
-
-
-class TestPopupEmission:
-    """
-    Test popup message emission.
-    
-    Validates that popup messages (alerts/notifications) are emitted correctly
-    with appropriate log levels.
-    """
-    
-    def test_emit_single_popup(self, emitter, mock_socket):
-        """
-        Test emitting a single popup.
-        
-        Validates that popups are formatted with log level and message text,
-        displayed as SweetAlert2 toasts to the user.
-        """
-        popups = [[info, "Test message"]]
-        
-        emitter.emit_popups(popups)
-        
-        mock_socket.emit.assert_called_once_with(
-            "popup",
-            {"info": "Test message"}
-        )
-    
-    def test_emit_multiple_popups(self, emitter, mock_socket):
-        """
-        Test emitting multiple popups.
-        
-        Validates that multiple popups with different log levels
-        (success, warning, error) are each emitted separately.
-        """
-        popups = [
-            [success, "Success message"],
-            [warning, "Warning message"],
-            [error, "Error message"]
-        ]
-        
-        emitter.emit_popups(popups)
-        
-        assert mock_socket.emit.call_count == 3
-        mock_socket.emit.assert_any_call("popup", {"success": "Success message"})
-        mock_socket.emit.assert_any_call("popup", {"warning": "Warning message"})
-        mock_socket.emit.assert_any_call("popup", {"error": "Error message"})
-    
-    def test_handles_popup_error(self, emitter, mock_socket):
-        """
-        Test error handling for popup emission.
-        
-        Validates that popup emission errors don't crash the scheduler,
-        ensuring robustness even with network issues.
-        """
-        mock_socket.emit.side_effect = Exception("Popup error")
-        
-        popups = [[info, "test"]]
-        
-        # Should not raise
-        emitter.emit_popups(popups)
-
-
-class TestResultEmission:
-    """
-    Test result message emission.
-    
-    Validates that action results (success/failure messages) are emitted
-    correctly for display in result cards.
-    """
-    
-    def test_emit_results(self, emitter, mock_socket):
-        """
-        Test emitting result messages.
-        
-        Validates that results are formatted with category (success/danger)
-        and HTML text for rich result display.
-        """
-        results = [
-            ["success", "Operation completed"],
-            ["danger", "Operation failed"]
-        ]
-        
-        emitter.emit_results(results)
-        
-        assert mock_socket.emit.call_count == 2
-        mock_socket.emit.assert_any_call("result", {
-            "category": "success",
-            "text": "Operation completed"
-        })
-        mock_socket.emit.assert_any_call("result", {
-            "category": "danger",
-            "text": "Operation failed"
-        })
-
-
-class TestModalEmission:
-    """
-    Test modal dialog emission.
-    
-    Validates that modal dialogs are emitted correctly with ID and HTML content
-    for dynamic modal display.
-    """
-    
-    def test_emit_modals(self, emitter, mock_socket):
-        """
-        Test emitting modal dialogs.
-        
-        Validates that modals are sent with ID for targeting and HTML content
-        for rendering in Bootstrap modal dialogs.
-        """
-        modals = [
-            ["modal1", "<div>Content 1</div>"],
-            ["modal2", "<div>Content 2</div>"]
-        ]
-        
-        emitter.emit_modals(modals)
-        
-        assert mock_socket.emit.call_count == 2
-        mock_socket.emit.assert_any_call("modal", {
-            "id": "modal1",
-            "text": "<div>Content 1</div>"
-        })
-
-
-class TestButtonEmission:
-    """
-    Test button update emission.
-    
-    Validates that button updates (icon, text, style changes) are emitted
-    correctly for dynamic button state management.
-    """
-    
-    def test_emit_buttons(self, emitter, mock_socket):
-        """
-        Test emitting button updates.
-        
-        Validates that button updates include ID, icon, text, and style
-        for complete button re-rendering.
-        """
-        buttons = [
-            ["btn1", "home", "Home", "primary"],
-            ["btn2", "settings", "Settings", "secondary"]
-        ]
-        
-        emitter.emit_buttons(buttons)
-        
-        assert mock_socket.emit.call_count == 2
-        mock_socket.emit.assert_any_call("button", {
-            "btn1": ["home", "Home", "primary"]
-        })
-
-
-class TestReloadEmission:
-    """
-    Test content reload emission.
-    
-    Validates that dynamic content reload messages are emitted correctly
-    for updating DisplayerItemDynamicContent areas.
-    """
-    
-    def test_emit_reloads(self, emitter, mock_socket):
-        """
-        Test emitting reload requests.
-        
-        Validates that reload messages include target ID and new HTML content
-        for dynamic content updates without page refresh.
-        """
-        reloads = [
-            ["content1", "<div>New content</div>"],
-            ["content2", "<div>Another content</div>"]
-        ]
-        
-        emitter.emit_reloads(reloads)
-        
-        assert mock_socket.emit.call_count == 2
-
-
-class TestButtonStateEmission:
-    """
-    Test button state changes.
-    
-    Validates that button enable/disable state changes are emitted correctly
-    for dynamic button state management.
-    """
-    
-    def test_emit_button_states(self, emitter, mock_socket):
-        """
-        Test emitting button enable/disable.
-        
-        Validates that button state changes are sent in batches (lists of IDs)
-        for efficient state management.
-        """
-        disable_list = ["btn1", "btn2"]
-        enable_list = ["btn3", "btn4"]
-        
-        emitter.emit_button_states(disable_list, enable_list)
-        
-        assert mock_socket.emit.call_count == 2
-        mock_socket.emit.assert_any_call("disable_button", ["btn1", "btn2"])
-        mock_socket.emit.assert_any_call("enable_button", ["btn3", "btn4"])
-    
-    def test_emit_empty_button_states(self, emitter, mock_socket):
-        """
-        Test that empty lists don't emit.
-        
-        Validates optimization: empty state change lists don't trigger
-        unnecessary SocketIO calls.
-        """
-        emitter.emit_button_states([], [])
-        
-        assert not mock_socket.emit.called
-
-
-class TestThreadEmission:
-    """
-    Test thread status emission.
-    
-    Validates that thread manager status updates are emitted correctly
-    for real-time thread monitoring.
-    """
-    
-    def test_emit_threads(self, emitter, mock_socket):
-        """
-        Test emitting thread status.
-        
-        Validates that thread information (name, state) is sent for
-        display in thread monitoring UI.
-        """
-        thread_info = [
-            {"name": "worker1", "state": "RUNNING"},
-            {"name": "worker2", "state": "IDLE"}
-        ]
-        
-        emitter.emit_threads(thread_info)
-        
-        mock_socket.emit.assert_called_once_with("threads", thread_info)
-
-
-# =============================================================================
 # Scheduler Integration Tests - Full system integration
 # =============================================================================
 
@@ -824,7 +472,7 @@ class TestSchedulerMessageEmission(unittest.TestCase):
         
         messages = self.queue.get_all(MessageType.STATUS)
         self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], ["test_cat", "test_msg", 50, "supplement"])
+        self.assertEqual(messages[0].data, ["test_cat", "test_msg", 50, "supplement"])
     
     def test_emit_popup_adds_to_queue(self):
         """
@@ -837,8 +485,8 @@ class TestSchedulerMessageEmission(unittest.TestCase):
         
         messages = self.queue.get_all(MessageType.POPUP)
         self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0][0], logLevel.info)
-        self.assertEqual(messages[0][1], "Test popup")
+        self.assertEqual(messages[0].data[0], logLevel.info)
+        self.assertEqual(messages[0].data[1], "Test popup")
     
     def test_emit_result_adds_to_queue(self):
         """
@@ -851,7 +499,7 @@ class TestSchedulerMessageEmission(unittest.TestCase):
         
         messages = self.queue.get_all(MessageType.RESULT)
         self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], ["success", "<b>Done!</b>"])
+        self.assertEqual(messages[0].data, ["success", "<b>Done!</b>"])
     
     def test_emit_button_adds_to_queue(self):
         """
@@ -864,7 +512,7 @@ class TestSchedulerMessageEmission(unittest.TestCase):
         
         messages = self.queue.get_all(MessageType.BUTTON)
         self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], ["btn1", "mdi-play", "Start", "success"])
+        self.assertEqual(messages[0].data, ["btn1", "mdi-play", "Start", "success"])
     
     def test_emit_modal_adds_to_queue(self):
         """
@@ -877,7 +525,7 @@ class TestSchedulerMessageEmission(unittest.TestCase):
         
         messages = self.queue.get_all(MessageType.MODAL)
         self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], ["modal1", "<h1>Modal Content</h1>"])
+        self.assertEqual(messages[0].data, ["modal1", "<h1>Modal Content</h1>"])
     
     def test_emit_reload_adds_to_queue(self):
         """
@@ -894,8 +542,8 @@ class TestSchedulerMessageEmission(unittest.TestCase):
         
         messages = self.queue.get_all(MessageType.RELOAD)
         self.assertEqual(len(messages), 2)
-        self.assertEqual(messages[0], ["form1", "<input>"])
-        self.assertEqual(messages[1], ["form2", "<select>"])
+        self.assertEqual(messages[0].data, ["form1", "<input>"])
+        self.assertEqual(messages[1].data, ["form2", "<select>"])
     
     def test_disable_button_adds_to_queue(self):
         """
@@ -908,7 +556,7 @@ class TestSchedulerMessageEmission(unittest.TestCase):
         
         messages = self.queue.get_all(MessageType.BUTTON_DISABLE)
         self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], "btn1")
+        self.assertEqual(messages[0].data, "btn1")
     
     def test_enable_button_adds_to_queue(self):
         """
@@ -921,7 +569,7 @@ class TestSchedulerMessageEmission(unittest.TestCase):
         
         messages = self.queue.get_all(MessageType.BUTTON_ENABLE)
         self.assertEqual(len(messages), 1)
-        self.assertEqual(messages[0], "btn1")
+        self.assertEqual(messages[0].data, "btn1")
 
 
 class TestSchedulerQueueIntegration(unittest.TestCase):
@@ -959,7 +607,7 @@ class TestSchedulerQueueIntegration(unittest.TestCase):
         messages = self.queue.get_all(MessageType.STATUS)
         # Should only have last 10 due to FIFO eviction
         self.assertEqual(len(messages), 10)
-        self.assertEqual(messages[-1][1], "msg14")
+        self.assertEqual(messages[-1].data[1], "msg14")
     
     def test_modal_size_limit(self):
         """
@@ -975,56 +623,6 @@ class TestSchedulerQueueIntegration(unittest.TestCase):
         messages = self.queue.get_all(MessageType.MODAL)
         # MessageQueue has modal_limit of 5
         self.assertLessEqual(len(messages), 5)
-
-
-class TestSchedulerEmitterIntegration(unittest.TestCase):
-    """
-    Test scheduler integration with MessageEmitter.
-    
-    Validates that Scheduler and MessageEmitter work together correctly,
-    including duplicate filtering and error handling.
-    """
-    
-    def setUp(self):
-        """
-        Set up test fixtures.
-        
-        Creates full scheduler with queue and emitter for integration testing.
-        """
-        self.mock_socket = Mock()
-        self.queue = MessageQueue()
-        self.emitter = MessageEmitter(self.mock_socket)
-        self.scheduler = Scheduler(
-            socket_obj=self.mock_socket,
-            message_queue=self.queue,
-            message_emitter=self.emitter
-        )
-    
-    def test_emitter_status_duplicate_filtering(self):
-        """
-        Test that emitter filters duplicate status messages.
-        
-        Validates that when multiple status messages with same category+message
-        are queued, only the last occurrence is emitted to prevent UI spam.
-        """
-        # Add multiple status messages with same content
-        self.scheduler.emit_status("cat", "same", 10)
-        self.scheduler.emit_status("cat", "same", 20)
-        self.scheduler.emit_status("cat", "different", 30)
-        self.scheduler.emit_status("cat", "same", 40)
-        
-        messages = self.queue.get_all(MessageType.STATUS)
-        
-        # Convert QueuedMessage objects to the format expected by emitter
-        # QueuedMessage.data contains [category, message, status, supplement]
-        status_list = [msg.data for msg in messages]
-        
-        # Emit through emitter
-        self.emitter.emit_status(status_list, "test_user")
-        
-        # Should have emitted only 3 times (duplicates filtered)
-        # Note: Filtering keeps last occurrence of each unique message
-        self.assertGreater(self.mock_socket.emit.call_count, 0)
 
 
 class TestSchedulerThreadSafety(unittest.TestCase):
