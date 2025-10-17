@@ -66,7 +66,7 @@ def bugtracker():
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle="")
         )
         disp.add_display_item(displayer.DisplayerItemText("Enter Description"), 0)
-        disp.add_display_item(displayer.DisplayerItemInputString("description"), 1)
+        disp.add_display_item(displayer.DisplayerItemInputText("description"), 1)
 
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
