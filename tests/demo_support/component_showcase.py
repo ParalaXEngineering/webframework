@@ -169,13 +169,14 @@ def category(category: str = ""):
     
     for line, item_class in enumerate(sorted(items, key=lambda x: x.__name__)):  # type: ignore
         # Component name
+        item_name = getattr(item_class, '__name__', str(item_class))
         disp.add_display_item(
-            displayer.DisplayerItemText(f"<code>{item_class.__name__}</code>"),
+            displayer.DisplayerItemText(f"<code>{item_name}</code>"),
             column=0, layout_id=layout_id, line=line
         )
         
         # Description from docstring
-        doc = item_class.__doc__ or "No description available"
+        doc = getattr(item_class, '__doc__', None) or "No description available"
         doc = doc.strip().split('\n')[0]  # First line only
         disp.add_display_item(
             displayer.DisplayerItemText(doc),
@@ -185,12 +186,12 @@ def category(category: str = ""):
         # View button
         disp.add_display_item(
             displayer.DisplayerItemButtonLink(
-                id=f"view_{item_class.__name__}",
+                id=f"view_{item_name}",
                 text="View Demo",
                 icon="eye",
                 link=url_for('showcase.component', 
                            category=category,
-                           component=item_class.__name__),
+                           component=item_name),
                 color=displayer.BSstyle.PRIMARY
             ),
             column=2, layout_id=layout_id, line=line

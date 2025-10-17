@@ -283,8 +283,9 @@ class DisplayerLayout:
             current_layout["user_id"] = self.m_userid
             # Create containers for each field_id
             containers = {}
-            for item in self.m_grid_config.get("items", []):
-                containers[item["field_id"]] = []
+            if self.m_grid_config:
+                for item in self.m_grid_config.get("items", []):
+                    containers[item["field_id"]] = []
             current_layout["containers"] = containers
             container.append(current_layout)
             return

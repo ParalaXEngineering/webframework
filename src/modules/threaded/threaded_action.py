@@ -13,6 +13,10 @@ import threading
 import time
 import copy
 import subprocess
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from ..scheduler.scheduler import Scheduler
 import traceback
 from collections import deque
 from typing import Optional, List, Dict, Any
@@ -39,7 +43,7 @@ class Threaded_action:
     - Process communication and monitoring
     """
 
-    m_scheduler = None
+    m_scheduler: Optional["Scheduler"] = None
     """Link to the scheduler object"""
 
     m_default_name = "Default name"

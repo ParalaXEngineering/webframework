@@ -1,0 +1,13 @@
+{
+  "include": ["src", "tests"],
+  "exclude": [
+    "**/__pycache__",
+    "**/node_modules"
+  ],
+  "ignore": [
+    "tests/demo_support/demo_scheduler_action.py"
+  ],
+  "reportOptionalMemberAccess": "warning",
+  "reportGeneralTypeIssues": "warning",
+  "pythonVersion": "3.9"
+}

@@ -6,6 +6,10 @@ User self-service for password, avatar, and personal settings.
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from PIL import Image
 import os
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from ..modules.auth.auth_manager import AuthManager
 
 try:
     from ..modules.displayer import (
@@ -35,13 +39,13 @@ user_profile_bp = Blueprint('user_profile', __name__, url_prefix='/user')
 bp = user_profile_bp
 
 
-def _get_auth_manager():
+def _get_auth_manager() -> "AuthManager":
     """Get the auth_manager instance. Import at runtime to avoid circular imports."""
     try:
         from ..modules.auth.auth_manager import auth_manager
     except ImportError:
         from modules.auth.auth_manager import auth_manager
-    return auth_manager
+    return cast("AuthManager", auth_manager)
 
 
 def resize_image(image_path: str, max_size: tuple = (1024, 1024)):
@@ -111,7 +115,7 @@ def profile():
                     # Validate password strength
                     is_valid, error_msg = validate_password_strength(new_password)
                     if not is_valid:
-                        flash(error_msg, "danger")
+                        flash(error_msg or "Invalid password", "danger")
                     else:
                         auth_manager.update_user_password(current_user, new_password)
                         flash("Password changed successfully!", "success")
@@ -154,6 +158,10 @@ def profile():
         # Reload user data
         user = auth_manager.get_user(current_user)
     
+    if not user:
+        flash("User not found.", "danger")
+        return redirect(url_for('common.login'))
+    
     # Profile Information Section
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText("<h3>Profile Information</h3>"), column=0)
@@ -174,7 +182,7 @@ def profile():
     disp.add_display_item(DisplayerItemButton(
         "btn_update_info",
         "Update Profile",
-        BSstyle.PRIMARY
+        color=BSstyle.PRIMARY
     ), column=0)
     
     # Avatar Section
@@ -200,7 +208,7 @@ def profile():
     disp.add_display_item(DisplayerItemButton(
         "btn_upload_avatar",
         "Upload Avatar",
-        BSstyle.PRIMARY
+        color=BSstyle.PRIMARY
     ), column=1)
     disp.add_display_item(DisplayerItemText(
         "<small class='text-muted'>Allowed: JPEG, PNG. Max size: 1024x1024 (auto-resized)</small>"
@@ -230,7 +238,7 @@ def profile():
         disp.add_display_item(DisplayerItemButton(
             "btn_change_password",
             "Change Password",
-            BSstyle.WARNING
+            color=BSstyle.WARNING
         ), column=0)
         disp.add_display_item(DisplayerItemText(
             "<small class='text-muted'>Password must be at least 6 characters with letters and numbers.</small>"
@@ -329,7 +337,7 @@ def preferences():
         disp.add_display_item(DisplayerItemButton(
             "btn_save_prefs",
             "Save Preferences",
-            BSstyle.PRIMARY
+            color=BSstyle.PRIMARY
         ), column=0)
     
     # Module Settings (display as JSON)

@@ -37,7 +37,7 @@ sys.path.insert(0, os.path.join(project_root, 'tests'))  # Add tests to path for
 # Initialize auth manager BEFORE creating app
 auth_manager_instance = AuthManager(auth_dir="tests/website/auth")
 
-if not FLASK_AVAILABLE:
+if not FLASK_AVAILABLE or app is None:
     print("ERROR: Flask is not available. Please install dependencies.")
     sys.exit(1)
 
@@ -203,5 +203,5 @@ if __name__ == "__main__":
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
     
-    socketio.run(app, debug=False, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True, log_output=False)
+    socketio.run(app, debug=False, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True, log_output=False)  # type: ignore
 

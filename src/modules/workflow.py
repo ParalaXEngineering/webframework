@@ -508,7 +508,8 @@ class Workflow:
                 manager = threaded.threaded_manager.thread_manager_obj
                 # Look for a thread with our workflow name (threads should set m_name to include workflow name)
                 thread_name_pattern = f"{self.m_name}_thread"
-                for thread in manager.m_running_threads:
+                running_threads = getattr(manager, 'm_running_threads', [])
+                for thread in running_threads:
                     if hasattr(thread, 'm_name') and thread.m_name == thread_name_pattern:
                         self.m_active_thread = thread
                         self.m_logger.debug(f"Restored thread reference: {thread.m_name}")
@@ -712,7 +713,7 @@ class Workflow:
         )
         
         # Check if there's an active thread running
-        thread_running = self.m_active_thread and self.m_active_thread.is_running()
+        thread_running = bool(self.m_active_thread and self.m_active_thread.is_running())
         
         # Navigation buttons
         if not self.is_first_step():

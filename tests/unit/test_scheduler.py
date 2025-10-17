@@ -1015,8 +1015,12 @@ class TestSchedulerEmitterIntegration(unittest.TestCase):
         
         messages = self.queue.get_all(MessageType.STATUS)
         
+        # Convert QueuedMessage objects to the format expected by emitter
+        # QueuedMessage.data contains [category, message, status, supplement]
+        status_list = [msg.data for msg in messages]
+        
         # Emit through emitter
-        self.emitter.emit_status(messages)
+        self.emitter.emit_status(status_list, "test_user")
         
         # Should have emitted only 3 times (duplicates filtered)
         # Note: Filtering keeps last occurrence of each unique message

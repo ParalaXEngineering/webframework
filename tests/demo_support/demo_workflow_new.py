@@ -19,7 +19,7 @@ class DemoProcessingThread(Threaded_action):
     
     m_default_name = "Processing"
     
-    def __init__(self, item_name: str, workflow_name: str = None):
+    def __init__(self, item_name: str, workflow_name: str | None = None):
         super().__init__()
         self.item_name = item_name
         # Set a unique name that includes the workflow name for thread restoration
@@ -75,7 +75,7 @@ class DemoProcessingThread(Threaded_action):
             self.m_scheduler.enable_button(self.button_id)
             self.m_scheduler.enable_button(self.prev_button_id)
             # Reload page so buttons are rendered properly without disabled attribute
-            self.m_scheduler.emit_reload()
+            self.m_scheduler.emit_reload([])
 
 
 class WorkflowDemo(Workflow):

@@ -118,9 +118,12 @@ def threading_demo():
                 thread.start()
                 message = ("✓ Process Demo Started", displayer.BSstyle.SUCCESS)
             elif 'btn_stop' in module_data:
-                count = threaded_manager.thread_manager_obj.get_thread_count()
-                threaded_manager.thread_manager_obj.kill_all_threads()
-                message = (f"✓ Stopped {count} threads", displayer.BSstyle.WARNING)
+                if threaded_manager.thread_manager_obj:
+                    count = threaded_manager.thread_manager_obj.get_thread_count()
+                    threaded_manager.thread_manager_obj.kill_all_threads()
+                    message = (f"✓ Stopped {count} threads", displayer.BSstyle.WARNING)
+                else:
+                    message = ("Thread manager not available", displayer.BSstyle.ERROR)
     
     if message:
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
@@ -136,7 +139,11 @@ def threading_demo():
     ), 0)
     
     # Thread statistics
-    stats = threaded_manager.thread_manager_obj.get_thread_stats()
+    if threaded_manager.thread_manager_obj:
+        stats = threaded_manager.thread_manager_obj.get_thread_stats()
+    else:
+        stats = {'total': 0, 'running': 0, 'sleeping': 0, 'error': 0}
+    
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [3, 3, 3, 3],
         subtitle="Current Status"
@@ -288,7 +295,7 @@ def scheduler_demo():
         
         if DemoSchedulerAction.m_default_name in data_in:
             action_data = data_in[DemoSchedulerAction.m_default_name]
-            thread = threaded_manager.thread_manager_obj.get_thread(DemoSchedulerAction.m_default_name)
+            thread = threaded_manager.thread_manager_obj.get_thread(DemoSchedulerAction.m_default_name) if threaded_manager.thread_manager_obj else None
             
             if not thread:
                 demo_action = DemoSchedulerAction()
@@ -589,7 +596,7 @@ def auth_accessible():
     from src.modules.auth.auth_manager import auth_manager
     
     username = session.get('username')
-    user = auth_manager.get_user(username)
+    user = auth_manager.get_user(username) if username and auth_manager else None
     
     disp = displayer.Displayer()
     disp.add_generic("Accessible Page")
@@ -606,14 +613,19 @@ def auth_accessible():
         displayer.BSstyle.SUCCESS
     ), 0)
     
-    disp.add_display_item(displayer.DisplayerItemText(
-        "<h5>Your Account Info:</h5>"
-        f"<ul>"
-        f"<li><strong>Username:</strong> {user.username}</li>"
-        f"<li><strong>Groups:</strong> {', '.join(user.groups) if user.groups else 'None'}</li>"
-        f"<li><strong>Is Admin:</strong> {'Yes' if 'admin' in user.groups else 'No'}</li>"
-        f"</ul>"
-    ), 0)
+    if user:
+        disp.add_display_item(displayer.DisplayerItemText(
+            "<h5>Your Account Info:</h5>"
+            f"<ul>"
+            f"<li><strong>Username:</strong> {user.username}</li>"
+            f"<li><strong>Groups:</strong> {', '.join(user.groups) if user.groups else 'None'}</li>"
+            f"<li><strong>Is Admin:</strong> {'Yes' if 'admin' in user.groups else 'No'}</li>"
+            f"</ul>"
+        ), 0)
+    else:
+        disp.add_display_item(displayer.DisplayerItemText(
+            "<p>User information not available.</p>"
+        ), 0)
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
     disp.add_display_item(displayer.DisplayerItemButtonLink(
@@ -682,10 +694,10 @@ def auth_admin():
     from src.modules.auth.auth_manager import auth_manager
     
     username = session.get('username')
-    user = auth_manager.get_user(username)
+    user = auth_manager.get_user(username) if username and auth_manager else None
     
     # Check if user is admin
-    is_admin = 'admin' in user.groups
+    is_admin = 'admin' in user.groups if user else False
     
     disp = displayer.Displayer()
     disp.add_generic("Admin Page")
@@ -705,7 +717,7 @@ def auth_admin():
         ), 0)
         
         # Show all users
-        all_users = auth_manager.get_all_users()
+        all_users = auth_manager.get_all_users() if auth_manager else []
         
         disp.add_display_item(displayer.DisplayerItemText(
             f"<h5>System Users ({len(all_users)}):</h5>"

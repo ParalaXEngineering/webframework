@@ -5,6 +5,10 @@ Manage users, groups, and module permissions.
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from functools import wraps
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from ..modules.auth.auth_manager import AuthManager
 
 try:
     from ..modules.displayer import (
@@ -36,13 +40,13 @@ admin_auth_bp = Blueprint('admin_auth', __name__, url_prefix='/admin')
 bp = admin_auth_bp
 
 
-def _get_auth_manager():
+def _get_auth_manager() -> "AuthManager":
     """Get the auth_manager instance. Import at runtime to avoid circular imports."""
     try:
         from ..modules.auth.auth_manager import auth_manager
     except ImportError:
         from modules.auth.auth_manager import auth_manager
-    return auth_manager
+    return cast("AuthManager", auth_manager)
 
 
 def require_admin(f):
@@ -127,13 +131,13 @@ def manage_users():
                 # Validate
                 is_valid_username, error_msg = validate_username(username)
                 if not is_valid_username:
-                    flash(error_msg, "danger")
+                    flash(error_msg or "Invalid username", "danger")
                 elif auth_manager.get_user(username):
                     flash("Username already exists.", "danger")
                 elif password:
                     is_valid_password, error_msg = validate_password_strength(password)
                     if not is_valid_password:
-                        flash(error_msg, "danger")
+                        flash(error_msg or "Invalid password", "danger")
                     else:
                         auth_manager.create_user(username, password, groups, display_name or None, email or None)
                         flash(f"User '{username}' created successfully!", "success")
@@ -174,7 +178,7 @@ def manage_users():
                 if username and new_password:
                     is_valid, error_msg = validate_password_strength(new_password)
                     if not is_valid:
-                        flash(error_msg, "danger")
+                        flash(error_msg or "Invalid password", "danger")
                     else:
                         auth_manager.update_user_password(username, new_password)
                         flash(f"Password reset for '{username}'.", "success")
@@ -234,7 +238,7 @@ def manage_users():
         value=["guest"],
         choices=all_groups
     ), column=0)
-    disp.add_display_item(DisplayerItemButton("btn_create_user", "Create User", BSstyle.SUCCESS), column=1)
+    disp.add_display_item(DisplayerItemButton("btn_create_user", "Create User", color=BSstyle.SUCCESS), column=1)
     
     # Update User Groups
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -257,7 +261,7 @@ def manage_users():
         value=first_user_groups,
         choices=all_groups
     ), column=1)
-    disp.add_display_item(DisplayerItemButton("btn_update_groups", "Update", BSstyle.PRIMARY), column=2)
+    disp.add_display_item(DisplayerItemButton("btn_update_groups", "Update", color=BSstyle.PRIMARY), column=2)
     
     # Reset Password
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -275,7 +279,7 @@ def manage_users():
         '<div class="mb-3"><label for="input_reset_password" class="form-label">New Password</label>'
         '<input type="password" class="form-control" id="input_reset_password" name="input_reset_password"></div>'
     ), column=1)
-    disp.add_display_item(DisplayerItemButton("btn_reset_password", "Reset", BSstyle.WARNING), column=2)
+    disp.add_display_item(DisplayerItemButton("btn_reset_password", "Reset", color=BSstyle.WARNING), column=2)
     
     # Delete User
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -289,7 +293,7 @@ def manage_users():
         value=deletable_users[0] if deletable_users else None,
         choices=deletable_users if deletable_users else ["(no deletable users)"]
     ), column=0)
-    disp.add_display_item(DisplayerItemButton("btn_delete_user", "Delete User", BSstyle.ERROR), column=1)
+    disp.add_display_item(DisplayerItemButton("btn_delete_user", "Delete User", color=BSstyle.ERROR), column=1)
     
     return render_template("base_content.j2", content=disp.display(), target="admin_auth.manage_users")
 
@@ -394,7 +398,7 @@ def manage_permissions():
         layout_id = disp.add_master_layout(DisplayerLayout(Layouts.TABLE, header))
         
         for action in actions:
-            row = [DisplayerItemText(f"<strong>{action}</strong>")]
+            row: list = [DisplayerItemText(f"<strong>{action}</strong>")]
             
             for group in all_groups:
                 # Check if group has this action
@@ -416,7 +420,7 @@ def manage_permissions():
     disp.add_display_item(DisplayerItemButton(
         "btn_save_permissions",
         "Save All Permissions",
-        BSstyle.PRIMARY
+        color=BSstyle.PRIMARY
     ), column=0)
     
     return render_template("base_content.j2", content=disp.display(), target="admin_auth.manage_permissions")
@@ -498,7 +502,7 @@ def manage_groups():
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [8, 4]))
     disp.add_display_item(DisplayerItemInputString("input_new_group", "Group Name"), column=0)
-    disp.add_display_item(DisplayerItemButton("btn_create_group", "Create Group", BSstyle.SUCCESS), column=1)
+    disp.add_display_item(DisplayerItemButton("btn_create_group", "Create Group", color=BSstyle.SUCCESS), column=1)
     
     # Rename Group
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -513,7 +517,7 @@ def manage_groups():
         choices=renameable_groups if renameable_groups else ["(no custom groups)"]
     ), column=0)
     disp.add_display_item(DisplayerItemInputString("input_new_group_name", "New Group Name"), column=1)
-    disp.add_display_item(DisplayerItemButton("btn_rename_group", "Rename", BSstyle.PRIMARY), column=2)
+    disp.add_display_item(DisplayerItemButton("btn_rename_group", "Rename", color=BSstyle.PRIMARY), column=2)
     
     # Delete Group
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -530,7 +534,7 @@ def manage_groups():
         value=deletable_groups[0] if deletable_groups else None,
         choices=deletable_groups if deletable_groups else ["(no custom groups)"]
     ), column=0)
-    disp.add_display_item(DisplayerItemButton("btn_delete_group", "Delete Group", BSstyle.ERROR), column=1)
+    disp.add_display_item(DisplayerItemButton("btn_delete_group", "Delete Group", color=BSstyle.ERROR), column=1)
     
     # Info about creating groups
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))

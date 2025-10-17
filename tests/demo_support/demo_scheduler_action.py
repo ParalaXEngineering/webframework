@@ -4,10 +4,13 @@ Demo Threaded Action for Scheduler Testing
 This module demonstrates how the scheduler works with threaded actions,
 showing all the different message types and features.
 """
+# pyright: reportOptionalMemberAccess=false
+# Suppress warnings - m_scheduler is set by parent class at runtime
 
 from src.modules.threaded import Threaded_action
 from src.modules import scheduler
 import time
+from typing import cast
 
 
 class DemoSchedulerAction(Threaded_action):
@@ -20,6 +23,8 @@ class DemoSchedulerAction(Threaded_action):
     def __init__(self):
         super().__init__()
         self.demo_type = "simple"  # simple, complex, error, multi_step
+        # Assert scheduler is not None for type checking (it's set by parent class)
+        assert self.m_scheduler is not None, "Scheduler must be initialized"
         
     def set_demo_type(self, demo_type: str):
         """Set the type of demo to run."""

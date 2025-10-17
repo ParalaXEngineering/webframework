@@ -670,7 +670,7 @@ class TestThreadedActions:
         
         # Wait for thread to start
         time.sleep(0.2)
-        assert thread_instance.started
+        assert thread_instance.started  # type: ignore
     
     def test_thread_reference_stored(self, simple_display_func):
         """Test that thread reference is stored in workflow"""

@@ -5,13 +5,13 @@ try:
     FLASK_AVAILABLE = True
 except ImportError:
     # Flask not available - create dummy classes for import testing
-    Flask = None
-    render_template = None
-    session = None
-    request = None
-    g = None
-    Session = None
-    SocketIO = None
+    Flask = None  # type: ignore
+    render_template = None  # type: ignore
+    session = None  # type: ignore
+    request = None  # type: ignore
+    g = None  # type: ignore
+    Session = None  # type: ignore
+    SocketIO = None  # type: ignore
     FLASK_AVAILABLE = False
 
 import time
@@ -41,7 +41,7 @@ except ImportError:
 
 # Create Flask app only if Flask is available
 if FLASK_AVAILABLE:
-    app = Flask(
+    app = Flask(  # type: ignore
             __name__,
             instance_relative_config=True,
             static_folder=os.path.join("..", "webengine", "assets"),
@@ -56,14 +56,18 @@ def authorize_refresh(f):
 
 
 def setup_app(app):
-    app.config["SESSION_TYPE"] = "filesystem"
-    app.config['TEMPLATES_AUTO_RELOAD'] = False
-    app.config["SECRET_KEY"] = "super secret key"
-    app.config["PROPAGATE_EXCEPTIONS"] = False
-    app.config.from_object(__name__)
-    Session(app)
+    """Setup Flask app. Only call when FLASK_AVAILABLE is True."""
+    if not FLASK_AVAILABLE:
+        return None
+    
+    app.config["SESSION_TYPE"] = "filesystem"  # type: ignore
+    app.config['TEMPLATES_AUTO_RELOAD'] = False  # type: ignore
+    app.config["SECRET_KEY"] = "super secret key"  # type: ignore
+    app.config["PROPAGATE_EXCEPTIONS"] = False  # type: ignore
+    app.config.from_object(__name__)  # type: ignore
+    Session(app)  # type: ignore
 
-    socketio_obj = SocketIO(app)
+    socketio_obj = SocketIO(app)  # type: ignore
     
     # Initialize logger using centralized factory and log application start
     logger = get_logger("main")
@@ -75,7 +79,7 @@ def setup_app(app):
 
     # Detect if we're running from exe
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-        app_path = sys._MEIPASS
+        app_path = sys._MEIPASS  # type: ignore
     else:
         # Go up 2 levels from src/main.py to get framework root
         # src/main.py -> src/ -> webframework/
@@ -191,30 +195,30 @@ def setup_app(app):
     logger.info("Thread emitter initialized")
 
     # Register SocketIO connection handlers for user rooms
-    @socketio_obj.on("connect")
+    @socketio_obj.on("connect")  # type: ignore
     def handle_connect():
         """Handle client connection - join user-specific room"""
         try:
             room = socketio_manager_obj.join_user_room()
-            username = session.get('user', 'anonymous')
+            username = session.get('user', 'anonymous')  # type: ignore
             logger.info(f"Client connected: {username} in room {room}")
         except Exception as e:
             logger.error(f"Error in handle_connect: {e}")
     
-    @socketio_obj.on("disconnect")
+    @socketio_obj.on("disconnect")  # type: ignore
     def handle_disconnect():
         """Handle client disconnection - leave user room"""
         try:
-            username = session.get('user', 'anonymous')
+            username = session.get('user', 'anonymous')  # type: ignore
             socketio_manager_obj.leave_user_room()
             logger.info(f"Client disconnected: {username}")
         except Exception as e:
             logger.error(f"Error in handle_disconnect: {e}")
 
     # Register user_connected handler (ALWAYS needed for thread progress)
-    @socketio_obj.on("user_connected")
+    @socketio_obj.on("user_connected")  # type: ignore
     def connect():
-        scheduler.scheduler_obj.m_user_connected = True
+        scheduler.scheduler_obj.m_user_connected = True  # type: ignore
 
     # Import site_conf (if website module exists)
     try:
@@ -225,51 +229,51 @@ def setup_app(app):
         # Register long term functions from the site confi
         site_conf.site_conf_obj.register_scheduler_lt_functions()
 
-        @socketio_obj.server.on("*")
+        @socketio_obj.server.on("*")  # type: ignore
         def catch_all(event, sid, *args):
-            site_conf.site_conf_obj.socketio_event(event, args)
+            site_conf.site_conf_obj.socketio_event(event, args)  # type: ignore
     except ModuleNotFoundError:
         logger.info("No website.site_conf found - running in test/framework-only mode")
 
-    @app.context_processor
+    @app.context_processor  # type: ignore
     def inject_bar():
-        custom_context = site_conf.site_conf_obj.context_processor()
+        custom_context = site_conf.site_conf_obj.context_processor()  # type: ignore
         base_context = dict(
-            sidebarItems=site_conf.site_conf_obj.m_sidebar,
-            topbarItems=site_conf.site_conf_obj.m_topbar,
-            app=site_conf.site_conf_obj.m_app,
-            javascript=site_conf.site_conf_obj.m_javascripts,
+            sidebarItems=site_conf.site_conf_obj.m_sidebar,  # type: ignore
+            topbarItems=site_conf.site_conf_obj.m_topbar,  # type: ignore
+            app=site_conf.site_conf_obj.m_app,  # type: ignore
+            javascript=site_conf.site_conf_obj.m_javascripts,  # type: ignore
             filename=None,
-            title=site_conf.site_conf_obj.m_app["name"],
-            footer=site_conf.site_conf_obj.m_app["footer"]
+            title=site_conf.site_conf_obj.m_app["name"],  # type: ignore
+            footer=site_conf.site_conf_obj.m_app["footer"]  # type: ignore
         )
         # Merge custom context from site_conf (like enable_easter_eggs) with base context
         if custom_context:
             base_context.update(custom_context)
         return base_context
 
-    @app.context_processor
+    @app.context_processor  # type: ignore
     def inject_endpoint():
-        if "page_info" not in session:
-            session["page_info"] = ""
+        if "page_info" not in session:  # type: ignore
+            session["page_info"] = ""  # type: ignore
 
         # Get current user from session
         # Use auth_manager only if it's initialized
-        user = session.get('user') or session.get('username')
+        user = session.get('user') or session.get('username')  # type: ignore
         if not user and auth_manager is not None:
             user = auth_manager.get_current_user()
         
         return dict(
-            endpoint=request.endpoint, page_info=session["page_info"], user=user
+            endpoint=request.endpoint, page_info=session["page_info"], user=user  # type: ignore
         )
 
     
-    @app.context_processor
+    @app.context_processor  # type: ignore
     def inject_csrf_token():
         # Fonction pour générer un jeton unique
         def generate_csrf_token():
-            session['csrf_token'] = str(uuid.uuid4())
-            return session['csrf_token']
+            session['csrf_token'] = str(uuid.uuid4())  # type: ignore
+            return session['csrf_token']  # type: ignore
         
         return dict(csrf_token=generate_csrf_token())
 
@@ -301,30 +305,30 @@ def setup_app(app):
         return url_for(endpoint)
 
     # Index page
-    @app.route("/")
+    @app.route("/")  # type: ignore
     def index():
-        session["page_info"] = "index"
-        return render_template("index.j2", title=site_conf.site_conf_obj.m_app["name"], content=site_conf.site_conf_obj.m_index)
+        session["page_info"] = "index"  # type: ignore
+        return render_template("index.j2", title=site_conf.site_conf_obj.m_app["name"], content=site_conf.site_conf_obj.m_index)  # type: ignore
 
     # Error handling to log errors
-    @app.errorhandler(Exception)
+    @app.errorhandler(Exception)  # type: ignore
     def handle_exception(e):
         
         if hasattr(e, 'code') and e.code == 404:    
-            requested_url = request.path
-            query_parameters = request.args.to_dict()
-            app.logger.error(f"A 404 was generated at the following path: {requested_url}. Get arguments: {query_parameters}")
-            return render_template("404.j2", requested=requested_url)
+            requested_url = request.path  # type: ignore
+            query_parameters = request.args.to_dict()  # type: ignore
+            app.logger.error(f"A 404 was generated at the following path: {requested_url}. Get arguments: {query_parameters}")  # type: ignore
+            return render_template("404.j2", requested=requested_url)  # type: ignore
 
-        app.logger.error("An error occurred", exc_info=e)
-        return render_template("error.j2", error=str(e), traceback=str(traceback.format_exc()))
+        app.logger.error("An error occurred", exc_info=e)  # type: ignore
+        return render_template("error.j2", error=str(e), traceback=str(traceback.format_exc()))  # type: ignore
 
-    @app.before_request
+    @app.before_request  # type: ignore
     def before_request():            
-        g.start_time = time.time()
+        g.start_time = time.time()  # type: ignore
 
-        scheduler.scheduler_obj.m_user_connected = False
-        if request.endpoint == "static":
+        scheduler.scheduler_obj.m_user_connected = False  # type: ignore
+        if request.endpoint == "static":  # type: ignore
             return
 
         # Note: config reading migrated to settings engine in src/modules/settings
