@@ -34,7 +34,7 @@
                     <h1 class="auth-title">Log in.</h1>
                     <p class="auth-subtitle mb-5">Please select a user</p>
 
-                    <form action="{{ url_for(target) }}" method="POST">
+                    <form action="{{ url_for(target) }}" method="POST" id="loginForm">
                         <div class="form-group position-relative has-icon-left mb-4">
                             <select class="form-control form-control-xl" name="user" id="user">
                                     {% for user in users %}
@@ -46,7 +46,7 @@
                             </div>
                         </div>
                         <div class="form-group position-relative has-icon-left mb-4">
-                            <input type="password" class="form-control form-control-xl" placeholder="Password" name="password">
+                            <input type="password" class="form-control form-control-xl" placeholder="Password" name="password" id="password" onkeypress="if(event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); document.getElementById('loginForm').submit(); }">
                             <div class="form-control-icon">
                                 <i class="bi bi-shield-lock"></i>
                             </div>
@@ -58,7 +58,7 @@
                         {% endif %}
                                 
                         </div>
-                        <button class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Log in</button>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Log in</button>
                     </form>
                 </div>
             </div>
@@ -120,6 +120,21 @@
         <script src="{{ url_for('static', filename= 'js/' + script) }}"></script>
     {% endfor %}
     {% block js %}{% endblock %}
+    
+    <script>
+        // Soumission du formulaire avec Enter - CODE EN DERNIER pour éviter les conflits
+        $(document).ready(function() {
+            $('#password, #user').on('keypress keydown', function(e) {
+                if (e.which === 13 || e.keyCode === 13) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    $('#loginForm').submit();
+                    return false;
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
