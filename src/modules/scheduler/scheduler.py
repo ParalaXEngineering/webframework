@@ -187,12 +187,12 @@ class Scheduler:
         :param string: The information string to display to the user
         :type string: str
         :param status: The status, a number between 0 and 100% that indicate the progress.
-        At 100% the task is considered as successfull. The status 101% can be used to indicate an error, defaults to 0
+                       At 100% the task is considered as successfull. The status 101% can be used to indicate an error, defaults to 0
         :type status: int, optional
         :param supplement: A supplement status that can be used to add information on the main case, defaults to ""
         :type supplement: str, optional
         :param status_id: Optional ID to identify and update a specific status line. If provided, updates the existing
-        line with this ID instead of creating a new one. Defaults to None (creates new line each time)
+                          line with this ID instead of creating a new one. Defaults to None (creates new line each time)
         :type status_id: str, optional
         """
         # If status_id provided, use it as the identifier; otherwise use the string

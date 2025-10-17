@@ -16,7 +16,9 @@ class DisplayerLayout:
     Class to store information about a layout.
     
     Layouts define how displayer items are organized on the page.
+    
     Supported layout types:
+    
     - VERTICAL: Items in columns flow naturally (wrap if small, stack if large).
                 Multiple items in same column appear left-to-right if they fit.
     - HORIZONTAL: Items always stack vertically, one per row (forced block display).

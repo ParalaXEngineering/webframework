@@ -2,6 +2,7 @@
 Settings - Modern settings interface with clear, descriptive type names.
 
 Supported field types with intuitive naming:
+
 - string: Simple text input
 - int: Numeric input with validation
 - bool: Checkbox (true/false)
@@ -14,18 +15,20 @@ Supported field types with intuitive naming:
 - dropdown_mapping: Predefined keys with text values
 
 Config structure:
-{
-  "category": {
-    "friendly": "Human Readable Label",
-    "setting_key": {
-      "friendly": "Setting Label",
-      "type": "<one of the types above>",
-      "value": <actual_value>,
-      "options": [...],  // for select, multi_select, dropdown_mapping
-      "persistent": true/false
+::
+
+    {
+      "category": {
+        "friendly": "Human Readable Label",
+        "setting_key": {
+          "friendly": "Setting Label",
+          "type": "<one of the types above>",
+          "value": <actual_value>,
+          "options": [...],  // for select, multi_select, dropdown_mapping
+          "persistent": true/false
+        }
+      }
     }
-  }
-}
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash

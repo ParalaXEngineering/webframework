@@ -560,11 +560,13 @@ class Workflow:
             update_data: Optional dictionary of data to update in workflow_data
         
         Example:
-            # After completing workflow, redo from step 1 with new serial
-            workflow.redo(
-                target_step_index=1,
-                update_data={"serial_number": "NEW-123", "batch": "5"}
-            )
+            ::
+            
+                # After completing workflow, redo from step 1 with new serial
+                workflow.redo(
+                    target_step_index=1,
+                    update_data={"serial_number": "NEW-123", "batch": "5"}
+                )
         """
         if target_step_index < 0 or target_step_index >= len(self.m_steps):
             self.m_logger.error(f"Invalid target step index: {target_step_index}")

@@ -3,6 +3,10 @@ API Reference - Core Modules
 
 This section provides detailed API documentation for all core modules in the ParalaX Web Framework.
 
+.. note::
+
+   For detailed class documentation, see :doc:`framework_classes`. This page covers module-level functions and utilities.
+
 Main Application
 ----------------
 
@@ -10,131 +14,248 @@ Main Application
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
-Access Management
------------------
-
-.. automodule:: src.access_manager
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Core Modules
+------------
 
 Actions
--------
+^^^^^^^
 
-.. automodule:: src.action
+.. automodule:: src.modules.action
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
+
+Site Configuration
+^^^^^^^^^^^^^^^^^^
+
+.. automodule:: src.modules.site_conf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+Utilities
+^^^^^^^^^
+
+.. automodule:: src.modules.utilities
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+Authentication System
+---------------------
+
+Auth Manager
+^^^^^^^^^^^^
+
+.. automodule:: src.modules.auth.auth_manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+Permission Registry
+^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: src.modules.auth.permission_registry
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
 
 Display System
 --------------
 
-.. automodule:: src.displayer
+Main Displayer
+^^^^^^^^^^^^^^
+
+.. automodule:: src.modules.displayer.displayer
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
-Scheduler
----------
+Layout Management
+^^^^^^^^^^^^^^^^^
 
-.. automodule:: src.scheduler
+.. automodule:: src.modules.displayer.layout
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
-Site Configuration
-------------------
+Core Display Utilities
+^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: src.site_conf
+.. automodule:: src.modules.displayer.core
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
-Threaded Actions
+.. note::
+
+   Display items (buttons, inputs, etc.) are documented in :doc:`framework_classes`. See the DisplayerItem classes.
+
+Threading System
 ----------------
 
-.. automodule:: src.threaded_action
+Threaded Actions
+^^^^^^^^^^^^^^^^
+
+.. automodule:: src.modules.threaded.threaded_action
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
 Thread Manager
---------------
+^^^^^^^^^^^^^^
 
-.. automodule:: src.threaded_manager
+.. automodule:: src.modules.threaded.threaded_manager
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
-Utilities
----------
+Scheduler System
+----------------
 
-.. automodule:: src.utilities
+Main Scheduler
+^^^^^^^^^^^^^^
+
+.. automodule:: src.modules.scheduler.scheduler
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
-Common Pages
-------------
+Message Queue
+^^^^^^^^^^^^^
 
-.. automodule:: src.common
+.. automodule:: src.modules.scheduler.message_queue
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
-Workflow
---------
+Message Emitter
+^^^^^^^^^^^^^^^
 
-.. automodule:: src.workflow
+.. automodule:: src.modules.scheduler.emitter
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
-Settings
---------
+SocketIO Manager
+----------------
 
-.. automodule:: src.settings
+.. automodule:: src.modules.socketio_manager
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
-Updater
--------
-
-.. automodule:: src.updater
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Bug Tracker
------------
-
-.. automodule:: src.bug_tracker
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Packager
---------
-
-.. automodule:: src.packager
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-SFTP Connection
+Workflow System
 ---------------
 
-.. automodule:: src.SFTPConnection
+.. automodule:: src.modules.workflow
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
 
-User Defined Module
--------------------
+Configuration Manager
+---------------------
 
-.. automodule:: src.User_defined_module
+.. automodule:: src.modules.config_manager
    :members:
    :undoc-members:
    :show-inheritance:
+   :no-index:
+
+Logging
+-------
+
+Logger Factory
+^^^^^^^^^^^^^^
+
+.. automodule:: src.modules.log.logger_factory
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+Built-in Pages
+--------------
+
+Common Pages
+^^^^^^^^^^^^
+
+.. automodule:: src.pages.common
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+Admin Pages
+^^^^^^^^^^^
+
+.. automodule:: src.pages.admin
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+User Pages
+^^^^^^^^^^
+
+.. automodule:: src.pages.user
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+Thread Monitoring
+^^^^^^^^^^^^^^^^^
+
+.. automodule:: src.pages.threads
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+Settings Pages
+^^^^^^^^^^^^^^
+
+.. automodule:: src.pages.settings
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+Logging Pages
+^^^^^^^^^^^^^
+
+.. automodule:: src.pages.logging
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+.. note::
+
+   **Optional Modules**: The following modules may be available in some ParalaX applications but are not part of the core framework:
+   
+   - ``updater``: Application update functionality
+   - ``bug_tracker``: Bug tracking and reporting
+   - ``packager``: Application packaging utilities
+   - ``SFTPConnection``: SFTP connection management
+   - ``User_defined_module``: Custom user-defined functionality
+   
+   These modules are application-specific and should be documented in your application's documentation.

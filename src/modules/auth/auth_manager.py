@@ -374,17 +374,20 @@ class AuthManager:
             
         Returns:
             Tuple of (success: bool, error_message: str|None)
+            
             - (True, None) on successful login
             - (False, "error message") on failure
         
         Example:
-            success, error = auth_manager.check_login_attempt("admin", "password123")
-            if success:
-                # Login successful
-                auth_manager.set_current_user("admin")
-            else:
-                # Show error message to user
-                flash(error, "danger")
+            ::
+            
+                success, error = auth_manager.check_login_attempt("admin", "password123")
+                if success:
+                    # Login successful
+                    auth_manager.set_current_user("admin")
+                else:
+                    # Show error message to user
+                    flash(error, "danger")
         """
         # Check if account is currently locked
         is_locked, locked_until = self.failed_login_manager.is_locked(username)
