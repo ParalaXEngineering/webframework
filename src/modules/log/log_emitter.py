@@ -8,12 +8,14 @@ import threading
 import time
 import os
 import re
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Set
 
 try:
     from .logger_factory import get_logger
+    from ..socketio_manager import socketio_manager
 except ImportError:
     from log.logger_factory import get_logger
+    from socketio_manager import socketio_manager
 
 
 class LogEmitter:
@@ -34,7 +36,11 @@ class LogEmitter:
         self.interval = interval
         self.max_lines = max_lines
         self.running = False
-        self.live_mode = False  # Live mode disabled by default
+        
+        # Multi-user support: Track which users have live mode enabled
+        self.live_mode_users: Set[str] = set()  # Set of usernames with live mode enabled
+        self._lock = threading.Lock()  # Thread-safe access to live_mode_users
+        
         self._thread: Optional[threading.Thread] = None
         self.logger = get_logger("log.emitter")
         
@@ -60,23 +66,45 @@ class LogEmitter:
         """Main emission loop - runs in background thread."""
         while self.running:
             try:
-                # Only emit if live mode is enabled
-                if self.live_mode:
+                # Only emit if at least one user has live mode enabled
+                with self._lock:
+                    has_live_users = len(self.live_mode_users) > 0
+                
+                if has_live_users:
                     self._emit_log_content()
             except Exception as e:
                 self.logger.error(f"Error emitting log content: {e}")
             
             time.sleep(self.interval)
     
-    def set_live_mode(self, enabled: bool):
+    def set_live_mode(self, username: str, enabled: bool):
         """
-        Enable or disable live mode for real-time updates.
+        Enable or disable live mode for a specific user.
         
         Args:
+            username: Username to enable/disable live mode for
             enabled: True to enable live updates, False to disable
         """
-        self.live_mode = enabled
-        self.logger.info(f"Live mode {'enabled' if enabled else 'disabled'}")
+        with self._lock:
+            if enabled:
+                self.live_mode_users.add(username)
+                self.logger.info(f"Live mode enabled for user: {username}")
+            else:
+                self.live_mode_users.discard(username)
+                self.logger.info(f"Live mode disabled for user: {username}")
+    
+    def is_live_mode_enabled(self, username: str) -> bool:
+        """
+        Check if live mode is enabled for a specific user.
+        
+        Args:
+            username: Username to check
+            
+        Returns:
+            True if live mode enabled for this user
+        """
+        with self._lock:
+            return username in self.live_mode_users
     
     def get_log_data(self, max_lines_per_file: int = 50) -> Dict:
         """
@@ -113,13 +141,21 @@ class LogEmitter:
             return {'error': str(e)}
     
     def _emit_log_content(self):
-        """Read all log files and emit their content as JSON."""
+        """Read all log files and emit their content as JSON to users with live mode enabled."""
         try:
             # Get structured log data
             log_data = self.get_log_data(max_lines_per_file=50)
             
-            # Emit JSON via socket
-            self.socket.emit('log_update', log_data)
+            # Get copy of live mode users (thread-safe)
+            with self._lock:
+                live_users = list(self.live_mode_users)
+            
+            # Emit to each user with live mode enabled
+            for username in live_users:
+                try:
+                    socketio_manager.emit_to_user('log_update', log_data, username=username)
+                except Exception as e:
+                    self.logger.error(f"Error emitting log update to user {username}: {e}")
             
         except Exception as e:
             self.logger.error(f"Error in _emit_log_content: {e}")

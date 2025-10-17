@@ -102,6 +102,44 @@ class Scheduler:
         )
         self.m_logger = None
 
+    def _get_current_username(self) -> Optional[str]:
+        """
+        Get username from the current calling thread context.
+        
+        This works because scheduler.emit_*() is called from within ThreadedAction.action(),
+        which runs in the thread that has username captured.
+        
+        Returns:
+            Username if called from a threaded action, None for broadcast
+        """
+        import threading
+        from typing import cast, List, Any
+        
+        # Try to find the Threaded_action instance that owns this thread
+        try:
+            from ..threaded import threaded_manager
+            if threaded_manager.thread_manager_obj:
+                current_thread = threading.current_thread()
+                # Search for the Threaded_action whose m_thread_action matches current thread
+                running_threads = cast(List[Any], threaded_manager.thread_manager_obj.m_running_threads)
+                if running_threads:
+                    for action in running_threads:
+                        if hasattr(action, 'm_thread_action') and action.m_thread_action == current_thread:
+                            # Found the action! Return its username
+                            return getattr(action, 'username', None)
+        except Exception:
+            pass
+        
+        # Fallback: Try to get from Flask session (if in request context)
+        try:
+            from flask import session, has_request_context
+            if has_request_context():
+                return session.get('user')
+        except Exception:
+            pass
+        
+        # No username found - this will broadcast to all users
+        return None
     def user_before(self):
         """Function to be overwritten by specific website, ut is executed at the begning of a scheduler cycle"""
         return
@@ -116,9 +154,10 @@ class Scheduler:
         :param content: The content of the formulaire, in the form of a list of {id: "...", content: "..."}
         :type content: list
         """
+        username = self._get_current_username()
         for item in content:
             data = [item["id"], item["content"]]  # type: ignore
-            self._queue.add(MessageType.RELOAD, data)
+            self._queue.add(MessageType.RELOAD, data, username=username)
 
     def disable_button(self, id: str):
         """Disable a button by its id
@@ -126,7 +165,8 @@ class Scheduler:
         :param id: The id of the button
         :type id: str
         """
-        self._queue.add(MessageType.BUTTON_DISABLE, id)
+        username = self._get_current_username()
+        self._queue.add(MessageType.BUTTON_DISABLE, id, username=username)
 
     def enable_button(self, id: str):
         """Enable a button by its id
@@ -134,7 +174,8 @@ class Scheduler:
         :param id: The id of the button
         :type id: str
         """
-        self._queue.add(MessageType.BUTTON_ENABLE, id)
+        username = self._get_current_username()
+        self._queue.add(MessageType.BUTTON_ENABLE, id, username=username)
 
     def emit_status(
         self, category: str, string: str, status: int = 0, supplement: str = "", status_id: Optional[str] = None
@@ -157,7 +198,8 @@ class Scheduler:
         # If status_id provided, use it as the identifier; otherwise use the string
         identifier = status_id if status_id else string
         data = [category, identifier, status, supplement]
-        self._queue.add(MessageType.STATUS, data)
+        username = self._get_current_username()
+        self._queue.add(MessageType.STATUS, data, username=username)
 
     def emit_popup(self, level: logLevel, string: str):
         """ "Emit a a popup that will be displayed to the user
@@ -168,7 +210,8 @@ class Scheduler:
         :type string: str
         """
         data = [level, string]
-        self._queue.add(MessageType.POPUP, data)
+        username = self._get_current_username()
+        self._queue.add(MessageType.POPUP, data, username=username)
 
     def emit_result(self, category: str, content):
         """Add a result information in the bottom of the "Action progress".
@@ -180,7 +223,8 @@ class Scheduler:
         :type content: _type_
         """
         data = [category, content]
-        self._queue.add(MessageType.RESULT, data)
+        username = self._get_current_username()
+        self._queue.add(MessageType.RESULT, data, username=username)
 
     def emit_button(self, id: str, icon: str, text: str, style: str = "primary"):
         """Change the content of a topbar button
@@ -195,7 +239,8 @@ class Scheduler:
         :type style: str, optional
         """
         data = [id, icon, text, style]
-        self._queue.add(MessageType.BUTTON, data)
+        username = self._get_current_username()
+        self._queue.add(MessageType.BUTTON, data, username=username)
 
     def emit_modal(self, id: str, content: str):
         """Change the content of a topbar modal
@@ -208,7 +253,8 @@ class Scheduler:
         :notes: modal might be big, and having a lot of them can use a vast amount of memory if the user don't consume them. So only the last 5 ones are kept.
         """
         data = [id, content]
-        self._queue.add(MessageType.MODAL, data) 
+        username = self._get_current_username()
+        self._queue.add(MessageType.MODAL, data, username=username) 
 
     def start(self):
         """Start the scheduler"""
@@ -226,7 +272,7 @@ class Scheduler:
 
             self.user_before()
 
-            # Get all messages from queues
+            # Get all messages from queues (now returns List[QueuedMessage])
             buttons = self._queue.get_all(MessageType.BUTTON)
             popups = self._queue.get_all(MessageType.POPUP)
             status = self._queue.get_all(MessageType.STATUS)
@@ -242,13 +288,64 @@ class Scheduler:
 
             # Emit using emitter (handles filtering and errors)
             if self._emitter is not None:
-                self._emitter.emit_buttons(buttons)
-                self._emitter.emit_popups(popups)
-                self._emitter.emit_status(status)
-                self._emitter.emit_results(results)
-                self._emitter.emit_modals(modals)
-                self._emitter.emit_reloads(reloads)
-                self._emitter.emit_button_states(button_disable, button_enable)
+                # Group messages by username
+                from collections import defaultdict
+                from typing import Dict, List
+                
+                # Create dictionaries to group messages by username
+                user_messages: Dict[str, Dict[str, List]] = defaultdict(lambda: {
+                    'buttons': [],
+                    'popups': [],
+                    'status': [],
+                    'results': [],
+                    'modals': [],
+                    'reloads': [],
+                    'button_disable': [],
+                    'button_enable': []
+                })
+                
+                # Group messages by username
+                for queued_msg in buttons:
+                    username = queued_msg.username or 'anonymous'
+                    user_messages[username]['buttons'].append(queued_msg.data)
+                    
+                for queued_msg in popups:
+                    username = queued_msg.username or 'anonymous'
+                    user_messages[username]['popups'].append(queued_msg.data)
+                    
+                for queued_msg in status:
+                    username = queued_msg.username or 'anonymous'
+                    user_messages[username]['status'].append(queued_msg.data)
+                    
+                for queued_msg in results:
+                    username = queued_msg.username or 'anonymous'
+                    user_messages[username]['results'].append(queued_msg.data)
+                    
+                for queued_msg in modals:
+                    username = queued_msg.username or 'anonymous'
+                    user_messages[username]['modals'].append(queued_msg.data)
+                    
+                for queued_msg in reloads:
+                    username = queued_msg.username or 'anonymous'
+                    user_messages[username]['reloads'].append(queued_msg.data)
+                    
+                for queued_msg in button_disable:
+                    username = queued_msg.username or 'anonymous'
+                    user_messages[username]['button_disable'].append(queued_msg.data)
+                    
+                for queued_msg in button_enable:
+                    username = queued_msg.username or 'anonymous'
+                    user_messages[username]['button_enable'].append(queued_msg.data)
+                
+                # Emit messages per user
+                for username, messages in user_messages.items():
+                    self._emitter.emit_buttons(messages['buttons'], username)
+                    self._emitter.emit_popups(messages['popups'], username)
+                    self._emitter.emit_status(messages['status'], username)
+                    self._emitter.emit_results(messages['results'], username)
+                    self._emitter.emit_modals(messages['modals'], username)
+                    self._emitter.emit_reloads(messages['reloads'], username)
+                    self._emitter.emit_button_states(messages['button_disable'], messages['button_enable'], username)
 
                 # Thread information
                 thread_info = []

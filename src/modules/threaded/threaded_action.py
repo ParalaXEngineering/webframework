@@ -95,6 +95,10 @@ class Threaded_action:
 
         # User preferences - NEW FEATURE
         self.m_user_prefs = {}  # Injected by route handler
+        
+        # Thread ownership - for multi-user isolation
+        self.username = None  # Set in start() method from session
+        self.user_session_id = None  # Set in start() method from session
 
         # Logger initialization
         self.m_logger = None
@@ -605,8 +609,22 @@ class Threaded_action:
         return
 
     def start(self):
-        """Start the thread"""
-        self.console_write(f"Starting thread '{self.get_name()}'", "INFO")
+        """Start the thread and capture user context for isolation"""
+        # Capture user context for thread isolation in multi-user environments
+        try:
+            from flask import session
+            import flask
+            self.username = session.get('user', 'anonymous')
+            # Try to get session ID - Flask generates this automatically
+            # The session ID is stored in the cookie, not directly accessible
+            # For now, use request.sid if available from SocketIO context, otherwise generate a simple identifier
+            self.user_session_id = session.get('_id') or session.get('session_id') or 'default'
+        except Exception:
+            # If not in Flask context, use default
+            self.username = 'system'
+            self.user_session_id = 'system'
+        
+        self.console_write(f"Starting thread '{self.get_name()}' for user '{self.username}'", "INFO")
         self.m_thread_action = threading.Thread(target=self.thread_process, daemon=True)
         self.m_thread_action.start()
         return

@@ -3,6 +3,8 @@ Thread Status Emitter
 
 Background thread that periodically emits thread status updates via SocketIO.
 Uses Displayer framework for consistent UI rendering.
+
+NOTE: Uses socketio_manager for user-specific rooms to prevent data leakage between users.
 """
 import threading
 import time
@@ -12,6 +14,7 @@ from jinja2 import Environment, FileSystemLoader
 try:
     from ..log.logger_factory import get_logger
     from . import threaded_manager
+    from ..socketio_manager import socketio_manager
     from ..displayer import (
         Displayer, DisplayerLayout, Layouts, BSstyle, BSalign,
         DisplayerItemText, DisplayerItemSeparator, DisplayerItemAlert,
@@ -21,6 +24,7 @@ try:
 except ImportError:
     from log.logger_factory import get_logger
     import threaded_manager
+    from socketio_manager import socketio_manager
     from displayer import (
         Displayer, DisplayerLayout, Layouts, BSstyle, BSalign,
         DisplayerItemText, DisplayerItemSeparator, DisplayerItemAlert,
@@ -79,7 +83,7 @@ class ThreadEmitter:
             time.sleep(self.interval)
     
     def _emit_thread_update(self):
-        """Collect and emit current thread status as HTML."""
+        """Collect and emit current thread status as HTML to each user's room."""
         manager = threaded_manager.thread_manager_obj
         if not manager:
             self.logger.warning("Thread manager not initialized")
@@ -92,14 +96,45 @@ class ThreadEmitter:
             # Limit completed to last 10
             completed_threads = list(completed_threads)[-10:] if completed_threads else []
             
-            # Build HTML content
-            html_content = self._render_threads_html(running_threads, completed_threads)
-
-            # Emit reload event for threads_content div
-            self.socket.emit('reload', {
-                'id': 'threads_content',
-                'content': html_content
-            })
+            # Group threads by owner (username)
+            threads_by_user: Dict[str, Dict[str, List]] = {}
+            
+            # Organize running threads by user
+            if running_threads:
+                for thread in running_threads:
+                    username = getattr(thread, 'username', 'anonymous')
+                    if username not in threads_by_user:
+                        threads_by_user[username] = {'running': [], 'completed': []}
+                    threads_by_user[username]['running'].append(thread)
+            
+            # Organize completed threads by user
+            if completed_threads:
+                for thread in completed_threads:
+                    username = getattr(thread, 'username', 'anonymous')
+                    if username not in threads_by_user:
+                        threads_by_user[username] = {'running': [], 'completed': []}
+                    threads_by_user[username]['completed'].append(thread)
+            
+            # Emit thread updates to each user's room
+            for username, user_threads in threads_by_user.items():
+                try:
+                    # Build HTML content for this specific user
+                    html_content = self._render_threads_html(
+                        user_threads['running'],
+                        user_threads['completed']
+                    )
+                    
+                    # Emit to this specific user's room(s) only
+                    socketio_manager.emit_to_user('reload', {
+                        'id': 'threads_content',
+                        'content': html_content
+                    }, username=username)
+                    
+                    # Removed DEBUG logging to reduce spam
+                    
+                except Exception as e:
+                    self.logger.error(f"Error emitting to user '{username}': {e}")
+                    
         except Exception as e:
             self.logger.error(f"Failed to emit thread update: {e}")
             self.logger.exception("Full error details:")

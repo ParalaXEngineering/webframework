@@ -30,12 +30,14 @@ try:
     from .modules.auth.auth_manager import auth_manager
     from .modules import site_conf
     from .modules.log.logger_factory import get_logger
+    from .modules.socketio_manager import initialize_socketio_manager
 except ImportError:
     from modules import scheduler
     from modules.threaded import threaded_manager
     from modules.auth.auth_manager import auth_manager
     from modules import site_conf
     from modules.log.logger_factory import get_logger
+    from modules.socketio_manager import initialize_socketio_manager
 
 # Create Flask app only if Flask is available
 if FLASK_AVAILABLE:
@@ -66,6 +68,10 @@ def setup_app(app):
     # Initialize logger using centralized factory and log application start
     logger = get_logger("main")
     logger.info("Application starting up")
+    
+    # Initialize SocketIO manager for user isolation
+    socketio_manager_obj = initialize_socketio_manager(socketio_obj)
+    logger.info("SocketIO manager initialized for multi-user support")
 
     # Detect if we're running from exe
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
@@ -193,6 +199,27 @@ def setup_app(app):
     thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=0.5)
     thread_emitter.thread_emitter_obj.start()
     logger.info("Thread emitter initialized")
+
+    # Register SocketIO connection handlers for user rooms
+    @socketio_obj.on("connect")
+    def handle_connect():
+        """Handle client connection - join user-specific room"""
+        try:
+            room = socketio_manager_obj.join_user_room()
+            username = session.get('user', 'anonymous')
+            logger.info(f"Client connected: {username} in room {room}")
+        except Exception as e:
+            logger.error(f"Error in handle_connect: {e}")
+    
+    @socketio_obj.on("disconnect")
+    def handle_disconnect():
+        """Handle client disconnection - leave user room"""
+        try:
+            username = session.get('user', 'anonymous')
+            socketio_manager_obj.leave_user_room()
+            logger.info(f"Client disconnected: {username}")
+        except Exception as e:
+            logger.error(f"Error in handle_disconnect: {e}")
 
     # Register user_connected handler (ALWAYS needed for thread progress)
     @socketio_obj.on("user_connected")

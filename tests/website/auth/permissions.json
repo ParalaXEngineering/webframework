@@ -103,7 +103,7 @@
           "write"
         ],
         "guest": [],
-        "qual": [],
+        "alice": ["read", "view"],
         "tecx": [],
         "toto": []
       }

@@ -3,10 +3,11 @@ Message Queue Manager
 
 Handles thread-safe message queueing for scheduler.
 Provides typed message queues with size limits to prevent memory leaks.
+Supports per-user message tracking for multi-user isolation.
 """
 from collections import deque
 from threading import Lock
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Optional, NamedTuple
 from enum import Enum
 
 try:
@@ -25,6 +26,18 @@ class MessageType(Enum):
     RELOAD = "reload"
     BUTTON_DISABLE = "button_disable"
     BUTTON_ENABLE = "button_enable"
+
+
+class QueuedMessage(NamedTuple):
+    """
+    Wrapper for queued messages with user tracking.
+    
+    Attributes:
+        data: The actual message data
+        username: Username who generated the message (None = broadcast to all)
+    """
+    data: Any
+    username: Optional[str] = None
 
 
 class MessageQueue:
@@ -55,19 +68,24 @@ class MessageQueue:
                 self._queues[msg_type] = deque(maxlen=max_size)
             self._locks[msg_type] = Lock()
     
-    def add(self, msg_type: MessageType, data: Any) -> None:
+    def add(self, msg_type: MessageType, data: Any, username: Optional[str] = None) -> None:
         """
         Add message to queue (thread-safe).
         
         Args:
             msg_type: Type of message to add
             data: Message data (structure depends on message type)
+            username: Username who generated the message (None = broadcast to all users)
         """
         with self._locks[msg_type]:
-            self._queues[msg_type].append(data)
-            self._logger.info(f"[QUEUE] Added {msg_type.name} message: {data}")
+            message = QueuedMessage(data=data, username=username)
+            self._queues[msg_type].append(message)
+            if username:
+                self._logger.info(f"[QUEUE] Added {msg_type.name} message for user '{username}': {data}")
+            else:
+                self._logger.info(f"[QUEUE] Added {msg_type.name} broadcast message: {data}")
     
-    def get_all(self, msg_type: MessageType) -> List[Any]:
+    def get_all(self, msg_type: MessageType) -> List[QueuedMessage]:
         """
         Get all messages of given type and clear queue (thread-safe).
         
@@ -82,7 +100,7 @@ class MessageQueue:
             self._queues[msg_type].clear()
             return messages
     
-    def peek(self, msg_type: MessageType) -> List[Any]:
+    def peek(self, msg_type: MessageType) -> List[QueuedMessage]:
         """
         Get all messages without clearing (thread-safe).
         

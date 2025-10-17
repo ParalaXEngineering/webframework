@@ -6,5 +6,9 @@
     "admin": {
         "count": 0,
         "locked_until": null
+    },
+    "alice": {
+        "count": 0,
+        "locked_until": null
     }
 }

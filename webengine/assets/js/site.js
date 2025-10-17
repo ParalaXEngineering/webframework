@@ -832,8 +832,16 @@ $(document).ready(function() {
             let current_status = document.getElementById(msg[category][0])
             if(!current_status)
             {
-                let table = document.getElementById(category + "_result")
-                console.log(category)
+                // Try to find table with ID (replace spaces with underscores for valid HTML IDs)
+                let tableId = category.replace(/\s+/g, '_') + "_result";
+                let table = document.getElementById(tableId);
+                
+                // Fallback: try original ID with spaces
+                if(!table) {
+                    table = document.getElementById(category + "_result");
+                }
+                
+                console.log(category);
                 console.log('[SOCKETIO] Table element:', table);
                 //Prepare the cell
                 let status = '<div id="' + msg[category][0] + '"></div></div>'
@@ -850,7 +858,28 @@ $(document).ready(function() {
                 }
                 else
                 {
-                    console.log('[SOCKETIO] WARNING: Table not found for category:', category + "_result");
+                    console.log('[SOCKETIO] WARNING: Table not found for category:', tableId);
+                    // Create a fallback notification area if it doesn't exist
+                    let fallbackArea = document.getElementById('action_status_fallback');
+                    if(!fallbackArea) {
+                        // Try to find a common container
+                        let container = document.querySelector('.container') || document.querySelector('.container-fluid') || document.body;
+                        fallbackArea = document.createElement('div');
+                        fallbackArea.id = 'action_status_fallback';
+                        fallbackArea.className = 'alert alert-info mt-3';
+                        fallbackArea.innerHTML = '<h5>Action Progress</h5><div id="action_status_content"></div>';
+                        container.insertBefore(fallbackArea, container.firstChild);
+                    }
+                    
+                    // Add status to fallback area
+                    let content = document.getElementById('action_status_content');
+                    if(content) {
+                        let statusDiv = document.createElement('div');
+                        statusDiv.id = msg[category][0];
+                        statusDiv.className = 'mb-2';
+                        content.appendChild(statusDiv);
+                        current_status = statusDiv;
+                    }
                 }
             }
 

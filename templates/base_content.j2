@@ -290,7 +290,7 @@
                             <h3 class="error-title mt-3">This page can't be displayed with the current configuration</h3>
                             <p class="fs-5 text-gray-600">{{content[module]["error"]}}</p>
                         </div>
-                    {% elif "access_denied" in content[module] and content[module]["access_denied"] %}
+                    {#{% elif "access_denied" in content[module] and content[module]["access_denied"] %}
                         <div class="text-center">
                             <img src="{{ url_for('static', filename='images/site/unauthorized.png')}}" style="width: 500px; max-width: 100%;">
                             <div class="alert alert-light-danger color-danger"><i class="mdi mdi-close-octagon"></i>Access Denied</div>
@@ -307,7 +307,7 @@
                                   {% endif %}
                                 {% endif %}
                             </p>
-                        </div>
+                        </div>#}
                     {% else %}
 
                         {% if target %}
