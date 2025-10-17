@@ -562,7 +562,12 @@ class Threaded_action:
                 return
 
     def process_read_results(self):
-        """Read the raw results of the last executed (executing) process, and delete them"""
+        """
+        Read the raw results of the last executed (executing) process, and delete them.
+        
+        Returns:
+            List of result strings from the process
+        """
         result = copy.copy(self.m_process_results)
         self.m_process_results = []
         return result

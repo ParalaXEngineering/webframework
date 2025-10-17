@@ -74,9 +74,34 @@ echo "Dependencies ready!"
 echo ""
 
 # ========================================
-# STEP 2: Clean Previous Build
+# STEP 2: Validate Docstrings
 # ========================================
-echo "[2/3] Cleaning previous build..."
+echo "[2/4] Validating docstring completeness..."
+echo ""
+
+if [ -f "$PROJECT_ROOT/docs/check_docstrings.py" ]; then
+    echo "Running docstring checker..."
+    DOCSTRING_OUTPUT=$($PYTHON_CMD "$PROJECT_ROOT/docs/check_docstrings.py" 2>&1)
+    DOCSTRING_ERRORS=$(echo "$DOCSTRING_OUTPUT" | grep -E "SUMMARY: [1-9]" || echo "")
+    
+    if [ ! -z "$DOCSTRING_ERRORS" ]; then
+        echo "⚠️  Docstring issues found:"
+        echo "$DOCSTRING_OUTPUT"
+        echo ""
+        echo "Warning: Some functions are missing documentation."
+        echo "Continuing with build..."
+    else
+        echo "✅ All docstrings validated successfully!"
+    fi
+else
+    echo "ℹ️  Docstring checker not found, skipping validation"
+fi
+echo ""
+
+# ========================================
+# STEP 3: Clean Previous Build
+# ========================================
+echo "[3/4] Cleaning previous build..."
 echo ""
 
 if [ -d "$PROJECT_ROOT/docs/build" ]; then
@@ -89,9 +114,9 @@ fi
 echo ""
 
 # ========================================
-# STEP 3: Build Documentation
+# STEP 4: Build Documentation
 # ========================================
-echo "[3/3] Building HTML documentation..."
+echo "[4/4] Building HTML documentation..."
 echo ""
 
 # Change to docs directory

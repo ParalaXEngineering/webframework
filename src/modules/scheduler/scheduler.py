@@ -16,6 +16,16 @@ except ImportError:
 
 
 class logLevel(Enum):
+    """
+    Log level enumeration for popup messages.
+    
+    Attributes:
+        success: Success message (green)
+        info: Information message (blue)
+        warning: Warning message (orange)
+        error: Error message (red)
+        empty: Empty/neutral message
+    """
     success = 0
     info = 1
     warning = 2
@@ -24,7 +34,14 @@ class logLevel(Enum):
 
 
 class Scheduler_LongTerm:
+    """
+    Long-term scheduler for periodic background tasks.
+    
+    Runs registered functions at specified intervals in a background thread.
+    """
+    
     def __init__(self):
+        """Initialize the long-term scheduler."""
         self.functions = []
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.running = False

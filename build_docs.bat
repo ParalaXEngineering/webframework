@@ -74,9 +74,29 @@ echo Dependencies ready!
 echo.
 
 REM ========================================
-REM STEP 2: Clean Previous Build
+REM STEP 2: Validate Docstrings
 REM ========================================
-echo [2/3] Cleaning previous build...
+echo [2/4] Validating docstring completeness...
+echo.
+
+if exist "docs\check_docstrings.py" (
+    echo Running docstring checker...
+    %PYTHON_CMD% "docs\check_docstrings.py" 2>&1 | findstr /C:"SUMMARY: " >nul
+    if not errorlevel 1 (
+        echo Warning: Some functions are missing documentation.
+        echo Continuing with build...
+    ) else (
+        echo All docstrings validated successfully!
+    )
+) else (
+    echo Docstring checker not found, skipping validation
+)
+echo.
+
+REM ========================================
+REM STEP 3: Clean Previous Build
+REM ========================================
+echo [3/4] Cleaning previous build...
 echo.
 
 if exist "docs\build" (
@@ -93,9 +113,9 @@ if exist "docs\build" (
 echo.
 
 REM ========================================
-REM STEP 3: Build Documentation
+REM STEP 4: Build Documentation
 REM ========================================
-echo [3/3] Building HTML documentation...
+echo [4/4] Building HTML documentation...
 echo.
 
 REM Change to docs directory

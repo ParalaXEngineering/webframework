@@ -43,7 +43,12 @@ class SocketIOManager:
         self.logger = get_logger("socketio_manager")
         
     def set_socketio(self, socketio):
-        """Set or update the SocketIO instance."""
+        """
+        Set or update the SocketIO instance.
+        
+        Args:
+            socketio: Flask-SocketIO instance
+        """
         self.socketio = socketio
         self.logger.info("SocketIO instance configured")
     
@@ -280,6 +285,9 @@ def initialize_socketio_manager(socketio):
     
     Args:
         socketio: Flask-SocketIO instance
+        
+    Returns:
+        The initialized SocketIOManager singleton
     """
     socketio_manager.set_socketio(socketio)
     return socketio_manager

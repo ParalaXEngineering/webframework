@@ -44,7 +44,11 @@ LAST_ACCESS_CONFIG = None
 
 def get_breadcrumbs():
     """
-    Return the breadcrumbs"""
+    Return the breadcrumbs from session.
+    
+    Returns:
+        List of breadcrumb dictionaries
+    """
     if session:
         breadcrumbs = session.get('breadcrumbs', [])
         return breadcrumbs
@@ -53,11 +57,14 @@ def get_breadcrumbs():
 def update_breadcrumbs(disp, level, title, endpoint, params=None, style=None):
     """
     Manage the breadcrumb trail in session and render via disp.
-    level: integer breadcrumb depth (0-based)
-    title: label for the crumb
-    endpoint: Flask endpoint name for URL generation
-    params: list of query-string fragments like 'key=value'
-    style: a bootstrap style
+    
+    Args:
+        disp: Displayer instance to render breadcrumbs
+        level: Integer breadcrumb depth (0-based)
+        title: Label for the crumb
+        endpoint: Flask endpoint name for URL generation
+        params: List of query-string fragments like 'key=value'
+        style: A bootstrap style
     """
     if not session:
         return
@@ -87,11 +94,11 @@ def utils_remove_letter(text: str) -> int:
     """
     Extracts and returns the first integer (including negative numbers) found in a given text.
     
-    Parameters:
-        text (str): The input string containing numbers and letters.
+    Args:
+        text: The input string containing numbers and letters
         
     Returns:
-        int: The extracted integer. If no number is found, returns 0.
+        The extracted integer. If no number is found, returns 0
     
     Example:
         >>> utils_remove_letter("-55°C")
@@ -693,14 +700,30 @@ def util_dir_structure(
     return current_dir
 
 def utils_calculate_crc32(filepath):
-    """Calcule le CRC32 d'un fichier donné."""
+    """
+    Calculate the CRC32 checksum of a file.
+    
+    Args:
+        filepath: Path to the file to checksum
+        
+    Returns:
+        CRC32 checksum as integer
+    """
     with open(filepath, 'rb') as file:
         content = file.read()
         return zlib.crc32(content)
 
 
 def utils_get_directory_crc32(directory_path):
-    """Génère un dictionnaire des CRC32 pour tous les fichiers dans un répertoire."""
+    """
+    Generate a dictionary of CRC32 checksums for all files in a directory.
+    
+    Args:
+        directory_path: Path to the directory to scan
+        
+    Returns:
+        Dictionary mapping file paths to their CRC32 checksums
+    """
     crc32_dict = {}
     for root, _, files in os.walk(directory_path):
         for file in files:
@@ -710,7 +733,13 @@ def utils_get_directory_crc32(directory_path):
 
 
 def utils_create_backup(backup_folders, backup_name):
-    """Crée un fichier .tar.gz contenant les dossiers spécifiés."""
+    """
+    Create a .tar.gz backup file containing the specified folders.
+    
+    Args:
+        backup_folders: List of folder paths to include in backup
+        backup_name: Name of the backup file to create (should end in .tar.gz)
+    """
     with tarfile.open(backup_name, "w:gz") as tar:
         for folder in backup_folders:
             tar.add(folder, arcname=os.path.basename(folder))

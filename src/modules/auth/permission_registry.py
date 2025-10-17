@@ -15,7 +15,12 @@ class PermissionRegistry:
     _modules: Dict[str, Set[str]] = {}
     
     def __new__(cls):
-        """Singleton pattern."""
+        """
+        Singleton pattern.
+        
+        Returns:
+            The single PermissionRegistry instance
+        """
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance

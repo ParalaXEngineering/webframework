@@ -178,11 +178,24 @@ class AuthManager:
     # ==================== User Management ====================
     
     def get_user(self, username: str) -> Optional[User]:
-        """Get user by username."""
+        """
+        Get user by username.
+        
+        Args:
+            username: The username to look up
+            
+        Returns:
+            User object if found, None otherwise
+        """
         return self._users.get(username)
     
     def get_all_users(self) -> List[User]:
-        """Get all users."""
+        """
+        Get all users.
+        
+        Returns:
+            List of all User objects
+        """
         return list(self._users.values())
     
     def create_user(self, username: str, password: str, groups: List[str], 
@@ -329,7 +342,12 @@ class AuthManager:
         return True
     
     def update_last_login(self, username: str):
-        """Update user's last login timestamp."""
+        """
+        Update user's last login timestamp.
+        
+        Args:
+            username: Username to update
+        """
         user = self._users.get(username)
         if user:
             user.last_login = datetime.now().isoformat()
@@ -430,11 +448,21 @@ class AuthManager:
             return (False, error_message)
     
     def get_current_user(self) -> Optional[str]:
-        """Get current logged-in user from session."""
+        """
+        Get current logged-in user from session.
+        
+        Returns:
+            Username or None if not logged in
+        """
         return session.get('user')
     
     def set_current_user(self, username: str):
-        """Set current user in session."""
+        """
+        Set current user in session.
+        
+        Args:
+            username: Username to set as current user
+        """
         session['user'] = username
     
     def logout_current_user(self):
@@ -545,7 +573,12 @@ class AuthManager:
         return module_perm.groups.copy()
     
     def get_all_module_names(self) -> List[str]:
-        """Get all modules that have permissions defined."""
+        """
+        Get all modules that have permissions defined.
+        
+        Returns:
+            Sorted list of module names
+        """
         return sorted(self._permissions.keys())
     
     # ==================== User Preferences ====================

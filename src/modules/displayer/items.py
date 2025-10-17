@@ -37,16 +37,16 @@ class DisplayerItem:
 
     @classmethod
     def instantiate_test(cls):
-        """
-        Create a test instance of this DisplayerItem with sensible default data.
+        """Create a test instance of this DisplayerItem with sensible default data.
 
         Override this method in child classes to provide proper test data.
         Default implementation returns a minimal instance.
 
-        :return: Test instance of this DisplayerItem
-        :rtype: DisplayerItem
+        Returns:
+            Test instance of this DisplayerItem
 
-        Example override:
+        Example override::
+
             @classmethod
             def instantiate_test(cls):
                 return cls(
@@ -62,17 +62,18 @@ class DisplayerItem:
 
     @classmethod
     def get_required_resources(cls) -> List[str]:
-        """
-        Return list of required resources (vendors) for this displayer item.
+        """Return list of required resources (vendors) for this displayer item.
+        
         Override in child classes to declare dependencies.
 
-        Example:
+        Returns:
+            List of resource identifiers
+
+        Example::
+
             @classmethod
             def get_required_resources(cls):
                 return ['datatables', 'sweetalert']
-
-        :return: List of resource identifiers
-        :rtype: list
         """
         return []
 
@@ -162,7 +163,11 @@ class DisplayerItemPlaceholder(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample placeholder."""
+        """Create test instance with sample placeholder.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_placeholder", data="Initial placeholder data")
 
 
@@ -248,13 +253,21 @@ class DisplayerItemAlert(DisplayerItem):
             raise ValueError("Dismissible alerts require an 'id' parameter")
 
     def setText(self, text: str):
-        """Update the alert text."""
+        """Update the alert text.
+        
+        Args:
+            text: The new text content to set.
+        """
         self.m_text = text
         return
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample alert."""
+        """Create test instance with sample alert.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(
             text="This is a test alert message", 
             highlightType=BSstyle.WARNING, 
@@ -288,7 +301,11 @@ class DisplayerItemText(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample text."""
+        """Create test instance with sample text.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(text="Sample DisplayerItemText")
 
 
@@ -311,7 +328,11 @@ class DisplayerItemSeparator(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance of separator."""
+        """Create test instance of separator.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls()
 
 
@@ -341,7 +362,11 @@ class DisplayerItemHidden(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample hidden field."""
+        """Create test instance with sample hidden field.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_hidden", value="hidden_value")
 
 
@@ -392,7 +417,11 @@ class DisplayerItemIconLink(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample icon link."""
+        """Create test instance with sample icon link.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_icon_link", text="View Details", icon="information",
                    link="#details", parameters=["id=123", "action=view"], color=BSstyle.PRIMARY)
 
@@ -444,7 +473,12 @@ class DisplayerItemButtonLink(DisplayerItem):
         return
 
     def display(self, container: list, parent_id: Optional[str] = None) -> None:
-        """Add button to container with icon and parameters."""
+        """Add button to container with icon and parameters.
+        
+        Args:
+            container: The container element to display in.
+            parent_id: The parent element ID.
+        """
         super().display(container, parent_id)
         container[-1]["icon"] = self.m_icon
         container[-1]["parameters"] = self.m_parameters
@@ -452,7 +486,11 @@ class DisplayerItemButtonLink(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample button link."""
+        """Create test instance with sample button link.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_button_link", text="Submit Form", icon="check",
                    link="#action", parameters=["form_id=456"], color=BSstyle.SUCCESS,
                    tooltip="This is a test button link")
@@ -495,7 +533,12 @@ class DisplayerItemButton(DisplayerItem):
         return
 
     def display(self, container: list, parent_id: Optional[str] = None) -> None:
-        """Add button to container with optional icon."""
+        """Add button to container with optional icon.
+        
+        Args:
+            container: The container element to display in.
+            parent_id: The parent element ID.
+        """
         super().display(container, parent_id)
         if self.m_icon:
             container[-1]["icon"] = self.m_icon
@@ -503,7 +546,11 @@ class DisplayerItemButton(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample button."""
+        """Create test instance with sample button.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_button", text="Click Me", icon="check-circle", focus=False, tooltip="This is a test button")
 
 @DisplayerCategory.BUTTON
@@ -528,7 +575,11 @@ class DisplayerItemModalButton(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample modal button."""
+        """Create test instance with sample modal button.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         # Note: Modal buttons require a Flask route that returns modal content
         # For demo purposes, this shows the structure - in real usage, provide a proper endpoint
         return cls(text="Open Modal (requires endpoint)", link="#")
@@ -570,7 +621,11 @@ class DisplayerItemModalLink(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample modal link."""
+        """Create test instance with sample modal link.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         # Note: Modal links require a Flask route that returns modal content
         # For demo purposes, this shows the structure - in real usage, provide a proper endpoint
         return cls(text="Info (requires endpoint)", icon="information-outline", link="#", color=BSstyle.INFO)
@@ -597,13 +652,21 @@ class DisplayerItemBadge(DisplayerItem):
         self.m_style = highlightType.value
 
     def setText(self, text: str):
-        """Update the badge text."""
+        """Update the badge text.
+        
+        Args:
+            text: The new text content to set.
+        """
         self.m_text = text
         return
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample badge."""
+        """Create test instance with sample badge.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(text="Status: Active", highlightType=BSstyle.SUCCESS)
 
 
@@ -632,7 +695,11 @@ class DisplayerItemDownload(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample download button."""
+        """Create test instance with sample download button.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         # Use a simple example - in real usage, provide a proper Flask endpoint
         return cls(id="test_download", text="Download File", link="#")
 
@@ -667,7 +734,11 @@ class DisplayerItemImage(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample image."""
+        """Create test instance with sample image.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(height="200px", link="https://tse3.mm.bing.net/th/id/OIP.GGAs1O-ZmfBJGBCDcj0KpgHaDd?rs=1&pid=ImgDetMain")
 
 @DisplayerCategory.MEDIA
@@ -704,7 +775,11 @@ class DisplayerItemFile(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample file."""
+        """Create test instance with sample file.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(link="test_document.pdf", endpoint="common", path="/files",
                    text="Sample Document", creation_date="2024-01-15")
 
@@ -732,7 +807,11 @@ class DisplayerItemInputBox(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample checkbox."""
+        """Create test instance with sample checkbox.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_checkbox", text="Enable notifications", value=True)
 
 
@@ -772,11 +851,20 @@ class DisplayerItemGraph(DisplayerItem):
 
     @classmethod
     def get_required_resources(cls) -> list:
-        """Graph requires ApexCharts library."""
+        """Graph requires ApexCharts library.
+        
+        Returns:
+            List of required resource paths.
+        """
         return ['apexcharts']
 
     def display(self, container: list, parent_id: Optional[str] = None) -> None:
-        """Add graph to container with chart configuration."""
+        """Add graph to container with chart configuration.
+        
+        Args:
+            container: The container element to display in.
+            parent_id: The parent element ID.
+        """
         super().display(container, parent_id)
         container[-1]["id"] = self.m_id.replace(" ", "_")
         container[-1]["graph_x"] = self.m_graphx
@@ -787,7 +875,11 @@ class DisplayerItemGraph(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample graph."""
+        """Create test instance with sample graph.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         # y should be dict of series name -> list of values matching x length
         return cls(id="test_graph", text="Sample Graph",
                    x=[1640995200000, 1641081600000, 1641168000000],  # Unix timestamps for date type
@@ -849,7 +941,11 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample file explorer."""
+        """Create test instance with sample file explorer.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_fileexplorer", text="File Explorer",
                    files=[["file1.txt", "file2.pdf"], ["image1.png"]],
                    title=["Documents", "Images"],
@@ -858,7 +954,12 @@ class DisplayerItemInputFileExplorer(DisplayerItem):
                    hiddens=[False, True])
 
     def display(self, container: list, parent_id: Optional[str] = None) -> None:
-        """Add file explorer to container with all category configurations."""
+        """Add file explorer to container with all category configurations.
+        
+        Args:
+            container: The container element to display in.
+            parent_id: The parent element ID.
+        """
         super().display(container, parent_id)
         container[-1]["explorer_files"] = self.m_explorerFiles
         container[-1]["explorer_titles"] = self.m_explorerTitles
@@ -919,7 +1020,11 @@ class DisplayerItemInputCascaded(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample cascaded select."""
+        """Create test instance with sample cascaded select.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         # Cascaded needs nested dict structure where each key contains the next level's dict
         return cls(ids=["level1", "level2", "level3"], text="Cascaded Selection",
                    value=["category1", "subcategory2", "item3"],
@@ -981,7 +1086,11 @@ class DisplayerItemInputSelect(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample select."""
+        """Create test instance with sample select.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_select", text="Choose an option", value="option2",
                    choices=["option1", "option2", "option3"],
                    tooltips=["First option", "Second option", "Third option"])
@@ -1021,7 +1130,11 @@ class DisplayerItemInputMultiSelect(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample multi-select."""
+        """Create test instance with sample multi-select.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_multiselect", text="Select multiple items",
                    value=["item2", "item3"], choices=["item1", "item2", "item3", "item4"])
 
@@ -1060,7 +1173,11 @@ class DisplayerItemInputMapping(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample mapping."""
+        """Create test instance with sample mapping.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_mapping", text="Key-Value Mapping",
                    value={"Section A": ["option1", "option2"], "Section B": ["option3"]},
                    choices=["option1", "option2", "option3"])
@@ -1099,7 +1216,11 @@ class DisplayerItemInputListSelect(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample list select."""
+        """Create test instance with sample list select.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_listselect", text="Select from lists",
                    value=["list1_item2", "list2_item1"],
                    choices=["list1_item1", "list1_item2", "list2_item1", "list2_item2"])
@@ -1139,7 +1260,11 @@ class DisplayerItemInputTextSelect(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample text-select pairs (list of [text, select])."""
+        """Create test instance with sample text-select pairs (list of [text, select]).
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_textselect", text="Text and Selection",
                    value=[["First text", "option2"], ["Second text", "option1"]],
                    choices=["option1", "option2", "option3"])
@@ -1179,7 +1304,11 @@ class DisplayerItemInputSelectText(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample select-text pairs (list of [select, text])."""
+        """Create test instance with sample select-text pairs (list of [select, text]).
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_selecttext", text="Select and describe",
                    value=[["option2", "Description for option 2"], ["option1", "Another description"]],
                    choices=["option1", "option2", "option3"])
@@ -1219,7 +1348,11 @@ class DisplayerItemInputDualTextSelect(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample dual text-select (list of [text1, text2, select])."""
+        """Create test instance with sample dual text-select (list of [text1, text2, select]).
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_dualtextselect", text="Dual text with select",
                    value=[["First text", "Second text", "choice2"], ["Another first", "Another second", "choice1"]],
                    choices=["choice1", "choice2", "choice3"])
@@ -1259,7 +1392,11 @@ class DisplayerItemInputDualSelectText(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample dual select-text (list of [select1, select2, text])."""
+        """Create test instance with sample dual select-text (list of [select1, select2, text]).
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_dualselecttext", text="Dual select with text",
                    value=[["opt1", "opt2", "Combined result"], ["opt2", "opt3", "Another combination"]],
                    choices=["opt1", "opt2", "opt3"])
@@ -1294,7 +1431,11 @@ class DisplayerItemInputTextText(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample text-text pairs (list of [text1, text2])."""
+        """Create test instance with sample text-text pairs (list of [text1, text2]).
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_texttext", text="Two text fields",
                    value=[["First field", "Second field"], ["Another first", "Another second"]])
 
@@ -1328,7 +1469,11 @@ class DisplayerItemInputListText(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample list of texts."""
+        """Create test instance with sample list of texts.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_listtext", text="List of text inputs",
                    value={"item1": "Text 1", "item2": "Text 2", "item3": "Text 3"})
 
@@ -1364,7 +1509,11 @@ class DisplayerItemInputNumeric(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample numeric input."""
+        """Create test instance with sample numeric input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_numeric", text="Enter a number", value=42.5, focus=False)
 
 
@@ -1402,7 +1551,11 @@ class DisplayerItemInputDate(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample date input."""
+        """Create test instance with sample date input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_date", text="Select a date", value="2024-01-15")
 
 
@@ -1435,12 +1588,20 @@ class DisplayerItemInputText(DisplayerItem):
 
     @classmethod
     def get_required_resources(cls) -> list:
-        """Text input requires TinyMCE library for rich text editing."""
+        """Text input requires TinyMCE library for rich text editing.
+        
+        Returns:
+            List of required resource paths.
+        """
         return ['tinymce']
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample text input."""
+        """Create test instance with sample text input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_text", text="Enter text", value="Sample text value")
 
 @DisplayerCategory.INPUT
@@ -1478,7 +1639,11 @@ class DisplayerItemInputTextJS(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample text-JS input."""
+        """Create test instance with sample text-JS input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         # JS function to capitalize input
         js_code = "this.value = this.value.toUpperCase();"
         return cls(id="test_textjs", text="Text with JS (auto-capitalize)", value="type here",
@@ -1519,7 +1684,11 @@ class DisplayerItemInputString(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample string input."""
+        """Create test instance with sample string input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_string", text="Enter a string", value="Sample string", focus=False)
 
 @DisplayerCategory.INPUT
@@ -1551,7 +1720,11 @@ class DisplayerItemInputStringIcon(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample string-icon input."""
+        """Create test instance with sample string-icon input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_stringicon", text="Icon String", value="star-outline")
 
 
@@ -1584,7 +1757,11 @@ class DisplayerItemInputMultiText(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample multi-line text input."""
+        """Create test instance with sample multi-line text input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_multitext", text="Enter multiple lines",
                    value=["Line 1", "Line 2", "Line 3"])
 
@@ -1614,12 +1791,20 @@ class DisplayerItemInputFolder(DisplayerItem):
 
     @classmethod
     def get_required_resources(cls) -> list:
-        """Folder input requires FilePond library."""
+        """Folder input requires FilePond library.
+        
+        Returns:
+            List of required resource paths.
+        """
         return ['filepond']
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample folder input."""
+        """Create test instance with sample folder input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_folder", text="Select Folder")
 
 @DisplayerCategory.INPUT
@@ -1647,12 +1832,20 @@ class DisplayerItemInputFile(DisplayerItem):
 
     @classmethod
     def get_required_resources(cls) -> list:
-        """File input requires FilePond library."""
+        """File input requires FilePond library.
+        
+        Returns:
+            List of required resource paths.
+        """
         return ['filepond']
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample file input."""
+        """Create test instance with sample file input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_file", text="Select File")
 
 @DisplayerCategory.INPUT
@@ -1680,12 +1873,20 @@ class DisplayerItemInputImage(DisplayerItem):
 
     @classmethod
     def get_required_resources(cls) -> list:
-        """Image input requires FilePond library."""
+        """Image input requires FilePond library.
+        
+        Returns:
+            List of required resource paths.
+        """
         return ['filepond']
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample image input."""
+        """Create test instance with sample image input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_image", text="Select Image")
 
 @DisplayerCategory.MEDIA
@@ -1723,12 +1924,20 @@ class DisplayerItemCalendar(DisplayerItem):
 
     @classmethod
     def get_required_resources(cls) -> list:
-        """Calendar requires FullCalendar library."""
+        """Calendar requires FullCalendar library.
+        
+        Returns:
+            List of required resource paths.
+        """
         return ['fullcalendar']
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample calendar."""
+        """Create test instance with sample calendar.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(id="test_calendar", view="dayGridMonth",
                    events=[
                        {"title": "Event 1", "start": "2024-01-15"},
@@ -1787,7 +1996,11 @@ class DisplayerItemCard(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample card."""
+        """Create test instance with sample card.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(
             id="test_card",
             title="Test Card",
@@ -1844,7 +2057,11 @@ class DisplayerItemDynamicContent(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample dynamic content."""
+        """Create test instance with sample dynamic content.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(
             id="test_dynamic",
             initial_content="<p>This content will be updated dynamically.</p>",
@@ -1897,7 +2114,11 @@ class DisplayerItemButtonGroup(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample button group."""
+        """Create test instance with sample button group.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(
             id="test_btn_group",
             buttons=[
@@ -1953,7 +2174,11 @@ class DisplayerItemIconText(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample icon+text."""
+        """Create test instance with sample icon+text.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(
             id="test_icontext",
             icon="mdi mdi-information",
@@ -2093,7 +2318,11 @@ class DisplayerItemActionButtons(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample action buttons."""
+        """Create test instance with sample action buttons.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(
             id="test_actions",
             view_url="https://www.google.com",
@@ -2148,7 +2377,11 @@ class DisplayerItemConsole(DisplayerItem):
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample console output."""
+        """Create test instance with sample console output.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(
             id="test_console",
             lines=[
@@ -2220,12 +2453,20 @@ class DisplayerItemCode(DisplayerItem):
 
     @classmethod
     def get_required_resources(cls) -> List[str]:
-        """Code display requires Highlight.js for syntax highlighting."""
+        """Code display requires Highlight.js for syntax highlighting.
+        
+        Returns:
+            List of required resource paths.
+        """
         return ['highlightjs']
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample code."""
+        """Create test instance with sample code.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         sample_code = '''def fibonacci(n):
     """Calculate Fibonacci number."""
     if n <= 1:
@@ -2309,7 +2550,11 @@ class DisplayerItemProgressBar(DisplayerItem):
     
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample progress."""
+        """Create test instance with sample progress.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(
             id="test_progress",
             value=65,
@@ -2369,12 +2614,20 @@ class DisplayerItemGridEditor(DisplayerItem):
 
     @classmethod
     def get_required_resources(cls) -> List[str]:
-        """Grid editor requires GridStack library."""
+        """Grid editor requires GridStack library.
+        
+        Returns:
+            List of required resource paths.
+        """
         return ['gridstack']
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample fields."""
+        """Create test instance with sample fields.
+        
+        Returns:
+            Instance of the class with test data.
+        """
         return cls(
             id="test_grid_editor",
             fields={

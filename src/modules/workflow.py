@@ -197,11 +197,21 @@ class Workflow:
         self.m_visible_steps: List[int] = []
 
     def get_name(self) -> str:
-        """Get the name of this workflow instance."""
+        """
+        Get the name of this workflow instance.
+        
+        Returns:
+            The workflow name
+        """
         return self.m_name
     
     def change_name(self, name: str) -> None:
-        """Change the name of this workflow instance."""
+        """
+        Change the name of this workflow instance.
+        
+        Args:
+            name: New name for the workflow
+        """
         self.m_name = name
         self.m_logger = get_logger(f"workflow.{self.m_name}")
     
@@ -244,7 +254,12 @@ class Workflow:
             return -1
     
     def get_current_step(self) -> Optional[WorkflowStep]:
-        """Get the current workflow step."""
+        """
+        Get the current workflow step.
+        
+        Returns:
+            Current WorkflowStep or None if no valid step
+        """
         if 0 <= self.m_current_step_index < len(self.m_steps):
             return self.m_steps[self.m_current_step_index]
         return None
@@ -526,19 +541,34 @@ class Workflow:
             self.m_logger.warning(f"Failed to restore thread reference: {e}")
     
     def is_first_step(self) -> bool:
-        """Check if we're on the first visible step."""
+        """
+        Check if we're on the first visible step.
+        
+        Returns:
+            True if on first visible step
+        """
         if not self.m_visible_steps:
             return True
         return self.m_current_step_index == self.m_visible_steps[0]
     
     def is_last_step(self) -> bool:
-        """Check if we're on the last visible step."""
+        """
+        Check if we're on the last visible step.
+        
+        Returns:
+            True if on last visible step
+        """
         if not self.m_visible_steps:
             return True
         return self.m_current_step_index == self.m_visible_steps[-1]
     
     def get_progress_percentage(self) -> int:
-        """Get workflow progress as a percentage."""
+        """
+        Get workflow progress as a percentage.
+        
+        Returns:
+            Progress percentage (0-100)
+        """
         if not self.m_visible_steps:
             return 0
         

@@ -121,6 +121,16 @@ class Site_conf:
         )
 
     def add_sidebar_subsubmenu(self, name: str, url: str, submenu: str, parameter: Optional[str] = None, endpoint: Optional[str] = None):
+        """
+        Add a sub-sub-menu item to the sidebar navigation.
+        
+        Args:
+            name: Display name of the menu item
+            url: URL or route for the menu item
+            submenu: Parent submenu name
+            parameter: Optional parameter to pass to the route
+            endpoint: Optional endpoint name (defaults to first part of url)
+        """
         url_endpoint = url.split(".")[0]
         if not endpoint:
             endpoint = url_endpoint
@@ -400,26 +410,67 @@ class Site_conf:
             self.m_index = index
 
     def add_tar_gz(self, list_tar_gz: list):
+        """
+        Add directories to include in tar.gz distribution.
+        
+        Args:
+            list_tar_gz: List of directory paths to include
+        """
         if self.m_app["name"] == "OuFNis_DFDIG":
             self.m_include_tar_gz_dirs = list_tar_gz
 
     def context_processor(self):
-        """Function that is called before rendering any page, should be overwritten by the child object"""
+        """
+        Function that is called before rendering any page.
+        
+        Should be overwritten by the child object to provide custom context variables.
+        
+        Returns:
+            Dictionary of context variables to inject into templates
+        """
         return {
             "enable_easter_eggs": self.configure_easter_eggs()
         }
 
     def socketio_event(self, event, data):
-        """Function called to respond to event, should be overwritten by the child object"""
+        """
+        Function called to respond to SocketIO events.
+        
+        Should be overwritten by the child object to handle custom events.
+        
+        Args:
+            event: Event name
+            data: Event data payload
+        """
         return
 
     def create_distribuate(self):
-        """Function to create the distribuable package on this plateform, should be overwritten by the child object"""
+        """
+        Function to create the distributable package on this platform.
+        
+        Should be overwritten by the child object to implement distribution logic.
+        
+        Returns:
+            True if successful, False otherwise
+            
+        Raises:
+            Exception: If not implemented by child class
+        """
         raise Exception("Distribuate creation not handled by this website")
         return False
     
     def get_statics(self, app_path) -> dict:
-        """Function to store the other endpoints that must be registered by the application, for instance to serve images """
+        """
+        Function to get static file directories that must be registered by the application.
+        
+        Should be overwritten to provide custom static directories (e.g., for images).
+        
+        Args:
+            app_path: Base path of the application
+            
+        Returns:
+            Dictionary mapping static route names to directory paths
+        """
         print(app_path)
         return {"images": os.path.join(app_path, "website", "assets", "images"), 
                 "js": os.path.join(app_path, "website", "assets", "js")}
