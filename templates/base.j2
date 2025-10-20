@@ -19,12 +19,10 @@
     {% for css in required_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename= css) }}">
     {% endfor %}
-    {% if required_css_cdn %}
     {% for css_cdn in required_css_cdn %}
     <link rel="stylesheet" href="{{ css_cdn }}">
     {% endfor %}
-    {% endif %}
-    <link rel="shortcut icon" href="{{ url_for('common.assets', asset_type="images", filename= 'logo/favicon.png') }}" type="image/png":
+    <link rel="shortcut icon" href="{{ url_for('common.assets', asset_type="images", filename= 'logo/favicon.png') }}" type="image/png">
 
     {% for cdn in required_cdn %}
     <script src="{{ cdn }}"></script>

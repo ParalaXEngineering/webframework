@@ -612,5 +612,157 @@ def test_console_during_execution():
     assert any("completed" in line.lower() for line in output_final)
 
 
+# ============================================================================
+# ADDITIONAL THREAD MANAGER TESTS
+# ============================================================================
+
+def test_thread_manager_initialization():
+    """Test thread manager initialization."""
+    from src.modules.threaded.threaded_manager import Threaded_manager
+    manager = Threaded_manager()
+    
+    assert manager.m_running_threads == []
+    assert manager.m_completed_threads == []
+    assert manager.max_history == 50
+    assert manager.lock_timeout == 2.0
+
+
+def test_thread_manager_custom_timeout():
+    """Test thread manager with custom lock timeout."""
+    from src.modules.threaded.threaded_manager import Threaded_manager
+    manager = Threaded_manager(lock_timeout=5.0)
+    
+    assert manager.lock_timeout == 5.0
+
+
+def test_thread_manager_add_duplicate():
+    """Test that adding duplicate thread doesn't create duplicates."""
+    import src.modules.threaded.threaded_manager as tm_module
+    manager = tm_module.thread_manager_obj
+    
+    thread = SimpleThread()
+    count_after_init = manager.get_thread_count()
+    
+    # Try to add again (should not add)
+    manager.add_thread(thread)
+    count_after_readd = manager.get_thread_count()
+    
+    assert count_after_init == count_after_readd
+
+
+def test_thread_manager_completed_history():
+    """Test that completed threads are archived."""
+    import src.modules.threaded.threaded_manager as tm_module
+    manager = tm_module.thread_manager_obj
+    
+    thread = SimpleThread()
+    initial_history_count = len(manager.get_completed_threads())
+    
+    manager.del_thread(thread)
+    
+    completed = manager.get_completed_threads()
+    assert len(completed) == initial_history_count + 1
+    assert thread in completed
+
+
+def test_thread_manager_history_limit():
+    """Test that history respects max_history limit."""
+    from src.modules.threaded.threaded_manager import Threaded_manager
+    manager = Threaded_manager()
+    manager.max_history = 3  # Set small limit for testing
+    
+    # Add and delete 5 threads
+    for i in range(5):
+        thread = SimpleThread()
+        manager.add_thread(thread)
+        manager.del_thread(thread)
+    
+    # Should only keep last 3
+    completed = manager.get_completed_threads()
+    assert len(completed) == 3
+
+
+def test_thread_manager_get_all_threads_with_history():
+    """Test getting both running and completed threads."""
+    import src.modules.threaded.threaded_manager as tm_module
+    manager = tm_module.thread_manager_obj
+    
+    thread1 = SimpleThread()
+    thread2 = SimpleThread()
+    manager.del_thread(thread2)
+    
+    running, completed = manager.get_all_threads_with_history()
+    
+    assert thread1 in running
+    assert thread2 in completed
+
+
+def test_thread_manager_get_names():
+    """Test getting all thread names (with duplicates)."""
+    import src.modules.threaded.threaded_manager as tm_module
+    manager = tm_module.thread_manager_obj
+    
+    thread1 = SimpleThread()
+    thread2 = SimpleThread()
+    thread1.change_name("TestThread")
+    thread2.change_name("TestThread")  # Same name
+    
+    names = manager.get_names()
+    
+    # Should have duplicates
+    count_testthread = names.count("TestThread")
+    assert count_testthread >= 2
+
+
+def test_thread_manager_kill_all():
+    """Test killing all threads."""
+    import src.modules.threaded.threaded_manager as tm_module
+    manager = tm_module.thread_manager_obj
+    
+    # Create some threads
+    thread1 = SimpleThread()
+    thread2 = SimpleThread()
+    
+    count_before = manager.get_thread_count()
+    assert count_before >= 2
+    
+    manager.kill_all_threads()
+    time.sleep(0.2)
+    
+    count_after = manager.get_thread_count()
+    assert count_after == 0
+    
+    # Cleanup
+    _ = (thread1, thread2)
+
+
+def test_thread_manager_thread_safe():
+    """Test thread-safe operations on manager."""
+    import src.modules.threaded.threaded_manager as tm_module
+    manager = tm_module.thread_manager_obj
+    import threading
+    
+    threads_created = []
+    
+    def add_threads():
+        for i in range(10):
+            t = SimpleThread()
+            threads_created.append(t)
+            time.sleep(0.01)
+    
+    # Create threads from multiple threads
+    workers = [threading.Thread(target=add_threads) for _ in range(3)]
+    for w in workers:
+        w.start()
+    for w in workers:
+        w.join()
+    
+    # All threads should be added
+    assert len(threads_created) == 30
+    all_managed = manager.get_all_threads()
+    for t in threads_created:
+        assert t in all_managed
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

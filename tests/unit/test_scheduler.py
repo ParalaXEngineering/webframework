@@ -33,6 +33,8 @@ from unittest.mock import Mock
 from src.modules.scheduler.emitter import MessageEmitter
 from src.modules.scheduler.message_queue import MessageQueue, MessageType
 from src.modules.scheduler import Scheduler, logLevel
+from src.modules.scheduler.scheduler import Scheduler_LongTerm
+from unittest.mock import MagicMock
 
 
 # Mock logLevel enum for MessageEmitter tests
@@ -721,6 +723,344 @@ class TestSchedulerUserHooks(unittest.TestCase):
         
         self.assertTrue(scheduler.before_called)
         self.assertTrue(scheduler.after_called)
+
+
+# =============================================================================
+# Scheduler_LongTerm Tests - Periodic background task execution
+# =============================================================================
+
+class TestSchedulerLongTermBasics(unittest.TestCase):
+    """Test basic Scheduler_LongTerm functionality."""
+    
+    def test_initialization(self):
+        """Test that Scheduler_LongTerm initializes correctly."""
+        scheduler = Scheduler_LongTerm()
+        
+        self.assertIsNotNone(scheduler.functions)
+        self.assertEqual(len(scheduler.functions), 0)
+        self.assertFalse(scheduler.running)
+        self.assertIsNotNone(scheduler.thread)
+        self.assertIsNotNone(scheduler.m_logger)
+    
+    def test_register_function(self):
+        """Test registering a function for periodic execution."""
+        scheduler = Scheduler_LongTerm()
+        
+        def test_func():
+            pass
+        
+        scheduler.register_function(test_func, period=5)
+        
+        self.assertEqual(len(scheduler.functions), 1)
+        self.assertEqual(scheduler.functions[0][0], test_func)
+        self.assertEqual(scheduler.functions[0][1], 5)
+        self.assertIsInstance(scheduler.functions[0][2], float)  # timestamp
+    
+    def test_register_multiple_functions(self):
+        """Test registering multiple functions."""
+        scheduler = Scheduler_LongTerm()
+        
+        def func1():
+            pass
+        
+        def func2():
+            pass
+        
+        scheduler.register_function(func1, period=1)
+        scheduler.register_function(func2, period=10)
+        
+        self.assertEqual(len(scheduler.functions), 2)
+        self.assertEqual(scheduler.functions[0][0], func1)
+        self.assertEqual(scheduler.functions[1][0], func2)
+
+
+class TestSchedulerLongTermExecution(unittest.TestCase):
+    """Test Scheduler_LongTerm execution and timing."""
+    
+    def test_start_stop(self):
+        """Test starting and stopping the scheduler."""
+        scheduler = Scheduler_LongTerm()
+        
+        scheduler.start()
+        self.assertTrue(scheduler.running)
+        
+        time.sleep(0.1)  # Let thread start
+        
+        scheduler.stop()
+        scheduler.thread.join(timeout=2)
+        self.assertFalse(scheduler.running)
+    
+    def test_function_not_executed_when_not_due(self):
+        """Test that functions are not executed before their period expires."""
+        scheduler = Scheduler_LongTerm()
+        counter = {"count": 0}
+        
+        def increment():
+            counter["count"] += 1
+        
+        # Register with 10 minute period - should never fire in short test
+        scheduler.register_function(increment, period=10)
+        
+        scheduler.start()
+        time.sleep(0.5)  # Short wait - function shouldn't execute
+        scheduler.stop()
+        scheduler.thread.join(timeout=2)
+        
+        # Function should NOT have been called (period not elapsed)
+        self.assertEqual(counter["count"], 0)
+    
+    def test_period_stored_in_minutes(self):
+        """Test that period is stored correctly in the function tuple."""
+        scheduler = Scheduler_LongTerm()
+        
+        def test_func():
+            pass
+        
+        scheduler.register_function(test_func, period=5)
+        
+        # Check the tuple structure: (function, period_in_minutes, timestamp)
+        self.assertEqual(scheduler.functions[0][1], 5)
+        
+    def test_daemon_thread(self):
+        """Test that scheduler thread is a daemon thread."""
+        scheduler = Scheduler_LongTerm()
+        self.assertTrue(scheduler.thread.daemon)
+
+
+# =============================================================================
+# MessageEmitter Tests - SocketIO emission logic
+# =============================================================================
+
+class TestMessageEmitterBasics(unittest.TestCase):
+    """Test basic MessageEmitter functionality."""
+    
+    def setUp(self):
+        """Set up mock SocketIO and emitter."""
+        self.mock_socket = MagicMock()
+        self.emitter = MessageEmitter(self.mock_socket)
+    
+    def test_initialization(self):
+        """Test that MessageEmitter initializes correctly."""
+        self.assertIsNotNone(self.emitter.socket)
+        self.assertIsNotNone(self.emitter.logger)
+    
+    def test_initialization_with_custom_logger(self):
+        """Test initialization with custom logger."""
+        custom_logger = MagicMock()
+        emitter = MessageEmitter(self.mock_socket, logger=custom_logger)
+        self.assertEqual(emitter.logger, custom_logger)
+
+
+class TestMessageEmitterStatusEmission(unittest.TestCase):
+    """Test status message emission."""
+    
+    def setUp(self):
+        """Set up mock SocketIO and emitter."""
+        self.mock_socket = MagicMock()
+        
+        # Mock socketio_manager
+        import src.modules.scheduler.emitter as emitter_module
+        self.original_socketio = emitter_module.socketio_manager
+        emitter_module.socketio_manager = MagicMock()
+        self.mock_socketio_manager = emitter_module.socketio_manager
+        
+        self.emitter = MessageEmitter(self.mock_socket)
+    
+    def tearDown(self):
+        """Restore original socketio_manager."""
+        import src.modules.scheduler.emitter as emitter_module
+        emitter_module.socketio_manager = self.original_socketio
+    
+    def test_emit_status_empty_list(self):
+        """Test that emitting empty status list does nothing."""
+        self.emitter.emit_status([], "testuser")
+        self.mock_socketio_manager.emit_to_user.assert_not_called()
+    
+    def test_emit_status_single_message(self):
+        """Test emitting a single status message."""
+        statuses = [["cat1", "msg1", 50, "supplement"]]
+        self.emitter.emit_status(statuses, "testuser")
+        
+        self.mock_socketio_manager.emit_to_user.assert_called_once()
+        call_args = self.mock_socketio_manager.emit_to_user.call_args
+        self.assertEqual(call_args[0][0], "action_status")
+        self.assertEqual(call_args[0][2], "testuser")
+    
+    def test_emit_status_filters_duplicates(self):
+        """Test that duplicate status strings are filtered (keeps last)."""
+        statuses = [
+            ["cat1", "msg1", 30, "old"],
+            ["cat1", "msg1", 50, "new"],  # Same string, should replace first
+            ["cat2", "msg2", 100, "other"]
+        ]
+        self.emitter.emit_status(statuses, "testuser")
+        
+        # Should emit 2 messages (duplicate filtered)
+        self.assertEqual(self.mock_socketio_manager.emit_to_user.call_count, 2)
+    
+    def test_emit_status_handles_errors(self):
+        """Test that errors in emission don't crash."""
+        self.mock_socketio_manager.emit_to_user.side_effect = Exception("Network error")
+        
+        statuses = [["cat1", "msg1", 50, ""]]
+        # Should not raise exception
+        self.emitter.emit_status(statuses, "testuser")
+
+
+class TestMessageEmitterPopups(unittest.TestCase):
+    """Test popup message emission."""
+    
+    def setUp(self):
+        """Set up mocks."""
+        self.mock_socket = MagicMock()
+        import src.modules.scheduler.emitter as emitter_module
+        self.original_socketio = emitter_module.socketio_manager
+        emitter_module.socketio_manager = MagicMock()
+        self.mock_socketio_manager = emitter_module.socketio_manager
+        self.emitter = MessageEmitter(self.mock_socket)
+    
+    def tearDown(self):
+        """Restore socketio_manager."""
+        import src.modules.scheduler.emitter as emitter_module
+        emitter_module.socketio_manager = self.original_socketio
+    
+    def test_emit_popups_with_log_level(self):
+        """Test emitting popup with log level enum."""
+        popup_data = [[success, "Success message"]]
+        self.emitter.emit_popups(popup_data, "testuser")
+        
+        self.mock_socketio_manager.emit_to_user.assert_called_once()
+        call_args = self.mock_socketio_manager.emit_to_user.call_args
+        self.assertEqual(call_args[0][0], "popup")
+    
+    def test_emit_popups_empty_list(self):
+        """Test emitting empty popup list."""
+        self.emitter.emit_popups([], "testuser")
+        self.mock_socketio_manager.emit_to_user.assert_not_called()
+    
+    def test_emit_popups_handles_errors(self):
+        """Test error handling in popup emission."""
+        self.mock_socketio_manager.emit_to_user.side_effect = Exception("Error")
+        popups = [[info, "Test message"]]
+        # Should not raise
+        self.emitter.emit_popups(popups, "testuser")
+
+
+class TestMessageEmitterOtherTypes(unittest.TestCase):
+    """Test emission of other message types."""
+    
+    def setUp(self):
+        """Set up mocks."""
+        self.mock_socket = MagicMock()
+        import src.modules.scheduler.emitter as emitter_module
+        self.original_socketio = emitter_module.socketio_manager
+        emitter_module.socketio_manager = MagicMock()
+        self.mock_socketio_manager = emitter_module.socketio_manager
+        self.emitter = MessageEmitter(self.mock_socket)
+    
+    def tearDown(self):
+        """Restore socketio_manager."""
+        import src.modules.scheduler.emitter as emitter_module
+        emitter_module.socketio_manager = self.original_socketio
+    
+    def test_emit_results(self):
+        """Test emitting result messages."""
+        results = [["success", "<b>Done!</b>"], ["danger", "Error occurred"]]
+        self.emitter.emit_results(results, "testuser")
+        
+        self.assertEqual(self.mock_socketio_manager.emit_to_user.call_count, 2)
+    
+    def test_emit_modals(self):
+        """Test emitting modal updates."""
+        modals = [["modal1", "<h1>Title</h1>"], ["modal2", "<p>Content</p>"]]
+        self.emitter.emit_modals(modals, "testuser")
+        
+        self.assertEqual(self.mock_socketio_manager.emit_to_user.call_count, 2)
+    
+    def test_emit_buttons(self):
+        """Test emitting button updates."""
+        buttons = [
+            ["btn1", "mdi-play", "Start", "success"],
+            ["btn2", "mdi-stop", "Stop", "danger"]
+        ]
+        self.emitter.emit_buttons(buttons, "testuser")
+        
+        self.assertEqual(self.mock_socketio_manager.emit_to_user.call_count, 2)
+    
+    def test_emit_reloads(self):
+        """Test emitting reload requests."""
+        reloads = [["div1", "<p>Content 1</p>"], ["div2", "<p>Content 2</p>"]]
+        self.emitter.emit_reloads(reloads, "testuser")
+        
+        self.assertEqual(self.mock_socketio_manager.emit_to_user.call_count, 2)
+    
+    def test_emit_button_states(self):
+        """Test emitting button enable/disable."""
+        disable_list = ["btn1", "btn2"]
+        enable_list = ["btn3"]
+        
+        self.emitter.emit_button_states(disable_list, enable_list, "testuser")
+        
+        # Should be called twice (once for disable, once for enable)
+        self.assertEqual(self.mock_socketio_manager.emit_to_user.call_count, 2)
+    
+    def test_emit_button_states_empty_lists(self):
+        """Test emitting with empty button lists."""
+        self.emitter.emit_button_states([], [], "testuser")
+        # Should not emit anything
+        self.mock_socketio_manager.emit_to_user.assert_not_called()
+    
+    def test_emit_threads(self):
+        """Test emitting thread information."""
+        thread_info = [
+            {"name": "Thread1", "state": "running"},
+            {"name": "Thread2", "state": "stopped"}
+        ]
+        self.emitter.emit_threads(thread_info)
+        
+        # emit_threads uses emit_to_all, not emit_to_user
+        self.mock_socketio_manager.emit_to_all.assert_called_once_with("threads", thread_info)
+    
+    def test_error_handling_in_results(self):
+        """Test error handling in result emission."""
+        self.mock_socketio_manager.emit_to_user.side_effect = Exception("Error")
+        results = [["success", "Test"]]
+        # Should not raise
+        self.emitter.emit_results(results, "testuser")
+    
+    def test_error_handling_in_modals(self):
+        """Test error handling in modal emission."""
+        self.mock_socketio_manager.emit_to_user.side_effect = Exception("Error")
+        modals = [["modal1", "content"]]
+        # Should not raise
+        self.emitter.emit_modals(modals, "testuser")
+    
+    def test_error_handling_in_buttons(self):
+        """Test error handling in button emission."""
+        self.mock_socketio_manager.emit_to_user.side_effect = Exception("Error")
+        buttons = [["btn1", "icon", "text", "style"]]
+        # Should not raise
+        self.emitter.emit_buttons(buttons, "testuser")
+    
+    def test_error_handling_in_reloads(self):
+        """Test error handling in reload emission."""
+        self.mock_socketio_manager.emit_to_user.side_effect = Exception("Error")
+        reloads = [["div1", "content"]]
+        # Should not raise
+        self.emitter.emit_reloads(reloads, "testuser")
+    
+    def test_error_handling_in_button_states(self):
+        """Test error handling in button state emission."""
+        self.mock_socketio_manager.emit_to_user.side_effect = Exception("Error")
+        # Should not raise
+        self.emitter.emit_button_states(["btn1"], ["btn2"], "testuser")
+    
+    def test_error_handling_in_threads(self):
+        """Test error handling in thread emission."""
+        self.mock_socketio_manager.emit_to_all.side_effect = Exception("Error")
+        thread_info = [{"name": "Thread1", "state": "running"}]
+        # Should not raise
+        self.emitter.emit_threads(thread_info)
 
 
 if __name__ == "__main__":
