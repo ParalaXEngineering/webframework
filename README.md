@@ -1,223 +1,214 @@
 # ParalaX Web Framework
 
-A robust Flask-based web framework designed for building tool management and monitoring applications with real-time capabilities.
+A robust Flask-based web framework designed for building web applications with real-time capabilities, background task management, and dynamic UI generation.
 
 ## 🌟 Overview
 
-ParalaX Web Framework simplifies the development of web applications that require:
+ParalaX Web Framework provides the foundation for building professional web applications that require:
 - **Real-time updates** via WebSocket (Flask-SocketIO)
 - **Background task management** with threaded actions and progress tracking
 - **User authentication & authorization** with role-based permissions
 - **Dynamic UI generation** using the powerful Displayer system
-- **Modular architecture** that scales from simple tools to complex applications
+- **Modular architecture** that keeps your code separate from the framework
 
-Whether you're building a monitoring dashboard, a control panel, or a data management interface, ParalaX provides the foundation you need.
+Perfect for building monitoring dashboards, control panels, data management interfaces, and custom web applications.
 
 ## ✨ Key Features
 
-- 🚀 **Flask-based Core**: Built on Flask with Jinja2 templating for flexibility
+- 🚀 **Flask-based Core**: Built on Flask with Jinja2 templating
 - 🔐 **Authentication System**: Role-based access control with permission management
-- 🔄 **Real-time Updates**: WebSocket support via Flask-SocketIO for live page updates
+- 🔄 **Real-time Updates**: WebSocket support via Flask-SocketIO for live updates
 - ⚙️ **Background Tasks**: Thread management system for long-running operations
 - 🎨 **Dynamic UI System**: Generate forms, cards, and layouts programmatically
-- 📦 **Modular Design**: Extensible architecture supporting both standalone and submodule usage
+- 📦 **Git Submodule Design**: Clean separation between framework and your code
 - 📊 **Built-in Logging**: Comprehensive logging with per-thread console output
 - 🧪 **Testing Support**: Full pytest integration with test fixtures
 
 ## 📋 Prerequisites
 
-Before installing, ensure you have:
 - Python 3.8 or higher
 - pip (Python package installer)
+- Git
 - Virtual environment (recommended)
 
-## 🚀 Installation
+## 🚀 Quick Start: Create Your Website
 
-### Method 1: Standalone Installation (Recommended for new users)
+The framework is designed to be used as a **Git submodule** in your website project. This keeps your website code separate from the framework.
 
-Perfect for trying out the framework or developing standalone applications.
+### 1. Create Your Project Structure
 
 ```bash
-# Clone the repository
-git clone https://github.com/ParalaXEngineering/webframework.git
-cd webframework
+# Create your website project
+mkdir my_website
+cd my_website
+git init
 
-# Create and activate virtual environment
-python3 -m venv .venv
-source .venv/bin/activate  # On macOS/Linux
-# .venv\Scripts\activate   # On Windows
+# Create directory structure
+mkdir -p website/pages website/modules submodules
 
-# Install the framework in development mode
-pip install -e .
-
-# Run the demo application
-python tests/manual_test_webapp.py
+# Create __init__.py files
+touch website/__init__.py website/pages/__init__.py website/modules/__init__.py
 ```
 
-The demo app starts on `http://localhost:5001` and showcases various framework features.
-
-### Method 2: As a Git Submodule
-
-Ideal for integrating the framework into your existing project.
+### 2. Add Framework as Submodule
 
 ```bash
-# In your project root directory
 git submodule add https://github.com/ParalaXEngineering/webframework.git submodules/framework
 git submodule update --init --recursive
+```
 
-# Install dependencies
+### 3. Install Dependencies
+
+```bash
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# Install framework dependencies
 pip install -r submodules/framework/requirements.txt
 ```
 
-Then in your application:
+### 4. Create Your Files
 
-```python
-from flask import Flask
-from submodules.framework.src.main import setup_app
-
-app = Flask(__name__)
-setup_app(app)
-
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5001)
-```
-
-### Optional Development Tools
-
-```bash
-# Install development dependencies (pytest, coverage, etc.)
-pip install -e .[dev]
-
-# Install documentation tools (Sphinx, theme, extensions)
-pip install -e .[docs]
-```
-
-## 🏃 Quick Start Guide
-
-### Your First Application
-
-Here's a minimal example to get you started:
-
-```python
-from flask import Flask
-from src.main import setup_app
-from src.modules.displayer import Displayer, DisplayerItemText
-
-# Create and configure Flask app
-app = Flask(__name__)
-app.secret_key = "your-secret-key-change-this"
-
-# Initialize the framework
-setup_app(app)
-
-# Create a simple page
-@app.route("/")
-def home():
-    disp = Displayer()
-    
-    # Add a module (card/form container)
-    module = {"id": "welcome", "title": "Welcome"}
-    disp.add_generic(module)
-    
-    # Add content to the module
-    item = DisplayerItemText("Hello from ParalaX Framework!")
-    disp.add_display_item(item)
-    
-    # Render the page
-    return disp.display()
-
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5001)
-```
-
-Visit `http://localhost:5001` to see your page!
-
-### Adding Background Tasks
-
-Create a custom threaded action for long-running operations:
-
-```python
-from src.modules.threaded.threaded_action import Threaded_action
-import time
-
-class MyBackgroundTask(Threaded_action):
-    """Example background task with progress tracking"""
-    
-    m_default_name = "My Task"
-    m_type = "custom_task"
-    
-    def action(self):
-        """The main work happens here"""
-        self.console_write("Task started...")
-        
-        for i in range(100):
-            # Simulate work
-            time.sleep(0.1)
-            
-            # Update progress (0-100)
-            self.m_running_state = i
-            
-            # Write to console (visible in UI)
-            if i % 10 == 0:
-                self.console_write(f"Progress: {i}%")
-        
-        self.console_write("Task completed!", level="SUCCESS")
-
-# In your route handler:
-@app.route("/start_task")
-def start_task():
-    task = MyBackgroundTask()
-    task.start()
-    return "Task started!"
-```
+See the [example_website](example_website/) directory for a complete working example, or follow the detailed guide below.
 
 ## 📁 Project Structure
 
-Understanding the framework's organization:
+Your website project should have this structure:
 
 ```
-webframework/
-├── src/                          # Core framework source code
-│   ├── main.py                  # Flask app initialization and setup
-│   ├── modules/                 # Core modules
-│   │   ├── action.py           # Base action class
-│   │   ├── site_conf.py        # Site configuration
-│   │   ├── displayer/          # UI generation system
-│   │   │   ├── displayer.py   # Main displayer class
-│   │   │   ├── items/         # Display items (buttons, inputs, etc.)
-│   │   │   └── layout.py      # Layout management
-│   │   ├── threaded/          # Thread management
-│   │   │   ├── threaded_action.py
-│   │   │   └── threaded_manager.py
-│   │   ├── scheduler/         # Real-time update system
-│   │   ├── auth/              # Authentication system
-│   │   └── utilities.py       # Helper functions
-│   └── pages/                  # Built-in pages (login, admin, etc.)
-├── templates/                   # Jinja2 HTML templates
-├── webengine/                   # Static assets
-│   └── assets/
-│       ├── css/                # Stylesheets
-│       ├── js/                 # JavaScript files
-│       └── images/             # Image assets
-├── tests/                       # Test suite
-│   ├── unit/                   # Unit tests
-│   ├── integration/            # Integration tests
-│   └── manual_test_webapp.py  # Demo application
-├── docs/                        # Sphinx documentation
-│   └── source/                 # Documentation source files
-├── pyproject.toml              # Project configuration
-├── pytest.ini                  # Pytest configuration
-└── README.md                   # This file
+my_website/
+├── main.py                    # Application entry point
+├── website/                   # Your website code
+│   ├── __init__.py
+│   ├── site_conf.py          # Site configuration (navigation, branding)
+│   ├── config.json           # Optional config file
+│   ├── pages/                # Your page blueprints
+│   │   ├── __init__.py
+│   │   └── home.py          # Example home page
+│   └── modules/              # Your custom modules
+│       └── __init__.py
+└── submodules/
+    └── framework/            # Git submodule (the framework)
 ```
 
-### Key Components Explained
+### Key Files
 
-- **main.py**: Entry point that initializes Flask and registers all blueprints
-- **displayer/**: System for building UI programmatically without writing HTML
-- **threaded/**: Framework for running background tasks with progress tracking
-- **scheduler/**: Pushes real-time updates to connected clients via WebSocket
-- **auth/**: Role-based permission system for securing your application
-- **pages/**: Pre-built pages (login, settings, admin) that you can use or customize
+**website/site_conf.py** - Define your site's navigation and settings:
+
+```python
+from submodules.framework.src.modules.site_conf import Site_conf
+
+class MySiteConf(Site_conf):
+    def __init__(self):
+        super().__init__()
+        self.m_app = {
+            "name": "My Website",
+            "version": "1.0.0",
+            "icon": "rocket",
+            "footer": "2025 © Your Company"
+        }
+        self.add_sidebar_title("Main")
+        self.add_sidebar_section("Home", "house", "home")
+```
+
+**website/pages/home.py** - Create your pages:
+
+```python
+from flask import Blueprint
+from submodules.framework.src.modules.displayer import Displayer, DisplayerItemText
+
+home_bp = Blueprint('home', __name__)
+
+@home_bp.route('/')
+def index():
+    disp = Displayer()
+    disp.add_generic({"id": "welcome", "title": "Welcome"})
+    disp.add_display_item(DisplayerItemText("Hello from my website!"))
+    return disp.display()
+```
+
+**main.py** - Wire everything together:
+
+```python
+import sys, os
+
+# Setup paths
+project_root = os.path.dirname(os.path.abspath(__file__))
+framework_root = os.path.join(project_root, 'submodules', 'framework')
+sys.path.insert(0, project_root)
+sys.path.insert(0, framework_root)
+sys.path.insert(0, os.path.join(framework_root, 'src'))
+
+# Import framework
+from submodules.framework.src.main import app, setup_app
+from submodules.framework.src.modules import site_conf
+from website.site_conf import MySiteConf
+from website.pages.home import home_bp
+
+# Change to framework directory for templates
+os.chdir(framework_root)
+
+# Configure BEFORE setup_app
+site_conf.site_conf_obj = MySiteConf()
+site_conf.site_conf_app_path = framework_root
+
+# Initialize framework
+socketio = setup_app(app)
+
+# Register your pages
+app.register_blueprint(home_bp)
+
+# Run
+if __name__ == "__main__":
+    socketio.run(app, debug=False, host='0.0.0.0', port=5001)
+```
+
+### Run Your Website
+
+```bash
+python main.py
+```
+
+Visit `http://localhost:5001`!
+
+## 🎯 Complete Example
+
+See the [example_website](example_website/) directory for a fully working example project that demonstrates:
+- Proper project structure
+- Site configuration
+- Custom pages
+- Framework integration
+
+You can run it:
+
+```bash
+cd example_website
+python main.py
+```
+
+## 🔧 Framework Development
+
+**Only for framework contributors**: If you're developing the framework itself (not building a website):
+
+```bash
+# Clone the framework repository
+git clone https://github.com/ParalaXEngineering/webframework.git
+cd webframework
+
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install in development mode
+pip install -e .[dev]
+
+# Run tests
+pytest tests/ -v
+
+# Run demo app
+python tests/manual_test_webapp.py
+```
 
 ## 📚 Documentation
 
@@ -252,211 +243,101 @@ View the generated documentation by opening `docs/build/html/index.html` in your
 - **Tutorials**: Practical guides for common use cases
 - **Examples**: Real-world code snippets and patterns
 
-## 🧪 Testing
+## 📚 Documentation
 
-The framework includes a comprehensive test suite.
-
-### Running Tests
+Comprehensive documentation is available:
 
 ```bash
-# Run all tests
+# Build documentation
+cd submodules/framework/docs
+sphinx-build -b html source build/html
+```
+
+Or view online: [Documentation Link]
+
+Key documentation sections:
+- **Getting Started**: Step-by-step setup guide
+- **Framework Architecture**: Understanding core components
+- **API Reference**: Complete class and method documentation
+- **Tutorials**: Practical guides for common tasks
+- **Examples**: Real-world code snippets
+
+## 🧪 Testing Your Website
+
+```bash
+# Run your website
+python main.py
+
+# Visit http://localhost:5001 and verify:
+# - Home page loads
+# - Navigation works
+# - Your pages render correctly
+```
+
+To test the framework itself (for contributors):
+
+```bash
+cd submodules/framework
 pytest tests/ -v
-
-# Run specific test categories
-pytest tests/unit/ -v              # Unit tests only
-pytest tests/integration/ -v       # Integration tests only
-
-# Run with coverage report
-pytest tests/ --cov=src --cov-report=html
-
-# Run specific test file
-pytest tests/unit/test_scheduler.py -v
 ```
 
-### Manual Testing
+## ⚠️ Important Notes
 
-A demo web application is provided for manual testing:
-
-```bash
-# Make sure you're in the virtual environment
-source .venv/bin/activate
-
-# Run the demo app
-python tests/manual_test_webapp.py
-```
-
-The demo showcases:
-- Display system components (buttons, forms, layouts)
-- Threading and background tasks
-- Real-time updates via WebSocket
-- Authentication and permissions
-- Workflow management
-
-Visit `http://localhost:5001` after starting the demo.
-
-## 🔧 Configuration
-
-### Basic Configuration
+### Working Directory
+Your `main.py` must change to the framework directory so templates can be found:
 
 ```python
-from flask import Flask
-from src.main import setup_app
-from src.modules import site_conf
-
-app = Flask(__name__)
-app.config.update(
-    SECRET_KEY='your-secret-key-here',
-    SESSION_TYPE='filesystem',
-    DEBUG=True
-)
-
-setup_app(app)
-
-# Customize site configuration
-site_conf.site_conf_obj.app_details(
-    name="My Application",
-    version="1.0.0",
-    icon="rocket",  # Bootstrap icon name
-    footer="© 2025 Your Company"
-)
+os.chdir(framework_root)  # Required before setup_app()
 ```
 
-### Adding Custom Pages
+### Site Configuration Order
+Always set site configuration BEFORE calling `setup_app()`:
 
 ```python
-from flask import Blueprint
-from src.modules.displayer import Displayer
+# 1. Set configuration
+site_conf.site_conf_obj = MySiteConf()
 
-# Create a blueprint
-custom_bp = Blueprint('custom', __name__)
+# 2. Then setup
+socketio = setup_app(app)
 
-@custom_bp.route('/custom')
-def custom_page():
-    disp = Displayer()
-    # Build your page...
-    return disp.display()
-
-# Register the blueprint
-app.register_blueprint(custom_bp)
+# 3. Then register blueprints
+app.register_blueprint(home_bp)
 ```
 
-## 🎯 Common Use Cases
-
-### Creating a Dashboard
+### Form Data Parsing
+Always use `util_post_to_json()` to handle form submissions:
 
 ```python
-from src.modules.displayer import (
-    Displayer, DisplayerLayout, Layouts,
-    DisplayerItemBadge, DisplayerItemCard
-)
+from submodules.framework.src.modules.utilities import util_post_to_json
 
-@app.route("/dashboard")
-def dashboard():
-    disp = Displayer()
-    disp.add_generic({"title": "System Dashboard"})
-    
-    # Create a horizontal layout with 3 columns
-    layout = DisplayerLayout(Layouts.HORIZONTAL, columns=[4, 4, 4])
-    disp.add_master_layout(layout)
-    
-    # Add metric cards
-    disp.add_display_item(
-        DisplayerItemBadge("CPU Usage", value="45%", color="success"),
-        column=0
-    )
-    disp.add_display_item(
-        DisplayerItemBadge("Memory", value="2.1GB", color="info"),
-        column=1
-    )
-    disp.add_display_item(
-        DisplayerItemBadge("Disk", value="78%", color="warning"),
-        column=2
-    )
-    
-    return disp.display()
+@home_bp.route('/submit', methods=['POST'])
+def submit():
+    data_in = util_post_to_json(request.form.to_dict())
+    my_data = data_in.get("module_id", {})
 ```
-
-### Implementing Authentication
-
-```python
-from src.modules.auth.auth_manager import auth_manager
-from flask import session, redirect, url_for
-
-# Protect a route
-@app.route("/admin")
-def admin_page():
-    username = session.get('username')
-    if not username:
-        return redirect(url_for('auth.login'))
-    
-    # Check permissions
-    if not auth_manager.has_permission(username, 'Admin', 'view'):
-        return "Access Denied", 403
-    
-    # ... render admin page
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! The framework is designed to be extended.
-
-### Adding New Display Items
-
-Create custom UI components by extending `DisplayerItem`:
-
-```python
-from src.modules.displayer.items.base_item import DisplayerItem
-
-class DisplayerItemMyWidget(DisplayerItem):
-    def __init__(self, label, **kwargs):
-        super().__init__(label, "my_widget", **kwargs)
-        # Your custom logic
-```
-
-### Creating Custom Actions
-
-Extend `Threaded_action` for background tasks:
-
-```python
-from src.modules.threaded.threaded_action import Threaded_action
-
-class MyCustomAction(Threaded_action):
-    m_default_name = "My Action"
-    m_required_permission = "MyModule"  # Optional permission check
-    
-    def action(self):
-        # Your task logic here
-        pass
-```
-
-## 📖 Learn More
-
-- **Full Documentation**: `docs/build/html/index.html` (build first)
-- **Demo Application**: `tests/manual_test_webapp.py`
-- **API Reference**: See `docs/source/framework_classes.rst`
-- **Examples**: Check `tests/` directory for usage patterns
 
 ## 🐛 Troubleshooting
 
-### Common Issues
+**Template Not Found Error**
+- Ensure `os.chdir(framework_root)` is called before `setup_app()`
 
-**"Flask is not available"**
-```bash
-pip install flask flask-socketio flask-session
-```
+**Module Import Errors**
+- Verify sys.path setup in `main.py`
+- Check that submodule was initialized: `git submodule update --init`
 
-**Port already in use**
-```python
-app.run(debug=True, host="0.0.0.0", port=5002)  # Use different port
-```
+**Form Values Are None**
+- Use `util_post_to_json()` instead of `request.form.get()`
 
-**Import errors**
-- Ensure you're in the virtual environment: `source .venv/bin/activate`
-- Reinstall in development mode: `pip install -e .`
+## 🤝 Contributing
 
-**Tests failing**
-- Tests must run in order (configured in `pytest.ini`)
-- Ensure all dependencies are installed: `pip install -e .[dev]`
+Contributions to the framework are welcome! See the [contributing guide](CONTRIBUTING.md) for details.
+
+For framework development:
+1. Fork and clone the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
 ## 📄 License
 

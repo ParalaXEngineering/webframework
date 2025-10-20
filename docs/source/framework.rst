@@ -156,42 +156,6 @@ Packager
 
 Tools for creating and managing resource packages for distribution.
 
-File Structure
-==============
-
-The framework expects the following directory structure:
-
-.. code-block:: text
-
-   Project Root/
-   ├── src/                    # Python source code
-   │   ├── __init__.py        # Package initialization
-   │   ├── main.py            # Flask app and routes
-   │   ├── access_manager.py  # Authentication
-   │   ├── scheduler.py       # Background tasks
-   │   ├── threaded_manager.py
-   │   ├── threaded_action.py
-   │   ├── displayer.py       # UI generation
-   │   ├── utilities.py       # Helper functions
-   │   └── ...
-   ├── templates/              # Jinja2 templates
-   │   ├── base.j2            # Base template
-   │   ├── index.j2           # Home page
-   │   ├── login.j2           # Login page
-   │   └── ...
-   ├── webengine/              # Static assets
-   │   ├── assets/
-   │   │   ├── css/
-   │   │   ├── js/
-   │   │   └── images/
-   │   └── help/              # Help documentation
-   ├── resources/              # Application resources
-   ├── downloads/              # User downloads
-   ├── packages/               # Distribution packages
-   └── docs/                   # Documentation
-
-When used as a submodule, the structure can be adapted to fit within the parent project.
-
 Import Strategy
 ===============
 
@@ -269,33 +233,3 @@ To create a custom site handler:
       
       site = MySiteHandler()
       app.register_blueprint(my_bp)
-
-Best Practices
-==============
-
-1. **Use the Displayer system** for consistent UI generation
-2. **Leverage Threaded_action** for long-running tasks
-3. **Follow the dual-import pattern** for compatibility
-4. **Handle optional dependencies gracefully**
-5. **Use the scheduler for periodic updates**
-6. **Keep business logic in action classes**
-7. **Use utilities for common operations**
-
-Testing
-=======
-
-The framework includes a comprehensive test suite:
-
-.. code-block:: bash
-
-   pytest tests/ -v
-
-Tests cover:
-
-* Module imports (standalone and submodule modes)
-* Core functionality
-* Class instantiation
-* Integration between components
-
-See :doc:`getting_started` for more information on running tests.
-

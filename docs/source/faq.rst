@@ -9,7 +9,7 @@ General Questions
 What is ParalaX Web Framework?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-ParalaX is a Flask-based web framework designed to simplify the creation of tool management and monitoring applications. It provides built-in support for authentication, real-time updates, background task management, and dynamic UI generation.
+ParalaX Framework is a Flask-based web framework designed to simplify the creation of tool management and monitoring applications. It provides built-in support for authentication, real-time updates, background task management, and dynamic UI generation.
 
 Who should use this framework?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
