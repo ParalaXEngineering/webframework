@@ -279,16 +279,20 @@ class Displayer:
             The found layout or None
         """
         # Search in containers (VERTICAL/HORIZONTAL layouts)
-        if containers := layout.get("containers"):
+        containers = layout.get("containers")
+        if containers:
             for container in containers:
-                if found := self.find_layout(container, layout_id):
+                found = self.find_layout(container, layout_id)
+                if found:
                     return found
         
         # Search in lines (TABLE/TABS layouts)
-        if lines := layout.get("lines"):
+        lines = layout.get("lines")
+        if lines:
             for line in lines:
                 for column in line:
-                    if found := self.find_layout(column, layout_id):
+                    found = self.find_layout(column, layout_id)
+                    if found:
                         return found
         
         return None

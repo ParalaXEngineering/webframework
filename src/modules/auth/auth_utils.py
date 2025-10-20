@@ -4,7 +4,7 @@ Authentication utilities: password hashing, validation, etc.
 
 import bcrypt
 import re
-from typing import Optional
+from typing import Optional, Tuple
 
 
 def hash_password(password: str) -> str:
@@ -49,7 +49,7 @@ def verify_password(password: str, password_hash: str) -> bool:
         return False
 
 
-def validate_password_strength(password: str) -> tuple[bool, Optional[str]]:
+def validate_password_strength(password: str) -> Tuple[bool, Optional[str]]:
     """
     Validate password meets minimum requirements.
     
@@ -76,7 +76,7 @@ def validate_password_strength(password: str) -> tuple[bool, Optional[str]]:
     return True, None
 
 
-def validate_username(username: str) -> tuple[bool, Optional[str]]:
+def validate_username(username: str) -> Tuple[bool, Optional[str]]:
     """
     Validate username format.
     

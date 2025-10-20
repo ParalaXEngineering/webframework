@@ -281,8 +281,8 @@ This file defines your site's navigation, branding, and settings:
            
            # Configure sidebar navigation
            self.add_sidebar_title("Main")
-           self.add_sidebar_section("Home", "house", "home")
-           self.add_sidebar_section("About", "information", "about")
+           self.add_sidebar_page("Home", "house", "home.index")
+           self.add_sidebar_page("About", "information", "home.about")
            
            # Configure topbar
            self.m_topbar = {
@@ -385,7 +385,7 @@ To add an "About" page to your website:
 .. code-block:: python
 
    # In MySiteConf.__init__():
-   self.add_sidebar_section("About", "information", "about")
+   self.add_sidebar_page("About", "information", "home.about")
 
 **2. Add the route to your home page blueprint** (``website/pages/home.py``):
 

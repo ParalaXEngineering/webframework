@@ -4,7 +4,12 @@ SocketIO Message Emitter
 Handles emission of messages via SocketIO with error handling.
 Decoupled from message queueing for better testability.
 """
-from typing import Protocol, List, Dict, Any
+from typing import List, Dict, Any
+try:
+    from typing import Protocol
+except ImportError:
+    # Python < 3.8: Protocol not available, use ABC
+    from abc import ABC as Protocol  # type: ignore
 
 try:
     from ..log.logger_factory import get_logger

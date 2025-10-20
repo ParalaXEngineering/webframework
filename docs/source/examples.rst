@@ -7,247 +7,46 @@ Practical code snippets and patterns for common tasks with the ParalaX Web Frame
    :local:
    :depth: 2
 
+.. note::
+
+   **Live Examples Available!**
+   
+   All examples in this document are implemented and testable:
+   
+   - **Display System Examples**: See ``tests/manual_test_webapp.py`` for comprehensive UI component demonstrations
+   - **All Other Examples**: Run the example website with ``python example_website/main.py`` and visit ``/examples``
+   
+   The example website has all framework features enabled and provides interactive demonstrations of every code pattern shown below.
+
 Display System Examples
 -----------------------
 
-Basic Page Layout
-^^^^^^^^^^^^^^^^^
+For comprehensive display system examples including layouts, display items, and forms, 
+refer to the **manual test webapp** at ``tests/manual_test_webapp.py``.
 
-.. code-block:: python
+This test application provides live demonstrations of:
 
-   from src.modules.displayer import Displayer, DisplayerItemText
+- Basic page layouts
+- Multi-column layouts (2, 3, 4 columns)
+- Nested layouts
+- All DisplayerItem types
+- Form inputs and validation
+- Real-world component showcases
+
+**To run the manual test webapp:**
+
+.. code-block:: bash
+
+   python tests/manual_test_webapp.py
    
-   def simple_page():
-       disp = Displayer()
-       
-       # Add a module (card)
-       disp.add_generic({"id": "main", "title": "My Page"})
-       
-       # Add text content
-       disp.add_display_item(DisplayerItemText("Hello World!"))
-       
-       return disp.display()
-
-Multi-Column Layout
-^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: python
-
-   from src.modules.displayer import (
-       Displayer, DisplayerLayout, Layouts,
-       DisplayerItemText, DisplayerItemBadge
-   )
-   
-   def multi_column():
-       disp = Displayer()
-       disp.add_generic({"title": "Two Column Layout"})
-       
-       # Create 2-column layout (6 + 6 = 12 total)
-       layout = DisplayerLayout(Layouts.HORIZONTAL, columns=[6, 6])
-       disp.add_master_layout(layout)
-       
-       # Left column
-       disp.add_display_item(DisplayerItemText("Left content"), column=0)
-       
-       # Right column
-       disp.add_display_item(DisplayerItemBadge("Right badge"), column=1)
-       
-       return disp.display()
-
-Nested Layouts
-^^^^^^^^^^^^^^
-
-.. code-block:: python
-
-   from src.modules.displayer import (
-       Displayer, DisplayerLayout, Layouts,
-       DisplayerItemText
-   )
-   
-   def nested_layout():
-       disp = Displayer()
-       disp.add_generic({"title": "Nested Layout"})
-       
-       # Outer horizontal layout
-       outer = DisplayerLayout(Layouts.HORIZONTAL, columns=[8, 4])
-       disp.add_master_layout(outer)
-       
-       # Inner vertical layout in left column
-       inner = DisplayerLayout(Layouts.VERTICAL, parent_column=0)
-       disp.add_child_layout(inner, parent_layout=outer)
-       
-       disp.add_display_item(DisplayerItemText("Item 1"))
-       disp.add_display_item(DisplayerItemText("Item 2"))
-       
-       # Right column
-       disp.add_display_item(DisplayerItemText("Sidebar"), column=1)
-       
-       return disp.display()
-
-Display Items Collection
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: python
-
-   from src.modules.displayer import (
-       Displayer,
-       DisplayerItemText, DisplayerItemButton,
-       DisplayerItemInput, DisplayerItemSelect,
-       DisplayerItemCheckbox, DisplayerItemTextarea,
-       DisplayerItemBadge, DisplayerItemProgress,
-       DisplayerItemImage, DisplayerItemLink
-   )
-   
-   def showcase_items():
-       disp = Displayer()
-       disp.add_generic({"title": "Display Items"})
-       
-       # Text display
-       disp.add_display_item(DisplayerItemText("Plain text"))
-       
-       # Button with callback
-       disp.add_display_item(
-           DisplayerItemButton("Click Me", callback="alert('Clicked!')")
-       )
-       
-       # Input field
-       disp.add_display_item(
-           DisplayerItemInput("username", label="Username", placeholder="Enter name")
-       )
-       
-       # Select dropdown
-       disp.add_display_item(
-           DisplayerItemSelect(
-               "country",
-               label="Country",
-               options=[("us", "United States"), ("uk", "United Kingdom")]
-           )
-       )
-       
-       # Checkbox
-       disp.add_display_item(
-           DisplayerItemCheckbox("agree", label="I agree to terms")
-       )
-       
-       # Textarea
-       disp.add_display_item(
-           DisplayerItemTextarea("comments", label="Comments", rows=4)
-       )
-       
-       # Badge (colored label)
-       disp.add_display_item(
-           DisplayerItemBadge("Status", value="Active", color="success")
-       )
-       
-       # Progress bar
-       disp.add_display_item(
-           DisplayerItemProgress("Progress", value=75, max_value=100)
-       )
-       
-       # Image
-       disp.add_display_item(
-           DisplayerItemImage("logo.png", alt="Logo", width=200)
-       )
-       
-       # Link
-       disp.add_display_item(
-           DisplayerItemLink("Visit Site", url="https://example.com")
-       )
-       
-       return disp.display()
-
-Forms Examples
---------------
-
-Login Form
-^^^^^^^^^^
-
-.. code-block:: python
-
-   from flask import request, session, redirect, url_for
-   from src.modules.displayer import (
-       Displayer, DisplayerItemInput, DisplayerItemButton
-   )
-   from src.modules.auth.auth_manager import auth_manager
-   
-   @app.route("/login", methods=["GET", "POST"])
-   def login():
-       if request.method == "POST":
-           username = request.form.get("username")
-           password = request.form.get("password")
-           
-           if auth_manager.authenticate(username, password):
-               session['username'] = username
-               return redirect(url_for('home'))
-           else:
-               error = "Invalid credentials"
-       
-       disp = Displayer()
-       disp.add_generic({"id": "login", "title": "Login"})
-       
-       disp.add_display_item(
-           DisplayerItemInput("username", label="Username")
-       )
-       disp.add_display_item(
-           DisplayerItemInput("password", label="Password", input_type="password")
-       )
-       disp.add_display_item(
-           DisplayerItemButton("Login", button_type="submit")
-       )
-       
-       return disp.display()
-
-Data Entry Form
-^^^^^^^^^^^^^^^
-
-.. code-block:: python
-
-   from flask import request
-   from src.modules.displayer import *
-   
-   @app.route("/add_item", methods=["GET", "POST"])
-   def add_item():
-       if request.method == "POST":
-           # Process form
-           name = request.form.get("name")
-           category = request.form.get("category")
-           quantity = request.form.get("quantity")
-           notes = request.form.get("notes")
-           
-           # Save to database or process...
-           return "Item added successfully!"
-       
-       disp = Displayer()
-       disp.add_generic({"title": "Add New Item"})
-       
-       disp.add_display_item(
-           DisplayerItemInput("name", label="Item Name", required=True)
-       )
-       disp.add_display_item(
-           DisplayerItemSelect(
-               "category",
-               label="Category",
-               options=[
-                   ("electronics", "Electronics"),
-                   ("tools", "Tools"),
-                   ("supplies", "Supplies")
-               ]
-           )
-       )
-       disp.add_display_item(
-           DisplayerItemInput("quantity", label="Quantity", input_type="number")
-       )
-       disp.add_display_item(
-           DisplayerItemTextarea("notes", label="Notes", rows=3)
-       )
-       disp.add_display_item(
-           DisplayerItemButton("Add Item", button_type="submit")
-       )
-       
-       return disp.display()
+Then visit ``http://localhost:5001`` to explore all display examples interactively.
 
 Background Tasks Examples
 -------------------------
+
+.. note::
+
+   **Live Demo Available:** Visit ``/examples/threads`` in the example website to see these tasks in action!
 
 Simple Background Task
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -377,8 +176,86 @@ Task with Error Handling
            # Your actual work here
            return "success"
 
+Forms Examples
+--------------
+
+.. note::
+
+   **Live Demo Available:** Visit ``/examples/forms`` in the example website to try interactive forms!
+
+Data Entry Form
+^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from flask import request
+   from src.modules.displayer import *
+   from src.modules import utilities
+   
+   @app.route("/add_item", methods=["GET", "POST"])
+   def add_item():
+       disp = Displayer()
+       disp.add_generic("add_item")
+       disp.set_title("Add New Item")
+       
+       if request.method == "POST":
+           # Parse form data
+           data_in = utilities.util_post_to_json(request.form.to_dict())
+           form_data = data_in.get("add_item", {})
+           
+           name = form_data.get("name", "")
+           category = form_data.get("category", "")
+           quantity = form_data.get("quantity", "")
+           notes = form_data.get("notes", "")
+           
+           # Show success message
+           disp.add_display_item(
+               DisplayerItemAlert(
+                   text=f"Item '{name}' added successfully!",
+                   highlightType=BSstyle.SUCCESS
+               )
+           )
+       else:
+           # Show form
+           disp.add_display_item(
+               DisplayerItemInputString("name", "Item Name *", "")
+           )
+           disp.add_display_item(
+               DisplayerItemInputSelect(
+                   "category",
+                   "Category",
+                   "electronics",
+                   ["electronics", "tools", "supplies"],
+                   ["Electronics", "Tools", "Supplies"]
+               )
+           )
+           disp.add_display_item(
+               DisplayerItemInputString("quantity", "Quantity", "1")
+           )
+           disp.add_display_item(
+               DisplayerItemInputText("notes", "Notes", "")
+           )
+           disp.add_display_item(
+               DisplayerItemButton("btn_submit", "Add Item", icon="plus")
+           )
+       
+       return render_template("base_content.j2", content=disp.display(), target="add_item")
+
 Authentication Examples
 -----------------------
+
+.. note::
+
+   **Live Demo Available:** Visit ``/examples/auth`` in the example website to see authentication in action!
+   
+   **Enabling Authentication:** To use authentication features, enable them in your site_conf:
+   
+   .. code-block:: python
+   
+      class MySiteConf(Site_conf):
+          def __init__(self):
+              super().__init__()
+              self.enable_authentication()  # Enables auth and adds login pages
 
 Creating Users
 ^^^^^^^^^^^^^^
@@ -399,6 +276,25 @@ Creating Users
        auth_manager.grant_permission("john", "Dashboard", "view")
        auth_manager.grant_permission("jane", "Dashboard", "view")
        auth_manager.grant_permission("jane", "Dashboard", "edit")
+
+Checking Authentication Status
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: python
+
+   from flask import session
+   
+   @app.route("/profile")
+   def profile():
+       # Get current user from session
+       username = session.get('username', 'GUEST')
+       
+       if username and username != "GUEST":
+           # User is authenticated
+           return f"Welcome, {username}!"
+       else:
+           # User is not logged in
+           return "Please log in to view your profile."
 
 Login/Logout
 ^^^^^^^^^^^^
@@ -475,144 +371,93 @@ Automatic Module Protection
        
        return disp.display()
 
-Scheduler Examples
-------------------
+Feature Activation in Site_conf
+--------------------------------
 
-Periodic Task Registration
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+The framework provides feature flags to enable/disable components as needed.
 
-.. code-block:: python
-
-   from src.modules.scheduler.scheduler import Scheduler_LongTerm
-   
-   def cleanup_old_files():
-       """Remove files older than 30 days"""
-       # Your cleanup logic
-       pass
-   
-   def check_system_health():
-       """Check system health metrics"""
-       # Your monitoring logic
-       pass
-   
-   # Register long-term tasks
-   lt_scheduler = Scheduler_LongTerm()
-   lt_scheduler.register_function(cleanup_old_files, period=60)  # Every 60 min
-   lt_scheduler.register_function(check_system_health, period=5)  # Every 5 min
-   lt_scheduler.start()
-
-Custom Real-Time Updates
-^^^^^^^^^^^^^^^^^^^^^^^^
+Enabling Individual Features
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
-   from src.modules import scheduler
+   from src.modules.site_conf import Site_conf
    
-   class MonitoringTask(Threaded_action):
-       def action(self):
-           while self.m_running:
-               # Collect data
-               cpu = get_cpu_usage()
-               memory = get_memory_usage()
-               
-               # Push update to all clients
-               if scheduler.scheduler_obj:
-                   scheduler.scheduler_obj.emit_log(
-                       f"CPU: {cpu}% | Memory: {memory}%",
-                       level="info"
-                   )
-               
-               time.sleep(5)  # Update every 5 seconds
+   class MySiteConf(Site_conf):
+       def __init__(self):
+           super().__init__()
+           
+           # Enable specific features
+           self.enable_authentication()      # Login/logout + auth pages
+           self.enable_threads()             # Thread monitor
+           self.enable_scheduler()           # Real-time SocketIO updates
+           self.enable_long_term_scheduler() # Periodic tasks
+           self.enable_log_viewer()          # Log viewing page
+           self.enable_admin_panel()         # Admin tools
+           
+           # Each enable_* method:
+           # 1. Sets the feature flag
+           # 2. Initializes the feature in setup_app()
+           # 3. Optionally adds related pages to sidebar
 
-Utilities Examples
-------------------
-
-File Operations
-^^^^^^^^^^^^^^^
+Enabling All Features
+^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
-   from src.modules.utilities import (
-       read_json_file, write_json_file,
-       ensure_directory_exists
-   )
-   
-   # Read JSON
-   config = read_json_file("config.json")
-   
-   # Write JSON
-   data = {"setting": "value"}
-   write_json_file("output.json", data)
-   
-   # Ensure directory exists
-   ensure_directory_exists("data/logs")
+   class DemoSiteConf(Site_conf):
+       def __init__(self):
+           super().__init__()
+           
+           # Enable everything for demo/testing
+           self.enable_all_features()
+           
+           # Customize as needed
+           self.app_details(
+               name="Demo App",
+               version="1.0.0",
+               icon="test-tube"
+           )
 
-Breadcrumbs
-^^^^^^^^^^^
+Feature Flags Reference
+^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: python
+Available feature flags in ``Site_conf``:
 
-   from src.modules.utilities import set_breadcrumbs
-   
-   @app.route("/admin/users/edit")
-   def edit_user():
-       breadcrumbs = [
-           ("Home", url_for('home')),
-           ("Admin", url_for('admin')),
-           ("Users", url_for('users')),
-           ("Edit", None)  # Current page
-       ]
-       set_breadcrumbs(breadcrumbs)
-       
-       # ... render page
+- ``m_enable_authentication`` - Auth system and login pages
+- ``m_enable_threads`` - Thread monitoring and management
+- ``m_enable_scheduler`` - Real-time SocketIO scheduler
+- ``m_enable_long_term_scheduler`` - Periodic task scheduler
+- ``m_enable_log_viewer`` - Log viewing interface
+- ``m_enable_admin_panel`` - Admin control panel
+- ``m_enable_bug_tracker`` - Bug reporting system
+- ``m_enable_settings`` - Settings configuration page
 
-Complete Application Example
------------------------------
-
-Minimal Production App
-^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: python
-
-   from flask import Flask, session, redirect, url_for
-   from src.main import setup_app
-   from src.modules.displayer import Displayer
-   from src.modules.auth.auth_manager import auth_manager
-   
-   app = Flask(__name__)
-   app.secret_key = "production-secret-key-change-this"
-   setup_app(app)
-   
-   # Initialize users
-   if auth_manager:
-       auth_manager.create_user("admin", "admin123", is_admin=True)
-   
-   @app.route("/")
-   def home():
-       if 'username' not in session:
-           return redirect(url_for('auth.login'))
-       
-       disp = Displayer()
-       disp.add_generic({"title": f"Welcome, {session['username']}!"})
-       return disp.display()
-   
-   if __name__ == "__main__":
-       app.run(debug=False, host="0.0.0.0", port=5001)
+By default, **all features are disabled** (opt-in model). Enable only what you need.
 
 More Examples
 -------------
 
 For complete working examples, see:
 
-* **Demo Application**: ``tests/manual_test_webapp.py``
-* **Component Showcase**: ``tests/demo_support/component_showcase.py``
-* **Layout Examples**: ``tests/demo_support/layout_showcase.py``
-* **Unit Tests**: ``tests/unit/`` directory
+* **Example Website**: ``example_website/`` - Full demonstration with all features enabled
+  
+  - Run with: ``python example_website/main.py``
+  - Visit: ``http://localhost:5000/examples`` for interactive code examples
+  - All tutorials and examples from documentation are implemented
 
-Run the demo to see everything in action:
+* **Manual Test Webapp**: ``tests/manual_test_webapp.py`` - Comprehensive display system showcase
+  
+  - Run with: ``python tests/manual_test_webapp.py``
+  - Visit: ``http://localhost:5001`` to explore all UI components
 
-.. code-block:: bash
+* **Component Showcase**: ``tests/demo_support/component_showcase.py`` - All DisplayerItem types
 
-   python tests/manual_test_webapp.py
+* **Layout Examples**: ``tests/demo_support/layout_showcase.py`` - Various layout patterns
 
-Visit http://localhost:5001 to explore all features interactively.
+* **Unit Tests**: ``tests/unit/`` directory - Test examples for each module
+
+.. tip::
+
+   The example website demonstrates the feature activation system. Check ``example_website/website/site_conf.py`` 
+   to see how ``enable_all_features()`` is used to activate authentication, threads, logging, and other framework features.

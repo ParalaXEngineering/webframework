@@ -40,6 +40,123 @@ class Site_conf:
 
     m_enable_easter_eggs = False
     """Enable easter eggs (Konami code, pixel mode, death screen, etc.)"""
+    
+    # Feature flags - all disabled by default (opt-in)
+    m_enable_authentication = False
+    """Enable authentication system and login/logout pages"""
+    
+    m_enable_threads = False
+    """Enable thread monitoring and background task management"""
+    
+    m_enable_scheduler = False
+    """Enable real-time scheduler for SocketIO updates"""
+    
+    m_enable_long_term_scheduler = False
+    """Enable long-term scheduler for periodic tasks"""
+    
+    m_enable_log_viewer = False
+    """Enable log viewing page"""
+    
+    m_enable_admin_panel = False
+    """Enable admin panel page"""
+    
+    m_enable_bug_tracker = False
+    """Enable bug tracker page"""
+    
+    m_enable_settings = False
+    """Enable settings page"""
+    
+    m_enable_updater = False
+    """Enable updater page"""
+    
+    m_enable_packager = False
+    """Enable packager page"""
+
+    def enable_authentication(self, add_to_sidebar: bool = True):
+        """Enable authentication system and automatically add login/logout functionality.
+        
+        :param add_to_sidebar: If True, adds login page to sidebar, defaults to True
+        :type add_to_sidebar: bool, optional
+        """
+        self.m_enable_authentication = True
+        self.use_login()  # Set topbar login flag
+        if add_to_sidebar:
+            self.add_sidebar_page("Login", "login", "/common/login")
+    
+    def enable_threads(self, add_to_sidebar: bool = True):
+        """Enable thread monitoring and background task management.
+        
+        :param add_to_sidebar: If True, adds threads page to sidebar, defaults to True
+        :type add_to_sidebar: bool, optional
+        """
+        self.m_enable_threads = True
+        if add_to_sidebar:
+            self.add_sidebar_page("Threads", "cog-sync", "/threads")
+    
+    def enable_scheduler(self):
+        """Enable real-time scheduler for SocketIO updates."""
+        self.m_enable_scheduler = True
+    
+    def enable_long_term_scheduler(self):
+        """Enable long-term scheduler for periodic tasks."""
+        self.m_enable_long_term_scheduler = True
+    
+    def enable_log_viewer(self, add_to_sidebar: bool = True):
+        """Enable log viewing page.
+        
+        :param add_to_sidebar: If True, adds logs page to sidebar, defaults to True
+        :type add_to_sidebar: bool, optional
+        """
+        self.m_enable_log_viewer = True
+        if add_to_sidebar:
+            self.add_sidebar_page("Logs", "file-document-multiple", "/logging")
+    
+    def enable_admin_panel(self, add_to_sidebar: bool = True):
+        """Enable admin panel page.
+        
+        :param add_to_sidebar: If True, adds admin page to sidebar, defaults to True
+        :type add_to_sidebar: bool, optional
+        """
+        self.m_enable_admin_panel = True
+        if add_to_sidebar:
+            self.add_sidebar_page("Admin", "shield-account", "/admin")
+    
+    def enable_bug_tracker(self, add_to_sidebar: bool = True):
+        """Enable bug tracker page.
+        
+        :param add_to_sidebar: If True, adds bug tracker to sidebar, defaults to True
+        :type add_to_sidebar: bool, optional
+        """
+        self.m_enable_bug_tracker = True
+        if add_to_sidebar:
+            self.add_sidebar_page("Bug Tracker", "bug", "/bug_tracker")
+    
+    def enable_settings(self, add_to_sidebar: bool = True):
+        """Enable settings page.
+        
+        :param add_to_sidebar: If True, adds settings to sidebar, defaults to True
+        :type add_to_sidebar: bool, optional
+        """
+        self.m_enable_settings = True
+        if add_to_sidebar:
+            self.add_sidebar_page("Settings", "cog", "/settings")
+    
+    def enable_all_features(self, add_to_sidebar: bool = True):
+        """Enable all framework features (useful for demos and testing).
+        
+        :param add_to_sidebar: If True, adds all pages to sidebar, defaults to True
+        :type add_to_sidebar: bool, optional
+        """
+        self.enable_authentication(add_to_sidebar)
+        self.enable_threads(add_to_sidebar)
+        self.enable_scheduler()
+        self.enable_long_term_scheduler()
+        self.enable_log_viewer(add_to_sidebar)
+        self.enable_admin_panel(add_to_sidebar)
+        self.enable_bug_tracker(add_to_sidebar)
+        self.enable_settings(add_to_sidebar)
+        self.m_enable_updater = True
+        self.m_enable_packager = True
 
     
     def configure_easter_eggs(self) -> bool:

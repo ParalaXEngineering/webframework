@@ -16,6 +16,10 @@ from . import common
 from . import settings
 from . import updater
 from . import packager
-from . import bug_tracker
 
-__all__ = ['common', 'settings', 'updater', 'packager', 'bug_tracker']
+# Optional: bug_tracker requires redminelib
+try:
+    from . import bug_tracker
+    __all__ = ['common', 'settings', 'updater', 'packager', 'bug_tracker']
+except ImportError:
+    __all__ = ['common', 'settings', 'updater', 'packager']

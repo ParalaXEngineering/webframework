@@ -107,11 +107,36 @@ def setup_app(app):
             except Exception as e:
                 logger.warning(f"Failed to register blueprint for {module_name}: {e}")
 
+    # Import site_conf FIRST (before any feature-dependent initialization)
+    try:
+        site_conf.site_conf_obj = importlib.import_module("website.site_conf").ExampleSiteConf()
+        site_conf.site_conf_app_path = app_path
+        logger.info("Loaded website.site_conf")
+    except (ModuleNotFoundError, AttributeError) as e:
+        logger.info(f"No website.site_conf found - using default Site_conf: {e}")
+        site_conf.site_conf_obj = site_conf.Site_conf()
+    
+    # Get site configuration for feature flags
+    site_config = site_conf.site_conf_obj
+
     # Auto-discover and register framework internal pages
     try:
         from . import pages as pages_module
     except ImportError:
         import pages as pages_module
+    
+    # Map of page names to required feature flags
+    PAGE_FEATURE_REQUIREMENTS = {
+        'threads': 'm_enable_threads',
+        'common': 'm_enable_authentication',
+        'admin': 'm_enable_admin_panel',
+        'logging': 'm_enable_log_viewer',
+        'bug_tracker': 'm_enable_bug_tracker',
+        'settings': 'm_enable_settings',
+        'updater': 'm_enable_updater',
+        'packager': 'm_enable_packager',
+        'user': 'm_enable_authentication',
+    }
     
     # Get the pages directory path
     pages_dir = os.path.dirname(os.path.abspath(pages_module.__file__))
@@ -122,6 +147,13 @@ def setup_app(app):
     
     # Import and register each framework page blueprint
     for page_name in framework_pages:
+        # Check if page requires a feature flag
+        required_feature = PAGE_FEATURE_REQUIREMENTS.get(page_name)
+        if required_feature:
+            if not getattr(site_config, required_feature, False):
+                logger.info(f"Skipping framework page '{page_name}' - feature '{required_feature}' is disabled")
+                continue
+        
         try:
             if '.' in __name__:  # Running as package
                 page_module = importlib.import_module(f".pages.{page_name}", package='src')
@@ -137,7 +169,7 @@ def setup_app(app):
         except Exception as e:
             logger.warning(f"Failed to register blueprint for {page_name}: {e}")
 
-    # Initialize auth manager with default configuration
+    # Initialize auth manager conditionally based on feature flag
     # The auth_manager variable is imported at the top of this file
     # We need to update the module-level singleton
     try:
@@ -147,52 +179,79 @@ def setup_app(app):
         from modules.auth import auth_manager as auth_manager_module
         from modules.auth.auth_manager import AuthManager
     
-    # Create and set the global auth_manager instance
-    auth_manager_instance = AuthManager(auth_dir=os.path.join(app_path, "website", "auth"))
-    auth_manager_module.auth_manager = auth_manager_instance
-    
-    # Also update the local module reference so the inject_endpoint function can access it
-    globals()['auth_manager'] = auth_manager_instance
-    
-    logger.info("Auth manager initialized")
-
-    # Start scheduler
-    if os.path.isfile(os.path.join(app_path, "website", "scheduler.py")):
-        scheduler_obj = importlib.import_module("website.scheduler").Scheduler(socket_obj=socketio_obj)
+    if site_config.m_enable_authentication:
+        # Create and set the global auth_manager instance
+        auth_manager_instance = AuthManager(auth_dir=os.path.join(app_path, "website", "auth"))
+        auth_manager_module.auth_manager = auth_manager_instance
+        
+        # Also update the local module reference so the inject_endpoint function can access it
+        globals()['auth_manager'] = auth_manager_instance
+        
+        logger.info("Auth manager initialized")
     else:
-        scheduler_obj = scheduler.Scheduler(socket_obj=socketio_obj)
+        auth_manager_module.auth_manager = None
+        globals()['auth_manager'] = None
+        logger.info("Auth manager disabled")
 
-    scheduler_thread = threading.Thread(target=scheduler_obj.start, daemon=True)
-    scheduler_thread.start()
+    # Conditionally initialize scheduler based on feature flag
+    if site_config.m_enable_scheduler:
+        if os.path.isfile(os.path.join(app_path, "website", "scheduler.py")):
+            scheduler_obj = importlib.import_module("website.scheduler").Scheduler(socket_obj=socketio_obj)
+        else:
+            scheduler_obj = scheduler.Scheduler(socket_obj=socketio_obj)
 
-    scheduler.scheduler_obj = scheduler_obj
+        scheduler_thread = threading.Thread(target=scheduler_obj.start, daemon=True)
+        scheduler_thread.start()
 
-    # Start long term scheduler
-    scheduler_lt = scheduler.Scheduler_LongTerm()
-    scheduler_lt.start()
-    scheduler.scheduler_ltobj = scheduler_lt
+        scheduler.scheduler_obj = scheduler_obj
+        logger.info("Scheduler initialized")
+    else:
+        scheduler.scheduler_obj = None
+        logger.info("Scheduler disabled")
 
-    threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
+    # Conditionally initialize long term scheduler based on feature flag
+    if site_config.m_enable_long_term_scheduler:
+        scheduler_lt = scheduler.Scheduler_LongTerm()
+        scheduler_lt.start()
+        scheduler.scheduler_ltobj = scheduler_lt
+        logger.info("Long-term scheduler initialized")
+    else:
+        scheduler.scheduler_ltobj = None
+        logger.info("Long-term scheduler disabled")
 
-    # Initialize log emitter for real-time log viewing
-    try:
-        from .modules.log import log_emitter
-    except ImportError:
-        from modules.log import log_emitter
-    
-    logs_dir = os.path.join(app_path, 'logs')
-    log_emitter.initialize_log_emitter(socketio_obj, logs_dir, interval=2.0)
-    logger.info("Log emitter initialized")
+    # Conditionally initialize thread manager based on feature flag
+    if site_config.m_enable_threads:
+        threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
+        logger.info("Thread manager initialized")
+    else:
+        threaded_manager.thread_manager_obj = None
+        logger.info("Thread manager disabled")
 
-    # Initialize thread emitter for real-time thread updates
-    try:
-        from .modules.threaded import thread_emitter
-    except ImportError:
-        from modules.threaded import thread_emitter
-    
-    thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=0.5)
-    thread_emitter.thread_emitter_obj.start()
-    logger.info("Thread emitter initialized")
+    # Conditionally initialize log emitter for real-time log viewing
+    if site_config.m_enable_log_viewer:
+        try:
+            from .modules.log import log_emitter
+        except ImportError:
+            from modules.log import log_emitter
+        
+        logs_dir = os.path.join(app_path, 'logs')
+        log_emitter.initialize_log_emitter(socketio_obj, logs_dir, interval=2.0)
+        logger.info("Log emitter initialized")
+    else:
+        logger.info("Log emitter disabled")
+
+    # Conditionally initialize thread emitter for real-time thread updates
+    if site_config.m_enable_threads:
+        try:
+            from .modules.threaded import thread_emitter
+        except ImportError:
+            from modules.threaded import thread_emitter
+        
+        thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=0.5)
+        thread_emitter.thread_emitter_obj.start()
+        logger.info("Thread emitter initialized")
+    else:
+        logger.info("Thread emitter disabled")
 
     # Register SocketIO connection handlers for user rooms
     @socketio_obj.on("connect")  # type: ignore
@@ -215,25 +274,25 @@ def setup_app(app):
         except Exception as e:
             logger.error(f"Error in handle_disconnect: {e}")
 
-    # Register user_connected handler (ALWAYS needed for thread progress)
-    @socketio_obj.on("user_connected")  # type: ignore
-    def connect():
-        scheduler.scheduler_obj.m_user_connected = True  # type: ignore
+    # Register user_connected handler (conditionally based on scheduler)
+    if site_config.m_enable_scheduler:
+        @socketio_obj.on("user_connected")  # type: ignore
+        def connect():
+            if scheduler.scheduler_obj:
+                scheduler.scheduler_obj.m_user_connected = True  # type: ignore
 
-    # Import site_conf (if website module exists)
-    try:
-        site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
-        site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj
-        site_conf.site_conf_app_path = app_path
+    # Set scheduler_obj and register functions (site_conf already loaded earlier)
+    # Only set scheduler_obj if scheduler is enabled
+    if site_config.m_enable_scheduler and scheduler.scheduler_obj:
+        site_conf.site_conf_obj.m_scheduler_obj = scheduler.scheduler_obj
 
-        # Register long term functions from the site confi
+    # Register long term functions from the site config (if LT scheduler is enabled)
+    if site_config.m_enable_long_term_scheduler:
         site_conf.site_conf_obj.register_scheduler_lt_functions()
 
-        @socketio_obj.server.on("*")  # type: ignore
-        def catch_all(event, sid, *args):
-            site_conf.site_conf_obj.socketio_event(event, args)  # type: ignore
-    except ModuleNotFoundError:
-        logger.info("No website.site_conf found - running in test/framework-only mode")
+    @socketio_obj.server.on("*")  # type: ignore
+    def catch_all(event, sid, *args):
+        site_conf.site_conf_obj.socketio_event(event, args)  # type: ignore
 
     @app.context_processor  # type: ignore
     def inject_bar():
@@ -330,6 +389,21 @@ def setup_app(app):
         scheduler.scheduler_obj.m_user_connected = False  # type: ignore
         if request.endpoint == "static":  # type: ignore
             return
+
+        # Ensure session['user'] is always set for consistent authentication
+        # This is critical for SocketIO room management and thread isolation
+        if 'user' not in session:
+            # Check if login is enabled
+            if site_conf.site_conf_obj and hasattr(site_conf.site_conf_obj, 'm_topbar'):
+                if site_conf.site_conf_obj.m_topbar.get('login', False):
+                    # Login enabled: default to GUEST if not logged in
+                    session['user'] = 'GUEST'
+                else:
+                    # No login: use anonymous (all users share same session)
+                    session['user'] = 'anonymous'
+            else:
+                # Fallback if site_conf not available
+                session['user'] = 'GUEST'
 
         # Note: config reading migrated to settings engine in src/modules/settings
         

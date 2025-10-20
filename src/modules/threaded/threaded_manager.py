@@ -6,6 +6,7 @@ the Threaded_action base class.
 """
 
 import threading
+from typing import Tuple, List
 
 try:
     from ..log.logger_factory import get_logger
@@ -126,7 +127,7 @@ class Threaded_manager:
         finally:
             self._lock.release()
 
-    def get_all_threads_with_history(self) -> tuple[list, list]:
+    def get_all_threads_with_history(self) -> Tuple[List, List]:
         """Return both running and completed threads.
         
         Returns:

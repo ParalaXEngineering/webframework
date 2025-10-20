@@ -7,440 +7,387 @@ Step-by-step guides for common use cases with the ParalaX Web Framework.
    :local:
    :depth: 2
 
-Tutorial 1: Building Your First Application
---------------------------------------------
+Tutorial 1: Creating Your First Page with Displayer
+----------------------------------------------------
 
-Let's create a simple web application from scratch.
+This tutorial demonstrates the basics of creating a page using the Displayer system.
 
-Step 1: Project Setup
-^^^^^^^^^^^^^^^^^^^^^^
-
-Create a new directory and virtual environment:
-
-.. code-block:: bash
-
-   mkdir my_webapp
-   cd my_webapp
-   python3 -m venv .venv
-   source .venv/bin/activate  # macOS/Linux
-   # .venv\Scripts\activate   # Windows
-
-Step 2: Install Framework
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Install the framework as a dependency:
-
-.. code-block:: bash
-
-   # Clone as submodule (recommended)
-   git submodule add https://github.com/ParalaXEngineering/webframework.git framework
-   pip install -r framework/requirements.txt
-   
-   # OR install in development mode
-   git clone https://github.com/ParalaXEngineering/webframework.git
-   cd webframework
-   pip install -e .
-   cd ..
-
-Step 3: Create Your App
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create ``app.py``:
+Complete Example
+^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
-   from flask import Flask
-   from src.main import setup_app
-   from src.modules.displayer import Displayer, DisplayerItemText, DisplayerItemButton
+   from flask import Blueprint, render_template, request
+   from submodules.framework.src.modules.displayer.displayer import Displayer, DisplayerLayout, Layouts
+   from submodules.framework.src.modules.displayer.items import (
+       DisplayerItemText, DisplayerItemButton, DisplayerItemBadge, BSstyle
+   )
    
-   # Create Flask app
-   app = Flask(__name__)
-   app.secret_key = "my-secret-key-change-this"
+   tutorials_bp = Blueprint("tutorials", __name__, url_prefix="/tutorials")
    
-   # Initialize framework
-   setup_app(app)
-   
-   # Create home page
-   @app.route("/")
-   def home():
+   @tutorials_bp.route('/tutorial1', methods=['GET', 'POST'])
+   def tutorial1():
+       """Tutorial 1: Creating Your First Page with Displayer"""
+       
        disp = Displayer()
        
        # Add a module (card container)
-       disp.add_generic({"id": "welcome", "title": "Welcome to My App"})
+       disp.add_generic("welcome")
+       disp.set_title("Welcome to My App")
+       
+       # Add a layout to display items
+       disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6, 6]))
+       
+       # Handle button click
+       if request.method == 'POST':
+           disp.add_display_item(
+               DisplayerItemBadge("Button was clicked!", BSstyle.SUCCESS),
+               column=0
+           )
        
        # Add some content
        disp.add_display_item(
-           DisplayerItemText("This is my first ParalaX application!")
+           DisplayerItemText("This is my first ParalaX application!"),
+           column=0
        )
        
        disp.add_display_item(
-           DisplayerItemButton("Click Me", callback="alert('Hello!')")
+           DisplayerItemButton("btn1", "Click Me"),
+           column=1
        )
        
-       return disp.display()
-   
-   if __name__ == "__main__":
-       app.run(debug=True, host="0.0.0.0", port=5001)
+       return render_template("base_content.j2", content=disp.display(), target="tutorials.tutorial1")
 
-Step 4: Run Your App
-^^^^^^^^^^^^^^^^^^^^^
+Key Concepts
+^^^^^^^^^^^^
 
-.. code-block:: bash
+1. **Create a Displayer**: ``disp = Displayer()`` - The main container for your page content
+2. **Add a Module**: ``disp.add_generic("welcome")`` - Creates a card container with an ID
+3. **Set Title**: ``disp.set_title("Welcome to My App")`` - Sets the module's title
+4. **Add Layout**: ``disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6, 6]))`` - Creates a 2-column layout
+5. **Add Items**: Use ``add_display_item()`` to add content, specifying which column with ``column=``
+6. **Handle POST**: Check ``request.method == 'POST'`` to respond to form submissions
+7. **Render**: Return ``render_template("base_content.j2", content=disp.display(), target="...")``
 
-   python app.py
+Tutorial 2: Working with Background Tasks
+------------------------------------------
 
-Visit ``http://localhost:5001`` in your browser!
+Learn how to create background tasks that run asynchronously with real-time progress updates.
 
-Tutorial 2: Adding Background Tasks
-------------------------------------
-
-Learn how to run long-running operations without blocking the UI.
-
-Creating a Threaded Action
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create ``my_tasks.py``:
+Complete Example
+^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
-   from src.modules.threaded.threaded_action import Threaded_action
+   from flask import Blueprint, render_template, request
+   from submodules.framework.src.modules.displayer.displayer import Displayer, DisplayerLayout, Layouts
+   from submodules.framework.src.modules.displayer.items import DisplayerItemButton, DisplayerItemText
+   from submodules.framework.src.modules.threaded.threaded_action import Threaded_action
+   from submodules.framework.src.modules.threaded import threaded_manager
+   from submodules.framework.src.modules import utilities
    import time
    
+   # Define the task class
    class DataProcessingTask(Threaded_action):
-       """Background task that processes data"""
+       """A background task that processes data"""
        
        m_default_name = "Data Processor"
-       m_type = "data_processing"
+       m_type = "threaded_action"
        
-       def __init__(self, data_size=100):
+       def __init__(self, data_size=50):
            super().__init__()
            self.data_size = data_size
        
        def action(self):
            """Main work happens here"""
-           self.console_write(f"Starting to process {self.data_size} items...")
+           self.console_write("Starting to process {} items...".format(self.data_size))
+           self.console_write("Task running for user: {}".format(self.username), "INFO")
            
            for i in range(self.data_size):
                # Simulate processing
                time.sleep(0.1)
                
-               # Update progress (0-100)
-               self.m_running_state = int((i + 1) / self.data_size * 100)
+               # Update progress (0-100) and emit status via scheduler
+               progress = int((i + 1) / self.data_size * 100)
+               self.m_running_state = progress
                
-               # Log progress
+               # Emit status update via SocketIO for real-time UI updates
+               if self.m_scheduler:
+                   self.m_scheduler.emit_status(
+                       self.get_name(),
+                       "Processing item {}/{}".format(i + 1, self.data_size),
+                       progress,
+                       "{}%".format(progress)
+                   )
+               
+               # Log progress every 10 items
                if (i + 1) % 10 == 0:
                    self.console_write(f"Processed {i + 1}/{self.data_size} items")
            
-           self.console_write("Processing complete!", level="SUCCESS")
+           self.console_write("Processing complete!")
            self.m_running_state = 100
-
-Using the Task in Your App
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Add to ``app.py``:
-
-.. code-block:: python
-
-   from my_tasks import DataProcessingTask
-   from flask import redirect, url_for
+           
+           # Emit final completion status
+           if self.m_scheduler:
+               self.m_scheduler.emit_status(
+                   self.get_name(),
+                   "Processing complete!",
+                   100,
+                   "Done"
+               )
    
-   @app.route("/process")
-   def process_data():
-       """Start background processing"""
-       task = DataProcessingTask(data_size=50)
-       task.start()
-       return redirect(url_for('threads.view'))  # Redirect to threads page
-
-Monitoring Progress
-^^^^^^^^^^^^^^^^^^^
-
-The framework automatically provides a threads monitoring page at ``/threads``.
-Users can see:
-
-- Active threads and their progress
-- Console output from each thread
-- Thread status (running, completed, error)
-
-Tutorial 3: Building a Dashboard
----------------------------------
-
-Create a multi-column dashboard with real-time metrics.
-
-Dashboard Page Structure
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Create ``pages/dashboard.py``:
-
-.. code-block:: python
-
-   from flask import Blueprint
-   from src.modules.displayer import (
-       Displayer, DisplayerLayout, Layouts,
-       DisplayerItemBadge, DisplayerItemProgress,
-       DisplayerItemText
-   )
-   import psutil  # pip install psutil
-   
-   dashboard_bp = Blueprint('dashboard', __name__)
-   
-   @dashboard_bp.route('/dashboard')
-   def dashboard():
+   @tutorials_bp.route('/tutorial2', methods=['GET', 'POST'])
+   def tutorial2():
+       """Tutorial 2: Background Task Example"""
+       
+       # Handle POST request to start the task
+       if request.method == 'POST':
+           data_in = utilities.util_post_to_json(request.form.to_dict())
+           if DataProcessingTask.m_default_name in data_in:
+               action_data = data_in[DataProcessingTask.m_default_name]
+               # Check if task is already running
+               thread = threaded_manager.thread_manager_obj.get_thread(DataProcessingTask.m_default_name) if threaded_manager.thread_manager_obj else None
+               
+               if not thread and 'btn_start' in action_data:
+                   # Create and start a new task instance
+                   task = DataProcessingTask(data_size=50)
+                   task.start()
+       
        disp = Displayer()
+       # Pass the CLASS, not an instance - this avoids instantiation during page load
+       disp.add_module(DataProcessingTask)
+       disp.set_title("Background Task Example")
        
-       # Page title
-       disp.add_generic({"id": "dash", "title": "System Dashboard"})
+       # Add layout with button and instructions
+       disp.add_master_layout(DisplayerLayout(Layouts.HORIZONTAL, [12]))
        
-       # Create 3-column layout for metrics
-       layout = DisplayerLayout(Layouts.HORIZONTAL, columns=[4, 4, 4])
-       disp.add_master_layout(layout)
-       
-       # CPU metric
-       cpu_percent = psutil.cpu_percent(interval=1)
-       cpu_color = "success" if cpu_percent < 50 else "warning" if cpu_percent < 80 else "danger"
+       # Add Start Action button
        disp.add_display_item(
-           DisplayerItemBadge("CPU Usage", value=f"{cpu_percent}%", color=cpu_color),
+           DisplayerItemButton("btn_start", "Start Action", icon="play"),
            column=0
        )
        
-       # Memory metric
-       mem = psutil.virtual_memory()
-       mem_color = "success" if mem.percent < 50 else "warning" if mem.percent < 80 else "danger"
-       disp.add_display_item(
-           DisplayerItemBadge("Memory", value=f"{mem.percent}%", color=mem_color),
-           column=1
-       )
+       disp.add_display_item(DisplayerItemText(
+           "This page demonstrates background task scheduling. "
+           "Click the 'Start Action' button above to begin the task. "
+           "The progress bar will update in real-time below. "
+           "You can also visit <a href='/threads'>Threads Monitor</a> to see all running tasks."
+       ), column=0)
        
-       # Disk metric
-       disk = psutil.disk_usage('/')
-       disk_color = "success" if disk.percent < 50 else "warning" if disk.percent < 80 else "danger"
-       disp.add_display_item(
-           DisplayerItemBadge("Disk Usage", value=f"{disk.percent}%", color=disk_color),
-           column=2
-       )
-       
-       # Add progress bars in a new vertical layout
-       layout2 = DisplayerLayout(Layouts.VERTICAL)
-       disp.add_master_layout(layout2)
-       
-       disp.add_display_item(
-           DisplayerItemProgress("CPU", value=cpu_percent, max_value=100)
-       )
-       disp.add_display_item(
-           DisplayerItemProgress("Memory", value=mem.percent, max_value=100)
-       )
-       disp.add_display_item(
-           DisplayerItemProgress("Disk", value=disk.percent, max_value=100)
-       )
-       
-       return disp.display()
+       return render_template("base_content.j2", content=disp.display(), target="tutorials.tutorial2")
 
-Register the Blueprint
-^^^^^^^^^^^^^^^^^^^^^^
+Key Concepts
+^^^^^^^^^^^^
 
-In ``app.py``:
+1. **Threaded_action Class**: Inherit from ``Threaded_action`` to create background tasks
+2. **Class Attributes**:
+   - ``m_default_name``: Unique identifier for the task
+   - ``m_type``: Task type classification
+3. **action() Method**: Contains the main work logic executed in the background
+4. **Progress Tracking**: 
+   - Set ``self.m_running_state`` to a value between 0-100
+   - Use ``self.m_scheduler.emit_status()`` for real-time UI updates
+5. **Console Logging**: Use ``self.console_write()`` to log messages
+6. **Add Module as Class**: Pass the class itself to ``disp.add_module(DataProcessingTask)``, not an instance
+7. **Start Task**: Create an instance and call ``task.start()`` when ready to execute
+8. **Check Running Tasks**: Use ``threaded_manager.thread_manager_obj.get_thread()`` to check if a task is already running
+9. **Parse POST Data**: Use ``utilities.util_post_to_json(request.form.to_dict())`` to handle form submissions
+
+Tutorial 3: Authentication and User Management
+-----------------------------------------------
+
+Learn how to work with user sessions and authentication information.
+
+Complete Example
+^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
-   from pages.dashboard import dashboard_bp
-   
-   app.register_blueprint(dashboard_bp)
-
-Tutorial 4: Implementing Authentication
-----------------------------------------
-
-Secure your application with role-based access control.
-
-Setting Up Users and Permissions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The auth system is automatically initialized. Create users programmatically:
-
-.. code-block:: python
-
-   from src.modules.auth.auth_manager import auth_manager
-   
-   # In your app initialization
-   if auth_manager:
-       # Create admin user
-       auth_manager.create_user("admin", "admin123", is_admin=True)
-       
-       # Create regular user
-       auth_manager.create_user("user1", "password")
-       
-       # Grant permissions
-       auth_manager.grant_permission("user1", "Dashboard", "view")
-       auth_manager.grant_permission("admin", "Dashboard", "view")
-       auth_manager.grant_permission("admin", "Dashboard", "edit")
-
-Protecting Routes
-^^^^^^^^^^^^^^^^^
-
-Use session checks to protect routes:
-
-.. code-block:: python
-
-   from flask import session, redirect, url_for
-   from functools import wraps
-   
-   def login_required(f):
-       """Decorator to require login"""
-       @wraps(f)
-       def decorated_function(*args, **kwargs):
-           if 'username' not in session:
-               return redirect(url_for('auth.login'))
-           return f(*args, **kwargs)
-       return decorated_function
-   
-   @app.route("/admin")
-   @login_required
-   def admin_page():
-       # Only logged-in users can access
-       return "Admin panel"
-
-Permission-Based Access
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Check specific permissions:
-
-.. code-block:: python
-
-   from src.modules.auth.auth_manager import auth_manager
-   from flask import session, abort
-   
-   @app.route("/settings")
-   @login_required
-   def settings_page():
-       username = session.get('username')
-       
-       # Check if user has permission
-       if not auth_manager.has_permission(username, 'Settings', 'edit'):
-           abort(403)  # Forbidden
-       
-       # User has permission, show settings
-       disp = Displayer()
-       # ... build settings page
-       return disp.display()
-
-Automatic Permission Checks
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The Displayer system can automatically check permissions:
-
-.. code-block:: python
-
-   class MySecureModule:
-       m_default_name = "Secure Module"
-       m_required_permission = "SecureModule"  # Module name for permission
-       m_required_action = "view"  # Required action
-   
-   @app.route("/secure")
-   @login_required
-   def secure_page():
-       module = MySecureModule()
-       
-       disp = Displayer()
-       disp.add_module(module)  # Automatically checks permissions!
-       
-       # If user lacks permission, an access denied message is shown
-       return disp.display()
-
-Tutorial 5: Working with Forms
--------------------------------
-
-Create interactive forms with validation.
-
-Basic Form
-^^^^^^^^^^
-
-.. code-block:: python
-
-   from src.modules.displayer import (
-       Displayer, DisplayerItemInput, 
-       DisplayerItemTextarea, DisplayerItemButton
+   from flask import Blueprint, render_template, session
+   from submodules.framework.src.modules.displayer.displayer import Displayer, DisplayerLayout, Layouts
+   from submodules.framework.src.modules.displayer.items import (
+       DisplayerItemText, DisplayerItemBadge, BSstyle
    )
-   from flask import request
    
-   @app.route("/contact", methods=["GET", "POST"])
-   def contact_form():
-       if request.method == "POST":
-           name = request.form.get("name")
-           email = request.form.get("email")
-           message = request.form.get("message")
-           
-           # Process form data
-           print(f"Contact from {name} ({email}): {message}")
-           
-           # Show confirmation
-           disp = Displayer()
-           disp.add_generic({"title": "Thank You"})
-           disp.add_display_item(
-               DisplayerItemText(f"Thank you, {name}! We'll be in touch.")
-           )
-           return disp.display()
-       
-       # Show form
+   @tutorials_bp.route('/tutorial3')
+   def tutorial3():
+       """Tutorial 3: Working with Authentication"""
        disp = Displayer()
-       disp.add_generic({"id": "contact", "title": "Contact Us"})
+       disp.add_generic("auth_info")
+       disp.set_title("Authentication Info")
        
-       disp.add_display_item(
-           DisplayerItemInput("name", label="Your Name", placeholder="John Doe")
-       )
-       disp.add_display_item(
-           DisplayerItemInput("email", label="Email", placeholder="john@example.com")
-       )
-       disp.add_display_item(
-           DisplayerItemTextarea("message", label="Message", rows=5)
-       )
-       disp.add_display_item(
-           DisplayerItemButton("Submit", button_type="submit")
-       )
+       # Add layout
+       disp.add_master_layout(DisplayerLayout(Layouts.HORIZONTAL, [12]))
        
-       return disp.display()
+       # Get current user from session
+       username = session.get('username', 'GUEST')
+       
+       if username and username != "GUEST":
+           disp.add_display_item(DisplayerItemText(f"Welcome back, {username}!"), column=0)
+           disp.add_display_item(DisplayerItemBadge("Logged In", BSstyle.SUCCESS), column=0)
+           disp.add_display_item(DisplayerItemText("You have full access to the system"), column=0)
+       else:
+           disp.add_display_item(DisplayerItemText(f"Current user: {username}"), column=0)
+           disp.add_display_item(DisplayerItemBadge("Guest Mode", BSstyle.INFO), column=0)
+           disp.add_display_item(DisplayerItemText("Go to /common/login to authenticate"), column=0)
+       
+       return render_template("base_content.j2", content=disp.display(), target="tutorials.tutorial3")
 
-Tutorial 6: Real-Time Updates
-------------------------------
+Key Concepts
+^^^^^^^^^^^^
 
-Use the scheduler to push live updates to clients.
+1. **Session Access**: Use ``session.get('username', 'GUEST')`` to retrieve the current user
+2. **Check Login Status**: Compare username against 'GUEST' or check if username exists
+3. **Conditional Display**: Show different content based on authentication status
+4. **DisplayerItemBadge**: Use badges with ``BSstyle`` (SUCCESS, INFO, WARNING, DANGER) to highlight status
+5. **Login Page**: Direct users to ``/common/login`` for authentication
 
-Custom Scheduler Updates
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Tutorial 4: Creating and Processing Forms
+------------------------------------------
 
-Extend the scheduler to add custom update logic:
+Learn how to build interactive forms with various input types and handle form submissions.
+
+Complete Example
+^^^^^^^^^^^^^^^^
 
 .. code-block:: python
 
-   from src.modules.scheduler import scheduler
+   from flask import Blueprint, render_template, request
+   from submodules.framework.src.modules.displayer.displayer import Displayer, DisplayerLayout, Layouts
+   from submodules.framework.src.modules.displayer.items import (
+       DisplayerItemText, DisplayerItemButton, DisplayerItemAlert, DisplayerItemSeparator,
+       DisplayerItemInputString, DisplayerItemInputSelect, DisplayerItemInputText, BSstyle
+   )
+   from submodules.framework.src.modules import utilities
    
-   # In your threaded action
-   class LiveDataTask(Threaded_action):
-       def action(self):
-           for i in range(100):
-               # Do work
-               time.sleep(1)
-               
-               # Push update to clients
-               if scheduler.scheduler_obj:
-                   scheduler.scheduler_obj.emit_log(
-                       f"Progress: {i}%", 
-                       level="info"
-                   )
-                   scheduler.scheduler_obj.emit_button_update(
-                       "my_button",
-                       {"disabled": False, "text": f"Progress: {i}%"}
-                   )
+   @tutorials_bp.route('/tutorial4', methods=['GET', 'POST'])
+   def tutorial4():
+       """Tutorial 4: Creating and Processing Forms"""
+       
+       disp = Displayer()
+       disp.add_generic("contact_form")
+       disp.set_title("Contact Form")
+       
+       # Add layout - full width
+       disp.add_master_layout(DisplayerLayout(Layouts.HORIZONTAL, [12]))
+       
+       # Handle form submission
+       if request.method == 'POST':
+           data_in = utilities.util_post_to_json(request.form.to_dict())
+           data_in = data_in["contact_form"]
+           
+           name = data_in.get('name', '')
+           email = data_in.get('email', '')
+           subject = data_in.get('subject', 'General')
+           message = data_in.get('message', '')
+           
+           # Show success message
+           disp.add_display_item(
+               DisplayerItemAlert(
+                   text=f"Thank you {name}! We received your message.",
+                   highlightType=BSstyle.SUCCESS,
+                   title="Form Submitted Successfully!",
+                   icon="check-circle"
+               ),
+               column=0
+           )
+           
+           # Display submitted data
+           disp.add_display_item(DisplayerItemSeparator(), column=0)
+           disp.add_display_item(DisplayerItemText("<h6>Submitted Data</h6>"), column=0)
+           disp.add_display_item(DisplayerItemText(f"<b>Name:</b> {name}"), column=0)
+           disp.add_display_item(DisplayerItemText(f"<b>Email:</b> {email}"), column=0)
+           disp.add_display_item(DisplayerItemText(f"<b>Subject:</b> {subject}"), column=0)
+           disp.add_display_item(DisplayerItemText(f"<b>Message:</b> {message}"), column=0)
+           
+           # Add link to go back to form
+           disp.add_display_item(DisplayerItemSeparator(), column=0)
+           disp.add_display_item(
+               DisplayerItemText('<a href="/tutorials/tutorial4" class="btn btn-primary"><i class="mdi mdi-arrow-left"></i> Submit Another</a>'),
+               column=0
+           )
+       else:
+           # Display the form
+           disp.add_display_item(DisplayerItemText("<h5>Contact Us</h5>"), column=0)
+           
+           # Name input
+           disp.add_display_item(
+               DisplayerItemInputString(
+                   "name",
+                   "Name *",
+                   "",
+                   focus=True
+               ),
+               column=0
+           )
+           
+           # Email input
+           disp.add_display_item(
+               DisplayerItemInputString(
+                   "email",
+                   "Email *",
+                   ""
+               ),
+               column=0
+           )
+           
+           # Subject dropdown
+           disp.add_display_item(
+               DisplayerItemInputSelect(
+                   "subject",
+                   "Subject",
+                   "General",
+                   ["General", "Support", "Feedback", "Bug"],
+                   ["General Inquiry", "Technical Support", "Feedback", "Bug Report"]
+               ),
+               column=0
+           )
+           
+           # Message textarea (multi-line text input)
+           disp.add_display_item(
+               DisplayerItemInputText(
+                   "message",
+                   "Message *",
+                   ""
+               ),
+               column=0
+           )
+           
+           # Submit button
+           disp.add_display_item(
+               DisplayerItemButton("btn_submit", "Submit", icon="send"),
+               column=0
+           )
+       
+       return render_template("base_content.j2", content=disp.display(), target="tutorials.tutorial4")
 
-The framework automatically handles WebSocket connections and delivers updates to connected clients.
+Key Concepts
+^^^^^^^^^^^^
 
-Next Steps
-----------
+1. **Form Input Types**:
+   - ``DisplayerItemInputString``: Single-line text input
+   - ``DisplayerItemInputSelect``: Dropdown selection
+   - ``DisplayerItemInputText``: Multi-line text area
+   
+2. **Input Parameters**:
+   - First parameter: field name/ID
+   - Second parameter: field label
+   - Third parameter: default value
+   - Additional parameters: options for select, focus flag, etc.
 
-Now that you've completed these tutorials, you can:
+3. **Parse Form Data**: 
+   - Use ``utilities.util_post_to_json(request.form.to_dict())`` to parse POST data
+   - Access data by module ID: ``data_in["contact_form"]``
+   - Extract values with ``.get()`` for safe access
 
-1. Explore the :doc:`framework` for deeper understanding
-2. Check :doc:`examples` for more code patterns
-3. Read the :doc:`framework_classes` API reference
-4. Build your own custom application!
+4. **Display Alerts**: Use ``DisplayerItemAlert`` with:
+   - ``text``: Alert message
+   - ``highlightType``: BSstyle (SUCCESS, INFO, WARNING, DANGER)
+   - ``title``: Alert title
+   - ``icon``: Optional icon name
 
-.. tip::
+5. **Form Feedback**: Show success messages and submitted data after POST
 
-   The demo application (``tests/manual_test_webapp.py``) showcases all these concepts in action. Run it to see live examples!
+6. **Visual Separators**: Use ``DisplayerItemSeparator()`` to add visual breaks
+
+7. **HTML in Text**: ``DisplayerItemText`` accepts HTML for rich formatting and links
