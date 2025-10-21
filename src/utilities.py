@@ -13,9 +13,6 @@ from jinja2 import Environment, FileSystemLoader
 from flask import session
 from submodules.framework.src import displayer
 
-# Déterminer le répertoire racine du projet
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
 CONFIG_GLOBAL = {}
 LAST_ACCESS_CONFIG = None
 
@@ -332,7 +329,7 @@ def util_read_parameters() -> dict:
     """
     global CONFIG_GLOBAL
     global LAST_ACCESS_CONFIG
-    config_file_path = os.path.join(PROJECT_ROOT, "website", "config.json")
+    config_file_path = "website/config.json"
     reload_interval = 10  # seconds
 
     # If it's the first access or more than 10 seconds have passed, reload the config
@@ -360,9 +357,9 @@ def util_write_parameters(data: dict):
     :param data: The new parameters to write
     :type data: dict
     """
-    config_file_path = os.path.join(PROJECT_ROOT, "website", "config.json")
-    with open(config_file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4)
+    f = open("website/config.json", "w", encoding="utf-8")
+    json.dump(data, f, indent=4)
+    f.close()
 
 
 def util_view_reload_displayer(id: str, disp: displayer) -> dict:
