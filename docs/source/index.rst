@@ -160,19 +160,9 @@ Contents
    framework_classes
    api_modules
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Additional Resources
-
-   faq
-   troubleshooting
-   changelog
-
 Need Help?
 ----------
 
-* **Common Issues?** Check :doc:`troubleshooting`
-* **Questions?** See :doc:`faq`
 * **Examples?** Browse :doc:`examples`
 * **API Details?** Explore :doc:`framework_classes`
 

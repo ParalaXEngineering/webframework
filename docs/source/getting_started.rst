@@ -778,4 +778,3 @@ Tips for Beginners
 3. **Check Logs**: Application logs are in ``logs/`` directory
 4. **Read Docstrings**: Framework classes have detailed docstrings
 5. **Run Tests**: Use tests as examples of correct usage
-6. **Ask for Help**: Check :doc:`faq` and :doc:`troubleshooting`
