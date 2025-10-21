@@ -7,12 +7,52 @@ Internal server error
 {% block main_page %}
     <div class="card bg-danger text-white shadow">
         <div class="card-body">
-            {%if message %}
-            <div class="text-white-50 small">{{message}}</div>
+            {%if error %}
+            <div class="text-white-50 small"><strong>Error:</strong> {{error}}</div>
             {% endif %}
             {%if traceback %}
-            <div class="text-white-50 small">The server encountered an error. Please go to the error reporting page, and describe what you did while the error occured. Log files have been completed and will be sent with your bug entry.</div>
-            <div class="text-white-50 small"><pre>Traceback: {{traceback}} </pre></div>
+            <div class="text-white-50 small mt-2">The server encountered an error. Please use the button below to report this issue with context information already filled in.</div>
+            
+            <!-- Additional Error Context -->
+            {% if method or url %}
+            <div class="text-white-50 small mt-3">
+                <strong>Request Details:</strong>
+                <ul class="mb-0">
+                    {% if method %}<li>Method: {{ method }}</li>{% endif %}
+                    {% if url %}<li>URL: {{ url }}</li>{% endif %}
+                    {% if endpoint %}<li>Endpoint: {{ endpoint }}</li>{% endif %}
+                    {% if remote_addr %}<li>Client IP: {{ remote_addr }}</li>{% endif %}
+                    {% if get_params %}
+                    <li>GET Parameters: 
+                        <ul>
+                        {% for key, value in get_params.items() %}
+                            <li>{{ key }}: {{ value }}</li>
+                        {% endfor %}
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if post_params %}
+                    <li>POST Parameters: 
+                        <ul>
+                        {% for key, value in post_params.items() %}
+                            <li>{{ key }}: {{ value }}</li>
+                        {% endfor %}
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <div class="text-white-50 small mt-3"><pre>Traceback: {{traceback}} </pre></div>
+            
+            <!-- Report Bug Button -->
+            <div class="mt-3">
+                <a href="{{ url_for('bug.report_error') }}" 
+                   class="btn btn-warning btn-lg">
+                    <i class="fas fa-bug"></i> Report This Error
+                </a>
+            </div>
             {% endif %}
         </div>
     </div>

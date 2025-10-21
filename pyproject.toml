@@ -34,6 +34,7 @@ dependencies = [
     "python-redmine>=2.5.0",
     "urllib3>=1.26.0",
     "paramiko>=2.8.0",
+    "textile>=4.0.0",
 ]
 
 [project.optional-dependencies]

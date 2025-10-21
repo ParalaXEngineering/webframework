@@ -20,6 +20,8 @@ def threads():
     Returns:
         Rendered template showing thread cards with tabs for console, logs, etc.
     """
+
+    return 1/0
     disp = displayer.Displayer()
     disp.add_generic("Thread Monitor")
     disp.set_title("Thread Monitor")

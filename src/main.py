@@ -384,8 +384,42 @@ def setup_app(app):
             app.logger.error(f"A 404 was generated at the following path: {requested_url}. Get arguments: {query_parameters}")  # type: ignore
             return render_template("404.j2", requested=requested_url)  # type: ignore
 
+        # Gather detailed error context
+        error_context = {
+            'error': str(e),
+            'traceback': str(traceback.format_exc()),
+            'method': request.method,  # GET, POST, etc.
+            'url': request.url,  # Full URL with query string
+            'endpoint': request.endpoint,  # Flask endpoint name
+            'remote_addr': request.remote_addr,  # Client IP
+        }
+        
+        # Add GET parameters if present
+        if request.args:
+            error_context['get_params'] = dict(request.args)
+        
+        # Add POST parameters if present (be careful with sensitive data)
+        if request.method == 'POST' and request.form:
+            # Don't log passwords or sensitive fields
+            safe_form = {k: v for k, v in request.form.items() 
+                        if 'password' not in k.lower() and 'token' not in k.lower()}
+            if safe_form:
+                error_context['post_params'] = safe_form
+        
+        # Store error details in session for bug reporting
+        session['last_error'] = {
+            'error': str(e),
+            'traceback': str(traceback.format_exc()),
+            'method': request.method,
+            'url': request.url,
+            'endpoint': request.endpoint,
+            'remote_addr': request.remote_addr,
+            'get_params': dict(request.args) if request.args else None,
+            'post_params': safe_form if request.method == 'POST' and request.form else None,
+        }
+        
         app.logger.error("An error occurred", exc_info=e)  # type: ignore
-        return render_template("error.j2", error=str(e), traceback=str(traceback.format_exc()))  # type: ignore
+        return render_template("error.j2", **error_context)  # type: ignore
 
     @app.before_request  # type: ignore
     def before_request():            

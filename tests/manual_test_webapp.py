@@ -51,8 +51,8 @@ class TestSiteConf(site_conf.Site_conf):
         
         # Configure app details
         self.m_app = {
-            "name": "ParalaX Framework - Manual Test",
-            "version": "0.1.0",
+            "name": "OuFNis FRAMEWORK",
+            "version": "1.0.0",
             "icon": "flask",
             "footer": "2025 &copy; ParalaX Engineering"
         }
