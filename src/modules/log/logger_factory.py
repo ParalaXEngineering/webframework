@@ -10,6 +10,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import threading
+import traceback
+import html
 
 LOG_DIR = "logs"
 # Lock to guard logger creation/configuration across threads
@@ -86,3 +88,33 @@ def get_logger(
         logger.propagate = False
 
     return logger
+
+
+def format_exception_html(exc: Exception, include_traceback: bool = True) -> str:
+    """Format an exception as a single-line HTML string for log viewers.
+    
+    This function formats exceptions and their tracebacks into an HTML string
+    that appears as a single log entry. Newlines are replaced with <br> tags,
+    and the text is properly escaped.
+    
+    Args:
+        exc: The exception to format
+        include_traceback: Whether to include the full traceback (default: True)
+    
+    Returns:
+        str: HTML-formatted exception string on a single line
+    
+    Example:
+        >>> try:
+        ...     raise ValueError("Test error")
+        ... except Exception as e:
+        ...     logger.error(format_exception_html(e))
+    """
+    if include_traceback:
+        tb = traceback.format_exc()
+        # Escape HTML special characters and replace newlines with <br>
+        escaped = html.escape(tb).replace('\n', '<br>')
+        return escaped
+    else:
+        # Just the exception message
+        return html.escape(str(exc))

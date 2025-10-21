@@ -8,12 +8,16 @@ Provides security features including:
 """
 
 import json
-import logging
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Tuple, Dict, Optional
 
-logger = logging.getLogger(__name__)
+try:
+    from ..log.logger_factory import get_logger
+except ImportError:
+    from log.logger_factory import get_logger
+
+logger = get_logger("security_utils")
 
 
 class FailedLoginManager:

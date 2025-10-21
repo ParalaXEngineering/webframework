@@ -29,14 +29,14 @@ try:
     from .modules.threaded import threaded_manager
     from .modules.auth.auth_manager import auth_manager
     from .modules import site_conf
-    from .modules.log.logger_factory import get_logger
+    from .modules.log.logger_factory import get_logger, format_exception_html
     from .modules.socketio_manager import initialize_socketio_manager
 except ImportError:
     from modules import scheduler
     from modules.threaded import threaded_manager
     from modules.auth.auth_manager import auth_manager
     from modules import site_conf
-    from modules.log.logger_factory import get_logger
+    from modules.log.logger_factory import get_logger, format_exception_html
     from modules.socketio_manager import initialize_socketio_manager
 
 # Create Flask app only if Flask is available
@@ -381,7 +381,7 @@ def setup_app(app):
         if hasattr(e, 'code') and e.code == 404:    
             requested_url = request.path  # type: ignore
             query_parameters = request.args.to_dict()  # type: ignore
-            app.logger.error(f"A 404 was generated at the following path: {requested_url}. Get arguments: {query_parameters}")  # type: ignore
+            logger.error(f"A 404 was generated at the following path: {requested_url}. Get arguments: {query_parameters}")
             return render_template("404.j2", requested=requested_url)  # type: ignore
 
         # Gather detailed error context
@@ -418,7 +418,8 @@ def setup_app(app):
             'post_params': safe_form if request.method == 'POST' and request.form else None,
         }
         
-        app.logger.error("An error occurred", exc_info=e)  # type: ignore
+        # Log as single-line HTML for log viewer
+        logger.error(f"An error occurred: {format_exception_html(e)}")
         return render_template("error.j2", **error_context)  # type: ignore
 
     @app.before_request  # type: ignore

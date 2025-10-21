@@ -136,8 +136,8 @@ class ThreadEmitter:
                     self.logger.error(f"Error emitting to user '{username}': {e}")
                     
         except Exception as e:
-            self.logger.error(f"Failed to emit thread update: {e}")
-            self.logger.exception("Full error details:")
+            from ..log.logger_factory import format_exception_html
+            self.logger.error(f"Failed to emit thread update: {format_exception_html(e)}")
     
     def _render_threads_html(self, running_threads, completed_threads) -> str:
         """Render HTML for all threads using Displayer framework.
@@ -217,8 +217,8 @@ class ThreadEmitter:
             html = self.content_reloader_template.render(content=displayer_dict)
             return html
         except Exception as e:
-            self.logger.error(f"Failed to render displayer: {e}")
-            self.logger.exception("Rendering error details:")
+            from ..log.logger_factory import format_exception_html
+            self.logger.error(f"Failed to render displayer: {format_exception_html(e)}")
             return f"<div class='alert alert-danger'>Error rendering thread display: {e}</div>"
     
     def _add_thread_card_to_displayer(self, disp: Displayer, thread, row_index: int, is_running: bool):

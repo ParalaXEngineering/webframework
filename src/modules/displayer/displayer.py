@@ -6,9 +6,13 @@ of modules, layouts, and items for rendering web pages.
 """
 
 from typing import Optional, Dict, List, Any
-import logging
 
-logger = logging.getLogger(__name__)
+try:
+    from ..log.logger_factory import get_logger
+except ImportError:
+    from log.logger_factory import get_logger
+
+logger = get_logger("displayer")
 
 try:
     # Import the module, not the object, so we get the updated value

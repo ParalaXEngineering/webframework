@@ -429,7 +429,8 @@ class Workflow:
             try:
                 current_step.execute_action(self, form_data)
             except Exception as e:
-                self.m_logger.error(f"Step action failed: {e}\n{traceback.format_exc()}")
+                from .log.logger_factory import format_exception_html
+                self.m_logger.error(f"Step action failed: {format_exception_html(e)}")
                 if scheduler.scheduler_obj:
                     scheduler.scheduler_obj.emit_popup(
                         scheduler.logLevel.error,
@@ -443,7 +444,8 @@ class Workflow:
             try:
                 current_step.execute_skip(self, form_data)
             except Exception as e:
-                self.m_logger.error(f"Step skip failed: {e}\n{traceback.format_exc()}")
+                from .log.logger_factory import format_exception_html
+                self.m_logger.error(f"Step skip failed: {format_exception_html(e)}")
     
     def _go_next(self) -> None:
         """Move to the next visible step."""
@@ -655,7 +657,8 @@ class Workflow:
         try:
             disp = current_step.display_func(disp, self.m_workflow_data)
         except Exception as e:
-            self.m_logger.error(f"Display function failed: {e}\n{traceback.format_exc()}")
+            from .log.logger_factory import format_exception_html
+            self.m_logger.error(f"Display function failed: {format_exception_html(e)}")
             disp.add_master_layout(
                 displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
             )

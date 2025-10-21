@@ -14,7 +14,6 @@ Usage:
 from flask import session
 from flask_socketio import join_room, leave_room, emit
 from typing import Dict, Set, Optional, Any
-import logging
 
 try:
     from .log.logger_factory import get_logger
