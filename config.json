@@ -94,5 +94,69 @@
         "timeout"
       ]
     }
+  },
+  "redmine": {
+    "friendly": "Redmine credentials",
+    "user": {
+      "type": "string",
+      "friendly": "User",
+      "value": "",
+      "persistent": true
+    },
+    "password": {
+      "type": "string",
+      "friendly": "Password",
+      "value": "",
+      "persistent": true
+    },
+    "address": {
+      "type": "string",
+      "friendly": "Address",
+      "value": "https://redmine.example.com/",
+      "persistent": true
+    }
+  },
+  "updates": {
+    "friendly": "Maintenance server configuration",
+    "source": {
+      "type": "select",
+      "friendly": "Source",
+      "value": "FTP",
+      "options": [
+        "FTP",
+        "Folder"
+      ],
+      "persistent": false
+    },
+    "folder": {
+      "type": "string",
+      "friendly": "Local folder",
+      "value": "",
+      "persistent": false
+    },
+    "address": {
+      "type": "string",
+      "friendly": "FTP Address",
+      "value": "",
+      "persistent": true
+    },
+    "path": {
+      "type": "string",
+      "friendly": "FTP Remote path",
+      "value": "",
+      "persistent": true
+    },
+    "user": {
+      "type": "string",
+      "friendly": "FTP User",
+      "value": "",
+      "persistent": true
+    },
+    "password": {
+      "type": "string",
+      "friendly": "FTP Password",
+      "value": "",
+      "persistent": true
+    }
   }
 }

@@ -172,6 +172,254 @@ python main.py
 
 Visit `http://localhost:5001`!
 
+## 🔧 Accessing Configuration Settings
+
+The framework provides a safe way to access configuration settings using the `get_config_or_error()` helper function from `utilities.py`. This function handles missing configuration keys gracefully and provides clear error messages to users.
+
+### Why Use get_config_or_error()?
+
+- **Error Handling**: Automatically catches `KeyError` exceptions when config keys are missing
+- **User-Friendly**: Returns a properly formatted error page instead of crashing
+- **Clean Code**: Supports retrieving multiple config values in a single call
+- **Type Safety**: Clearer intent and better error messages
+
+### Basic Usage
+
+```python
+from submodules.framework.src.modules.utilities import get_config_or_error
+from submodules.framework.src.modules.settings import SettingsManager
+
+# Get settings manager
+settings_mgr = SettingsManager("config.json")
+settings_mgr.load()
+
+# Single config value
+source, error = get_config_or_error(settings_mgr, "updates.source.value")
+if error:
+    return error  # Returns error page if config missing
+# Use source safely here
+```
+
+### Multiple Config Values
+
+For cleaner code when accessing multiple configuration values:
+
+```python
+# Get multiple values at once
+configs, error = get_config_or_error(settings_mgr,
+                                     "updates.address.value",
+                                     "updates.user.value",
+                                     "updates.password.value")
+if error:
+    return error
+
+# Access values using dot-notation keys
+address = configs["updates.address.value"]
+user = configs["updates.user.value"]
+password = configs["updates.password.value"]
+```
+
+### In Route Functions
+
+Typical usage in a Flask route:
+
+```python
+@bp.route("/my_page", methods=["GET"])
+def my_page():
+    # Load all required config at once
+    configs, error = get_config_or_error(get_settings_manager(),
+                                         "section.key1.value",
+                                         "section.key2.value")
+    if error:
+        return error  # Automatically renders error.j2 template
+    
+    # Use configs safely
+    value1 = configs["section.key1.value"]
+    value2 = configs["section.key2.value"]
+    
+    # ... rest of your route logic
+```
+
+### In Background Tasks
+
+When using in threaded actions or background tasks:
+
+```python
+def action(self):
+    configs, error = get_config_or_error(get_settings_manager(),
+                                         "server.host.value",
+                                         "server.port.value")
+    if error:
+        if self.m_logger:
+            self.m_logger.error("Failed to get server config")
+        return  # Exit gracefully
+    
+    host = configs["server.host.value"]
+    port = configs["server.port.value"]
+    # ... continue with your task
+```
+
+### Configuration Path Format
+
+Configuration paths use dot notation to navigate nested dictionaries:
+- Format: `"topic.key.value"`
+- Example: `"updates.source.value"` accesses `config["updates"]["source"]["value"]`
+
+This approach is used throughout `updater.py` and `packager.py` for safe configuration access.
+
+## 📝 Optional Feature Configurations
+
+The framework provides a system for managing configuration sections that are only needed when specific features are enabled. This keeps your `config.json` clean and only includes settings relevant to your enabled features.
+
+### How It Works
+
+When you enable a feature like `enable_updater()` or `enable_bug_tracker()`, the framework automatically adds the necessary configuration sections to your `config.json` if they don't already exist. Default values are defined in `src/modules/default_configs.py`.
+
+### Supported Optional Configurations
+
+- **Bug Tracker (Redmine)**: Requires `enable_bug_tracker()`
+  - Redmine server credentials and connection settings
+  
+- **Updater/Packager**: Requires `enable_updater()` or `enable_packager()`
+  - FTP or folder-based maintenance server configuration
+  - Update source, credentials, and paths
+
+### Usage in site_conf.py
+
+```python
+from submodules.framework.src.modules.site_conf import Site_conf
+
+class MySiteConf(Site_conf):
+    def __init__(self):
+        super().__init__()
+        
+        # Enable features - this automatically adds their config sections
+        self.enable_bug_tracker()  # Adds 'redmine' section to config
+        self.enable_updater()      # Adds 'updates' section to config
+        self.enable_packager()     # Also uses 'updates' section
+```
+
+### Configuration Merging Behavior
+
+When a feature is enabled:
+
+1. **First time**: The entire default configuration section is added to `config.json`
+2. **Subsequent runs**: Only missing keys are added (existing values are preserved)
+3. **Persistent settings**: Values marked `"persistent": true` survive updates
+4. **User modifications**: Your custom values are never overwritten
+
+### Example Configuration Sections
+
+**Redmine (Bug Tracker)**:
+```json
+{
+    "redmine": {
+        "friendly": "Redmine credentials",
+        "user": {
+            "type": "string",
+            "friendly": "User",
+            "value": "",
+            "persistent": true
+        },
+        "password": {
+            "type": "string",
+            "friendly": "Password",
+            "value": "",
+            "persistent": true
+        },
+        "address": {
+            "type": "string",
+            "friendly": "Address",
+            "value": "https://redmine.example.com/",
+            "persistent": true
+        }
+    }
+}
+```
+
+**Updates (Updater/Packager)**:
+```json
+{
+    "updates": {
+        "friendly": "Maintenance server configuration",
+        "source": {
+            "type": "select",
+            "friendly": "Source",
+            "value": "FTP",
+            "options": ["FTP", "Folder"],
+            "persistent": false
+        },
+        "address": {
+            "type": "string",
+            "friendly": "FTP Address",
+            "value": "",
+            "persistent": true
+        },
+        "user": {
+            "type": "string",
+            "friendly": "FTP User",
+            "value": "",
+            "persistent": true
+        },
+        "password": {
+            "type": "string",
+            "friendly": "FTP Password",
+            "value": "",
+            "persistent": true
+        }
+    }
+}
+```
+
+### Adding Custom Optional Configurations
+
+You can add your own optional configurations in `default_configs.py`:
+
+```python
+# In src/modules/default_configs.py
+
+MY_FEATURE_CONFIG = {
+    "my_feature": {
+        "friendly": "My Feature Settings",
+        "api_key": {
+            "type": "string",
+            "friendly": "API Key",
+            "value": "",
+            "persistent": true
+        }
+    }
+}
+
+# Add to FEATURE_CONFIGS map
+FEATURE_CONFIGS = {
+    "bug_tracker": REDMINE_CONFIG,
+    "updater": UPDATES_CONFIG,
+    "packager": UPDATES_CONFIG,
+    "my_custom_feature": MY_FEATURE_CONFIG,  # Your feature
+}
+```
+
+Then in your site_conf, you can control when it appears:
+
+```python
+class MySiteConf(Site_conf):
+    def __init__(self):
+        super().__init__()
+        
+        # Add custom feature flag
+        self.m_enable_my_custom_feature = True
+        
+        # The merge_optional_configs will check this flag
+```
+
+### Benefits
+
+- **Clean config files**: Only see settings for features you use
+- **Easy onboarding**: New users don't see overwhelming configuration
+- **Automatic updates**: New features automatically add their settings
+- **Version control friendly**: Minimal config diffs when adding features
+- **User-friendly**: Settings page only shows relevant sections
+
 ## 🎯 Complete Example
 
 See the [example_website](example_website/) directory for a fully working example project that demonstrates:

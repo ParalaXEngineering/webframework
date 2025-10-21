@@ -86,4 +86,65 @@ class SettingsManager:
             addr = manager.get_nested("updates", "address", "value", raise_on_missing=True)
         """
         return self.storage.get_nested(*keys, default=default, raise_on_missing=raise_on_missing)
+    
+    def merge_optional_configs(self, site_conf_obj) -> None:
+        """
+        Merge optional configuration sections based on enabled features in site_conf.
+        
+        This method checks which optional features are enabled in site_conf and adds
+        their default configurations to the settings if they don't already exist.
+        
+        Args:
+            site_conf_obj: Site configuration object with feature flags
+        """
+        try:
+            from ..default_configs import FEATURE_CONFIGS
+        except ImportError:
+            # If default_configs doesn't exist, skip merging
+            return
+        
+        if self._settings is None:
+            self.load()
+        
+        if self._settings is None:
+            return
+        
+        # Check each feature and merge its config if enabled
+        feature_map = {
+            "bug_tracker": site_conf_obj.m_enable_bug_tracker,
+            "updater": site_conf_obj.m_enable_updater,
+            "packager": site_conf_obj.m_enable_packager,
+        }
+        
+        for feature, is_enabled in feature_map.items():
+            if is_enabled and feature in FEATURE_CONFIGS:
+                config_to_merge = FEATURE_CONFIGS[feature]
+                
+                # Merge each top-level section from the feature config
+                for section_name, section_data in config_to_merge.items():
+                    if section_name not in self._settings:
+                        # Section doesn't exist, add it entirely
+                        self._settings[section_name] = section_data
+                    else:
+                        # Section exists, merge only missing keys
+                        self._merge_section(self._settings[section_name], section_data)
+        
+        # Save merged settings
+        self.save()
+    
+    def _merge_section(self, existing: Dict[str, Any], new: Dict[str, Any]) -> None:
+        """
+        Recursively merge new config into existing config without overwriting existing values.
+        
+        Args:
+            existing: Existing configuration section
+            new: New configuration section to merge in
+        """
+        for key, value in new.items():
+            if key not in existing:
+                # Key doesn't exist, add it
+                existing[key] = value
+            elif isinstance(value, dict) and isinstance(existing[key], dict):
+                # Both are dicts, merge recursively
+                self._merge_section(existing[key], value)
 
