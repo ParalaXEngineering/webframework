@@ -403,7 +403,20 @@ Now let's create the essential files for your website.
 
 **Step 1: Create Site Configuration** (``website/site_conf.py``)
 
-This file defines your site's navigation, branding, and settings:
+This file defines your site's navigation, branding, and settings. Here's a complete example from the manual test webapp:
+
+.. literalinclude:: ../../tests/manual_test_webapp.py
+   :language: python
+   :pyobject: TestSiteConf
+   :caption: tests/manual_test_webapp.py - Complete Site Configuration Example
+
+This example demonstrates:
+- Configuring application metadata (name, version, icon)
+- Building sidebar navigation with titles, sections, and submenus
+- Enabling all framework features with ``enable_all_features()``
+- Customizing topbar settings
+
+For a simpler starting point, you might want:
 
 .. code-block:: python
 
@@ -567,57 +580,19 @@ Or create a separate blueprint file (``website/pages/about.py``) and register it
 Handling Form Data
 ^^^^^^^^^^^^^^^^^^
 
-To create a contact form in your website:
+To create a form that handles user input, here's a complete working example from the manual test webapp:
 
-.. code-block:: python
+.. literalinclude:: ../../tests/demo_support/demo_pages.py
+   :language: python
+   :pyobject: simple_form_demo
+   :caption: tests/demo_support/demo_pages.py - Simple Form Example
 
-   # In website/pages/home.py (or separate contact.py)
-   from flask import request
-   from submodules.framework.src.modules.displayer import (
-       DisplayerItemInput, DisplayerItemTextarea, DisplayerItemButton
-   )
-   from submodules.framework.src.modules.utilities import util_post_to_json
-   
-   
-   @home_bp.route('/contact', methods=["GET", "POST"])
-   def contact():
-       if request.method == "POST":
-           # Parse form data using util_post_to_json
-           # This handles hierarchical form data (module.field structure)
-           data_in = util_post_to_json(request.form.to_dict())
-           
-           # Extract values from parsed data
-           contact_data = data_in.get("contact", {})
-           name = contact_data.get("name", "")
-           email = contact_data.get("email", "")
-           message = contact_data.get("message", "")
-           
-           # Show confirmation
-           disp = Displayer()
-           disp.add_generic({"title": "Thank You"})
-           disp.add_display_item(
-               DisplayerItemText(f"Thanks, {name}! We'll be in touch.")
-           )
-           return disp.display()
-       
-       # Show form
-       disp = Displayer()
-       disp.add_generic({"id": "contact", "title": "Contact Us"})
-       
-       disp.add_display_item(
-           DisplayerItemInput("name", label="Your Name", required=True)
-       )
-       disp.add_display_item(
-           DisplayerItemInput("email", label="Email", input_type="email")
-       )
-       disp.add_display_item(
-           DisplayerItemTextarea("message", label="Message", rows=5)
-       )
-       disp.add_display_item(
-           DisplayerItemButton("Send", button_type="submit", color="primary")
-       )
-       
-       return disp.display()
+This example demonstrates:
+- Handling GET (show form) and POST (process submission) requests
+- Using ``util_post_to_json()`` to parse form data
+- Extracting values from the nested dictionary structure
+- Displaying feedback to the user
+- Creating a complete form with input and submit button
 
 .. important::
    Always use ``util_post_to_json()`` to parse form data. The Displayer system creates hierarchical form field names (``module_id.field_name``), and this utility properly converts them to nested dictionaries.

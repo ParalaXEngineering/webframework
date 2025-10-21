@@ -61,9 +61,11 @@ class TestSiteConf(site_conf.Site_conf):
         # Configure sidebar with demo pages
         self.add_sidebar_title("Demo Pages")
         self.add_sidebar_section("Demos", "test-tube", "demo")
-        self.add_sidebar_submenu("Threading Demo", "demo.threading_demo")
-        self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo")
-        self.add_sidebar_submenu("Workflow Demo", "demo.workflow_demo")
+        self.add_sidebar_submenu("Demo Index", "demo.index", endpoint="demo")
+        self.add_sidebar_submenu("Simple Form", "demo.simple_form_demo", endpoint="demo")
+        self.add_sidebar_submenu("Threading Demo", "demo.threading_demo", endpoint="demo")
+        self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo", endpoint="demo")
+        self.add_sidebar_submenu("Workflow Demo", "demo.workflow_demo", endpoint="demo")
         
         # Component Showcase - Auto-generated from DisplayerCategory
         self.add_sidebar_title("Displayer Showcase")

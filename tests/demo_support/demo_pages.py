@@ -22,66 +22,103 @@ def require_login(f):
     return decorated_function
 
 
-@demo_bp.route('/')
+@demo_bp.route('/index')
 @require_login
 def index():
     """Main index page - demo landing page."""
     disp = displayer.Displayer()
     disp.add_generic("Demo Landing")
     disp.set_title("ParalaX Framework Demos")
-    
-    # Add demo links
-    disp.add_master_layout(
-        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12],
-                                 subtitle="Available Demos")
+       
+    table_id = disp.add_master_layout(
+        displayer.DisplayerLayout(displayer.Layouts.TABLE,
+                                 columns=["Demo", "Category", "Description"], subtitle="Available Demos")
     )
     
-    demos_html = """
-    <div class="list-group">
-        <a href="/threading-demo" class="list-group-item list-group-item-action">
-            <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">Threading System</h5>
-                <span class="badge bg-primary">Core System</span>
-            </div>
-            <p class="mb-1">Background task execution with real-time monitoring</p>
-        </a>
-        <a href="/scheduler-demo" class="list-group-item list-group-item-action">
-            <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">Scheduler & Actions</h5>
-                <span class="badge bg-primary">Core System</span>
-            </div>
-            <p class="mb-1">Real-time UI updates, button control, and alert system</p>
-        </a>
-        <a href="/workflow-demo" class="list-group-item list-group-item-action">
-            <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">Workflow System</h5>
-                <span class="badge bg-success">New!</span>
-            </div>
-            <p class="mb-1">Multi-step wizards with state persistence and conditional steps</p>
-        </a>
-        <a href="/component-showcase" class="list-group-item list-group-item-action">
-            <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">Component Showcase</h5>
-                <span class="badge bg-info">UI Components</span>
-            </div>
-            <p class="mb-1">All available displayer items and layouts</p>
-        </a>
-        <a href="/auth-demo" class="list-group-item list-group-item-action">
-            <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">Authentication System</h5>
-                <span class="badge bg-warning">Security</span>
-            </div>
-            <p class="mb-1">Role-based access control and permissions</p>
-        </a>
-    </div>
-    """
+    demos = [
+        ("Simple Form", "Basics", "Basic form handling with text input", "demo.simple_form_demo", "success"),
+        ("Threading System", "Core System", "Background task execution with real-time monitoring", "demo.threading_demo", "primary"),
+        ("Scheduler & Actions", "Core System", "Real-time UI updates, button control, and alert system", "demo.scheduler_demo", "primary"),
+        ("Workflow System", "New!", "Multi-step wizards with state persistence and conditional steps", "demo.workflow_demo", "success"),
+        ("Component Showcase", "UI Components", "All available displayer items and layouts", "showcase.index", "info"),
+        ("Authentication System", "Security", "Role-based access control and permissions", "demo.auth_accessible", "warning"),
+    ]
     
-    disp.add_display_item(
-        displayer.DisplayerItemText(demos_html),
-        0
-    )
+    for line, (name, category, description, endpoint, badge_color) in enumerate(demos):
+        # Demo name as link
+        disp.add_display_item(
+            displayer.DisplayerItemButtonLink(
+                f"btn_{line}", name, "", 
+                url_for(endpoint), [], 
+                displayer.BSstyle.SECONDARY
+            ),
+            column=0, line=line, layout_id=table_id
+        )
+        
+        # Category badge
+        badge_style = getattr(displayer.BSstyle, badge_color.upper())
+        disp.add_display_item(
+            displayer.DisplayerItemBadge(category, badge_style),
+            column=1, line=line, layout_id=table_id
+        )
+        
+        # Description
+        disp.add_display_item(
+            displayer.DisplayerItemText(description),
+            column=2, line=line, layout_id=table_id
+        )
     
-    return render_template("base_content.j2", content=disp.display())
+    return render_template("base_content.j2", content=disp.display(), target="demo.index")
+
+
+@demo_bp.route('/simple-form-demo', methods=['GET', 'POST'])
+@require_login
+def simple_form_demo():
+    """Simple form demo - basic text input and display."""
+    disp = displayer.Displayer()
+    disp.add_generic("Simple Form Demo")
+    disp.set_title("Simple Form Example")
+    
+    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Simple Form", "demo.simple_form_demo", [])
+    
+    # Handle POST - display submitted data
+    if request.method == 'POST':
+        # Parse form data using util_post_to_json
+        data_in = utilities.util_post_to_json(request.form.to_dict())
+        
+        # Extract data from the module
+        if "Simple Form Demo" in data_in:
+            form_data = data_in["Simple Form Demo"]
+            user_text = form_data.get("input_text", "")
+            
+            # Show success message with submitted text
+            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+            disp.add_display_item(displayer.DisplayerItemAlert(
+                f"<strong>Form Submitted!</strong><br>You entered: <em>{user_text}</em>",
+                displayer.BSstyle.SUCCESS
+            ), 0)
+    
+    # Show form
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<p>This is a simple form example. Enter some text and click submit.</p>"
+    ), 0)
+    
+    disp.add_display_item(displayer.DisplayerItemInputString(
+        "input_text",
+        "Enter Text",
+        value=""
+    ), 0)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_submit",
+        "Submit",
+        color=displayer.BSstyle.PRIMARY
+    ), 0)
+    
+    return render_template("base_content.j2", content=disp.display(), target="demo.simple_form_demo")
+
 
 @demo_bp.route('/threading-demo', methods=['GET', 'POST'])
 @require_login

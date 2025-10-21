@@ -313,6 +313,22 @@ To create a custom site handler:
 
 1. **Inherit from Site_conf**:
 
+   Here's a complete example from the manual test webapp:
+
+   .. literalinclude:: ../../tests/manual_test_webapp.py
+      :language: python
+      :pyobject: TestSiteConf
+      :caption: tests/manual_test_webapp.py - Complete Site Configuration
+
+   This example demonstrates:
+   - Setting application metadata
+   - Building complex sidebar navigation with sections and submenus
+   - Enabling all framework features with ``enable_all_features()``
+   - Customizing static file paths
+   - Adding context processors
+
+   For a simpler starting point:
+
    .. code-block:: python
 
       from src.site_conf import Site_conf
@@ -320,8 +336,16 @@ To create a custom site handler:
       class MySiteHandler(Site_conf):
           def __init__(self):
               super().__init__()
-              self.site_name = "My Application"
-              self.site_description = "Custom management interface"
+              self.m_app = {
+                  "name": "My Application",
+                  "version": "1.0.0",
+                  "icon": "rocket"
+              }
+              self.m_index = "Welcome to my application"
+              
+              # Enable only needed features
+              self.enable_authentication(add_to_sidebar=True)
+              self.enable_threads(add_to_sidebar=True)
 
 2. **Define custom actions**:
 
@@ -352,6 +376,14 @@ To create a custom site handler:
    .. code-block:: python
 
       from my_site_handler import MySiteHandler
+      from src.main import app, setup_app
+      from src.modules import site_conf
       
-      site = MySiteHandler()
+      # Set configuration BEFORE setup_app
+      site_conf.site_conf_obj = MySiteHandler()
+      
+      # Initialize framework
+      socketio = setup_app(app)
+      
+      # Register custom blueprints
       app.register_blueprint(my_bp)
