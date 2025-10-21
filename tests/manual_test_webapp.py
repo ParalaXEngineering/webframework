@@ -124,9 +124,10 @@ class TestSiteConf(site_conf.Site_conf):
     
     def context_processor(self):
         """Return context for templates"""
-        return {
-            "enable_easter_eggs": self.m_enable_easter_eggs
-        }
+        # Call parent to get base context (includes enable_bug_tracker, etc.)
+        context = super().context_processor()
+        # Add any custom overrides here if needed
+        return context
 
 # Setup the application using framework's setup_app
 logger.info("Initializing manual test application using framework setup")

@@ -623,7 +623,8 @@ class Site_conf:
             Dictionary of context variables to inject into templates
         """
         return {
-            "enable_easter_eggs": self.configure_easter_eggs()
+            "enable_easter_eggs": self.configure_easter_eggs(),
+            "enable_bug_tracker": self.m_enable_bug_tracker
         }
 
     def socketio_event(self, event, data):

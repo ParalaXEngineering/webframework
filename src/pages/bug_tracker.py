@@ -16,7 +16,6 @@ import zipfile
 import glob
 import re
 import base64
-import hashlib
 from datetime import datetime
 from bs4 import BeautifulSoup
 import textile
@@ -102,65 +101,13 @@ def edit_issue(issue_id):
                     'description': description_textile + '\r\n\r\n' + f"_Last edited by User {current_user}_"
                 }
                 
-                # Handle embedded images - check if they already exist by comparing hashes
+                # Handle embedded images
                 uploads_list = []
-                
-                # Get existing image attachments and their hashes
-                existing_images = {}
-                if hasattr(issue, 'attachments'):
-                    for attachment in issue.attachments:
-                        if attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')):
-                            try:
-                                img_response = attachment.download()
-                                if hasattr(img_response, 'content'):
-                                    img_bytes = img_response.content
-                                elif hasattr(img_response, 'read'):
-                                    img_bytes = img_response.read()
-                                else:
-                                    img_bytes = img_response
-                                img_hash = hashlib.md5(img_bytes).hexdigest()
-                                existing_images[img_hash] = attachment.filename
-                            except Exception:
-                                pass
-                
-                # Process embedded images - only upload if new or changed
                 for img_data in embedded_images:
-                    img_hash = hashlib.md5(img_data['data']).hexdigest()
-                    
-                    # Check if this exact image already exists
-                    if img_hash in existing_images:
-                        # Image already exists - update the textile reference to use existing filename
-                        old_filename = img_data['filename']
-                        existing_filename = existing_images[img_hash]
-                        # Update the description to reference the existing image
-                        update_data['description'] = update_data['description'].replace(
-                            f"!{old_filename}!",
-                            f"!{existing_filename}!"
-                        )
-                    else:
-                        # New or changed image - upload it
-                        # Find a unique filename if needed
-                        base_name = img_data['filename'].rsplit('.', 1)[0]
-                        extension = img_data['filename'].rsplit('.', 1)[1]
-                        new_filename = img_data['filename']
-                        counter = 1
-                        
-                        # Check if filename already exists with different content
-                        while any(att.filename == new_filename for att in issue.attachments):
-                            new_filename = f"{base_name}_v{counter}.{extension}"
-                            counter += 1
-                        
-                        # Update the textile reference if filename changed
-                        if new_filename != img_data['filename']:
-                            update_data['description'] = update_data['description'].replace(
-                                f"!{img_data['filename']}!",
-                                f"!{new_filename}!"
-                            )
-                        
-                        temp_img_path = os.path.join(os.getcwd(), new_filename)
-                        with open(temp_img_path, 'wb') as f:
-                            f.write(img_data['data'])
-                        uploads_list.append({'path': temp_img_path, 'description': f"Embedded image: {new_filename}"})
+                    temp_img_path = os.path.join(os.getcwd(), img_data['filename'])
+                    with open(temp_img_path, 'wb') as f:
+                        f.write(img_data['data'])
+                    uploads_list.append({'path': temp_img_path, 'description': f"Embedded image: {img_data['filename']}"})
                 
                 if uploads_list:
                     update_data['uploads'] = uploads_list
@@ -169,8 +116,8 @@ def edit_issue(issue_id):
                 redmine.issue.update(issue_id, **update_data)
                 
                 # Clean up temporary image files
-                for upload_info in uploads_list:
-                    temp_img_path = upload_info['path']
+                for img_data in embedded_images:
+                    temp_img_path = os.path.join(os.getcwd(), img_data['filename'])
                     if os.path.exists(temp_img_path):
                         try:
                             os.remove(temp_img_path)
@@ -182,15 +129,14 @@ def edit_issue(issue_id):
                 return redirect(url_for('bug.bugtracker'))
                 
             except Exception as e:
-                # Clean up temporary image files if they were created
-                if 'uploads_list' in locals():
-                    for upload_info in uploads_list:
-                        temp_img_path = upload_info['path']
-                        if os.path.exists(temp_img_path):
-                            try:
-                                os.remove(temp_img_path)
-                            except Exception:
-                                pass
+                # Clean up temporary image files
+                for img_data in embedded_images:
+                    temp_img_path = os.path.join(os.getcwd(), img_data['filename'])
+                    if os.path.exists(temp_img_path):
+                        try:
+                            os.remove(temp_img_path)
+                        except Exception:
+                            pass
                 return render_template("error.j2", message=f"Issue update failed: {e}")
 
         # Display edit form
@@ -217,46 +163,6 @@ def edit_issue(issue_id):
     from flask import url_for
     form_action = url_for('bug.edit_issue', issue_id=issue_id)
     return render_template("base_content.j2", content=disp.display(), target=None, form_action=form_action)
-
-
-def format_description_preview(textile_content, max_length=200):
-    """
-    Convert Textile description to HTML preview for table display.
-    Limits to max_length characters and removes images.
-    
-    Args:
-        textile_content (str): Textile content from Redmine
-        max_length (int): Maximum number of characters to display
-        
-    Returns:
-        str: HTML formatted preview
-    """
-    if not textile_content or not textile_content.strip():
-        return ""
-    
-    # Remove user signatures
-    content = re.sub(r'\n*_Added by User.*?_\s*$', '', textile_content, flags=re.MULTILINE | re.DOTALL)
-    content = re.sub(r'\n*_Last edited by User.*?_\s*$', '', content, flags=re.MULTILINE | re.DOTALL)
-    
-    # Remove image references
-    content = re.sub(r'!([^!\n]+)!', '', content)
-    content = re.sub(r'\[Attached Image: ([^\]]+)\]', '', content)
-    content = re.sub(r'\*\[Attached Image: ([^\]]+)\]\*', '', content)
-    
-    # Convert to HTML
-    html = textile.textile(content)
-    
-    # Strip HTML tags to get plain text for length calculation
-    soup = BeautifulSoup(html, 'html.parser')
-    text = soup.get_text()
-    
-    # Truncate if needed
-    if len(text) > max_length:
-        text = text[:max_length] + "..."
-        # Re-convert truncated text to simple HTML
-        html = textile.textile(text)
-    
-    return html
 
 
 def html_to_redmine_textile(html_content):
@@ -299,77 +205,23 @@ def html_to_redmine_textile(html_content):
                 # External image URL - keep as reference
                 img.replace_with(f"\n!{src}!\n")
     
-    # Convert HTML elements to Textile syntax
-    def html_element_to_textile(element):
-        """Recursively convert HTML elements to Textile."""
-        if isinstance(element, str):
-            return element
-        
-        if element.name is None:
-            return str(element)
-        
-        # Get the text content, recursively processing children
-        children_text = ''.join(html_element_to_textile(child) for child in element.children)
-        
-        # Convert based on tag type
-        if element.name in ['strong', 'b']:
-            return f"*{children_text}*"
-        elif element.name in ['em', 'i']:
-            return f"_{children_text}_"
-        elif element.name == 'u':
-            return f"+{children_text}+"
-        elif element.name in ['del', 's', 'strike']:
-            return f"-{children_text}-"
-        elif element.name == 'h1':
-            return f"\n\nh1. {children_text}\n\n"
-        elif element.name == 'h2':
-            return f"\n\nh2. {children_text}\n\n"
-        elif element.name == 'h3':
-            return f"\n\nh3. {children_text}\n\n"
-        elif element.name == 'h4':
-            return f"\n\nh4. {children_text}\n\n"
-        elif element.name == 'h5':
-            return f"\n\nh5. {children_text}\n\n"
-        elif element.name == 'h6':
-            return f"\n\nh6. {children_text}\n\n"
-        elif element.name == 'code':
-            return f"@{children_text}@"
-        elif element.name == 'pre':
-            return f"\n<pre>\n{children_text}\n</pre>\n"
-        elif element.name == 'a':
-            href = element.get('href', '')
-            if href:
-                return f'"{children_text}":{href}'
-            return children_text
-        elif element.name == 'ul':
-            items = []
-            for li in element.find_all('li', recursive=False):
-                items.append(f"* {html_element_to_textile(li)}")
-            return '\n' + '\n'.join(items) + '\n'
-        elif element.name == 'ol':
-            items = []
-            for li in element.find_all('li', recursive=False):
-                items.append(f"# {html_element_to_textile(li)}")
-            return '\n' + '\n'.join(items) + '\n'
-        elif element.name == 'li':
-            # For nested lists, just return the content
-            return children_text
-        elif element.name == 'p':
-            return f"\n{children_text}\n"
-        elif element.name == 'br':
-            return "\n"
-        elif element.name == 'div':
-            return f"\n{children_text}\n"
-        else:
-            # Unknown tags - just return the text content
-            return children_text
+    # Use html2text-style conversion - get the cleaned HTML as string
+    # and replace image markers with proper Textile syntax
+    html_str = str(soup)
     
-    # Convert the entire body to Textile
-    textile = html_element_to_textile(soup)
-    
-    # Replace image markers with proper Textile syntax
+    # Convert image markers to Textile format
     for i in range(1, image_counter):
-        textile = textile.replace(f"__IMAGE_MARKER_{i}__", f"\n!image_{i}.png!\n")
+        html_str = html_str.replace(f"__IMAGE_MARKER_{i}__", f"!image_{i}.png!")
+    
+    # Now convert HTML to plain text with some Textile formatting
+    # For simplicity, just extract text and try to preserve basic structure
+    textile = soup.get_text(separator='\n')
+    
+    # Replace image markers in the text version too
+    for i in range(1, image_counter):
+        marker = f"__IMAGE_MARKER_{i}__"
+        if marker in textile:
+            textile = textile.replace(marker, f"\n!image_{i}.png!\n")
     
     # Clean up excessive newlines
     textile = re.sub(r'\n{3,}', '\n\n', textile)
@@ -397,15 +249,22 @@ def redmine_textile_to_html(textile_content, issue=None):
     content = re.sub(r'\n*_Added by User.*?_\s*$', '', textile_content, flags=re.MULTILINE | re.DOTALL)
     content = re.sub(r'\n*_Last edited by User.*?_\s*$', '', content, flags=re.MULTILINE | re.DOTALL)
     
+    # Debug: Let's see what we're working with
+    print(f"DEBUG: Original content after signature removal: {repr(content[:500])}")
+    
     # If we have the issue object, try to replace image references with base64 embedded images
     if issue and hasattr(issue, 'attachments'):
+        print(f"DEBUG: Issue has {len(list(issue.attachments))} attachments")
         try:
             # Create a mapping of all image attachments
             attachment_map = {}
             for attachment in issue.attachments:
+                print(f"DEBUG: Found attachment: {attachment.filename}")
                 # Check if it's an image
                 if attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')):
                     attachment_map[attachment.filename] = attachment
+            
+            print(f"DEBUG: Image attachments: {list(attachment_map.keys())}")
             
             # Find all image references - both Textile format (!filename!) and our placeholder format
             # Pattern 1: !filename! (Textile format)
@@ -414,21 +273,18 @@ def redmine_textile_to_html(textile_content, issue=None):
             placeholder_refs = re.findall(r'\[Attached Image: ([^\]]+)\]', content)
             
             all_refs = list(set(image_refs + placeholder_refs))  # Combine and deduplicate
+            print(f"DEBUG: Found image references: {all_refs}")
             
             for img_ref in all_refs:
                 # Try to find matching attachment
                 if img_ref in attachment_map:
+                    print(f"DEBUG: Matched image reference: {img_ref}")
                     attachment = attachment_map[img_ref]
                     try:
                         # Download the attachment
-                        img_response = attachment.download()
-                        # The download() method returns a Response object, we need to get the content
-                        if hasattr(img_response, 'content'):
-                            img_data = img_response.content
-                        elif hasattr(img_response, 'read'):
-                            img_data = img_response.read()
-                        else:
-                            img_data = img_response
+                        print(f"DEBUG: Downloading {img_ref}...")
+                        img_data = attachment.download()
+                        print(f"DEBUG: Downloaded {len(img_data)} bytes")
                         # Convert to base64
                         img_base64 = base64.b64encode(img_data).decode('utf-8')
                         # Determine image type
@@ -443,10 +299,16 @@ def redmine_textile_to_html(textile_content, issue=None):
                         content = content.replace(f'!{img_ref}!', img_tag)
                         content = content.replace(f'[Attached Image: {img_ref}]', img_tag)
                         content = content.replace(f'*[Attached Image: {img_ref}]*', img_tag)
-                    except Exception:
+                        
+                        print(f"DEBUG: Replaced all references to {img_ref} with img tag")
+                    except Exception as ex:
+                        print(f"DEBUG: Failed to download {img_ref}: {ex}")
                         # If download fails for this specific image, leave it as placeholder
                         pass
-        except Exception:
+                else:
+                    print(f"DEBUG: No attachment found for: {img_ref}")
+        except Exception as ex2:
+            print(f"DEBUG: Exception in image processing: {ex2}")
             # If image fetching fails, just continue with placeholders
             pass
     
@@ -502,6 +364,55 @@ def create_logs_archive(max_lines=500):
                 continue
     
     return zip_path if os.path.exists(zip_path) else None
+
+
+@bp.route("/report_error", methods=["GET"])
+def report_error():
+    """
+    Redirect to bugtracker with pre-filled error information from session.
+    """
+    from flask import session, redirect, url_for
+    
+    # Get error info from session (stored by the error handler)
+    error_data = session.get('last_error', {})
+    
+    if error_data:
+        error_message = error_data.get('error', 'Application Error')
+        error_traceback = error_data.get('traceback', '')
+        method = error_data.get('method', '')
+        url = error_data.get('url', '')
+        endpoint = error_data.get('endpoint', '')
+        get_params = error_data.get('get_params', {})
+        post_params = error_data.get('post_params', {})
+        
+        # Build context information in Textile format
+        context_lines = []
+        if method:
+            context_lines.append(f"*Method:* {method}")
+        if url:
+            context_lines.append(f"*URL:* {url}")
+        if endpoint:
+            context_lines.append(f"*Endpoint:* {endpoint}")
+        if get_params:
+            context_lines.append(f"*GET Parameters:* {get_params}")
+        if post_params:
+            context_lines.append(f"*POST Parameters:* {post_params}")
+        
+        # Pre-fill description with error details in Textile format
+        context_section = '\n'.join(context_lines) if context_lines else ''
+        pre_filled_description = f"h2. Error Details\n\n{error_message}\n\n{context_section}\n\nh2. Steps to Reproduce\n\n(Please describe what you were doing when the error occurred)\n\nh2. Traceback\n\n<pre>\n{error_traceback}\n</pre>"
+        
+        # Convert to HTML for TinyMCE
+        pre_filled_html = textile.textile(pre_filled_description)
+        
+        # Store pre-filled data in session for bugtracker to use
+        session['prefill_bug'] = {
+            'subject': 'Application Error',
+            'description': pre_filled_html
+        }
+    
+    # Redirect to main bugtracker
+    return redirect(url_for('bug.bugtracker'))
 
 
 @bp.route("/bugtracker", methods=["GET", "POST"])
@@ -672,16 +583,22 @@ def bugtracker():
                 
                 return render_template("error.j2", message=f"Issue creation failed with the following message: {e}")
 
+        # Check for pre-filled data from report_error
+        from flask import session
+        prefill_data = session.pop('prefill_bug', {})
+        prefill_subject = prefill_data.get('subject', '')
+        prefill_description = prefill_data.get('description', '')
+
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle="Create a new issue")
         )
         disp.add_display_item(displayer.DisplayerItemText("Enter subject"), 0)
-        disp.add_display_item(displayer.DisplayerItemInputString("subject"), 1)
+        disp.add_display_item(displayer.DisplayerItemInputString("subject", value=prefill_subject), 1)
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle="")
         )
         disp.add_display_item(displayer.DisplayerItemText("Enter Description (supports rich text and images)"), 0)
-        disp.add_display_item(displayer.DisplayerItemInputText("description"), 1)
+        disp.add_display_item(displayer.DisplayerItemInputText("description", value=prefill_description), 1)
 
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
@@ -708,9 +625,7 @@ def bugtracker():
             disp.add_display_item(displayer.DisplayerItemText(str(issue.id)), column=0, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.status.name), column=1, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.subject), column=2, line=index)
-            # Convert Textile to HTML and limit to 200 characters
-            description_html = format_description_preview(issue.description, max_length=200)
-            disp.add_display_item(displayer.DisplayerItemText(f'<div style="max-width:40vw; white-space:normal; word-break:break-word;">{description_html}</div>'), column=3, line=index)
+            disp.add_display_item(displayer.DisplayerItemText(f'<div style="max-width:40vw; white-space:normal; word-break:break-word;">{issue.description}</div>'), column=3, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.updated_on.strftime("%Y-%m-%d %H:%M:%S")), column=4, line=index)
             disp.add_display_item(
                 displayer.DisplayerItemActionButtons(
@@ -742,9 +657,7 @@ def bugtracker():
             disp.add_display_item(displayer.DisplayerItemText(str(issue.id)), column=0, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.status.name), column=1, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.subject), column=2, line=index)
-            # Convert Textile to HTML and limit to 200 characters
-            description_html = format_description_preview(issue.description, max_length=200)
-            disp.add_display_item(displayer.DisplayerItemText(f'<div style="max-width:40vw; white-space:normal; word-break:break-word;">{description_html}</div>'), column=3, line=index)
+            disp.add_display_item(displayer.DisplayerItemText(f'<div style="max-width:40vw; white-space:normal; word-break:break-word;">{issue.description}</div>'), column=3, line=index)
             # Use updated_on if closed_on is not available
             closed_time = issue.closed_on.strftime("%Y-%m-%d %H:%M:%S") if hasattr(issue, 'closed_on') and issue.closed_on else issue.updated_on.strftime("%Y-%m-%d %H:%M:%S")
             disp.add_display_item(displayer.DisplayerItemText(closed_time), column=4, line=index)
@@ -777,9 +690,7 @@ def bugtracker():
             disp.add_display_item(displayer.DisplayerItemText(str(issue.id)), column=0, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.status.name), column=1, line=index)
             disp.add_display_item(displayer.DisplayerItemText(issue.subject), column=2, line=index)
-            # Convert Textile to HTML and limit to 200 characters
-            description_html = format_description_preview(issue.description, max_length=200)
-            disp.add_display_item(displayer.DisplayerItemText(f'<div style="max-width:40vw; white-space:normal; word-break:break-word;">{description_html}</div>'), column=3, line=index)
+            disp.add_display_item(displayer.DisplayerItemText(f'<div style="max-width:40vw; white-space:normal; word-break:break-word;">{issue.description}</div>'), column=3, line=index)
             # Use updated_on if closed_on is not available
             closed_time = issue.closed_on.strftime("%Y-%m-%d %H:%M:%S") if hasattr(issue, 'closed_on') and issue.closed_on else issue.updated_on.strftime("%Y-%m-%d %H:%M:%S")
             disp.add_display_item(displayer.DisplayerItemText(closed_time), column=4, line=index)

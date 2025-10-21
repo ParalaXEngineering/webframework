@@ -11,7 +11,11 @@ Internal server error
             <div class="text-white-50 small"><strong>Error:</strong> {{error}}</div>
             {% endif %}
             {%if traceback %}
+            {% if enable_bug_tracker %}
             <div class="text-white-50 small mt-2">The server encountered an error. Please use the button below to report this issue with context information already filled in.</div>
+            {% else %}
+            <div class="text-white-50 small mt-2">The server encountered an error. Please contact the administrator.</div>
+            {% endif %}
             
             <!-- Additional Error Context -->
             {% if method or url %}
@@ -46,13 +50,15 @@ Internal server error
             
             <div class="text-white-50 small mt-3"><pre>Traceback: {{traceback}} </pre></div>
             
-            <!-- Report Bug Button -->
+            <!-- Report Bug Button (only shown if bug tracker is enabled) -->
+            {% if enable_bug_tracker %}
             <div class="mt-3">
                 <a href="{{ url_for('bug.report_error') }}" 
                    class="btn btn-warning btn-lg">
                     <i class="fas fa-bug"></i> Report This Error
                 </a>
             </div>
+            {% endif %}
             {% endif %}
         </div>
     </div>
