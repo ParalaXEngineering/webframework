@@ -2,12 +2,13 @@ from flask import Blueprint, render_template, request
 
 from ..modules import utilities
 from ..modules.auth.auth_manager import auth_manager
-from ..modules.auth import User
 from ..modules import site_conf
 from ..modules import displayer
 from ..modules import SFTPConnection
+from ..modules.settings import SettingsManager
+from ..modules.utilities import get_config_or_error
 
-from ..modules.threaded import Threaded_action
+from ..modules.threaded.threaded_action import Threaded_action
 
 import os
 import zipfile
@@ -19,6 +20,20 @@ import shutil
 import traceback
 import subprocess
 import copy
+
+
+# Global settings manager
+_settings_manager = None
+
+
+def get_settings_manager():
+    """Get or create settings manager instance."""
+    global _settings_manager
+    if _settings_manager is None:
+        config_path = os.path.join(os.getcwd(), "config.json")
+        _settings_manager = SettingsManager(config_path)
+        _settings_manager.load()
+    return _settings_manager
 
 
 class SETUP_Updater(Threaded_action):
@@ -58,18 +73,30 @@ class SETUP_Updater(Threaded_action):
 
     def action(self):
         """Execute the module"""
-        config = utilities.util_read_parameters() or {}
+        settings_mgr = get_settings_manager()
+        
+        # Get SFTP connection parameters with error handling
+        configs, error = get_config_or_error(settings_mgr, 
+                                             "updates.address.value",
+                                             "updates.user.value",
+                                             "updates.password.value")
+        if error:
+            if self.m_logger:
+                self.m_logger.error("Failed to get SFTP config from settings")
+            return
+        
         sftp_conn = SFTPConnection.SFTPConnection(
-            config.get("updates", {}).get("address", {}).get("value", ""),
-            config.get("updates", {}).get("user", {}).get("value", ""),
-            config.get("updates", {}).get("password", {}).get("value", "")
+            configs["updates.address.value"],
+            configs["updates.user.value"],
+            configs["updates.password.value"]
         )
 
         site_conf_obj = site_conf.site_conf_obj
 
         if self.m_action in ("update", "load_update_file"):
-            self.m_scheduler.emit_status(self.get_name(), "Applying update", 103)
-            current_param = utilities.util_read_parameters() or {}
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(self.get_name(), "Applying update", 103)
+            current_param = get_settings_manager().get_all_settings()
 
             # --- Unzip / Untar ---
             if platform.system().lower() == "windows":
@@ -91,7 +118,10 @@ class SETUP_Updater(Threaded_action):
                     tf.extractall(path=dest)
 
             # Recharger le nouveau config.json (qui vient d'être écrasé par l'archive)
-            new_param = utilities.util_read_parameters() or {}
+            # Force reload from disk
+            settings_mgr = get_settings_manager()
+            settings_mgr.load()
+            new_param = settings_mgr.get_all_settings()
 
             # --- MERGE new_param -> current_param ---
             for topic, topic_data in new_param.items():
@@ -140,28 +170,33 @@ class SETUP_Updater(Threaded_action):
                 if topic not in new_param:
                     current_param.pop(topic)
 
-            utilities.util_write_parameters(current_param)
+            # Save merged parameters
+            settings_mgr.storage.save(current_param)
 
             # Configuration pour le lancement du bootloader
-            if platform.system().lower() == "windows":
+            if site_conf_obj and platform.system().lower() == "windows":
                 path_to_bootloader = os.path.join("BTL.bat")
                 path_to_new_executable = os.path.join(site_conf_obj.m_app["name"] + "_update.exe")
                 original_executable_path = os.path.join(site_conf_obj.m_app["name"] + ".exe")
-            else:  # Assuming Linux for other platforms
+            elif site_conf_obj:  # Assuming Linux for other platforms
                 current_directory = os.path.dirname(os.path.abspath(__file__))
                 path_to_bootloader = os.path.join(current_directory, "BTL.sh")
                 path_to_new_executable = os.path.join(site_conf_obj.m_app["name"] + "_update")
                 original_executable_path = os.path.join(site_conf_obj.m_app["name"])
+            else:
+                self.console_write("site_conf_obj not initialized", "ERROR")
+                return
+                
             # Lancer le bootloader dans un nouveau processus
 
             # Vérifier si le script BTL.sh existe
             if not os.path.isfile(path_to_bootloader):
                 print(f"Erreur: Le script {path_to_bootloader} n'existe pas.")
                 return
-            if not os.path.isfile(path_to_bootloader):
+            if not os.path.isfile(path_to_new_executable):
                 print(f"Erreur: Le script {path_to_new_executable} n'existe pas.")
                 return
-            if not os.path.isfile(path_to_bootloader):
+            if not os.path.isfile(original_executable_path):
                 print(f"Erreur: Le script {original_executable_path} n'existe pas.")
                 return
 
@@ -173,20 +208,32 @@ class SETUP_Updater(Threaded_action):
             except Exception as e:
                 print(e)
 
-            self.m_scheduler.emit_status(self.get_name(), "Applying update", 100)
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(self.get_name(), "Applying update", 100)
             if "distribution" in self.m_file:
-                self.m_scheduler.emit_status(
-                    self.get_name(),
-                    "Application will restart, you can close this tab",
-                    102,
-                )
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
+                        self.get_name(),
+                        "Application will restart, you can close this tab",
+                        102,
+                    )
             else:
-                self.m_scheduler.emit_status(
-                    self.get_name(), "Please restart application", 102
-                )
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
+                        self.get_name(), "Please restart application", 102
+                    )
 
         elif self.m_action == "download":
-            config = utilities.util_read_parameters()
+            # Get source configuration with error handling
+            source, error = get_config_or_error(get_settings_manager(), "updates.source.value")
+            if error:
+                if self.m_logger:
+                    self.m_logger.error("Failed to get updates.source.value from config")
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
+                        self.get_name(), "Configuration error: updates.source.value not found", 101
+                    )
+                return
 
             try:
                 os.mkdir(os.path.join("updates"))
@@ -194,48 +241,74 @@ class SETUP_Updater(Threaded_action):
                 pass
 
             # Folder mode
-            self.m_scheduler.emit_status(
-                self.get_name(), "Downloading archive, this might take a while", 103
-            )
-            config = utilities.util_read_parameters()
-            if config["updates"]["source"]["value"] == "Folder":
-                shutil.copyfile(
-                    os.path.join(
-                        config["updates"]["folder"]["value"],
-                        "updates",
-                        site_conf_obj.m_app["name"],
-                        self.m_file,
-                    ),
-                    os.path.join("downloads", self.m_file),
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(
+                    self.get_name(), "Downloading archive, this might take a while", 103
                 )
-
-            # FTP mode
-            elif config["updates"]["source"]["value"] == "FTP":
-                try:
-                    # Définition des chemins
-                    remote_file_path = os.path.join(
-                        config["updates"]["path"]["value"],
-                        "updates",
-                        site_conf_obj.m_app["name"],
-                        self.m_file
-                    ).replace("\\", "/")  # Assure la compatibilité Windows/Linux
-
-                    local_file_path = os.path.join("updates", self.m_file)
-
-                    # Téléchargement du fichier
-                    sftp_conn.download_file(remote_file_path, local_file_path)
-
-                except Exception as e:
-                    self.m_logger.info(f"Update download failed: {e}")
-                    self.m_scheduler.emit_status(
-                        self.get_name(),
-                        "Downloading archive, this might take a while",
-                        101,
+            if source == "Folder":
+                folder_value, error = get_config_or_error(get_settings_manager(), "updates.folder.value")
+                if error:
+                    if self.m_logger:
+                        self.m_logger.error("Failed to get updates.folder.value from config")
+                    if self.m_scheduler:
+                        self.m_scheduler.emit_status(
+                            self.get_name(), "Configuration error: updates.folder.value not found", 101
+                        )
+                    return
+                
+                if site_conf_obj:
+                    shutil.copyfile(
+                        os.path.join(
+                            folder_value,
+                            "updates",
+                            site_conf_obj.m_app["name"],
+                            self.m_file,
+                        ),
+                        os.path.join("downloads", self.m_file),
                     )
 
-            self.m_scheduler.emit_status(
-                self.get_name(), "Downloading archive, this might take a while", 100
-            )
+            # FTP mode
+            elif source == "FTP":
+                try:
+                    if site_conf_obj:
+                        # Get FTP path configuration
+                        path_value, error = get_config_or_error(get_settings_manager(), "updates.path.value")
+                        if error:
+                            if self.m_logger:
+                                self.m_logger.error("Failed to get updates.path.value from config")
+                            if self.m_scheduler:
+                                self.m_scheduler.emit_status(
+                                    self.get_name(), "Configuration error: updates.path.value not found", 101
+                                )
+                            return
+                        
+                        # Définition des chemins
+                        remote_file_path = os.path.join(
+                            path_value,
+                            "updates",
+                            site_conf_obj.m_app["name"],
+                            self.m_file
+                        ).replace("\\", "/")  # Assure la compatibilité Windows/Linux
+
+                        local_file_path = os.path.join("updates", self.m_file)
+
+                        # Téléchargement du fichier
+                        sftp_conn.download_file(remote_file_path, local_file_path)
+
+                except Exception as e:
+                    if self.m_logger:
+                        self.m_logger.info(f"Update download failed: {e}")
+                    if self.m_scheduler:
+                        self.m_scheduler.emit_status(
+                            self.get_name(),
+                            "Downloading archive, this might take a while",
+                            101,
+                        )
+
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(
+                    self.get_name(), "Downloading archive, this might take a while", 100
+                )
 
             # Relist the package availables
             try:
@@ -254,18 +327,18 @@ class SETUP_Updater(Threaded_action):
                 packages = []
 
             # Update the list of package since it has been changed
-            inputs = []
-            inputs.append(
-                {
+            inputs = {
+                "update_package": {
                     "label": "Select",
                     "id": "update_package",
                     "value": "",
                     "type": "select",
                     "data": packages,
                 }
-            )
+            }
             reloader = utilities.util_view_reload_multi_input("update_package", inputs)
-            self.m_scheduler.emit_reload(reloader)
+            if self.m_scheduler:
+                self.m_scheduler.emit_reload(reloader)
 
         elif self.m_action == "create":
             pass
@@ -277,47 +350,53 @@ class SETUP_Updater(Threaded_action):
                 # Alread exists, no big deal
                 pass
 
-            self.m_scheduler.emit_status(
-                self.get_name(), f"Creation of the update package for {self.m_distribution}", 103
-            )
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(
+                    self.get_name(), f"Creation of the update package for {self.m_distribution}", 103
+                )
             # Create the package with pyinstaller
             try:
-                site_conf_obj.create_distribuate(self.m_distribution)
+                if site_conf_obj:
+                    site_conf_obj.create_distribuate(self.m_distribution)
             except Exception as e:
                 traceback_str = traceback.format_exc()
-                self.m_logger.warning("Update creation failed: " + str(e))
-                self.m_logger.info("Traceback was: " + traceback_str)
-                self.m_scheduler.emit_status(
-                    self.get_name(),
-                    f"Creation of the update package for {self.m_distribution}",
-                    101,
-                    supplement=str(e),
-                )
+                if self.m_logger:
+                    self.m_logger.warning("Update creation failed: " + str(e))
+                    self.m_logger.info("Traceback was: " + traceback_str)
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
+                        self.get_name(),
+                        f"Creation of the update package for {self.m_distribution}",
+                        101,
+                        supplement=str(e),
+                    )
                 return
             directories = [os.path.join("updater", self.m_distribution, "dist")]
-            version = site_conf_obj.m_app["version"].split("_")[0]
-            if (self.m_distribution == "Windows"):
-                with zipfile.ZipFile(
-                    os.path.join(
-                        "updates",
-                        site_conf_obj.m_app["name"]
-                        + "_"
-                        + version
-                        + "_"
-                        + platform.system()
-                        + ".zip",
-                    ),
-                    mode="w",
-                ) as archive:
-                    for dir in directories:
-                        directory = pathlib.Path(dir)
-                        for file_path in directory.rglob("*"):
-                            archive.write(
-                                file_path, arcname=file_path.relative_to(directory)
-                            )
-            self.m_scheduler.emit_status(
-                self.get_name(), f"Creation of the update package for {self.m_distribution}", 100
-            )
+            if site_conf_obj:
+                version = site_conf_obj.m_app["version"].split("_")[0]
+                if (self.m_distribution == "Windows"):
+                    with zipfile.ZipFile(
+                        os.path.join(
+                            "updates",
+                            site_conf_obj.m_app["name"]
+                            + "_"
+                            + version
+                            + "_"
+                            + platform.system()
+                            + ".zip",
+                        ),
+                        mode="w",
+                    ) as archive:
+                        for dir in directories:
+                            directory = pathlib.Path(dir)
+                            for file_path in directory.rglob("*"):
+                                archive.write(
+                                    file_path, arcname=file_path.relative_to(directory)
+                                )
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(
+                    self.get_name(), f"Creation of the update package for {self.m_distribution}", 100
+                )
 
         elif self.m_action == "upload":
             updates_folder = "updates"
@@ -329,67 +408,87 @@ class SETUP_Updater(Threaded_action):
                     files_to_upload.append(os.path.join(updates_folder, file))
 
             if not files_to_upload:
-                self.m_scheduler.emit_status(self.get_name(), "Uploading updates, this might take a while", 101)
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(self.get_name(), "Uploading updates, this might take a while", 101)
                 return
 
-            self.m_scheduler.emit_status(self.get_name(), "Uploading updates, this might take a while", 103)
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(self.get_name(), "Uploading updates, this might take a while", 103)
+
+            # Get configuration for upload
+            configs, error = get_config_or_error(get_settings_manager(),
+                                                 "updates.source.value",
+                                                 "updates.folder.value",
+                                                 "updates.path.value")
+            if error:
+                if self.m_logger:
+                    self.m_logger.error("Failed to get upload config from settings")
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(self.get_name(), "Configuration error", 101)
+                return
 
             # Folder mode
-            config = utilities.util_read_parameters()
-
-            if config["updates"]["source"]["value"] == "Folder":
+            if configs["updates.source.value"] == "Folder":
                 try:
-                    os.makedirs(os.path.join(config["updates"]["folder"]["value"], "updates", site_conf_obj.m_app["name"]), exist_ok=True)
+                    if site_conf_obj:
+                        os.makedirs(os.path.join(configs["updates.folder.value"], "updates", site_conf_obj.m_app["name"]), exist_ok=True)
                 except Exception as e:
-                    self.m_scheduler.emit_status(self.get_name(), f"Failed to create directories: {str(e)}", 101)
+                    if self.m_scheduler:
+                        self.m_scheduler.emit_status(self.get_name(), f"Failed to create directories: {str(e)}", 101)
                     return
 
                 for file in files_to_upload:
                     try:
-                        shutil.copyfile(
-                            file,
-                            os.path.join(
-                                config["updates"]["folder"]["value"],
-                                "updates",
-                                site_conf_obj.m_app["name"],
-                                os.path.basename(file),
-                            ),
-                        )
+                        if site_conf_obj:
+                            shutil.copyfile(
+                                file,
+                                os.path.join(
+                                    configs["updates.folder.value"],
+                                    "updates",
+                                    site_conf_obj.m_app["name"],
+                                    os.path.basename(file),
+                                ),
+                            )
                     except Exception as e:
-                        self.m_scheduler.emit_status(self.get_name(), f"Failed to copy file {file}: {str(e)}", 101)
+                        if self.m_scheduler:
+                            self.m_scheduler.emit_status(self.get_name(), f"Failed to copy file {file}: {str(e)}", 101)
                         return
 
             # FTP mode
-            elif config["updates"]["source"]["value"] == "FTP":
+            elif configs["updates.source.value"] == "FTP":
                 try:
-                    # Définition du dossier distant
-                    remote_dir = os.path.join(
-                        config["updates"]["path"]["value"],
-                        "updates",
-                        site_conf_obj.m_app["name"]
-                    ).replace("\\", "/")  # Compatibilité Windows/Linux
+                    if site_conf_obj:
+                        # Définition du dossier distant
+                        remote_dir = os.path.join(
+                            configs["updates.path.value"],
+                            "updates",
+                            site_conf_obj.m_app["name"]
+                        ).replace("\\", "/")  # Compatibilité Windows/Linux
 
-                    # Vérification et création du dossier distant si nécessaire
-                    try:
-                        sftp_conn.listdir(remote_dir)
-                    except FileNotFoundError:
-                        sftp_conn.mkdir(remote_dir)
+                        # Vérification et création du dossier distant si nécessaire
+                        try:
+                            sftp_conn.listdir(remote_dir)
+                        except FileNotFoundError:
+                            sftp_conn.mkdir(remote_dir)
 
-                    # Envoi des fichiers
-                    for file in files_to_upload:
-                        remote_file_path = os.path.join(remote_dir, os.path.basename(file)).replace("\\", "/")
-                        sftp_conn.upload_file(file, remote_file_path)  # Upload du fichier
+                        # Envoi des fichiers
+                        for file in files_to_upload:
+                            remote_file_path = os.path.join(remote_dir, os.path.basename(file)).replace("\\", "/")
+                            sftp_conn.upload_file(file, remote_file_path)  # Upload du fichier
 
                 except Exception as e:
-                    self.m_logger.info(f"Update upload failed: {e}")
-                    self.emit_status(
-                        self.get_name(),
-                        "Uploading updates, this might take a while",
-                        101, e
-                    )
+                    if self.m_logger:
+                        self.m_logger.info(f"Update upload failed: {e}")
+                    if self.m_scheduler:
+                        self.m_scheduler.emit_status(
+                            self.get_name(),
+                            "Uploading updates, this might take a while",
+                            101, str(e)
+                        )
 
-            self.m_scheduler.emit_status(
-                self.get_name(), "Uploading updates, this might take a while", 100
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(
+                    self.get_name(), "Uploading updates, this might take a while", 100
             )
 
 
@@ -431,22 +530,38 @@ def update():
                     os.mkdir("downloads")
                 except FileExistsError:
                     pass
-                f.save(os.path.join("downloads", f.filename))
+                if f.filename:
+                    f.save(os.path.join("downloads", f.filename))
                 packager = SETUP_Updater()
                 packager.set_action("load_update_file")
-                packager.set_file(f.filename)
+                if f.filename:
+                    packager.set_file(f.filename)
                 packager.start()
             except Exception:
                 pass
 
     disp = displayer.Displayer()
     disp.add_module(SETUP_Updater, display=False)
-    disp.set_title(f"Website engine update creation")
-    config = utilities.util_read_parameters()
+    disp.set_title("Website engine update creation")
+    
+    # Load configuration with error handling
+    configs, error = get_config_or_error(get_settings_manager(),
+                                         "updates.source.value",
+                                         "updates.folder.value",
+                                         "updates.path.value",
+                                         "updates.address.value",
+                                         "updates.user.value",
+                                         "updates.password.value")
+    if error:
+        return error
 
     # Check if user is admin
-    current_user_name = auth_manager.get_current_user()
-    user = auth_manager.get_user(current_user_name) if current_user_name else None
+    current_user_name = None
+    if auth_manager:
+        current_user_name = auth_manager.get_current_user()
+    user = None
+    if auth_manager and current_user_name:
+        user = auth_manager.get_user(current_user_name)
     is_admin = user and "admin" in user.groups if user else False
     
     if is_admin and not ((getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"))):
@@ -484,7 +599,7 @@ def update():
         )
         disp.add_display_item(displayer.DisplayerItemButton("upload", "Upload"), 2)
 
-    to_apply = utilities.util_dir_structure(os.path.join("updates"), ".zip")
+    to_apply = utilities.util_dir_structure(os.path.join("updates"), [".zip"])
     disp.add_master_layout(
         displayer.DisplayerLayout(
             displayer.Layouts.VERTICAL,
@@ -504,8 +619,8 @@ def update():
     disp.add_display_item(displayer.DisplayerItemButton("apply", "Apply"), 2)
 
     # Folder mode
-    if config["updates"]["source"]["value"] == "Folder":
-        if not os.path.exists(os.path.join(config["updates"]["folder"]["value"])):
+    if configs["updates.source.value"] == "Folder":
+        if not os.path.exists(os.path.join(configs["updates.folder.value"])):
             info = "Configured update folder doesn't exists"
             disp.add_master_layout(
                 displayer.DisplayerLayout(
@@ -519,14 +634,17 @@ def update():
                 displayer.DisplayerItemAlert(info, displayer.BSstyle.INFO), 0
             )
         else:
-            content = utilities.util_dir_structure(
-                os.path.join(
-                    config["updates"]["folder"]["value"],
-                    "updates",
-                    site_conf_obj.m_app["name"],
-                ),
-                inclusion=[".zip"],
-            )
+            if site_conf_obj:
+                content = utilities.util_dir_structure(
+                    os.path.join(
+                        configs["updates.folder.value"],
+                        "updates",
+                        site_conf_obj.m_app["name"],
+                    ),
+                    inclusion=[".zip"],
+                )
+            else:
+                content = {}
             disp.add_master_layout(
                 displayer.DisplayerLayout(
                     displayer.Layouts.VERTICAL,
@@ -544,7 +662,7 @@ def update():
             )
             disp.add_display_item(
                 displayer.DisplayerItemInputSelect(
-                    "download_package", None, None, content
+                    "download_package", None, None, list(content.values()) if isinstance(content, dict) else []
                 ),
                 1,
             )
@@ -553,25 +671,30 @@ def update():
             )
 
     # FTP mode
-    elif config["updates"]["source"]["value"] == "FTP":
+    elif configs["updates.source.value"] == "FTP":
         try:
             sftp_conn = SFTPConnection.SFTPConnection(
-                config["updates"]["address"]["value"],
-                config["updates"]["user"]["value"],
-                config["updates"]["password"]["value"]
+                configs["updates.address.value"],
+                configs["updates.user.value"],
+                configs["updates.password.value"]
             )
 
             # Définition du chemin distant
-            remote_path = os.path.join(
-                config["updates"]["path"]["value"],
-                "updates",
-                site_conf_obj.m_app["name"]
-            ).replace("\\", "/")  # Assure la compatibilité Windows/Linux
+            remote_path = ""
+            if site_conf_obj:
+                remote_path = os.path.join(
+                    configs["updates.path.value"],
+                    "updates",
+                    site_conf_obj.m_app["name"]
+                ).replace("\\", "/")  # Assure la compatibilité Windows/Linux
 
             # Liste des fichiers dans le dossier distant
             try:
-                content = sftp_conn.listdir(remote_path)
-                content = [item for item in content if platform.system() in item]
+                if remote_path:
+                    content = sftp_conn.listdir(remote_path)
+                    content = [item for item in content if platform.system() in item]
+                else:
+                    content = []
             except FileNotFoundError:
                 content = []
 

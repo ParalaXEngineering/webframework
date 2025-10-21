@@ -5,41 +5,64 @@ from ..modules import displayer
 from ..modules import site_conf
 from ..modules import User_defined_module
 from ..modules.auth.auth_manager import auth_manager
+from ..modules.settings import SettingsManager
 
 from redminelib import Redmine
+
+import os
 
 bp = Blueprint("bug", __name__, url_prefix="/bug")
 
 
+def get_settings_manager():
+    """Get or create settings manager instance."""
+    global _settings_manager
+    if '_settings_manager' not in globals():
+        config_path = os.path.join(os.getcwd(), "config.json")
+        globals()['_settings_manager'] = SettingsManager(config_path)
+        globals()['_settings_manager'].load()
+    return globals()['_settings_manager']
+
+
 @bp.route("/bugtracker", methods=["GET", "POST"])
 def bugtracker():
-    param = utilities.util_read_parameters()
+    param = get_settings_manager().get_all_settings()
     disp = displayer.Displayer()
     # disp.add_generic("Changelog", display=False)
     User_defined_module.User_defined_module.m_default_name = "Bug Tracker"
     disp.add_module(User_defined_module.User_defined_module)
 
-    if not site_conf.Site_conf.m_globals["on_target"]:
+    if site_conf.site_conf_obj and not site_conf.site_conf_obj.m_globals["on_target"]:
         import urllib3
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         try:
             redmine = Redmine(param["redmine"]["address"]["value"], username=param["redmine"]["user"]["value"], password=param["redmine"]["password"]["value"], requests={"verify": False})
         except Exception as e:
-            return render_template("failure.j2", message=f"Redmine connection failed with the following message: {e}")
-        project_id = site_conf.site_conf_obj.m_app["name"].lower().replace('_', '-')
-        issues = redmine.issue.filter(project_id=project_id)
-        issues_closed = redmine.issue.filter(project_id=project_id, status_id=5)
-        issues_rejected = redmine.issue.filter(project_id=project_id, status_id=6)
-        versions = redmine.version.filter(project_id=project_id)
-        version_name = site_conf.site_conf_obj.m_app["version"].lower().replace('_', '-')
+            return render_template("error.j2", message=f"Redmine connection failed with the following message: {e}")
+        
+        if site_conf.site_conf_obj:
+            project_id = site_conf.site_conf_obj.m_app["name"].lower().replace('_', '-')
+            issues = redmine.issue.filter(project_id=project_id)
+            issues_closed = redmine.issue.filter(project_id=project_id, status_id=5)
+            issues_rejected = redmine.issue.filter(project_id=project_id, status_id=6)
+            versions = redmine.version.filter(project_id=project_id)
+            version_name = site_conf.site_conf_obj.m_app["version"].lower().replace('_', '-')
+        else:
+            # Not on target, variables remain uninitialized
+            project_id = None
+            issues = []
+            issues_closed = []
+            issues_rejected = []
+            versions = []
+            version_name = ""
 
         if request.method == "POST":
             data_in = utilities.util_post_to_json(request.form.to_dict())["Bug Tracker"]
             if len(data_in["description"]) < 5:
-                return render_template("failure.j2", message="Please provide a meaningfull description of the issue")
+                return render_template("error.j2", message="Please provide a meaningfull description of the issue")
             if len(data_in["subject"]) < 5:
-                return render_template("failure.j2", message="Please provide a meaningfull subject of the issue")
+                return render_template("error.j2", message="Please provide a meaningfull subject of the issue")
 
             version_redmine = 0
             for version in versions:
@@ -47,16 +70,19 @@ def bugtracker():
                     version_redmine = version.id
 
             try:
-                current_user = auth_manager.get_current_user() or "GUEST"
-                redmine.issue.create(
-                    subject=data_in["subject"],
-                    description=data_in["description"] + '\r\n' + f"Added by User {current_user}",
-                    project_id=project_id,
-                    custom_fields=[{"id": 10, "value": version_redmine}, {"id": 11, "value": "-"}, {"id": 16, "value": "-"}, {"id": 20, "value": "-"}, {"id": 20, "value": "-"}],
-                    uploads=[{'path': 'website.log', 'description': 'Website log'}, {'path': 'root.log', 'description': 'Root log'}]
-                )
+                current_user = "GUEST"
+                if auth_manager:
+                    current_user = auth_manager.get_current_user() or "GUEST"
+                if 'redmine' in locals():
+                    redmine.issue.create(
+                        subject=data_in["subject"],
+                        description=data_in["description"] + '\r\n' + f"Added by User {current_user}",
+                        project_id=project_id,
+                        custom_fields=[{"id": 10, "value": version_redmine}, {"id": 11, "value": "-"}, {"id": 16, "value": "-"}, {"id": 20, "value": "-"}, {"id": 20, "value": "-"}],
+                        uploads=[{'path': 'website.log', 'description': 'Website log'}, {'path': 'root.log', 'description': 'Root log'}]
+                    )
             except Exception as e:
-                return render_template("failure.j2", message=f"Issue creation failed with the following message: {e}")
+                return render_template("error.j2", message=f"Issue creation failed with the following message: {e}")
 
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle="Create a new issue")

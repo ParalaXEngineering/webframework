@@ -5,7 +5,7 @@ Simple wrapper around SettingsStorage with convenience methods.
 """
 
 from typing import Any, Dict, List, Optional
-from .storage import SettingsStorage
+from .storage import SettingsStorage, SettingNotFoundError
 
 
 class SettingsManager:
@@ -62,3 +62,28 @@ class SettingsManager:
         """
         for key, value in updates.items():
             self.set_setting(key, value)
+    
+    def get_nested(self, *keys: str, default: Any = None, raise_on_missing: bool = False) -> Any:
+        """
+        Safely get a nested setting value.
+        
+        Args:
+            *keys: Path to the setting (e.g., "updates", "address", "value")
+            default: Default value if not found (only used if raise_on_missing=False)
+            raise_on_missing: If True, raise SettingNotFoundError instead of returning default
+            
+        Returns:
+            The setting value or default
+            
+        Raises:
+            SettingNotFoundError: If setting not found and raise_on_missing=True
+            
+        Example:
+            # Get updates.address.value with default
+            addr = manager.get_nested("updates", "address", "value", default="")
+            
+            # Get with error on missing  
+            addr = manager.get_nested("updates", "address", "value", raise_on_missing=True)
+        """
+        return self.storage.get_nested(*keys, default=default, raise_on_missing=raise_on_missing)
+

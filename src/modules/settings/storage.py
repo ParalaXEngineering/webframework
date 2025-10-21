@@ -20,6 +20,11 @@ import json
 from typing import Any, Dict, Optional
 
 
+class SettingNotFoundError(Exception):
+    """Raised when a required setting is not found in the configuration."""
+    pass
+
+
 class SettingsStorage:
     """Simple JSON-based settings storage."""
     
@@ -101,3 +106,53 @@ class SettingsStorage:
         if self._settings is None:
             self.load()
         return self._settings if self._settings else {}
+    
+    def get_nested(self, *keys: str, default: Any = None, raise_on_missing: bool = False) -> Any:
+        """
+        Safely get a nested setting value.
+        
+        Args:
+            *keys: Path to the setting (e.g., "updates", "address", "value")
+            default: Default value if not found (only used if raise_on_missing=False)
+            raise_on_missing: If True, raise SettingNotFoundError instead of returning default
+            
+        Returns:
+            The setting value or default
+            
+        Raises:
+            SettingNotFoundError: If setting not found and raise_on_missing=True
+            
+        Example:
+            # Get updates.address.value with default
+            addr = storage.get_nested("updates", "address", "value", default="")
+            
+            # Get with error on missing
+            addr = storage.get_nested("updates", "address", "value", raise_on_missing=True)
+        """
+        if self._settings is None:
+            self.load()
+        
+        if not self._settings:
+            if raise_on_missing:
+                raise SettingNotFoundError("Settings file is empty or not loaded")
+            return default
+        
+        current = self._settings
+        path_taken = []
+        
+        for key in keys:
+            path_taken.append(key)
+            if not isinstance(current, dict) or key not in current:
+                if raise_on_missing:
+                    path_str = " → ".join(path_taken)
+                    available = list(current.keys()) if isinstance(current, dict) else []
+                    raise SettingNotFoundError(
+                        f"Setting not found: {path_str}\n"
+                        f"Available keys at this level: {available}\n"
+                        f"Please check your config.json file and ensure the setting exists."
+                    )
+                return default
+            current = current[key]
+        
+        return current
+

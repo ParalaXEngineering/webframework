@@ -743,3 +743,67 @@ def utils_create_backup(backup_folders, backup_name):
     with tarfile.open(backup_name, "w:gz") as tar:
         for folder in backup_folders:
             tar.add(folder, arcname=os.path.basename(folder))
+
+
+def get_config_or_error(settings_manager, *config_paths):
+    """
+    Safely retrieve one or more configuration values from nested dictionary structure.
+    
+    This function provides safe access to configuration settings by handling
+    KeyError exceptions that may occur when accessing nested dictionary keys.
+    Supports retrieving multiple config values in a single call for cleaner code.
+    
+    Args:
+        settings_manager: The SettingsManager instance containing configuration
+        *config_paths: One or more dot-separated paths to config values 
+                      (e.g., "updates.source.value", "updates.folder.value")
+    
+    Returns:
+        tuple: (config_values, error_response)
+            - If successful with single path: (config_value, None)
+            - If successful with multiple paths: (dict_of_values, None)
+            - If error: (None, error_response_dict) containing error details
+    
+    Examples:
+        >>> # Single value
+        >>> source, error = get_config_or_error(settings_mgr, "updates.source.value")
+        >>> if error:
+        ...     return error
+        
+        >>> # Multiple values
+        >>> configs, error = get_config_or_error(settings_mgr, 
+        ...                                       "updates.address.value",
+        ...                                       "updates.user.value", 
+        ...                                       "updates.password.value")
+        >>> if error:
+        ...     return error
+        >>> address = configs["updates.address.value"]
+        >>> user = configs["updates.user.value"]
+        >>> password = configs["updates.password.value"]
+    """
+    try:
+        config = settings_manager.get_all_settings()
+        results = {}
+        
+        for config_path in config_paths:
+            # Navigate through the nested dictionary
+            keys = config_path.split('.')
+            value = config
+            for key in keys:
+                value = value[key]
+            results[config_path] = value
+        
+        # Return single value if only one path was requested
+        if len(config_paths) == 1:
+            return results[config_paths[0]], None
+        
+        return results, None
+        
+    except KeyError as e:
+        from flask import render_template
+        error_message = (
+            f"Configuration key not found in config.json. "
+            f"Please configure the required settings in the Settings page (/settings).\n"
+            f"Missing key: {str(e)}"
+        )
+        return None, render_template("error.j2", traceback=error_message)

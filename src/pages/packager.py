@@ -2,11 +2,12 @@ from flask import Blueprint, render_template, request
 
 from ..modules import utilities
 from ..modules.auth.auth_manager import auth_manager
-from ..modules.auth import User
 from ..modules import site_conf
 from ..modules import displayer
 from ..modules import scheduler
 from ..modules import SFTPConnection
+from ..modules.settings import SettingsManager
+from ..modules.utilities import get_config_or_error
 
 import shutil
 import socket
@@ -14,10 +15,24 @@ import datetime
 import sys
 import time
 import errno
-from ..modules.threaded import Threaded_action
+from ..modules.threaded.threaded_action import Threaded_action
 
 import os
 import tempfile
+
+
+# Global settings manager
+_settings_manager = None
+
+
+def get_settings_manager():
+    """Get or create settings manager instance."""
+    global _settings_manager
+    if _settings_manager is None:
+        config_path = os.path.join(os.getcwd(), "config.json")
+        _settings_manager = SettingsManager(config_path)
+        _settings_manager.load()
+    return _settings_manager
 
 
 class SETUP_Packager(Threaded_action):
@@ -31,12 +46,20 @@ class SETUP_Packager(Threaded_action):
         self.m_action = action
 
     def action(self):
-        # Création d'une seule instance de connexion
-        config = utilities.util_read_parameters()
+        # Get SFTP connection parameters with error handling
+        configs, error = get_config_or_error(get_settings_manager(),
+                                             "updates.address.value",
+                                             "updates.user.value",
+                                             "updates.password.value")
+        if error:
+            if self.m_logger:
+                self.m_logger.error("Failed to get SFTP config from settings")
+            return
+        
         sftp_conn = SFTPConnection.SFTPConnection(
-            config["updates"]["address"]["value"],
-            config["updates"]["user"]["value"],
-            config["updates"]["password"]["value"]
+            configs["updates.address.value"],
+            configs["updates.user.value"],
+            configs["updates.password.value"]
         )
 
         site_conf_obj = site_conf.site_conf_obj
@@ -48,7 +71,8 @@ class SETUP_Packager(Threaded_action):
                 pass
 
             # Sleep as it looks like shutil doesn't support concurrent access
-            self.m_scheduler.emit_status(
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(
                 self.get_name(), "Creating archive, this might take a while", 103
             )
             today = datetime.datetime.now()
@@ -56,14 +80,14 @@ class SETUP_Packager(Threaded_action):
             try:
                 with open(os.path.join("ressources", "version.txt"), 'r') as file:
                     package_version = file.read()
-                if site_conf_obj.m_app["version"].split("_")[0] != package_version:
+                if site_conf_obj and site_conf_obj.m_app["version"].split("_")[0] != package_version:
                     with open(os.path.join("ressources", "version.txt"), 'w') as file:
                         file.write(site_conf_obj.m_app["version"].split("_")[0])
 
                 # Create a temporary directory to hold the archive content
                 with tempfile.TemporaryDirectory() as temp_dir:
                     # Liste des dossiers spécifiques pour inclure tous les fichiers, y compris les .tar.gz
-                    include_tar_gz_dirs = site_conf_obj.m_include_tar_gz_dirs
+                    include_tar_gz_dirs = site_conf_obj.m_include_tar_gz_dirs if site_conf_obj else []
 
                     # Parcourir les fichiers dans 'ressources'
                     for root, dirs, files in os.walk("ressources"):
@@ -97,12 +121,15 @@ class SETUP_Packager(Threaded_action):
                     archive_path = os.path.join("packages", today.strftime("%y%m%d_" + self.m_file))
                     shutil.make_archive(archive_path, "zip", temp_dir)
 
-                self.m_scheduler.emit_status(
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
                     self.get_name(), "Creating archive, this might take a while", 100
                 )
             except Exception as e:
-                self.m_logger.info("Package creation failed: " + str(e))
-                self.m_scheduler.emit_status(
+                if self.m_logger:
+                    self.m_logger.info("Package creation failed: " + str(e))
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
                     self.get_name(), "Error in creating the archive: " + str(e), 101
                 )
 
@@ -118,18 +145,32 @@ class SETUP_Packager(Threaded_action):
                 ["primary"],
                 [False],
             )
-            self.m_scheduler.emit_reload(reloader)
+            if self.m_scheduler:
+                self.m_scheduler.emit_reload(reloader)
 
         elif self.m_action == "upload_package":
-            self.m_scheduler.emit_status(
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(
                 self.get_name(), "Uploading package, this might take a while", 103
             )
 
+            # Get configuration for upload
+            upload_configs, error = get_config_or_error(get_settings_manager(),
+                                                        "updates.source.value",
+                                                        "updates.folder.value",
+                                                        "updates.path.value")
+            if error:
+                if self.m_logger:
+                    self.m_logger.error("Failed to get upload config from settings")
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(self.get_name(), "Configuration error", 101)
+                return
+
             # Folder mode
-            if config["updates"]["source"]["value"] == "Folder":
+            if upload_configs["updates.source.value"] == "Folder":
                 try:
                     os.mkdir(
-                        os.path.join(config["updates"]["folder"]["value"], "packages")
+                        os.path.join(upload_configs["updates.folder.value"], "packages")
                     )
                 except FileExistsError:
                     pass
@@ -137,9 +178,9 @@ class SETUP_Packager(Threaded_action):
                 try:
                     os.mkdir(
                         os.path.join(
-                            config["updates"]["folder"]["value"],
+                            upload_configs["updates.folder.value"],
                             "packages",
-                            site_conf_obj.m_app["name"],
+                            site_conf_obj.m_app["name"] if site_conf_obj else "unknown",
                         )
                     )
                 except FileExistsError:
@@ -148,21 +189,21 @@ class SETUP_Packager(Threaded_action):
                 shutil.copyfile(
                     self.m_file,
                     os.path.join(
-                        config["updates"]["folder"]["value"],
+                        upload_configs["updates.folder.value"],
                         "packages",
-                        site_conf_obj.m_app["name"],
+                        site_conf_obj.m_app["name"] if site_conf_obj else "unknown",
                         self.m_file.split(os.path.sep)[-1],
                     ),
                 )
 
             # FTP mode
-            elif config["updates"]["source"]["value"] == "FTP":
+            elif upload_configs["updates.source.value"] == "FTP":
                 try:
                     # Définition du dossier distant
                     remote_dir = os.path.join(
-                        config["updates"]["path"]["value"],
+                        upload_configs["updates.path.value"],
                         "packages",
-                        site_conf_obj.m_app["name"]
+                        site_conf_obj.m_app["name"] if site_conf_obj else "unknown"
                     ).replace("\\", "/")  # Compatibilité Windows/Linux
                     # Vérification et création du dossier distant si nécessaire
                     try:
@@ -176,13 +217,16 @@ class SETUP_Packager(Threaded_action):
                     sftp_conn.upload_file(self.m_file, remote_file_path)
 
                 except Exception as e:
-                    self.m_logger.info(f"Package uploading failed: {e}")
-                    self.m_scheduler.emit_status(
+                    if self.m_logger:
+                        self.m_logger.info(f"Package uploading failed: {e}")
+                    if self.m_scheduler:
+                        self.m_scheduler.emit_status(
                         self.get_name(),
                         "Uploading package, this might take a while",
                         101,
                     )
-            self.m_scheduler.emit_status(
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(
                 self.get_name(), "Uploading package, this might take a while", 100
             )
 
@@ -191,7 +235,8 @@ class SETUP_Packager(Threaded_action):
         ):
             path_to_file = self.m_file
             if self.m_action == "download_package":
-                self.m_scheduler.emit_status(
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
                     self.get_name(), "Downloading package, this might take a while", 103
                 )
 
@@ -205,30 +250,40 @@ class SETUP_Packager(Threaded_action):
                 except FileExistsError:
                     pass
 
+                # Get configuration for download
+                download_configs, error = get_config_or_error(get_settings_manager(),
+                                                              "updates.source.value",
+                                                              "updates.folder.value",
+                                                              "updates.path.value")
+                if error:
+                    if self.m_logger:
+                        self.m_logger.error("Failed to get download config from settings")
+                    if self.m_scheduler:
+                        self.m_scheduler.emit_status(self.get_name(), "Configuration error", 101)
+                    return
+
                 # Folder mode
-                config = utilities.util_read_parameters()
-                # path_to_file = self.m_file
-                if config["updates"]["source"]["value"] == "Folder":
+                if download_configs["updates.source.value"] == "Folder":
                     shutil.copyfile(
                         os.path.join(
-                            config["updates"]["folder"]["value"],
+                            download_configs["updates.folder.value"],
                             "packages",
-                            site_conf_obj.m_app["name"],
+                            site_conf_obj.m_app["name"] if site_conf_obj else "unknown",
                             self.m_file,
                         ),
                         os.path.join("downloads", self.m_file),
                     )
 
                 # FTP mode
-                elif config["updates"]["source"]["value"] == "FTP":
+                elif download_configs["updates.source.value"] == "FTP":
                     path_to_file = os.path.join("downloads", self.m_file).replace("\\", "/")  # Assure la compatibilité Windows/Linux
 
                     try:
                         # Définition du chemin distant
                         remote_file_path = os.path.join(
-                            config["updates"]["path"]["value"],
+                            download_configs["updates.path.value"],
                             "packages",
-                            site_conf_obj.m_app["name"],
+                            site_conf_obj.m_app["name"] if site_conf_obj else "unknown",
                             self.m_file
                         ).replace("\\", "/")  # Compatibilité Windows/Linux
 
@@ -239,30 +294,38 @@ class SETUP_Packager(Threaded_action):
                         sftp_conn.download_file(remote_file_path, path_to_file)
 
                     except Exception as e:
-                        self.m_logger.info(f"Download package failed: {e}")
-                        self.m_scheduler.emit_status(
+                        if self.m_logger:
+                            self.m_logger.info(f"Download package failed: {e}")
+                        if self.m_scheduler:
+                            self.m_scheduler.emit_status(
                             self.get_name(),
                             "Downloading package, this might take a while",
                             101,
                         )
 
-                self.m_scheduler.emit_status(
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
                     self.get_name(), "Downloading package, this might take a while", 100
                 )
             else:
                 if ".zip" not in self.m_file:
-                    self.m_scheduler.emit_popup(
+                    if self.m_scheduler:
+                        self.m_scheduler.emit_popup(
                         scheduler.logLevel.error, "Package must be a .zip"
                     )
                     return
 
             # Remove only .tar.gz files in the "ressources" folder and its subfolders, excluding specific directories
-            self.m_scheduler.emit_status(self.get_name(), "Deleting old tar.gz content", 103)
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(self.get_name(), "Deleting old tar.gz content", 103)
 
             ressources_path = os.path.join("ressources")
 
             # Dossiers spécifiques où les .tar.gz ne doivent pas être supprimés
-            exclude_dirs_abs = [os.path.abspath(p) for p in site_conf_obj.m_include_tar_gz_dirs]
+            if site_conf_obj and hasattr(site_conf_obj, 'm_include_tar_gz_dirs'):
+                exclude_dirs_abs = [os.path.abspath(p) for p in site_conf_obj.m_include_tar_gz_dirs]  # type: ignore
+            else:
+                exclude_dirs_abs = []
             # exclude_tar_gz_dirs = site_conf_obj.m_include_tar_gz_dirs
 
             if os.path.exists(ressources_path):
@@ -270,7 +333,8 @@ class SETUP_Packager(Threaded_action):
                     root_abs = os.path.abspath(root)
                     # Vérifie si root est dans un des dossiers exclus
                     if any(root_abs.startswith(exclude_dir) for exclude_dir in exclude_dirs_abs):
-                        self.m_logger.info(f"Skipping excluded dir for .tar.gz deletion: {root_abs}")
+                        if self.m_logger:
+                            self.m_logger.info(f"Skipping excluded dir for .tar.gz deletion: {root_abs}")
                         continue
 
                     for file in files:
@@ -278,17 +342,22 @@ class SETUP_Packager(Threaded_action):
                             file_path = os.path.join(root, file)
                             try:
                                 os.remove(file_path)
-                                self.m_logger.info(f"Deleted .tar.gz: {file_path}")
+                                if self.m_logger:
+                                    self.m_logger.info(f"Deleted .tar.gz: {file_path}")
                             except Exception as e:
-                                self.m_logger.warning(f"Failed to delete {file_path}: {str(e)}")
-                                self.m_scheduler.emit_status(self.get_name(), f"Failed to delete {file_path}: {str(e)}", 50)
+                                if self.m_logger:
+                                    self.m_logger.warning(f"Failed to delete {file_path}: {str(e)}")
+                                if self.m_scheduler:
+                                    self.m_scheduler.emit_status(self.get_name(), f"Failed to delete {file_path}: {str(e)}", 50)
             else:
                 os.mkdir(ressources_path)
 
-            self.m_scheduler.emit_status(self.get_name(), "Deleting old tar.gz content", 100)
+            if self.m_scheduler:
+                self.m_scheduler.emit_status(self.get_name(), "Deleting old tar.gz content", 100)
 
             try:
-                self.m_scheduler.emit_status(
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
                     self.get_name(), "Unpacking archive, this might take a while", 103
                 )
                 try:
@@ -298,15 +367,18 @@ class SETUP_Packager(Threaded_action):
                         "zip",
                     )
                 except FileNotFoundError as e:
-                    self.m_logger.warning(f"Skipping missing file: {e}")
+                    if self.m_logger:
+                        self.m_logger.warning(f"Skipping missing file: {e}")
                     pass
                 except OSError as e:
                     if e.errno == errno.ENAMETOOLONG:
-                        self.m_logger.error(f"Skipping file with too long path: {e}")
+                        if self.m_logger:
+                            self.m_logger.error(f"Skipping file with too long path: {e}")
                     else:
                         raise
 
-                self.m_scheduler.emit_status(
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
                     self.get_name(), "Unpacking archive, this might take a while", 100
                 )
 
@@ -316,16 +388,20 @@ class SETUP_Packager(Threaded_action):
                     "<meta http-equiv='refresh' content='5'>"
                     "<p>Unpacking completed successfully. The page will reload shortly.</p>"
                 )
-                self.m_scheduler.emit_status(self.get_name(), message, 103)
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(self.get_name(), message, 103)
 
                 time.sleep(7)
-                self.m_scheduler.emit_status(
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
                     self.get_name(), "Unpacking archive success", 100
                 )
 
             except Exception as e:
-                self.m_logger.info("Unpacking failed: " + str(e))
-                self.m_scheduler.emit_status(
+                if self.m_logger:
+                    self.m_logger.info("Unpacking failed: " + str(e))
+                if self.m_scheduler:
+                    self.m_scheduler.emit_status(
                     self.get_name(),
                     "Unpacking archive, this might take a while",
                     101,
@@ -383,11 +459,11 @@ def packager():
 
     disp = displayer.Displayer()
     disp.add_module(SETUP_Packager, display=False)
-    disp.set_title(f"Binaries Package Manager")
+    disp.set_title("Binaries Package Manager")
 
     # Check if user is admin
-    current_user_name = auth_manager.get_current_user()
-    user = auth_manager.get_user(current_user_name) if current_user_name else None
+    current_user_name = auth_manager.get_current_user() if auth_manager else None
+    user = auth_manager.get_user(current_user_name) if (auth_manager and current_user_name) else None
     is_admin = user and "admin" in user.groups if user else False
 
     # Packager
@@ -474,11 +550,20 @@ def packager():
         )
     disp.add_display_item(displayer.DisplayerItemButton("unpack", "Unpack"), 2)
 
-    config = utilities.util_read_parameters()
+    # Load configuration with error handling
+    configs, error = get_config_or_error(get_settings_manager(),
+                                         "updates.source.value",
+                                         "updates.folder.value",
+                                         "updates.path.value",
+                                         "updates.address.value",
+                                         "updates.user.value",
+                                         "updates.password.value")
+    if error:
+        return error
 
     # Folder mode
-    if config["updates"]["source"]["value"] == "Folder":
-        if not os.path.exists(os.path.join(config["updates"]["folder"]["value"])):
+    if configs["updates.source.value"] == "Folder":
+        if not os.path.exists(os.path.join(configs["updates.folder.value"])):
             info = "Configured package folder doesn't exists"
             disp.add_master_layout(
                 displayer.DisplayerLayout(
@@ -494,9 +579,9 @@ def packager():
         else:
             content = utilities.util_dir_structure(
                 os.path.join(
-                    config["updates"]["folder"]["value"],
+                    configs["updates.folder.value"],
                     "packages",
-                    site_conf_obj.m_app["name"],
+                    site_conf_obj.m_app["name"] if site_conf_obj else "unknown",
                 ),
                 inclusion=[".zip"],
             )
@@ -517,7 +602,7 @@ def packager():
             )
             disp.add_display_item(
                 displayer.DisplayerItemInputSelect(
-                    "download_package", None, None, content
+                    "download_package", None, None, list(content.values()) if isinstance(content, dict) else []
                 ),
                 1,
             )
@@ -526,19 +611,19 @@ def packager():
             )
 
     # FTP mode
-    elif config["updates"]["source"]["value"] == "FTP":
+    elif configs["updates.source.value"] == "FTP":
         try:
             sftp_conn = SFTPConnection.SFTPConnection(
-                config["updates"]["address"]["value"],
-                config["updates"]["user"]["value"],
-                config["updates"]["password"]["value"]
+                configs["updates.address.value"],
+                configs["updates.user.value"],
+                configs["updates.password.value"]
             )
 
             # Définition du chemin distant
             remote_dir = os.path.join(
-                config["updates"]["path"]["value"],
+                configs["updates.path.value"],
                 "packages",
-                site_conf_obj.m_app["name"]
+                site_conf_obj.m_app["name"] if site_conf_obj else "unknown"
             ).replace("\\", "/")  # Compatibilité Windows/Linux
 
             # Récupération de la liste des fichiers
