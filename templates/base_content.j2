@@ -313,6 +313,9 @@
                         {% if target %}
                             <form action="{{ url_for(target) }}" method="POST" enctype="multipart/form-data">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        {% elif form_action %}
+                            <form action="{{ form_action }}" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         {% endif %}
 
                         {% for layout in content[module]["layouts"] %}
@@ -322,7 +325,7 @@
                             {{ disp_layouts.display_layout(layout) }}
                         {% endfor %}
 
-                        {% if target %}
+                        {% if target or form_action %}
                             </form>
                         {% endif %}
 
