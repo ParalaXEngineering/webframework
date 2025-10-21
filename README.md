@@ -458,30 +458,131 @@ pytest tests/ -v
 python tests/manual_test_webapp.py
 ```
 
-## 📚 Documentation
+## �️ Framework Manager
 
-Comprehensive documentation is available via Sphinx.
+The framework includes a unified management tool that simplifies common tasks. The Framework Manager automatically detects and uses your virtual environment with Python 3.7+.
 
-### Building the Documentation
+### Requirements
 
+- Python 3.7 or higher (the script will auto-detect and use your `.venv` if available)
+- `requests` library for vendor updates
+
+### Usage
+
+**Interactive Mode** (recommended for beginners):
 ```bash
-# One-time setup (install dependencies)
-pip install -e .[docs]
-
-# Build documentation (macOS/Linux)
-./build_docs.sh
-
-# Build documentation (Windows)
-cd docs
-make.bat clean
-make.bat html
-
-# Manual build (any platform)
-cd docs
-sphinx-build -b html source build/html
+python framework_manager.py
 ```
 
-View the generated documentation by opening `docs/build/html/index.html` in your browser.
+**Command Line Mode**:
+
+```bash
+# Update vendor libraries (jQuery, Bootstrap, etc.)
+python framework_manager.py vendors
+
+# Create example website
+python framework_manager.py example --create
+
+# Run example website
+python framework_manager.py example --run
+
+# Check example website status
+python framework_manager.py example --status
+
+# Delete example website
+python framework_manager.py example --delete
+
+# Build documentation
+python framework_manager.py docs
+
+# Get help
+python framework_manager.py --help
+python framework_manager.py example --help
+```
+
+### Features
+
+**1. Vendor Management** (`vendors`)
+- Downloads latest versions of all frontend libraries
+- Includes: jQuery, GridStack, DataTables, FullCalendar, SweetAlert2, MDI icons, FilePond, TinyMCE, Highlight.js
+- Automatic CDN fallback handling
+- Shows version summary after update
+
+**2. Example Website** (`example`)
+- `--create`: Creates a complete example website with proper structure
+- `--delete`: Safely removes the example website
+- `--status`: Shows what files exist and their status
+- `--run`: Launches the example website server
+- Interactive menu for step-by-step guidance
+
+**3. Documentation** (`docs`)
+- Automatically sets up virtual environment
+- Installs documentation dependencies
+- Validates docstrings
+- Builds Sphinx HTML documentation
+- Opens result in your browser
+
+### Python Version Handling
+
+The Framework Manager is smart about Python versions:
+
+- **Python 3.6 detected**: Automatically switches to `.venv` if available
+- **Python 3.7+**: Runs directly with full features
+- **No suitable Python**: Shows helpful error with instructions
+
+Example output when running with Python 3.6:
+```
+======================================================================
+ERROR: Python 3.7 or higher is required
+======================================================================
+
+Your Python version: 3.6.5
+
+Checking for virtual environment with newer Python...
+Found virtual environment: .venv\Scripts\python.exe
+Restarting with venv Python...
+```
+
+### Cross-Platform Support
+
+Works identically on:
+- ✅ Windows (PowerShell, CMD)
+- ✅ macOS
+- ✅ Linux
+
+The script handles all platform differences automatically (symlinks vs junctions, path separators, etc.)
+
+## 📚 Documentation
+
+Comprehensive API documentation is available via Sphinx.
+
+### Quick Build
+
+```bash
+# Use the Framework Manager (recommended)
+python framework_manager.py docs
+```
+
+This will:
+1. Verify/create virtual environment
+2. Install documentation dependencies
+3. Validate docstrings
+4. Build HTML documentation
+5. Open in your browser automatically
+
+### Manual Build
+
+```bash
+# Install dependencies
+pip install -e .[docs]
+
+# Build (any platform)
+cd docs
+sphinx-build -b html source build/html
+
+# View
+# Open docs/build/html/index.html in your browser
+```
 
 ### Documentation Contents
 
@@ -490,25 +591,6 @@ View the generated documentation by opening `docs/build/html/index.html` in your
 - **API Reference**: Complete class and method documentation
 - **Tutorials**: Practical guides for common use cases
 - **Examples**: Real-world code snippets and patterns
-
-## 📚 Documentation
-
-Comprehensive documentation is available:
-
-```bash
-# Build documentation
-cd submodules/framework/docs
-sphinx-build -b html source build/html
-```
-
-Or view online: [Documentation Link]
-
-Key documentation sections:
-- **Getting Started**: Step-by-step setup guide
-- **Framework Architecture**: Understanding core components
-- **API Reference**: Complete class and method documentation
-- **Tutorials**: Practical guides for common tasks
-- **Examples**: Real-world code snippets
 
 ## 🧪 Testing Your Website
 

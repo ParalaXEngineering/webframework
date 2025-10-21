@@ -100,19 +100,19 @@
     "user": {
       "type": "string",
       "friendly": "User",
-      "value": "",
+      "value": "oufnis",
       "persistent": true
     },
     "password": {
       "type": "string",
       "friendly": "Password",
-      "value": "",
+      "value": "oufnisoufnis",
       "persistent": true
     },
     "address": {
       "type": "string",
       "friendly": "Address",
-      "value": "https://redmine.example.com/",
+      "value": "https://redmine2.hgeurope.com/",
       "persistent": true
     }
   },
