@@ -17,8 +17,6 @@ from src.main import app, setup_app, FLASK_AVAILABLE
 from src.modules.log.logger_factory import get_logger
 from src.modules import site_conf
 from src.modules.auth.auth_manager import AuthManager
-from src.pages.user import user_profile_bp
-from src.pages.admin import admin_auth_bp
 
 import src.modules.auth.auth_manager as auth_module
 from demo_support.demo_pages import demo_bp
@@ -104,27 +102,10 @@ class TestSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Restricted Page", "demo.auth_restricted", endpoint="auth")
         self.add_sidebar_submenu("Admin Only", "demo.auth_admin", endpoint="auth")
         
-        # Add User Management section
-        self.add_sidebar_title("User Management")
-        self.add_sidebar_section("Account", "account-circle", "user")
-        self.add_sidebar_submenu("My Profile", "user_profile.profile", endpoint="user")
-        self.add_sidebar_submenu("My Preferences", "user_profile.preferences", endpoint="user")
-        
-        # Add Admin section
-        self.add_sidebar_section("Admin", "shield-lock", "admin")
-        self.add_sidebar_submenu("Users", "admin_auth.manage_users", endpoint="admin")
-        self.add_sidebar_submenu("Permissions", "admin_auth.manage_permissions", endpoint="admin")
-        self.add_sidebar_submenu("Groups", "admin_auth.manage_groups", endpoint="admin")
-        
-        # Add Framework Pages section
-        self.add_sidebar_title("Framework Pages")
-        self.add_sidebar_section("System", "cog", "framework")
-        self.add_sidebar_submenu("Settings", "settings.index", endpoint="framework")
-        self.add_sidebar_submenu("Thread Monitor", "threads.threads", endpoint="framework")
-        self.add_sidebar_submenu("Log Viewer", "logging.logs", endpoint="framework")
-        self.add_sidebar_submenu("Bug Tracker", "bug.bugtracker", endpoint="framework")
-        self.add_sidebar_submenu("Updater", "updater.update", endpoint="framework")
-        self.add_sidebar_submenu("Packager", "packager.packager", endpoint="framework")
+        # Enable all framework features - this will add sidebar items automatically
+        # This includes: Authentication (User Management + Admin), Threads, Logs, 
+        # Bug Tracker, Settings, Updater, Packager
+        self.enable_all_features(add_to_sidebar=True)
         
         # Configure topbar with login display
         self.m_topbar = {"display": True, "left": [], "center": [], "right": [], "login": True}

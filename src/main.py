@@ -108,13 +108,17 @@ def setup_app(app):
                 logger.warning(f"Failed to register blueprint for {module_name}: {e}")
 
     # Import site_conf FIRST (before any feature-dependent initialization)
-    try:
-        site_conf.site_conf_obj = importlib.import_module("website.site_conf").ExampleSiteConf()
-        site_conf.site_conf_app_path = app_path
-        logger.info("Loaded website.site_conf")
-    except (ModuleNotFoundError, AttributeError) as e:
-        logger.info(f"No website.site_conf found - using default Site_conf: {e}")
-        site_conf.site_conf_obj = site_conf.Site_conf()
+    # Only set if not already configured (e.g., by test setup)
+    if site_conf.site_conf_obj is None:
+        try:
+            site_conf.site_conf_obj = importlib.import_module("website.site_conf").ExampleSiteConf()
+            site_conf.site_conf_app_path = app_path
+            logger.info("Loaded website.site_conf")
+        except (ModuleNotFoundError, AttributeError) as e:
+            logger.info(f"No website.site_conf found - using default Site_conf: {e}")
+            site_conf.site_conf_obj = site_conf.Site_conf()
+    else:
+        logger.info(f"Using pre-configured site_conf: {type(site_conf.site_conf_obj).__name__}")
     
     # Get site configuration for feature flags
     site_config = site_conf.site_conf_obj
@@ -126,16 +130,17 @@ def setup_app(app):
         import pages as pages_module
     
     # Map of page names to required feature flags
+    # Note: 'common' is always registered as it provides essential assets serving
     PAGE_FEATURE_REQUIREMENTS = {
         'threads': 'm_enable_threads',
-        'common': 'm_enable_authentication',
-        'admin': 'm_enable_admin_panel',
+        # 'common': Always registered - provides assets serving for all pages
         'logging': 'm_enable_log_viewer',
         'bug_tracker': 'm_enable_bug_tracker',
         'settings': 'm_enable_settings',
         'updater': 'm_enable_updater',
         'packager': 'm_enable_packager',
         'user': 'm_enable_authentication',
+        'admin': 'm_enable_authentication',
     }
     
     # Get the pages directory path
@@ -386,7 +391,10 @@ def setup_app(app):
     def before_request():            
         g.start_time = time.time()  # type: ignore
 
-        scheduler.scheduler_obj.m_user_connected = False  # type: ignore
+        # Only update scheduler if it's enabled
+        if scheduler.scheduler_obj is not None:
+            scheduler.scheduler_obj.m_user_connected = False  # type: ignore
+        
         if request.endpoint == "static":  # type: ignore
             return
 

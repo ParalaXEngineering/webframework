@@ -34,7 +34,7 @@ Installation
 The ParalaX Web Framework is designed to be used as a **Git submodule** in your website project. This keeps your website code separate from the framework code and makes updates easy.
 
 .. note::
-   **Framework Development**: If you're contributing to the framework itself (not building a website), see the :doc:`contributing` guide instead.
+   **Framework Development**: If you're contributing to the framework itself (not building a website), clone the repository directly instead of using it as a submodule.
 
 Setting Up Your Website Project
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -245,6 +245,157 @@ Key Files Explained
 **site_conf.py**
    Application configuration and navigation structure
 
+Enabling Optional Features
+--------------------------
+
+The framework provides several optional system components that can be enabled selectively based on your needs. These features add powerful functionality like authentication, background tasks, real-time updates, and management tools.
+
+Available Optional Features
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following system features can be enabled in your site configuration:
+
+**Authentication System**
+   User login, permissions, and role-based access control
+   
+**Thread Monitor**
+   Real-time monitoring of background tasks and threaded actions
+   
+**Scheduler**
+   Periodic task execution and real-time client updates via WebSocket
+   
+**Log Viewer**
+   Web-based log file viewer with filtering and search
+   
+**Bug Tracker**
+   Issue tracking integration (requires Redmine or compatible system)
+   
+**Settings Manager**
+   Web interface for managing application settings
+   
+**Updater**
+   Automatic application update system
+   
+**Packager**
+   Tools for creating distributable resource packages
+
+Enabling Features
+^^^^^^^^^^^^^^^^^
+
+To enable optional features, call the corresponding ``enable_*()`` methods in your ``Site_conf`` subclass's ``__init__()`` method:
+
+.. code-block:: python
+
+   from submodules.framework.src.modules.site_conf import Site_conf
+   
+   
+   class MySiteConf(Site_conf):
+       def __init__(self):
+           super().__init__()
+           
+           # Enable authentication
+           self.enable_authentication(add_to_sidebar=True)
+           
+           # Enable thread monitoring
+           self.enable_threads(add_to_sidebar=True)
+           
+           # Enable scheduler for real-time updates
+           self.enable_scheduler()
+           
+           # Enable log viewer
+           self.enable_log_viewer(add_to_sidebar=True)
+
+The ``add_to_sidebar`` parameter controls whether a navigation link is added to the sidebar. Set it to ``False`` if you want the feature enabled but don't want it in the navigation.
+
+.. tip::
+   If you don't enable the scheduler, the framework will still work but pages won't receive real-time updates via WebSocket.
+
+Feature Methods Reference
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**enable_authentication(add_to_sidebar=True)**
+   Enables user authentication system. Adds "Admin" and "My Profile" links to sidebar if ``add_to_sidebar=True``.
+   
+   .. code-block:: python
+   
+      self.enable_authentication(add_to_sidebar=True)
+
+**enable_threads(add_to_sidebar=True)**
+   Enables background task monitoring. Adds "Threads" page to System > Monitoring section if ``add_to_sidebar=True``.
+   
+   .. code-block:: python
+   
+      self.enable_threads(add_to_sidebar=True)
+
+**enable_scheduler()**
+   Enables periodic task scheduler and WebSocket real-time updates. Does not add sidebar items.
+   
+   .. code-block:: python
+   
+      self.enable_scheduler()
+
+**enable_log_viewer(add_to_sidebar=True)**
+   Enables web-based log file viewer. Adds "Logs" page to System > Monitoring section if ``add_to_sidebar=True``.
+   
+   .. code-block:: python
+   
+      self.enable_log_viewer(add_to_sidebar=True)
+
+**enable_bug_tracker(add_to_sidebar=True)**
+   Enables issue tracking integration. Adds "Bug Tracker" to System > Tools section if ``add_to_sidebar=True``.
+   
+   .. code-block:: python
+   
+      self.enable_bug_tracker(add_to_sidebar=True)
+
+**enable_settings(add_to_sidebar=True)**
+   Enables settings management interface. Adds "Settings" to System > Tools section if ``add_to_sidebar=True``.
+   
+   .. code-block:: python
+   
+      self.enable_settings(add_to_sidebar=True)
+
+**enable_updater(add_to_sidebar=True)**
+   Enables automatic update system. Adds "Updater" to System > Deployment section if ``add_to_sidebar=True``.
+   
+   .. code-block:: python
+   
+      self.enable_updater(add_to_sidebar=True)
+
+**enable_packager(add_to_sidebar=True)**
+   Enables resource package creation. Adds "Packager" to System > Deployment section if ``add_to_sidebar=True``.
+   
+   .. code-block:: python
+   
+      self.enable_packager(add_to_sidebar=True)
+
+**enable_all_features(add_to_sidebar=True)**
+   Convenience method that enables all optional features at once.
+   
+   .. code-block:: python
+   
+      self.enable_all_features(add_to_sidebar=True)
+
+Sidebar Organization
+^^^^^^^^^^^^^^^^^^^^
+
+When you enable features with ``add_to_sidebar=True``, they are automatically organized into logical sections under a "System" title in the navigation sidebar:
+
+**System** (title)
+   - **Monitoring** (section)
+      - Threads - Monitor background tasks
+      - Logs - View application logs
+   
+   - **Tools** (section)
+      - Bug Tracker - Issue tracking
+      - Settings - Application settings
+   
+   - **Deployment** (section)
+      - Updater - Application updates
+      - Packager - Package creation
+
+This organization keeps system utilities separate from your application pages.
+
 Creating Your Website Files
 ---------------------------
 
@@ -278,6 +429,11 @@ This file defines your site's navigation, branding, and settings:
            
            # Set welcome message
            self.m_index = "Welcome to My Website"
+           
+           # Enable optional features (as needed)
+           self.enable_authentication(add_to_sidebar=True)
+           self.enable_threads(add_to_sidebar=True)
+           self.enable_scheduler()  # For real-time updates
            
            # Configure sidebar navigation
            self.add_sidebar_title("Main")

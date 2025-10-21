@@ -84,6 +84,128 @@ Site Configuration
 
 Site handlers should inherit from this class to customize behavior.
 
+Optional Features System
+------------------------
+
+The framework provides a feature flag system that allows selective activation of components. This enables applications to include only the functionality they need, reducing complexity and resource usage.
+
+Feature Flags
+^^^^^^^^^^^^^
+
+Features are controlled by flags set in the :class:`src.site_conf.Site_conf` class:
+
+* **m_enable_authentication**: User authentication and authorization
+* **m_enable_threads**: Background task monitoring
+* **m_enable_scheduler**: Real-time updates via WebSocket
+* **m_enable_long_term_scheduler**: Extended scheduler functionality
+* **m_enable_log_viewer**: Web-based log file viewer
+* **m_enable_bug_tracker**: Issue tracking integration
+* **m_enable_settings**: Settings management interface
+* **m_enable_updater**: Automatic update system
+* **m_enable_packager**: Resource package creation
+
+All flags default to ``False`` for minimal footprint.
+
+Conditional Blueprint Registration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The framework conditionally registers Flask blueprints based on enabled features. This is controlled by the ``PAGE_FEATURE_REQUIREMENTS`` dictionary in ``src.main.py``:
+
+.. code-block:: python
+
+   PAGE_FEATURE_REQUIREMENTS = {
+       "threads": ["m_enable_threads"],
+       "scheduler": ["m_enable_scheduler"],
+       "log": ["m_enable_log_viewer"],
+       "bug_tracker": ["m_enable_bug_tracker"],
+       "settings": ["m_enable_settings"],
+       "admin": ["m_enable_authentication"],
+       "user": ["m_enable_authentication"],
+       "updater": ["m_enable_updater"],
+       "packager": ["m_enable_packager"],
+   }
+
+During initialization, ``setup_app()`` checks each page's requirements and only registers blueprints when all required features are enabled. This prevents unnecessary route registration and reduces memory usage.
+
+.. note::
+   The ``common`` blueprint (home page and assets) is always registered regardless of feature flags.
+
+Sidebar Organization
+^^^^^^^^^^^^^^^^^^^^
+
+Enabled features are automatically organized into a hierarchical navigation structure under a "System" section:
+
+**System Title**
+   - **Monitoring Section**
+      - Threads (requires m_enable_threads)
+      - Logs (requires m_enable_log_viewer)
+   
+   - **Tools Section**
+      - Bug Tracker (requires m_enable_bug_tracker)
+      - Settings (requires m_enable_settings)
+   
+   - **Deployment Section**
+      - Updater (requires m_enable_updater)
+      - Packager (requires m_enable_packager)
+
+This organization is created automatically by the ``enable_*()`` methods using the ``_ensure_system_title()`` helper function.
+
+Enabling Features
+^^^^^^^^^^^^^^^^^
+
+Features are enabled by calling methods in your ``Site_conf`` subclass:
+
+.. code-block:: python
+
+   from src.site_conf import Site_conf
+   
+   
+   class MyAppConf(Site_conf):
+       def __init__(self):
+           super().__init__()
+           
+           # Enable authentication
+           self.enable_authentication(add_to_sidebar=True)
+           
+           # Enable thread monitoring
+           self.enable_threads(add_to_sidebar=True)
+           
+           # Enable scheduler (no sidebar item)
+           self.enable_scheduler()
+           
+           # Or enable everything at once
+           # self.enable_all_features(add_to_sidebar=True)
+
+Each ``enable_*()`` method:
+
+1. Sets the corresponding flag to ``True``
+2. Optionally adds navigation items to the sidebar
+3. Ensures proper section hierarchy
+
+Configuration Timing
+^^^^^^^^^^^^^^^^^^^^
+
+The site configuration must be set **before** calling ``setup_app()`` to ensure conditional registration works correctly:
+
+.. code-block:: python
+
+   # In main.py
+   from src.main import app, setup_app
+   from src.modules import site_conf
+   from website.site_conf import MyAppConf
+   
+   # STEP 1: Set configuration BEFORE setup
+   site_conf.site_conf_obj = MyAppConf()
+   
+   # STEP 2: Initialize framework
+   socketio = setup_app(app)
+   
+   # STEP 3: Register custom blueprints
+   app.register_blueprint(my_custom_bp)
+
+.. important::
+   If ``site_conf.site_conf_obj`` is already set when ``setup_app()`` is called, the framework will **not** overwrite it. This allows pre-configuration of the site before framework initialization.
+
 Display System
 --------------
 

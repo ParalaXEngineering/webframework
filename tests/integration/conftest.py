@@ -86,6 +86,9 @@ def test_app():
     
     # Create minimal site_conf
     class TestSiteConf(Site_conf):
+        def __init__(self):
+            super().__init__()
+        
         def context_processor(self):
             return {"enable_easter_eggs": False}
     

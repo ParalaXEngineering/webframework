@@ -13,75 +13,98 @@ site_conf_app_path = None
 class Site_conf:
     """Provides a set of function to configure the website"""
     
-    m_globals = {
-        "on_target": False,
-        "PORT": 5000,
-        "version": "0.0.0.1"
-    }
+    def __init__(self):
+        """Initialize site configuration with default values."""
+        self.m_globals = {
+            "on_target": False,
+            "PORT": 5000,
+            "version": "0.0.0.1"
+        }
 
-    m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
-    """App information"""
+        self.m_app = {"name": "Default", "version": "0", "icon": "home", "footer": "2024 &copy;ESD"}
+        """App information"""
 
-    m_include_tar_gz_dirs = []
+        self.m_include_tar_gz_dirs = []
 
-    m_index = "Bienvenue sur la page par défaut du framework ESD"
+        self.m_index = "Bienvenue sur la page par défaut du framework ESD"
 
-    m_sidebar = []
-    """Sidebar content"""
+        self.m_sidebar = []
+        """Sidebar content"""
 
-    m_topbar = {"display": False, "left": [], "center": [], "right": [], "login": False}
-    """Topbar content"""
+        self.m_topbar = {"display": False, "left": [], "center": [], "right": [], "login": False}
+        """Topbar content"""
 
-    m_javascripts = []
-    """Custom javascripts"""
+        self.m_javascripts = []
+        """Custom javascripts"""
 
-    m_scheduler_lt_functions = []
-    """Functions that can be registered in the long term scheduler. Should be an array of arrays which are [func, period]"""
+        self.m_scheduler_lt_functions = []
+        """Functions that can be registered in the long term scheduler. Should be an array of arrays which are [func, period]"""
 
-    m_enable_easter_eggs = False
-    """Enable easter eggs (Konami code, pixel mode, death screen, etc.)"""
-    
-    # Feature flags - all disabled by default (opt-in)
-    m_enable_authentication = False
-    """Enable authentication system and login/logout pages"""
-    
-    m_enable_threads = False
-    """Enable thread monitoring and background task management"""
-    
-    m_enable_scheduler = False
-    """Enable real-time scheduler for SocketIO updates"""
-    
-    m_enable_long_term_scheduler = False
-    """Enable long-term scheduler for periodic tasks"""
-    
-    m_enable_log_viewer = False
-    """Enable log viewing page"""
-    
-    m_enable_admin_panel = False
-    """Enable admin panel page"""
-    
-    m_enable_bug_tracker = False
-    """Enable bug tracker page"""
-    
-    m_enable_settings = False
-    """Enable settings page"""
-    
-    m_enable_updater = False
-    """Enable updater page"""
-    
-    m_enable_packager = False
-    """Enable packager page"""
+        self.m_enable_easter_eggs = False
+        """Enable easter eggs (Konami code, pixel mode, death screen, etc.)"""
+        
+        # Feature flags - all disabled by default (opt-in)
+        self.m_enable_authentication = False
+        """Enable authentication system and login/logout pages"""
+        
+        self.m_enable_threads = False
+        """Enable thread monitoring and background task management"""
+        
+        self.m_enable_scheduler = False
+        """Enable real-time scheduler for SocketIO updates"""
+        
+        self.m_enable_long_term_scheduler = False
+        """Enable long-term scheduler for periodic tasks"""
+        
+        self.m_enable_log_viewer = False
+        """Enable log viewing page"""
+        
+        self.m_enable_admin_panel = False
+        """Enable admin panel page"""
+        
+        self.m_enable_bug_tracker = False
+        """Enable bug tracker page"""
+        
+        self.m_enable_settings = False
+        """Enable settings page"""
+        
+        self.m_enable_updater = False
+        """Enable updater page"""
+        
+        self.m_enable_packager = False
+        """Enable packager page"""
+
+    def _ensure_system_title(self):
+        """Helper to ensure 'System' title exists in sidebar."""
+        has_system_title = any(
+            item.get("name") == "System" and item.get("isTitle") 
+            for item in self.m_sidebar
+        )
+        
+        if not has_system_title:
+            self.add_sidebar_title("System")
 
     def enable_authentication(self, add_to_sidebar: bool = True):
         """Enable authentication system and automatically add login/logout functionality.
         
-        :param add_to_sidebar: If True, adds login page to sidebar, defaults to True
+        :param add_to_sidebar: If True, adds user management section to sidebar, defaults to True
         :type add_to_sidebar: bool, optional
         """
         self.m_enable_authentication = True
         self.use_login()  # Set topbar login flag
+        
         if add_to_sidebar:
-            self.add_sidebar_page("Login", "login", "/common/login")
+            # Add User Management section
+            self.add_sidebar_title("User Management")
+            self.add_sidebar_section("Account", "account-circle", "user")
+            self.add_sidebar_submenu("My Profile", "user_profile.profile", endpoint="user")
+            self.add_sidebar_submenu("My Preferences", "user_profile.preferences", endpoint="user")
+            
+            # Add Admin section
+            self.add_sidebar_section("Admin", "shield-lock", "admin")
+            self.add_sidebar_submenu("Users", "admin_auth.manage_users", endpoint="admin")
+            self.add_sidebar_submenu("Permissions", "admin_auth.manage_permissions", endpoint="admin")
+            self.add_sidebar_submenu("Groups", "admin_auth.manage_groups", endpoint="admin")
     
     def enable_threads(self, add_to_sidebar: bool = True):
         """Enable thread monitoring and background task management.
@@ -91,7 +114,14 @@ class Site_conf:
         """
         self.m_enable_threads = True
         if add_to_sidebar:
-            self.add_sidebar_page("Threads", "cog-sync", "/threads")
+            self._ensure_system_title()
+            # Check if Monitoring section exists, create if not
+            has_monitoring = any(
+                item.get("endpoint") == "monitoring" for item in self.m_sidebar
+            )
+            if not has_monitoring:
+                self.add_sidebar_section("Monitoring", "monitor-dashboard", "monitoring")
+            self.add_sidebar_submenu("Thread Monitor", "threads.threads", endpoint="monitoring")
     
     def enable_scheduler(self):
         """Enable real-time scheduler for SocketIO updates."""
@@ -109,17 +139,14 @@ class Site_conf:
         """
         self.m_enable_log_viewer = True
         if add_to_sidebar:
-            self.add_sidebar_page("Logs", "file-document-multiple", "/logging")
-    
-    def enable_admin_panel(self, add_to_sidebar: bool = True):
-        """Enable admin panel page.
-        
-        :param add_to_sidebar: If True, adds admin page to sidebar, defaults to True
-        :type add_to_sidebar: bool, optional
-        """
-        self.m_enable_admin_panel = True
-        if add_to_sidebar:
-            self.add_sidebar_page("Admin", "shield-account", "/admin")
+            self._ensure_system_title()
+            # Check if Monitoring section exists, create if not
+            has_monitoring = any(
+                item.get("endpoint") == "monitoring" for item in self.m_sidebar
+            )
+            if not has_monitoring:
+                self.add_sidebar_section("Monitoring", "monitor-dashboard", "monitoring")
+            self.add_sidebar_submenu("Log Viewer", "logging.logs", endpoint="monitoring")
     
     def enable_bug_tracker(self, add_to_sidebar: bool = True):
         """Enable bug tracker page.
@@ -129,7 +156,14 @@ class Site_conf:
         """
         self.m_enable_bug_tracker = True
         if add_to_sidebar:
-            self.add_sidebar_page("Bug Tracker", "bug", "/bug_tracker")
+            self._ensure_system_title()
+            # Check if Tools section exists, create if not
+            has_tools = any(
+                item.get("endpoint") == "tools" for item in self.m_sidebar
+            )
+            if not has_tools:
+                self.add_sidebar_section("Tools", "toolbox", "tools")
+            self.add_sidebar_submenu("Bug Tracker", "bug.bugtracker", endpoint="tools")
     
     def enable_settings(self, add_to_sidebar: bool = True):
         """Enable settings page.
@@ -139,7 +173,48 @@ class Site_conf:
         """
         self.m_enable_settings = True
         if add_to_sidebar:
-            self.add_sidebar_page("Settings", "cog", "/settings")
+            self._ensure_system_title()
+            # Check if Tools section exists, create if not
+            has_tools = any(
+                item.get("endpoint") == "tools" for item in self.m_sidebar
+            )
+            if not has_tools:
+                self.add_sidebar_section("Tools", "toolbox", "tools")
+            self.add_sidebar_submenu("Settings", "settings.index", endpoint="tools")
+    
+    def enable_updater(self, add_to_sidebar: bool = True):
+        """Enable updater page.
+        
+        :param add_to_sidebar: If True, adds updater to sidebar, defaults to True
+        :type add_to_sidebar: bool, optional
+        """
+        self.m_enable_updater = True
+        if add_to_sidebar:
+            self._ensure_system_title()
+            # Check if Deployment section exists, create if not
+            has_deployment = any(
+                item.get("endpoint") == "deployment" for item in self.m_sidebar
+            )
+            if not has_deployment:
+                self.add_sidebar_section("Deployment", "package-variant", "deployment")
+            self.add_sidebar_submenu("Updater", "updater.update", endpoint="deployment")
+    
+    def enable_packager(self, add_to_sidebar: bool = True):
+        """Enable packager page.
+        
+        :param add_to_sidebar: If True, adds packager to sidebar, defaults to True
+        :type add_to_sidebar: bool, optional
+        """
+        self.m_enable_packager = True
+        if add_to_sidebar:
+            self._ensure_system_title()
+            # Check if Deployment section exists, create if not
+            has_deployment = any(
+                item.get("endpoint") == "deployment" for item in self.m_sidebar
+            )
+            if not has_deployment:
+                self.add_sidebar_section("Deployment", "package-variant", "deployment")
+            self.add_sidebar_submenu("Packager", "packager.packager", endpoint="deployment")
     
     def enable_all_features(self, add_to_sidebar: bool = True):
         """Enable all framework features (useful for demos and testing).
@@ -147,16 +222,18 @@ class Site_conf:
         :param add_to_sidebar: If True, adds all pages to sidebar, defaults to True
         :type add_to_sidebar: bool, optional
         """
+        # Enable features - authentication adds its own section
         self.enable_authentication(add_to_sidebar)
-        self.enable_threads(add_to_sidebar)
+        
+        # Enable framework system features
         self.enable_scheduler()
         self.enable_long_term_scheduler()
+        self.enable_threads(add_to_sidebar)
         self.enable_log_viewer(add_to_sidebar)
-        self.enable_admin_panel(add_to_sidebar)
         self.enable_bug_tracker(add_to_sidebar)
         self.enable_settings(add_to_sidebar)
-        self.m_enable_updater = True
-        self.m_enable_packager = True
+        self.enable_updater(add_to_sidebar)
+        self.enable_packager(add_to_sidebar)
 
     
     def configure_easter_eggs(self) -> bool:
