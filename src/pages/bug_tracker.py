@@ -16,9 +16,12 @@ import zipfile
 import glob
 import re
 import base64
+import logging
 from datetime import datetime
 from bs4 import BeautifulSoup
 import textile
+
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("bug", __name__, url_prefix="/bug")
 
@@ -249,22 +252,21 @@ def redmine_textile_to_html(textile_content, issue=None):
     content = re.sub(r'\n*_Added by User.*?_\s*$', '', textile_content, flags=re.MULTILINE | re.DOTALL)
     content = re.sub(r'\n*_Last edited by User.*?_\s*$', '', content, flags=re.MULTILINE | re.DOTALL)
     
-    # Debug: Let's see what we're working with
-    print(f"DEBUG: Original content after signature removal: {repr(content[:500])}")
+    logger.debug(f"Original content after signature removal: {repr(content[:500])}")
     
     # If we have the issue object, try to replace image references with base64 embedded images
     if issue and hasattr(issue, 'attachments'):
-        print(f"DEBUG: Issue has {len(list(issue.attachments))} attachments")
+        logger.debug(f"Issue has {len(list(issue.attachments))} attachments")
         try:
             # Create a mapping of all image attachments
             attachment_map = {}
             for attachment in issue.attachments:
-                print(f"DEBUG: Found attachment: {attachment.filename}")
+                logger.debug(f"Found attachment: {attachment.filename}")
                 # Check if it's an image
                 if attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')):
                     attachment_map[attachment.filename] = attachment
             
-            print(f"DEBUG: Image attachments: {list(attachment_map.keys())}")
+            logger.debug(f"Image attachments: {list(attachment_map.keys())}")
             
             # Find all image references - both Textile format (!filename!) and our placeholder format
             # Pattern 1: !filename! (Textile format)
@@ -273,18 +275,18 @@ def redmine_textile_to_html(textile_content, issue=None):
             placeholder_refs = re.findall(r'\[Attached Image: ([^\]]+)\]', content)
             
             all_refs = list(set(image_refs + placeholder_refs))  # Combine and deduplicate
-            print(f"DEBUG: Found image references: {all_refs}")
+            logger.debug(f"Found image references: {all_refs}")
             
             for img_ref in all_refs:
                 # Try to find matching attachment
                 if img_ref in attachment_map:
-                    print(f"DEBUG: Matched image reference: {img_ref}")
+                    logger.debug(f"Matched image reference: {img_ref}")
                     attachment = attachment_map[img_ref]
                     try:
                         # Download the attachment
-                        print(f"DEBUG: Downloading {img_ref}...")
+                        logger.debug(f"Downloading {img_ref}...")
                         img_data = attachment.download()
-                        print(f"DEBUG: Downloaded {len(img_data)} bytes")
+                        logger.debug(f"Downloaded {len(img_data)} bytes")
                         # Convert to base64
                         img_base64 = base64.b64encode(img_data).decode('utf-8')
                         # Determine image type
@@ -300,15 +302,15 @@ def redmine_textile_to_html(textile_content, issue=None):
                         content = content.replace(f'[Attached Image: {img_ref}]', img_tag)
                         content = content.replace(f'*[Attached Image: {img_ref}]*', img_tag)
                         
-                        print(f"DEBUG: Replaced all references to {img_ref} with img tag")
+                        logger.debug(f"Replaced all references to {img_ref} with img tag")
                     except Exception as ex:
-                        print(f"DEBUG: Failed to download {img_ref}: {ex}")
+                        logger.debug(f"Failed to download {img_ref}: {ex}")
                         # If download fails for this specific image, leave it as placeholder
                         pass
                 else:
-                    print(f"DEBUG: No attachment found for: {img_ref}")
+                    logger.debug(f"No attachment found for: {img_ref}")
         except Exception as ex2:
-            print(f"DEBUG: Exception in image processing: {ex2}")
+            logger.debug(f"Exception in image processing: {ex2}")
             # If image fetching fails, just continue with placeholders
             pass
     

@@ -18,6 +18,9 @@ import os
 import sys
 import markdown
 import bcrypt
+import logging
+
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("common", __name__, url_prefix="/common")
 
@@ -104,7 +107,7 @@ def assets(asset_type):
         return "Site configuration not initialized", 500
         
     asset_paths = cast(Dict[str, Any], site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path))
-    print(asset_paths)
+    logger.debug(f"Asset paths: {asset_paths}")
 
     folder_path = None
     for path_info in asset_paths:
@@ -124,7 +127,7 @@ def assets(asset_type):
         
     file_path = os.path.join(folder_path, file_name)
 
-    print(file_path)
+    logger.debug(f"Serving file: {file_path}")
 
     if not os.path.exists(file_path):
         return "", 200  # Return a blank page with status 200

@@ -7,10 +7,13 @@ from pathlib import Path
 from typing import Optional, List, Dict, Set
 from datetime import datetime
 from flask import session
+import logging
 
 from .auth_models import User, ModulePermission
 from .auth_utils import hash_password, verify_password, get_default_user_prefs
 from .security_utils import FailedLoginManager
+
+logger = logging.getLogger(__name__)
 
 
 class AuthManager:
@@ -164,7 +167,7 @@ class AuthManager:
             with open(filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"Error loading {filepath}: {e}")
+            logger.error(f"Error loading {filepath}: {e}")
             return {}
     
     def _save_json(self, filepath: Path, data: dict):
@@ -173,7 +176,7 @@ class AuthManager:
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            print(f"Error saving {filepath}: {e}")
+            logger.error(f"Error saving {filepath}: {e}")
     
     # ==================== User Management ====================
     

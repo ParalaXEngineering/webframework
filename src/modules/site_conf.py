@@ -6,6 +6,9 @@ except ImportError:
     import scheduler
 
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 site_conf_obj = None
 site_conf_app_path = None
@@ -735,6 +738,6 @@ class Site_conf:
         Returns:
             Dictionary mapping static route names to directory paths
         """
-        print(app_path)
+        logger.debug(f"App path: {app_path}")
         return {"images": os.path.join(app_path, "website", "assets", "images"), 
                 "js": os.path.join(app_path, "website", "assets", "js")}

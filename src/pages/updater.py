@@ -20,6 +20,9 @@ import shutil
 import traceback
 import subprocess
 import copy
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # Global settings manager
@@ -197,13 +200,13 @@ class SETUP_Updater(Threaded_action):
 
             # Vérifier si le script BTL.sh existe
             if not os.path.isfile(path_to_bootloader):
-                print(f"Erreur: Le script {path_to_bootloader} n'existe pas.")
+                logger.error(f"Le script {path_to_bootloader} n'existe pas.")
                 return
             if not os.path.isfile(path_to_new_executable):
-                print(f"Erreur: Le script {path_to_new_executable} n'existe pas.")
+                logger.error(f"Le script {path_to_new_executable} n'existe pas.")
                 return
             if not os.path.isfile(original_executable_path):
-                print(f"Erreur: Le script {original_executable_path} n'existe pas.")
+                logger.error(f"Le script {original_executable_path} n'existe pas.")
                 return
 
             try:
@@ -212,7 +215,7 @@ class SETUP_Updater(Threaded_action):
                 else:  # Assuming Linux for other platforms
                     subprocess.Popen(["bash", path_to_bootloader, path_to_new_executable, original_executable_path])
             except Exception as e:
-                print(e)
+                logger.exception(f"Error launching bootloader: {e}")
 
             if self.m_scheduler:
                 self.m_scheduler.emit_status(self.get_name(), "Applying update", 100)

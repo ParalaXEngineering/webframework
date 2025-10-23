@@ -4,6 +4,8 @@ import os
 import stat
 import logging
 
+logger = logging.getLogger(__name__)
+
 class SFTPConnection:
     def __init__(self, host, username, password, port=22):
         self.host = host
@@ -50,7 +52,7 @@ class SFTPConnection:
             try:
                 self.sftp.get(remote_path, local_path)
             except Exception as e:
-                print(f"Erreur lors du téléchargement: {e}")
+                logger.error(f"Erreur lors du téléchargement: {e}")
 
     def upload_file(self, local_path, remote_path):
         """Envoie un fichier vers le serveur SFTP."""
@@ -59,7 +61,7 @@ class SFTPConnection:
             try:
                 self.sftp.put(local_path, remote_path)
             except Exception as e:
-                print(f"Erreur lors de l'envoi du fichier: {e}")
+                logger.error(f"Erreur lors de l'envoi du fichier: {e}")
 
     def mkdir(self, remote_path):
         """Crée un répertoire distant s'il n'existe pas."""
@@ -89,7 +91,7 @@ class SFTPConnection:
             except FileNotFoundError:
                 return False
             except Exception as e:
-                print(f"Erreur lors du test d'existence de {remote_path}: {e}")
+                logger.error(f"Erreur lors du test d'existence de {remote_path}: {e}")
                 return False
         return False
 
@@ -111,4 +113,4 @@ class SFTPConnection:
                 try:
                     self.sftp.get(remote_path, local_path)
                 except Exception as e:
-                    print(f"Erreur lors du téléchargement de {remote_path}: {e}")
+                    logger.error(f"Erreur lors du téléchargement de {remote_path}: {e}")

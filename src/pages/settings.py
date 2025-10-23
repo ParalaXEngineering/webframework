@@ -37,7 +37,9 @@ from ..modules import displayer
 from ..modules.utilities import util_post_to_json, util_post_unmap
 from .common import require_admin
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 
 bp = Blueprint("settings", __name__, url_prefix="/settings")
 
@@ -233,8 +235,7 @@ def _view_settings(user_mode=False):
                                     # Save to user override
                                     auth_manager.set_user_framework_override(current_user, full_key, value)
                         except Exception as e:
-                            import traceback
-                            traceback.print_exc()
+                            logger.exception("Error setting user framework override")
                 
                 flash("Settings saved successfully!", "success")
                 # Stay on the same page - rebuild URL with category if present
@@ -243,8 +244,7 @@ def _view_settings(user_mode=False):
                 else:
                     return redirect(url_for('settings.user_view'))
             except Exception as e:
-                import traceback
-                traceback.print_exc()
+                logger.exception("Error saving user settings")
                 flash(f"Error saving settings: {str(e)}", "danger")
         else:
             # Admin mode - save to global config
@@ -330,9 +330,8 @@ def _view_settings(user_mode=False):
                                     
                                     # Save to global config
                                     manager.set_setting(full_key, value)
-                        except Exception as e:
-                            import traceback
-                            traceback.print_exc()
+                        except Exception:
+                            logger.exception("Error setting global config value")
                 
                 # Handle overridable checkboxes
                 for setting_key in overridable_keys:
@@ -357,8 +356,7 @@ def _view_settings(user_mode=False):
                 else:
                     return redirect(url_for('settings.view'))
             except Exception as e:
-                import traceback
-                traceback.print_exc()
+                logger.exception("Error saving settings")
                 flash(f"Error saving settings: {str(e)}", "danger")
     
     disp = displayer.Displayer()
