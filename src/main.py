@@ -399,6 +399,17 @@ def setup_app(app):
         session["page_info"] = "index"  # type: ignore
         return render_template("index.j2", title=site_conf.site_conf_obj.m_app["name"], content=site_conf.site_conf_obj.m_index)  # type: ignore
 
+    # Handle Chrome DevTools and browser-specific requests to avoid 404 logs
+    @app.route('/.well-known/appspecific/com.chrome.devtools.json')  # type: ignore
+    def chrome_devtools():
+        """Return empty response for Chrome DevTools request."""
+        return {}, 204  # 204 No Content
+    
+    @app.route('/.well-known/<path:path>')  # type: ignore
+    def well_known(path):
+        """Handle other .well-known requests."""
+        return {}, 204  # 204 No Content
+
     # Error handling to log errors
     @app.errorhandler(Exception)  # type: ignore
     def handle_exception(e):
@@ -406,7 +417,24 @@ def setup_app(app):
         if hasattr(e, 'code') and e.code == 404:    
             requested_url = request.path  # type: ignore
             query_parameters = request.args.to_dict()  # type: ignore
-            logger.error(f"A 404 was generated at the following path: {requested_url}. Get arguments: {query_parameters}")
+            
+            # Suppress Chrome DevTools and other browser-specific requests
+            ignored_paths = [
+                '/.well-known/appspecific/com.chrome.devtools.json',
+                '/favicon.ico',
+                '/.well-known/',
+            ]
+            
+            # Check if this is a path we should ignore
+            should_log = True
+            for ignored_path in ignored_paths:
+                if requested_url.startswith(ignored_path):
+                    should_log = False
+                    break
+            
+            if should_log:
+                logger.error(f"A 404 was generated at the following path: {requested_url}. Get arguments: {query_parameters}")
+            
             return render_template("404.j2", requested=requested_url)  # type: ignore
 
         # Gather detailed error context

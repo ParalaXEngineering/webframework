@@ -200,7 +200,9 @@ def profile():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [4, 8]))
     disp.add_display_item(DisplayerItemImage(
         height="200px",
-        link=avatar_url
+        width="200px",
+        link=avatar_url,
+        css_class="rounded-circle"
     ), column=0)
     
     disp.add_display_item(DisplayerItemInputFile(

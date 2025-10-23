@@ -30,7 +30,7 @@
     {% elif item["type"] == "FILE" %}
         {{file(item["id"], item["value"], item["text"], item["endpoint"], item["path"], item["date"])}}
     {% elif item["type"] == "IMAGE" %}
-        {{image(item["id"], item["value"], item["data"], item["endpoint"], item["path"])}}
+        {{image(item["id"], item["value"], item["data"], item["endpoint"], item["path"], item["css_class"] if "css_class" in item else None, item["width"] if "width" in item else None)}}
     {% elif item["type"] == "INBOX" %}
         {{inbox(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INDATE" %}
@@ -338,13 +338,17 @@ document.addEventListener('DOMContentLoaded', function() {
     </a></p>
 {% endmacro %}
 
-{% macro image(id, src, height, endpoint, path) %}
+{% macro image(id, src, height, endpoint, path, css_class, width) %}
+    {% set style_attr = '' %}
+    {% if css_class and 'rounded-circle' in css_class %}
+        {% set style_attr = 'object-fit: cover;' %}
+    {% endif %}
     {% if path == "/" %}
-    <img class="zoomable" src="{{ url_for('common.assets', asset_type=endpoint, filename=src) }}" height="{{ height }}">
+    <img class="zoomable{% if css_class %} {{ css_class }}{% endif %}" src="{{ url_for('common.assets', asset_type=endpoint, filename=src) }}" height="{{ height }}"{% if width %} width="{{ width }}"{% endif %}{% if style_attr %} style="{{ style_attr }}"{% endif %}>
     {% elif path %}    
-    <img class="zoomable" src="{{ url_for('common.assets', asset_type=endpoint, filename=path + '/' + src) }}" height="{{ height }}">
+    <img class="zoomable{% if css_class %} {{ css_class }}{% endif %}" src="{{ url_for('common.assets', asset_type=endpoint, filename=path + '/' + src) }}" height="{{ height }}"{% if width %} width="{{ width }}"{% endif %}{% if style_attr %} style="{{ style_attr }}"{% endif %}>
     {% else %}
-    <img src="{{src}}" height="{{height}}">
+    <img {% if css_class %}class="{{ css_class }}"{% endif %} src="{{src}}" height="{{height}}"{% if width %} width="{{ width }}"{% endif %}{% if style_attr %} style="{{ style_attr }}"{% endif %}>
     {% endif %}
 {% endmacro %}
 

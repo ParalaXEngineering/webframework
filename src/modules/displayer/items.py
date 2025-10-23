@@ -25,6 +25,8 @@ class DisplayerItem:
         'm_date': 'date',
         'm_itemId': 'itemId',
         'm_id': 'id',
+        'm_css_class': 'css_class',
+        'm_width': 'width',
     }
 
     def __init__(self, itemType: DisplayerItems) -> None:
@@ -708,7 +710,7 @@ class DisplayerItemDownload(DisplayerItem):
 class DisplayerItemImage(DisplayerItem):
     """Specialized display item to display an image."""
 
-    def __init__(self, height: str, link: str, endpoint: Optional[str] = None, path: Optional[str] = None) -> None:
+    def __init__(self, height: str, link: str, endpoint: Optional[str] = None, path: Optional[str] = None, css_class: Optional[str] = None, width: Optional[str] = None) -> None:
         """
         Initialize an image item.
 
@@ -717,18 +719,24 @@ class DisplayerItemImage(DisplayerItem):
             link: URL to the image (can be full HTTP address or filename)
             endpoint: Endpoint name from site_conf for local files (default: None)
             path: Path relative to the endpoint for local files (default: None)
+            css_class: Additional CSS classes to apply (e.g., "rounded-circle", "img-thumbnail")
+            width: The width of the image (CSS value, e.g., "200px", "50%"). If not set, uses auto
 
         Example:
             >>> # Remote image
             >>> img1 = DisplayerItemImage(height="300px", link="https://example.com/image.jpg")
             >>> # Local image
             >>> img2 = DisplayerItemImage(height="200px", link="logo.png", endpoint="static", path="images")
+            >>> # Rounded circular avatar
+            >>> img3 = DisplayerItemImage(height="200px", width="200px", link="avatar.jpg", css_class="rounded-circle")
         """
         super().__init__(DisplayerItems.IMAGE)
         self.m_data = height
         self.m_value = link
         self.m_path = path
         self.m_endpoint = endpoint
+        self.m_css_class = css_class
+        self.m_width = width
 
         return
 
