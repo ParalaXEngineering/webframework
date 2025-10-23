@@ -51,6 +51,18 @@ class TestFeatureFlags:
         conf = Site_conf()
         conf.enable_threads(add_to_sidebar=False)
         assert conf.m_enable_threads is True
+        
+        # Check that topbar thread info is added by default
+        assert conf.m_topbar["display"] is True
+        thread_items = [item for item in conf.m_topbar["right"] if item.get("type") == "thread"]
+        assert len(thread_items) == 1
+        assert thread_items[0]["icon"] == "cog-sync"
+        
+        # Test disabling topbar
+        conf2 = Site_conf()
+        conf2.enable_threads(add_to_sidebar=False, add_to_topbar=False)
+        assert conf2.m_enable_threads is True
+        assert len([item for item in conf2.m_topbar["right"] if item.get("type") == "thread"]) == 0
     
     def test_enable_all_features(self):
         """Test enabling all features at once."""
@@ -62,6 +74,17 @@ class TestFeatureFlags:
         assert conf.m_enable_log_viewer is True
         assert conf.m_enable_bug_tracker is True
         assert conf.m_enable_settings is True
+        
+        # Check that topbar thread indicator is added by default
+        thread_items = [item for item in conf.m_topbar["right"] if item.get("type") == "thread"]
+        assert len(thread_items) == 1
+        
+        # Test disabling topbar elements
+        conf2 = Site_conf()
+        conf2.enable_all_features(add_to_sidebar=False, add_to_topbar=False)
+        assert conf2.m_enable_threads is True
+        thread_items2 = [item for item in conf2.m_topbar["right"] if item.get("type") == "thread"]
+        assert len(thread_items2) == 0
 
 
 def test_common_blueprint_always_available():

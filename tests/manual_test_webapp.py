@@ -109,8 +109,9 @@ class TestSiteConf(site_conf.Site_conf):
         # Bug Tracker, Settings, Updater, Packager
         self.enable_all_features(add_to_sidebar=True)
         
-        # Configure topbar with login display
-        self.m_topbar = {"display": True, "left": [], "center": [], "right": [], "login": True}
+        # Configure topbar login display (don't overwrite m_topbar, just update it)
+        # The enable_all_features() already configured the topbar with thread status
+        self.m_topbar["login"] = True
         self.m_javascripts = []
         self.m_enable_easter_eggs = False
     

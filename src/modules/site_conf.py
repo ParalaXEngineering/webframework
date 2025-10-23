@@ -106,11 +106,17 @@ class Site_conf:
             self.add_sidebar_submenu("Permissions", "admin_auth.manage_permissions", endpoint="admin")
             self.add_sidebar_submenu("Groups", "admin_auth.manage_groups", endpoint="admin")
     
-    def enable_threads(self, add_to_sidebar: bool = True):
+    def enable_threads(self, add_to_sidebar: bool = True, add_to_topbar: bool = True, topbar_icon: str = "cog-sync", topbar_area: str = "right"):
         """Enable thread monitoring and background task management.
         
         :param add_to_sidebar: If True, adds threads page to sidebar, defaults to True
         :type add_to_sidebar: bool, optional
+        :param add_to_topbar: If True, adds thread status indicator to topbar, defaults to True
+        :type add_to_topbar: bool, optional
+        :param topbar_icon: Icon for the thread status indicator in topbar, defaults to "cog-sync"
+        :type topbar_icon: str, optional
+        :param topbar_area: Area of topbar for thread status ("left", "center", "right"), defaults to "right"
+        :type topbar_area: str, optional
         """
         self.m_enable_threads = True
         if add_to_sidebar:
@@ -122,6 +128,9 @@ class Site_conf:
             if not has_monitoring:
                 self.add_sidebar_section("Monitoring", "monitor-dashboard", "monitoring")
             self.add_sidebar_submenu("Thread Monitor", "threads.threads", endpoint="monitoring")
+        
+        if add_to_topbar:
+            self.add_topbar_thread_info(topbar_icon, topbar_area)
     
     def enable_scheduler(self):
         """Enable real-time scheduler for SocketIO updates."""
@@ -216,11 +225,13 @@ class Site_conf:
                 self.add_sidebar_section("Deployment", "package-variant", "deployment")
             self.add_sidebar_submenu("Packager", "packager.packager", endpoint="deployment")
     
-    def enable_all_features(self, add_to_sidebar: bool = True):
+    def enable_all_features(self, add_to_sidebar: bool = True, add_to_topbar: bool = True):
         """Enable all framework features (useful for demos and testing).
         
         :param add_to_sidebar: If True, adds all pages to sidebar, defaults to True
         :type add_to_sidebar: bool, optional
+        :param add_to_topbar: If True, adds topbar elements where applicable (e.g., thread status), defaults to True
+        :type add_to_topbar: bool, optional
         """
         # Enable features - authentication adds its own section
         self.enable_authentication(add_to_sidebar)
@@ -228,7 +239,7 @@ class Site_conf:
         # Enable framework system features
         self.enable_scheduler()
         self.enable_long_term_scheduler()
-        self.enable_threads(add_to_sidebar)
+        self.enable_threads(add_to_sidebar, add_to_topbar=add_to_topbar)
         self.enable_log_viewer(add_to_sidebar)
         self.enable_bug_tracker(add_to_sidebar)
         self.enable_settings(add_to_sidebar)

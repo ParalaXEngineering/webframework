@@ -320,12 +320,20 @@ Feature Methods Reference
    
       self.enable_authentication(add_to_sidebar=True)
 
-**enable_threads(add_to_sidebar=True)**
+**enable_threads(add_to_sidebar=True, add_to_topbar=True, topbar_icon="cog-sync", topbar_area="right")**
    Enables background task monitoring. Adds "Threads" page to System > Monitoring section if ``add_to_sidebar=True``.
+   Adds thread status indicator to topbar if ``add_to_topbar=True``.
    
    .. code-block:: python
    
+      # Enable with both sidebar and topbar (default)
       self.enable_threads(add_to_sidebar=True)
+      
+      # Customize topbar icon and position
+      self.enable_threads(topbar_icon="loading", topbar_area="center")
+      
+      # Enable only sidebar, no topbar indicator
+      self.enable_threads(add_to_topbar=False)
 
 **enable_scheduler()**
    Enables periodic task scheduler and WebSocket real-time updates. Does not add sidebar items.
@@ -369,12 +377,17 @@ Feature Methods Reference
    
       self.enable_packager(add_to_sidebar=True)
 
-**enable_all_features(add_to_sidebar=True)**
-   Convenience method that enables all optional features at once.
+**enable_all_features(add_to_sidebar=True, add_to_topbar=True)**
+   Convenience method that enables all optional features at once. This includes authentication,
+   scheduler, threads, log viewer, bug tracker, settings, updater, and packager.
    
    .. code-block:: python
    
+      # Enable everything with sidebar and topbar (default)
       self.enable_all_features(add_to_sidebar=True)
+      
+      # Enable features without topbar elements
+      self.enable_all_features(add_to_sidebar=True, add_to_topbar=False)
 
 Sidebar Organization
 ^^^^^^^^^^^^^^^^^^^^
