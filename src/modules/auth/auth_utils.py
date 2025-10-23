@@ -105,7 +105,7 @@ def validate_username(username: str) -> Tuple[bool, Optional[str]]:
 
 def get_default_user_prefs() -> dict:
     """
-    Get default user preferences template.
+    Get default user preferences structure.
     
     Returns:
         Default preferences dictionary
@@ -116,5 +116,6 @@ def get_default_user_prefs() -> dict:
         "module_settings": {},
         "notifications": {
             "email_on_complete": False
-        }
+        },
+        "framework_overrides": {}
     }

@@ -15,8 +15,9 @@ try:
     from ..modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
-        DisplayerItemInputSelect, DisplayerItemImage, DisplayerItemInputFile,
-        DisplayerItemAlert, BSstyle
+        DisplayerItemInputSelect, DisplayerItemInputCheckbox, DisplayerItemInputNumeric,
+        DisplayerItemInputStringIcon, DisplayerItemImage, DisplayerItemInputFile,
+        DisplayerItemAlert, DisplayerItemSeparator, BSstyle
     )
     from ..modules.auth.auth_utils import verify_password, validate_password_strength
     from ..modules import utilities
@@ -25,8 +26,9 @@ except ImportError:
     from modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
-        DisplayerItemInputSelect, DisplayerItemImage, DisplayerItemInputFile,
-        DisplayerItemAlert, BSstyle
+        DisplayerItemInputSelect, DisplayerItemInputCheckbox, DisplayerItemInputNumeric,
+        DisplayerItemInputStringIcon, DisplayerItemImage, DisplayerItemInputFile,
+        DisplayerItemAlert, DisplayerItemSeparator, BSstyle
     )
     from modules.auth.auth_utils import verify_password, validate_password_strength
     from modules import utilities
@@ -354,3 +356,10 @@ def preferences():
     ), column=0)
     
     return render_template("base_content.j2", content=disp.display(), target="user_profile.preferences")
+
+
+@user_profile_bp.route('/framework_preferences', methods=['GET', 'POST'])
+def framework_preferences():
+    """Framework preferences page - redirect to unified settings page."""
+    return redirect(url_for('settings.user_view'))
+

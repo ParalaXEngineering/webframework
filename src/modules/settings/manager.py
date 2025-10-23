@@ -33,6 +33,38 @@ class SettingsManager:
         """Set setting value by key (category.setting)."""
         self.storage.set(key, value)
     
+    def set_setting_metadata(self, key: str, metadata_key: str, metadata_value: Any) -> None:
+        """
+        Set metadata for a setting (e.g., overridable_by_user flag).
+        
+        Args:
+            key: Setting key in dot notation (e.g., "framework_ui.thread_status_position")
+            metadata_key: Metadata key to set (e.g., "overridable_by_user")
+            metadata_value: Value to set for the metadata
+        """
+        # Parse the key
+        parts = key.split('.')
+        if len(parts) < 2:
+            return
+        
+        if self._settings is None:
+            self.load()
+        
+        if self._settings is None:
+            return
+        
+        # Navigate to the setting
+        current = self._settings
+        for part in parts[:-1]:
+            if part not in current:
+                return
+            current = current[part]
+        
+        # Set the metadata
+        setting_key = parts[-1]
+        if setting_key in current and isinstance(current[setting_key], dict):
+            current[setting_key][metadata_key] = metadata_value
+    
     def get_category(self, category: str) -> Dict[str, Any]:
         """Get all settings in a category."""
         return self.storage.get_category(category)
@@ -111,6 +143,7 @@ class SettingsManager:
         
         # Check each feature and merge its config if enabled
         feature_map = {
+            "framework_ui": (site_conf_obj.m_enable_threads or site_conf_obj.m_enable_log_viewer),
             "bug_tracker": site_conf_obj.m_enable_bug_tracker,
             "updater": site_conf_obj.m_enable_updater,
             "packager": site_conf_obj.m_enable_packager,
@@ -147,4 +180,38 @@ class SettingsManager:
             elif isinstance(value, dict) and isinstance(existing[key], dict):
                 # Both are dicts, merge recursively
                 self._merge_section(existing[key], value)
+    
+    def get_overridable_settings(self) -> Dict[str, Any]:
+        """
+        Get all settings that can be overridden by users.
+        
+        Returns:
+            Dict mapping "category.setting_key" to setting data (including default value)
+        """
+        if self._settings is None:
+            self.load()
+        
+        overridable = {}
+        if self._settings:
+            for category, category_data in self._settings.items():
+                if not isinstance(category_data, dict):
+                    continue
+                
+                for key, setting in category_data.items():
+                    if key == "friendly" or not isinstance(setting, dict):
+                        continue
+                    
+                    if setting.get("overridable_by_user", False):
+                        full_key = f"{category}.{key}"
+                        overridable[full_key] = {
+                            "category": category,
+                            "key": key,
+                            "friendly": setting.get("friendly", key),
+                            "category_friendly": category_data.get("friendly", category),
+                            "type": setting.get("type", "string"),
+                            "default_value": setting.get("value"),
+                            "options": setting.get("options", [])
+                        }
+        
+        return overridable
 

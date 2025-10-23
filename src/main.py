@@ -302,9 +302,34 @@ def setup_app(app):
     @app.context_processor  # type: ignore
     def inject_bar():
         custom_context = site_conf.site_conf_obj.context_processor()  # type: ignore
+        
+        # Get current user for applying overrides
+        user = session.get('user') or session.get('username')  # type: ignore
+        if not user and auth_manager is not None:
+            user = auth_manager.get_current_user()
+        
+        # Apply user overrides to topbar if needed
+        topbar_items = site_conf.site_conf_obj.m_topbar.copy()  # type: ignore
+        if user and auth_manager is not None:
+            # Check for thread position override
+            thread_pos_override = auth_manager.get_user_framework_override(user, "framework_ui.thread_status_position")
+            if thread_pos_override is not None:
+                # Find and move thread item to the overridden position
+                thread_item = None
+                for area in ["left", "center", "right"]:
+                    topbar_items[area] = [item for item in topbar_items[area] if item.get("type") != "thread"]
+                    # Find thread item while removing
+                    for item in site_conf.site_conf_obj.m_topbar[area]:  # type: ignore
+                        if item.get("type") == "thread":
+                            thread_item = item
+                
+                # Add thread item to the override position
+                if thread_item and thread_pos_override in ["left", "center", "right"]:
+                    topbar_items[thread_pos_override].append(thread_item)
+        
         base_context = dict(
             sidebarItems=site_conf.site_conf_obj.m_sidebar,  # type: ignore
-            topbarItems=site_conf.site_conf_obj.m_topbar,  # type: ignore
+            topbarItems=topbar_items,
             app=site_conf.site_conf_obj.m_app,  # type: ignore
             javascript=site_conf.site_conf_obj.m_javascripts,  # type: ignore
             filename=None,

@@ -634,7 +634,7 @@ class AuthManager:
         Args:
             username: Username
             module_name: Module name
-            module_prefs: Module preferences dictionary
+            module_prefs: Module-specific preferences dictionary
             
         Returns:
             True if saved successfully
@@ -644,6 +644,55 @@ class AuthManager:
             prefs["module_settings"] = {}
         prefs["module_settings"][module_name] = module_prefs
         return self.save_user_prefs(username, prefs)
+    
+    def get_user_framework_override(self, username: str, setting_key: str):
+        """
+        Get a user's framework setting override.
+        
+        Args:
+            username: Username
+            setting_key: Setting key in format "category.setting"
+            
+        Returns:
+            Override value or None if not set
+        """
+        prefs = self.get_user_prefs(username)
+        return prefs.get("framework_overrides", {}).get(setting_key)
+    
+    def set_user_framework_override(self, username: str, setting_key: str, value) -> bool:
+        """
+        Set a user's framework setting override.
+        
+        Args:
+            username: Username
+            setting_key: Setting key in format "category.setting"
+            value: Value to set
+            
+        Returns:
+            True if saved successfully
+        """
+        prefs = self.get_user_prefs(username)
+        if "framework_overrides" not in prefs:
+            prefs["framework_overrides"] = {}
+        prefs["framework_overrides"][setting_key] = value
+        return self.save_user_prefs(username, prefs)
+    
+    def clear_user_framework_override(self, username: str, setting_key: str) -> bool:
+        """
+        Clear a user's framework setting override (revert to default).
+        
+        Args:
+            username: Username
+            setting_key: Setting key in format "category.setting"
+            
+        Returns:
+            True if saved successfully
+        """
+        prefs = self.get_user_prefs(username)
+        if "framework_overrides" in prefs and setting_key in prefs["framework_overrides"]:
+            del prefs["framework_overrides"][setting_key]
+            return self.save_user_prefs(username, prefs)
+        return True
     
     # ==================== Group Management ====================
     

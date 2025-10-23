@@ -113,12 +113,11 @@ def index():
             column=2, line=line, layout_id=layout_id
         )
         
-        # Action buttons
+        # Action button - edit only (inline editing, no separate view page)
         disp.add_display_item(
             displayer.DisplayerItemActionButtons(
                 id=f"actions_{category}",
-                view_url=f"/settings/view?category={category}",
-                edit_url=f"/settings/edit?category={category}",
+                edit_url=f"/settings/view?category={category}",
                 style="icons",
                 size="sm"
             ),
@@ -128,30 +127,192 @@ def index():
     return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_auth), target="")
 
 
-@bp.route("/view", methods=["GET"])
+@bp.route("/view", methods=["GET", "POST"])
 @require_admin
 def view():
-    """View settings in read-only table format."""
+    """View and edit settings with inline form."""
+    return _view_settings(user_mode=False)
+
+
+@bp.route("/user_view", methods=["GET", "POST"])
+def user_view():
+    """View and edit user-overridable settings with inline form (no admin required)."""
+    return _view_settings(user_mode=True)
+
+
+def _view_settings(user_mode=False):
+    """Internal function to view and edit settings with optional user filtering."""
     manager = get_manager()
     category_filter = request.args.get("category")
     
-    disp = displayer.Displayer()
-    disp.add_generic("View Settings", display=False)
-    disp.set_title("View Settings")
+    # Handle POST - save settings
+    if request.method == "POST":
+        if user_mode:
+            # Save to user overrides
+            try:
+                from ..modules.auth.auth_manager import auth_manager
+                current_user = auth_manager.get_current_user()
+                if not current_user:
+                    flash("Not logged in", "danger")
+                    return redirect(url_for('common.login'))
+                
+                # Process form data
+                for form_key, form_value in request.form.items():
+                    if form_key in ["csrf_token", "save"]:
+                        continue
+                    
+                    # Strip ALL module prefixes (can be duplicated)
+                    cleaned_key = form_key
+                    while '.' in cleaned_key:
+                        parts = cleaned_key.split('.', 1)  # Split only on first dot
+                        if ' ' in parts[0]:  # First part is a module name with spaces
+                            cleaned_key = parts[1] if len(parts) > 1 else cleaned_key
+                        else:
+                            break  # No more module prefixes
+                    
+                    # Get setting metadata to determine type
+                    try:
+                        # Parse key to get category and setting name
+                        if '.' in cleaned_key:
+                            parts = cleaned_key.split('.')
+                            category_name = parts[0]
+                            setting_name = '.'.join(parts[1:])
+                            all_settings = manager.get_all_settings()
+                            
+                            if category_name in all_settings:
+                                # Navigate to the setting
+                                setting_data = all_settings[category_name]
+                                for part in setting_name.split('.'):
+                                    if isinstance(setting_data, dict) and part in setting_data:
+                                        setting_data = setting_data[part]
+                                    else:
+                                        setting_data = None
+                                        break
+                                
+                                if setting_data and isinstance(setting_data, dict):
+                                    setting_type = setting_data.get("type", "string")
+                                    
+                                    # Type conversion
+                                    if setting_type == "int":
+                                        try:
+                                            form_value = int(form_value)
+                                        except (ValueError, TypeError):
+                                            form_value = setting_data.get("value", 0)
+                                    elif setting_type == "bool":
+                                        form_value = form_value in [True, "true", "on", "1", 1]
+                                    
+                                    # Save to user override
+                                    auth_manager.set_user_framework_override(current_user, cleaned_key, form_value)
+                    except Exception:
+                        pass  # Skip invalid settings
+                
+                flash("Settings saved successfully!", "success")
+                return redirect(url_for('settings.user_view', category=category_filter) if category_filter else url_for('settings.user_view'))
+            except Exception as e:
+                flash(f"Error saving settings: {str(e)}", "danger")
+        else:
+            # Admin mode - save to global config
+            try:
+                # Process form data
+                for form_key, form_value in request.form.items():
+                    if form_key in ["csrf_token", "save"]:
+                        continue
+                    
+                    # Handle overridable checkbox
+                    if form_key.startswith("overridable_"):
+                        setting_key = form_key.replace("overridable_", "")
+                        manager.set_setting_metadata(setting_key, "overridable_by_user", True)
+                        continue
+                    
+                    # Get setting type to convert value properly
+                    try:
+                        # Parse key to get category and setting name
+                        if '.' in form_key:
+                            parts = form_key.split('.')
+                            category_name = parts[0]
+                            setting_name = '.'.join(parts[1:])
+                            all_settings = manager.get_all_settings()
+                            
+                            if category_name in all_settings:
+                                # Navigate to the setting
+                                setting_data = all_settings[category_name]
+                                for part in setting_name.split('.'):
+                                    if isinstance(setting_data, dict) and part in setting_data:
+                                        setting_data = setting_data[part]
+                                    else:
+                                        setting_data = None
+                                        break
+                                
+                                if setting_data and isinstance(setting_data, dict):
+                                    setting_type = setting_data.get("type", "string")
+                                    
+                                    # Type conversion
+                                    if setting_type == "int":
+                                        try:
+                                            form_value = int(form_value)
+                                        except (ValueError, TypeError):
+                                            form_value = setting_data.get("value", 0)
+                                    elif setting_type == "bool":
+                                        form_value = form_value in [True, "true", "on", "1", 1]
+                                    
+                                    # Save to global config
+                                    manager.set_setting(form_key, form_value)
+                    except Exception:
+                        pass  # Skip invalid settings
+                
+                # Handle unchecked overridable checkboxes (set to False)
+                all_settings = manager.get_all_settings()
+                for category in all_settings:
+                    category_data = all_settings[category]
+                    for key in category_data:
+                        if key == "friendly" or not isinstance(category_data[key], dict):
+                            continue
+                        full_key = f"{category}.{key}"
+                        checkbox_name = f"overridable_{full_key}"
+                        if checkbox_name not in request.form:
+                            manager.set_setting_metadata(full_key, "overridable_by_user", False)
+                
+                manager.save()
+                flash("Settings saved successfully!", "success")
+                return redirect(url_for('settings.view', category=category_filter) if category_filter else url_for('settings.view'))
+            except Exception as e:
+                flash(f"Error saving settings: {str(e)}", "danger")
     
-    # Add breadcrumbs
-    disp.add_breadcrumb("Home", "demo.index", [])
-    disp.add_breadcrumb("Settings", "settings.index", [])
-    if category_filter:
-        disp.add_breadcrumb(f"View {manager.get_category_friendly(category_filter)}", "settings.view", [f"category={category_filter}"])
+    disp = displayer.Displayer()
+    
+    if user_mode:
+        disp.add_generic("My Framework Settings", display=False)
+        disp.set_title("My Framework Settings")
+        disp.add_breadcrumb("Home", "demo.index", [])
+        disp.add_breadcrumb("Framework Settings", "settings.user_view", [])
     else:
-        disp.add_breadcrumb("View All Settings", "settings.view", [])
+        disp.add_generic("View Settings", display=False)
+        disp.set_title("View Settings")
+        disp.add_breadcrumb("Home", "demo.index", [])
+        disp.add_breadcrumb("Settings", "settings.index", [])
+        if category_filter:
+            disp.add_breadcrumb(f"View {manager.get_category_friendly(category_filter)}", "settings.view", [f"category={category_filter}"])
+        else:
+            disp.add_breadcrumb("View All Settings", "settings.view", [])
     
     all_settings = manager.get_all_settings()
     
     # Filter by category if specified
     categories_to_show = [category_filter] if category_filter else manager.list_categories()
     
+    # Get user overrides if in user mode
+    user_overrides = {}
+    if user_mode:
+        try:
+            from ..modules.auth.auth_manager import auth_manager
+            current_user = auth_manager.get_current_user()
+            if current_user:
+                user_prefs = auth_manager.get_user_prefs(current_user)
+                user_overrides = user_prefs.get("framework_overrides", {})
+        except Exception:
+            pass
+    
+    has_overridable = False
     for category in categories_to_show:
         if category not in all_settings:
             continue
@@ -159,14 +320,31 @@ def view():
         category_data = all_settings[category]
         friendly_name = category_data.get("friendly", category)
         
+        # In user mode, check if category has any overridable settings
+        if user_mode:
+            has_overridable_in_category = any(
+                setting.get("overridable_by_user", False)
+                for key, setting in category_data.items()
+                if key != "friendly" and isinstance(setting, dict)
+            )
+            if not has_overridable_in_category:
+                continue  # Skip category in user mode
+        
+        has_overridable = True
+        
         disp.add_master_layout(displayer.DisplayerLayout(
             displayer.Layouts.VERTICAL, [12], subtitle=friendly_name, spacing=2
         ))
         
-        # Create simple table for this category (no DataTables)
+        # Create simple table for this category with inline editing
+        if user_mode:
+            columns = ["Setting", "Type", "Value"]
+        else:
+            columns = ["Setting", "Type", "Value", "User Overridable"]
+        
         layout_id = disp.add_master_layout(displayer.DisplayerLayout(
             displayer.Layouts.TABLE,
-            columns=["Setting", "Type", "Current Value", "Actions"]
+            columns=columns
         ))
         
         line = 0
@@ -174,9 +352,24 @@ def view():
             if key == "friendly" or not isinstance(setting, dict):
                 continue
             
+            is_overridable = setting.get("overridable_by_user", False)
+            
+            # In user mode, skip non-overridable settings
+            if user_mode and not is_overridable:
+                continue
+            
             friendly = setting.get("friendly", key)
             setting_type = setting.get("type", "string")
             value = setting.get("value")
+            options = setting.get("options", [])
+            
+            # In user mode, use user's override value if present
+            full_key = f"{category}.{key}"
+            if user_mode and full_key in user_overrides:
+                value = user_overrides[full_key]
+            
+            # Form field name - just use the key, Displayer will add module prefix
+            form_field_name = full_key
             
             # Setting name
             disp.add_display_item(
@@ -199,425 +392,57 @@ def view():
                 column=1, line=line, layout_id=layout_id
             )
             
-            # Current value (formatted nicely)
+            # Value - render appropriate input widget
             if setting_type == "bool":
-                value_display = "✓ Yes" if value else "✗ No"
-            elif setting_type in ["text_list", "multi_select"]:
-                value_display = f"{len(value) if value else 0} items"
-            elif setting_type in ["key_value_pairs", "dropdown_mapping"]:
-                value_display = f"{len(value) if value else 0} entries"
-            else:
-                value_display = str(value) if value is not None else "<em>Not set</em>"
+                disp.add_display_item(
+                    displayer.DisplayerItemInputCheckbox(form_field_name, "", value or False),
+                    column=2, line=line, layout_id=layout_id
+                )
+            elif setting_type == "int":
+                disp.add_display_item(
+                    displayer.DisplayerItemInputNumeric(form_field_name, "", value or 0),
+                    column=2, line=line, layout_id=layout_id
+                )
+            elif setting_type == "select":
+                disp.add_display_item(
+                    displayer.DisplayerItemInputSelect(form_field_name, "", value, options or []),
+                    column=2, line=line, layout_id=layout_id
+                )
+            else:  # string, text, etc.
+                disp.add_display_item(
+                    displayer.DisplayerItemInputString(form_field_name, "", value or ""),
+                    column=2, line=line, layout_id=layout_id
+                )
             
-            disp.add_display_item(
-                displayer.DisplayerItemText(value_display),
-                column=2, line=line, layout_id=layout_id
-            )
-            
-            # Action buttons - edit only (no view/delete for individual settings)
-            full_key = f"{category}.{key}"
-            disp.add_display_item(
-                displayer.DisplayerItemActionButtons(
-                    id=f"actions_{category}_{key}",
-                    edit_url=f"/settings/edit?category={category}#{full_key}",
-                    style="icons",
-                    size="sm"
-                ),
-                column=3, line=line, layout_id=layout_id
-            )
+            # Overridable checkbox (only in admin mode)
+            if not user_mode:
+                checkbox_name = f"overridable_{full_key}"
+                disp.add_display_item(
+                    displayer.DisplayerItemInputCheckbox(checkbox_name, "", is_overridable),
+                    column=3, line=line, layout_id=layout_id
+                )
             
             line += 1
     
-    return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_auth), target="")
-
-
-@bp.route("/edit", methods=["GET", "POST"])
-@require_admin
-def edit():
-    """Edit settings form with all field types."""
-    manager = get_manager()
-    
-    if request.method == "POST":
-        # Process form submission
-        # Complex structures need custom parsing to handle module prefix and various field types
-        
-        # Strip module prefix from all form keys and organize by setting
-        cleaned_form = {}
-        for form_key, form_value in request.form.items():
-            if form_key in ["csrf_token", "save"]:
-                continue
-            
-            # Strip module prefix if present (e.g., "Edit Settings.category.key" -> "category.key")
-            if '.' in form_key:
-                parts = form_key.split('.')
-                # If first part has spaces, it's likely the module name
-                if ' ' in parts[0] and len(parts) >= 3:
-                    cleaned_key = '.'.join(parts[1:])  # Skip module name
-                else:
-                    cleaned_key = form_key
-                cleaned_form[cleaned_key] = form_value
-        
-        all_settings = manager.get_all_settings()
-        
-        # Collect bool fields for unchecked handling
-        bool_fields = set()
-        for category in all_settings:
-            category_data = all_settings[category]
-            for key in category_data:
-                if key == "friendly" or not isinstance(category_data[key], dict):
-                    continue
-                setting = category_data[key]
-                if setting.get("type") == "bool":
-                    bool_fields.add(f"{category}.{key}")
-        
-        # Group form fields by setting (handle complex types that have suffixes like .list0, .list1)
-        setting_groups = {}
-        for form_key, form_value in cleaned_form.items():
-            # Extract base setting key (category.key) from forms like "category.key.list0"
-            parts = form_key.split('.')
-            if len(parts) >= 2:
-                category = parts[0]
-                key = parts[1]
-                base_key = f"{category}.{key}"
-                
-                if base_key not in setting_groups:
-                    setting_groups[base_key] = []
-                setting_groups[base_key].append((form_key, form_value))
-        
-        # Process each setting
-        for base_key, field_data in setting_groups.items():
-            parts = base_key.split('.')
-            if len(parts) < 2:
-                continue
-            
-            category = parts[0]
-            key = parts[1]
-            
-            if category not in all_settings or key not in all_settings[category]:
-                continue
-            
-            setting = all_settings[category][key]
-            if not isinstance(setting, dict):
-                continue
-            
-            setting_type = setting.get("type", "string")
-            
-            # Handle different types
-            if setting_type in ["string", "select", "serial_port", "icon"]:
-                # Simple single-value fields
-                if len(field_data) > 0:
-                    value = field_data[0][1]
-                    try:
-                        manager.set_setting(base_key, value)
-                    except Exception as e:
-                        print(f"Error setting {base_key}: {e}")
-            
-            elif setting_type == "int":
-                if len(field_data) > 0:
-                    try:
-                        value = int(field_data[0][1])
-                    except (ValueError, TypeError):
-                        value = 0
-                    try:
-                        manager.set_setting(base_key, value)
-                    except Exception as e:
-                        print(f"Error setting {base_key}: {e}")
-            
-            elif setting_type == "bool":
-                # Checkbox - if present in form, it's checked (True)
-                if len(field_data) > 0:
-                    value = field_data[0][1] in [True, "true", "on", "1", 1]
-                    bool_fields.discard(base_key)
-                else:
-                    value = False
-                try:
-                    manager.set_setting(base_key, value)
-                except Exception as e:
-                    print(f"Error setting {base_key}: {e}")
-            
-            elif setting_type == "text_list":
-                # Parse list from form (comes as .list0, .list1, etc.)
-                list_values = []
-                for form_key, form_value in field_data:
-                    if '.list' in form_key and form_value:
-                        list_values.append(form_value)
-                try:
-                    manager.set_setting(base_key, list_values)
-                except Exception as e:
-                    print(f"Error setting {base_key}: {e}")
-            
-            elif setting_type == "multi_select":
-                # Multi-select comes as multiple values with same name
-                selected_values = [fv for fk, fv in field_data if fv != "on"]
-                # Handle checkbox format (name_value: on)
-                checkbox_values = []
-                for form_key, form_value in field_data:
-                    if form_value == "on" and '_' in form_key:
-                        checkbox_values.append(form_key.split('_')[-1])
-                
-                final_values = selected_values if selected_values else checkbox_values
-                try:
-                    manager.set_setting(base_key, final_values)
-                except Exception as e:
-                    print(f"Error setting {base_key}: {e}")
-            
-            elif setting_type == "key_value_pairs":
-                # TextText widget sends .mapleft0/.mapright0, .mapleft1/.mapright1, etc.
-                # .mapleft = key (text input), .mapright = value (text input)
-                dict_values = {}
-                # Group by index
-                map_data = {}
-                for form_key, form_value in field_data:
-                    if '.mapleft' in form_key:
-                        # Extract index
-                        idx = form_key.split('.mapleft')[-1]
-                        if idx not in map_data:
-                            map_data[idx] = {}
-                        map_data[idx]['key'] = form_value
-                    elif '.mapright' in form_key:
-                        idx = form_key.split('.mapright')[-1]
-                        if idx not in map_data:
-                            map_data[idx] = {}
-                        map_data[idx]['value'] = form_value
-                
-                # Build dict from paired data
-                for idx in map_data:
-                    if 'key' in map_data[idx] and 'value' in map_data[idx]:
-                        key = map_data[idx]['key']
-                        value = map_data[idx]['value']
-                        if key and value:  # Only add if both are present
-                            dict_values[key] = value
-                
-                try:
-                    manager.set_setting(base_key, dict_values)
-                except Exception as e:
-                    print(f"Error setting {base_key}: {e}")
-            
-            elif setting_type == "dropdown_mapping":
-                # SelectText widget sends .mapleft0/.mapright0, .mapleft1/.mapright1, etc.
-                # .mapleft = key (from dropdown), .mapright = value (text input)
-                dict_values = {}
-                # Group by index
-                map_data = {}
-                for form_key, form_value in field_data:
-                    if '.mapleft' in form_key:
-                        # Extract index
-                        idx = form_key.split('.mapleft')[-1]
-                        if idx not in map_data:
-                            map_data[idx] = {}
-                        map_data[idx]['key'] = form_value
-                    elif '.mapright' in form_key:
-                        idx = form_key.split('.mapright')[-1]
-                        if idx not in map_data:
-                            map_data[idx] = {}
-                        map_data[idx]['value'] = form_value
-                
-                # Build dict from paired data
-                for idx in map_data:
-                    if 'key' in map_data[idx] and 'value' in map_data[idx]:
-                        key = map_data[idx]['key']
-                        value = map_data[idx]['value']
-                        if key and value:  # Only add if both are present
-                            dict_values[key] = value
-                
-                try:
-                    manager.set_setting(base_key, dict_values)
-                except Exception as e:
-                    print(f"Error setting {base_key}: {e}")
-        
-        # Set any remaining unchecked boolean fields to False
-        for bool_field in bool_fields:
-            try:
-                manager.set_setting(bool_field, False)
-            except Exception as e:
-                print(f"Error setting {bool_field}: {e}")
-        
-        # Save immediately
-        manager.save()
-        
-        flash("Settings updated successfully", "success")
-        return redirect(url_for("settings.index"))
-    
-    # GET - Show edit form
-    category_filter = request.args.get("category")
-    
-    disp = displayer.Displayer()
-    disp.add_generic("Edit Settings", display=False)
-    disp.set_title("Edit Settings")
-    
-    # Add breadcrumbs
-    disp.add_breadcrumb("Home", "demo.index", [])
-    disp.add_breadcrumb("Settings", "settings.index", [])
-    if category_filter:
-        disp.add_breadcrumb(f"Edit {manager.get_category_friendly(category_filter)}", "settings.edit", [f"category={category_filter}"])
+    # In user mode, show message if no overridable settings found
+    if user_mode and not has_overridable:
+        disp.add_master_layout(displayer.DisplayerLayout(
+            displayer.Layouts.VERTICAL, [12]
+        ))
+        disp.add_display_item(
+            displayer.DisplayerItemAlert(
+                "No settings are currently configured as user-overridable. Contact your administrator.",
+                displayer.BSstyle.INFO
+            ),
+            column=0
+        )
     else:
-        disp.add_breadcrumb("Edit All Settings", "settings.edit", [])
-    
-    all_settings = manager.get_all_settings()
-    
-    # Filter by category if specified
-    categories_to_show = [category_filter] if category_filter else manager.list_categories()
-    
-    for category in categories_to_show:
-        if category not in all_settings:
-            continue
-            
-        category_data = all_settings[category]
-        friendly_name = category_data.get("friendly", category)
-        
+        # Add Save button
         disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [12], subtitle=friendly_name, spacing=2
+            displayer.Layouts.VERTICAL, [12], alignment=[displayer.BSalign.R], spacing=2
         ))
-        
-        for key, setting in category_data.items():
-            if key == "friendly" or not isinstance(setting, dict):
-                continue
-            
-            _render_setting_input(disp, category, key, setting)
+        disp.add_display_item(displayer.DisplayerItemButton("save", "Save Settings"), 0)
     
-    # Save button
-    disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], alignment=[displayer.BSalign.R], spacing=2
-    ))
-    disp.add_display_item(displayer.DisplayerItemButton("save", "Save Changes"), 0)
-    
-    return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_auth), target="settings.edit")
+    target = "settings.user_view" if user_mode else "settings.view"
+    return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_auth), target=target)
 
-
-def _render_setting_input(disp, category, key, setting):
-    """
-    Render appropriate input for a setting based on its type.
-    
-    Supports all original types from settings.py.
-    """
-    full_key = f"{category}.{key}"
-    friendly = setting.get("friendly", key)
-    setting_type = setting.get("type", "string")
-    value = setting.get("value")
-    options = setting.get("options", [])
-    
-    if setting_type == "string":
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputString(full_key, None, value),
-            1
-        )
-    
-    elif setting_type == "int":
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputNumeric(full_key, None, value),
-            1
-        )
-    
-    elif setting_type == "bool":
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputCheckbox(full_key, None, value),
-            1
-        )
-    
-    elif setting_type == "select":
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputSelect(full_key, None, value, options),
-            1
-        )
-    
-    elif setting_type == "serial_port":
-        # Use options from config if available, otherwise try to detect serial ports
-        serial_ports = options if options else []
-        if not serial_ports:
-            try:
-                import serial.tools.list_ports
-                serial_ports = [port.device for port in serial.tools.list_ports.comports()]
-            except ImportError:
-                serial_ports = ["None"]
-        
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputSelect(full_key, None, value, serial_ports or ["None"]),
-            1
-        )
-    
-    elif setting_type == "icon":
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputStringIcon(full_key, None, value),
-            1
-        )
-    
-    elif setting_type == "key_value_pairs":
-        # Key-value pairs: dict of key-value text pairs (merges old multistring and free_mapping)
-        # Convert dict {"line1": "First line", "line2": "Second line"} to list [["line1", "First line"], ...]
-        value_list = [[k, v] for k, v in value.items()] if isinstance(value, dict) else []
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputKeyValue(full_key, None, value_list),
-            1
-        )
-    
-    elif setting_type == "multi_select":
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputMultiSelect(full_key, None, value, options),
-            1
-        )
-    
-    elif setting_type == "text_list":
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputTextList(full_key, None, value),
-            1
-        )
-    
-    elif setting_type == "dropdown_mapping":
-        # Dropdown mapping: select from predefined keys, enter text value
-        # Convert dict {"host": "localhost", "port": "8080"} to list [["host", "localhost"], ["port", "8080"]]
-        value_list = [[k, v] for k, v in value.items()] if isinstance(value, dict) else []
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputDropdownValue(full_key, None, value_list, options),
-            1
-        )
-    
-    else:
-        # Default: treat as string
-        disp.add_master_layout(displayer.DisplayerLayout(
-            displayer.Layouts.VERTICAL, [3, 9], spacing=2
-        ))
-        disp.add_display_item(displayer.DisplayerItemText(friendly), 0)
-        disp.add_display_item(
-            displayer.DisplayerItemInputString(full_key, None, str(value)),
-            1
-        )

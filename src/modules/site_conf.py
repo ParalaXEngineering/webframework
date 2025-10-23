@@ -99,6 +99,7 @@ class Site_conf:
             self.add_sidebar_section("Account", "account-circle", "user")
             self.add_sidebar_submenu("My Profile", "user_profile.profile", endpoint="user")
             self.add_sidebar_submenu("My Preferences", "user_profile.preferences", endpoint="user")
+            self.add_sidebar_submenu("Framework Preferences", "user_profile.framework_preferences", endpoint="user")
             
             # Add Admin section
             self.add_sidebar_section("Admin", "shield-lock", "admin")
@@ -106,16 +107,19 @@ class Site_conf:
             self.add_sidebar_submenu("Permissions", "admin_auth.manage_permissions", endpoint="admin")
             self.add_sidebar_submenu("Groups", "admin_auth.manage_groups", endpoint="admin")
     
-    def enable_threads(self, add_to_sidebar: bool = True, add_to_topbar: bool = True, topbar_icon: str = "cog-sync", topbar_area: str = "right"):
+    def enable_threads(self, add_to_sidebar: bool = True, add_to_topbar: Optional[bool] = None, topbar_icon: Optional[str] = None, topbar_area: Optional[str] = None):
         """Enable thread monitoring and background task management.
+        
+        Settings can be configured globally in config.json under framework_ui category.
+        Users can override these settings in their preferences.
         
         :param add_to_sidebar: If True, adds threads page to sidebar, defaults to True
         :type add_to_sidebar: bool, optional
-        :param add_to_topbar: If True, adds thread status indicator to topbar, defaults to True
+        :param add_to_topbar: If True, adds thread status indicator to topbar, defaults to reading from settings
         :type add_to_topbar: bool, optional
-        :param topbar_icon: Icon for the thread status indicator in topbar, defaults to "cog-sync"
+        :param topbar_icon: Icon for the thread status indicator in topbar, defaults to reading from settings
         :type topbar_icon: str, optional
-        :param topbar_area: Area of topbar for thread status ("left", "center", "right"), defaults to "right"
+        :param topbar_area: Area of topbar for thread status ("left", "center", "right"), defaults to reading from settings
         :type topbar_area: str, optional
         """
         self.m_enable_threads = True
@@ -129,8 +133,16 @@ class Site_conf:
                 self.add_sidebar_section("Monitoring", "monitor-dashboard", "monitoring")
             self.add_sidebar_submenu("Thread Monitor", "threads.threads", endpoint="monitoring")
         
+        # Read from settings if parameters not explicitly provided
+        if add_to_topbar is None:
+            add_to_topbar = self._get_framework_setting("thread_status_enabled", True)
+        
         if add_to_topbar:
-            self.add_topbar_thread_info(topbar_icon, topbar_area)
+            # Get settings with defaults
+            final_icon: str = topbar_icon if topbar_icon is not None else str(self._get_framework_setting("thread_status_icon", "cog-sync"))
+            final_area: str = topbar_area if topbar_area is not None else str(self._get_framework_setting("thread_status_position", "right"))
+            
+            self.add_topbar_thread_info(final_icon, final_area)
     
     def enable_scheduler(self):
         """Enable real-time scheduler for SocketIO updates."""
@@ -594,6 +606,52 @@ class Site_conf:
         self.m_topbar["login"] = True
         # Login functionality is now always available through auth_manager
         return
+    
+    def _get_framework_setting(self, key: str, default=None, username: Optional[str] = None):
+        """
+        Get a framework setting with user override support.
+        
+        Resolution order:
+        1. User override (if username provided and override exists)
+        2. Global config.json setting
+        3. Provided default value
+        
+        :param key: Setting key (e.g., "thread_status_position")
+        :type key: str
+        :param default: Default value if not found
+        :param username: Username to check for overrides (optional)
+        :return: Setting value
+        """
+        try:
+            # Try to get user override first
+            if username:
+                try:
+                    from .auth import auth_manager as auth_mgr_module
+                    if hasattr(auth_mgr_module, 'auth_manager') and auth_mgr_module.auth_manager:
+                        override = auth_mgr_module.auth_manager.get_user_framework_override(
+                            username, f"framework_ui.{key}"
+                        )
+                        if override is not None:
+                            return override
+                except Exception:
+                    pass  # Fall through to global setting
+            
+            # Try to get from global settings
+            try:
+                from .settings import SettingsManager
+                config_path = os.path.join(os.getcwd(), "config.json")
+                manager = SettingsManager(config_path)
+                manager.load()
+                value = manager.get_setting(f"framework_ui.{key}")
+                if value is not None:
+                    return value
+            except Exception:
+                pass  # Fall through to default
+            
+        except Exception:
+            pass
+        
+        return default
 
     def app_details(self, name: str, version: str, icon: str, footer: Optional[str] = None, index: Optional[str] = None):
         """Set the application details
