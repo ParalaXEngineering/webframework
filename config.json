@@ -4,17 +4,20 @@
     "string_example": {
       "friendly": "String Field",
       "type": "string",
-      "value": "Hello World"
+      "value": "Hello World",
+      "overridable_by_user": false
     },
     "int_example": {
       "friendly": "Integer Field",
       "type": "int",
-      "value": 42
+      "value": 42,
+      "overridable_by_user": false
     },
     "bool_example": {
       "friendly": "Boolean Field",
       "type": "bool",
-      "value": false
+      "value": false,
+      "overridable_by_user": false
     },
     "select_example": {
       "friendly": "Select Dropdown",
@@ -24,7 +27,8 @@
         "option1",
         "option2",
         "option3"
-      ]
+      ],
+      "overridable_by_user": false
     },
     "serial_port_example": {
       "friendly": "Serial Port Selection",
@@ -35,12 +39,14 @@
         "COM2",
         "COM3",
         "COM4"
-      ]
+      ],
+      "overridable_by_user": false
     },
     "icon_example": {
       "friendly": "Icon Selector",
       "type": "icon",
-      "value": "star-outline"
+      "value": "star-outline",
+      "overridable_by_user": false
     }
   },
   "complex_types": {
@@ -52,7 +58,8 @@
         "line1": "First line",
         "line2": "Second line",
         "line3": "Third line"
-      }
+      },
+      "overridable_by_user": false
     },
     "text_list_example": {
       "friendly": "Text List (User-Defined Items)",
@@ -61,7 +68,8 @@
         "apple",
         "banana",
         "cherry"
-      ]
+      ],
+      "overridable_by_user": false
     },
     "multi_select_example": {
       "friendly": "Multi-Select (Choose Multiple)",
@@ -77,7 +85,8 @@
         "green",
         "red",
         "yellow"
-      ]
+      ],
+      "overridable_by_user": false
     },
     "dropdown_mapping_example": {
       "friendly": "Dropdown Mapping (Predefined Keys + Text Values)",
@@ -92,7 +101,8 @@
         "port",
         "protocol",
         "timeout"
-      ]
+      ],
+      "overridable_by_user": false
     }
   },
   "redmine": {
@@ -101,19 +111,22 @@
       "type": "string",
       "friendly": "User",
       "value": "oufnis",
-      "persistent": true
+      "persistent": true,
+      "overridable_by_user": false
     },
     "password": {
       "type": "string",
       "friendly": "Password",
       "value": "oufnisoufnis",
-      "persistent": true
+      "persistent": true,
+      "overridable_by_user": false
     },
     "address": {
       "type": "string",
       "friendly": "Address",
       "value": "https://redmine2.hgeurope.com/",
-      "persistent": true
+      "persistent": true,
+      "overridable_by_user": false
     }
   },
   "updates": {
@@ -126,37 +139,86 @@
         "FTP",
         "Folder"
       ],
-      "persistent": false
+      "persistent": false,
+      "overridable_by_user": false
     },
     "folder": {
       "type": "string",
       "friendly": "Local folder",
       "value": "",
-      "persistent": false
+      "persistent": false,
+      "overridable_by_user": false
     },
     "address": {
       "type": "string",
       "friendly": "FTP Address",
       "value": "",
-      "persistent": true
+      "persistent": true,
+      "overridable_by_user": false
     },
     "path": {
       "type": "string",
       "friendly": "FTP Remote path",
       "value": "",
-      "persistent": true
+      "persistent": true,
+      "overridable_by_user": false
     },
     "user": {
       "type": "string",
       "friendly": "FTP User",
       "value": "",
-      "persistent": true
+      "persistent": true,
+      "overridable_by_user": false
     },
     "password": {
       "type": "string",
       "friendly": "FTP Password",
       "value": "",
-      "persistent": true
+      "persistent": true,
+      "overridable_by_user": false
+    }
+  },
+  "framework_ui": {
+    "friendly": "Framework UI Configuration",
+    "thread_status_enabled": {
+      "friendly": "Show Thread Status in Topbar",
+      "type": "bool",
+      "value": true,
+      "persistent": true,
+      "overridable_by_user": false
+    },
+    "thread_status_position": {
+      "friendly": "Thread Status Position in Topbar",
+      "type": "select",
+      "value": "center",
+      "options": [
+        "center",
+        "left",
+        "right"
+      ],
+      "persistent": true,
+      "overridable_by_user": true
+    },
+    "thread_status_icon": {
+      "friendly": "Thread Status Icon",
+      "type": "icon",
+      "value": "cog-sync",
+      "persistent": true,
+      "overridable_by_user": false
+    },
+    "log_viewer_max_lines": {
+      "friendly": "Log Viewer Max Lines to Display",
+      "type": "int",
+      "value": 1000,
+      "persistent": true,
+      "overridable_by_user": false
+    },
+    "log_viewer_refresh_interval": {
+      "friendly": "Log Viewer Refresh Interval (seconds)",
+      "type": "int",
+      "value": 2,
+      "persistent": true,
+      "overridable_by_user": false
     }
   }
 }
