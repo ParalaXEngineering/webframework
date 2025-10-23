@@ -34,6 +34,7 @@ Config structure:
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from ..modules.settings import SettingsManager
 from ..modules import displayer
+from ..modules.utilities import util_post_to_json, util_post_unmap
 from .common import require_admin
 import os
 
@@ -145,6 +146,14 @@ def _view_settings(user_mode=False):
     manager = get_manager()
     category_filter = request.args.get("category")
     
+    # If POST and no category in args, try to get it from referrer
+    if request.method == "POST" and not category_filter and request.referrer:
+        from urllib.parse import urlparse, parse_qs
+        parsed = urlparse(request.referrer)
+        query_params = parse_qs(parsed.query)
+        if 'category' in query_params:
+            category_filter = query_params['category'][0]
+    
     # Handle POST - save settings
     if request.method == "POST":
         if user_mode:
@@ -156,31 +165,44 @@ def _view_settings(user_mode=False):
                     flash("Not logged in", "danger")
                     return redirect(url_for('common.login'))
                 
-                # Process form data
-                for form_key, form_value in request.form.items():
-                    if form_key in ["csrf_token", "save"]:
+                # Use util_post_to_json to parse form data
+                form_data = util_post_to_json(dict(request.form))
+                
+                # Strip module prefix
+                settings_data = {}
+                for key, value in form_data.items():
+                    if isinstance(value, dict) and key not in ["csrf_token", "save"]:
+                        settings_data.update(value)
+                    elif key not in ["csrf_token", "save"]:
+                        settings_data[key] = value
+                
+                # Apply util_post_unmap to convert mapleft/mapright to dicts
+                wrapped_data = {"settings": settings_data}
+                unmapped_data = util_post_unmap(wrapped_data)
+                settings_data = unmapped_data.get("settings", settings_data)
+                
+                # Process each setting
+                for category, category_data in settings_data.items():
+                    if category in ["csrf_token", "save"]:
                         continue
                     
-                    # Strip ALL module prefixes (can be duplicated)
-                    cleaned_key = form_key
-                    while '.' in cleaned_key:
-                        parts = cleaned_key.split('.', 1)  # Split only on first dot
-                        if ' ' in parts[0]:  # First part is a module name with spaces
-                            cleaned_key = parts[1] if len(parts) > 1 else cleaned_key
-                        else:
-                            break  # No more module prefixes
+                    if not isinstance(category_data, dict):
+                        continue
                     
-                    # Get setting metadata to determine type
-                    try:
-                        # Parse key to get category and setting name
-                        if '.' in cleaned_key:
-                            parts = cleaned_key.split('.')
+                    for setting_key, value in category_data.items():
+                        if setting_key in ["csrf_token", "save"]:
+                            continue
+                        
+                        full_key = f"{category}.{setting_key}"
+                        
+                        # Get setting metadata to determine expected type
+                        try:
+                            parts = full_key.split('.')
                             category_name = parts[0]
                             setting_name = '.'.join(parts[1:])
                             all_settings = manager.get_all_settings()
                             
                             if category_name in all_settings:
-                                # Navigate to the setting
                                 setting_data = all_settings[category_name]
                                 for part in setting_name.split('.'):
                                     if isinstance(setting_data, dict) and part in setting_data:
@@ -192,49 +214,93 @@ def _view_settings(user_mode=False):
                                 if setting_data and isinstance(setting_data, dict):
                                     setting_type = setting_data.get("type", "string")
                                     
-                                    # Type conversion
+                                    # Type conversion based on setting type
                                     if setting_type == "int":
                                         try:
-                                            form_value = int(form_value)
+                                            value = int(value)
                                         except (ValueError, TypeError):
-                                            form_value = setting_data.get("value", 0)
+                                            value = setting_data.get("value", 0)
                                     elif setting_type == "bool":
-                                        form_value = form_value in [True, "true", "on", "1", 1]
+                                        value = value in [True, "true", "on", "1", 1]
+                                    elif setting_type in ["text_list", "multi_select"]:
+                                        # These come as strings with # separator from util_post_to_json
+                                        if isinstance(value, str):
+                                            value = [v for v in value.split('#') if v]  # Split and filter empty
+                                        elif not isinstance(value, list):
+                                            value = []
+                                    # For dicts (key_value_pairs, dropdown_mapping), already parsed correctly
                                     
                                     # Save to user override
-                                    auth_manager.set_user_framework_override(current_user, cleaned_key, form_value)
-                    except Exception:
-                        pass  # Skip invalid settings
+                                    auth_manager.set_user_framework_override(current_user, full_key, value)
+                        except Exception as e:
+                            import traceback
+                            traceback.print_exc()
                 
                 flash("Settings saved successfully!", "success")
-                return redirect(url_for('settings.user_view', category=category_filter) if category_filter else url_for('settings.user_view'))
+                # Stay on the same page - rebuild URL with category if present
+                if category_filter:
+                    return redirect(url_for('settings.user_view', category=category_filter))
+                else:
+                    return redirect(url_for('settings.user_view'))
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 flash(f"Error saving settings: {str(e)}", "danger")
         else:
             # Admin mode - save to global config
             try:
-                # Process form data
-                for form_key, form_value in request.form.items():
-                    if form_key in ["csrf_token", "save"]:
+                # Use util_post_to_json to parse form data
+                form_data = util_post_to_json(dict(request.form))
+                
+                # Strip module prefix (e.g., "View Settings" or "My Framework Settings")
+                # The form_data will have structure: {'Module Name': {'category': {'setting': value}}}
+                # We need to extract just the settings part
+                settings_data = {}
+                for key, value in form_data.items():
+                    if isinstance(value, dict) and key not in ["csrf_token", "save"]:
+                        # This is the module wrapper, extract its contents
+                        settings_data.update(value)
+                    elif key not in ["csrf_token", "save"]:
+                        # Direct setting (shouldn't happen but handle it)
+                        settings_data[key] = value
+                
+                # Apply util_post_unmap to convert mapleft/mapright to dicts
+                # util_post_unmap expects structure: {module: {item: {cat: {mapleft0: x, mapright0: y}}}}
+                # We need to wrap our data appropriately
+                wrapped_data = {"settings": settings_data}
+                unmapped_data = util_post_unmap(wrapped_data)
+                settings_data = unmapped_data.get("settings", settings_data)
+                
+                # Track overridable checkboxes
+                overridable_keys = set()
+                
+                # Process each setting
+                for category, category_data in settings_data.items():
+                    if category in ["csrf_token", "save"]:
                         continue
                     
-                    # Handle overridable checkbox
-                    if form_key.startswith("overridable_"):
-                        setting_key = form_key.replace("overridable_", "")
-                        manager.set_setting_metadata(setting_key, "overridable_by_user", True)
+                    if not isinstance(category_data, dict):
                         continue
                     
-                    # Get setting type to convert value properly
-                    try:
-                        # Parse key to get category and setting name
-                        if '.' in form_key:
-                            parts = form_key.split('.')
+                    for setting_key, value in category_data.items():
+                        if setting_key in ["csrf_token", "save"]:
+                            continue
+                        
+                        # Handle overridable checkbox
+                        if setting_key.startswith("overridable_"):
+                            overridable_keys.add(setting_key.replace("overridable_", ""))
+                            continue
+                        
+                        full_key = f"{category}.{setting_key}"
+                        
+                        # Get setting metadata to determine expected type
+                        try:
+                            parts = full_key.split('.')
                             category_name = parts[0]
                             setting_name = '.'.join(parts[1:])
                             all_settings = manager.get_all_settings()
                             
                             if category_name in all_settings:
-                                # Navigate to the setting
                                 setting_data = all_settings[category_name]
                                 for part in setting_name.split('.'):
                                     if isinstance(setting_data, dict) and part in setting_data:
@@ -246,19 +312,31 @@ def _view_settings(user_mode=False):
                                 if setting_data and isinstance(setting_data, dict):
                                     setting_type = setting_data.get("type", "string")
                                     
-                                    # Type conversion
+                                    # Type conversion based on setting type
                                     if setting_type == "int":
                                         try:
-                                            form_value = int(form_value)
+                                            value = int(value)
                                         except (ValueError, TypeError):
-                                            form_value = setting_data.get("value", 0)
+                                            value = setting_data.get("value", 0)
                                     elif setting_type == "bool":
-                                        form_value = form_value in [True, "true", "on", "1", 1]
+                                        value = value in [True, "true", "on", "1", 1]
+                                    elif setting_type in ["text_list", "multi_select"]:
+                                        # These come as strings with # separator from util_post_to_json
+                                        if isinstance(value, str):
+                                            value = [v for v in value.split('#') if v]  # Split and filter empty
+                                        elif not isinstance(value, list):
+                                            value = []
+                                    # For dicts (key_value_pairs, dropdown_mapping), already parsed correctly
                                     
                                     # Save to global config
-                                    manager.set_setting(form_key, form_value)
-                    except Exception:
-                        pass  # Skip invalid settings
+                                    manager.set_setting(full_key, value)
+                        except Exception as e:
+                            import traceback
+                            traceback.print_exc()
+                
+                # Handle overridable checkboxes
+                for setting_key in overridable_keys:
+                    manager.set_setting_metadata(setting_key, "overridable_by_user", True)
                 
                 # Handle unchecked overridable checkboxes (set to False)
                 all_settings = manager.get_all_settings()
@@ -268,14 +346,19 @@ def _view_settings(user_mode=False):
                         if key == "friendly" or not isinstance(category_data[key], dict):
                             continue
                         full_key = f"{category}.{key}"
-                        checkbox_name = f"overridable_{full_key}"
-                        if checkbox_name not in request.form:
+                        if full_key not in overridable_keys:
                             manager.set_setting_metadata(full_key, "overridable_by_user", False)
                 
                 manager.save()
                 flash("Settings saved successfully!", "success")
-                return redirect(url_for('settings.view', category=category_filter) if category_filter else url_for('settings.view'))
+                # Stay on the same page - rebuild URL with category if present
+                if category_filter:
+                    return redirect(url_for('settings.view', category=category_filter))
+                else:
+                    return redirect(url_for('settings.view'))
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 flash(f"Error saving settings: {str(e)}", "danger")
     
     disp = displayer.Displayer()
@@ -408,6 +491,46 @@ def _view_settings(user_mode=False):
                     displayer.DisplayerItemInputSelect(form_field_name, "", value, options or []),
                     column=2, line=line, layout_id=layout_id
                 )
+            elif setting_type == "multi_select":
+                disp.add_display_item(
+                    displayer.DisplayerItemInputMultiSelect(form_field_name, "", value or [], options or []),
+                    column=2, line=line, layout_id=layout_id
+                )
+            elif setting_type == "text_list":
+                disp.add_display_item(
+                    displayer.DisplayerItemInputTextList(form_field_name, "", value or []),
+                    column=2, line=line, layout_id=layout_id
+                )
+            elif setting_type == "key_value_pairs":
+                # Convert dict to list of [key, value] pairs for the widget
+                value_list = [[k, v] for k, v in (value or {}).items()]
+                disp.add_display_item(
+                    displayer.DisplayerItemInputKeyValue(form_field_name, "", value_list),
+                    column=2, line=line, layout_id=layout_id
+                )
+            elif setting_type == "dropdown_mapping":
+                # Convert dict to list of [key, value] pairs for the widget
+                value_list = [[k, v] for k, v in (value or {}).items()]
+                disp.add_display_item(
+                    displayer.DisplayerItemInputDropdownValue(form_field_name, "", value_list, options or []),
+                    column=2, line=line, layout_id=layout_id
+                )
+            elif setting_type == "icon":
+                disp.add_display_item(
+                    displayer.DisplayerItemInputStringIcon(form_field_name, "", value or ""),
+                    column=2, line=line, layout_id=layout_id
+                )
+            elif setting_type == "serial_port":
+                # For serial ports, try to get available ports or use provided options
+                try:
+                    import serial.tools.list_ports
+                    serial_ports = [port.device for port in serial.tools.list_ports.comports()]
+                except ImportError:
+                    serial_ports = options or ["None"]
+                disp.add_display_item(
+                    displayer.DisplayerItemInputSelect(form_field_name, "", value, serial_ports),
+                    column=2, line=line, layout_id=layout_id
+                )
             else:  # string, text, etc.
                 disp.add_display_item(
                     displayer.DisplayerItemInputString(form_field_name, "", value or ""),
@@ -443,6 +566,7 @@ def _view_settings(user_mode=False):
         ))
         disp.add_display_item(displayer.DisplayerItemButton("save", "Save Settings"), 0)
     
+    # Set form target - displayer will handle the current URL automatically
     target = "settings.user_view" if user_mode else "settings.view"
     return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_auth), target=target)
 

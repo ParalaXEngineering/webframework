@@ -57,7 +57,8 @@
       "value": {
         "line1": "First line",
         "line2": "Second line",
-        "line3": "Third line"
+        "line3": "Third line",
+        "line4": "Fourth line"
       },
       "overridable_by_user": false
     },
@@ -65,9 +66,7 @@
       "friendly": "Text List (User-Defined Items)",
       "type": "text_list",
       "value": [
-        "apple",
-        "banana",
-        "cherry"
+        "apple"
       ],
       "overridable_by_user": false
     },
@@ -76,9 +75,7 @@
       "type": "multi_select",
       "value": [
         "red",
-        "blue",
-        "blue",
-        "red#blue#red#blue"
+        "blue"
       ],
       "options": [
         "blue",
@@ -197,7 +194,7 @@
         "right"
       ],
       "persistent": true,
-      "overridable_by_user": true
+      "overridable_by_user": false
     },
     "thread_status_icon": {
       "friendly": "Thread Status Icon",
