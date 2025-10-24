@@ -68,6 +68,206 @@ DOCS_DIR = FRAMEWORK_ROOT / "docs"
 
 
 # ============================================================================
+# Tool Detection (Cross-platform: Windows, macOS, Linux)
+# ============================================================================
+
+class ToolDetector:
+    """Auto-detect and locate required tools across platforms."""
+    
+    _cache = {}  # Cache discovered tools
+    
+    @staticmethod
+    def find_executable(name: str, search_paths: Optional[List[Path]] = None) -> Optional[Path]:
+        """
+        Find an executable by name across the system.
+        
+        Args:
+            name: Executable name (e.g., 'pip', 'python', 'git')
+            search_paths: Optional list of Path objects to search first
+        
+        Returns:
+            Path to executable or None if not found
+        """
+        cache_key = f"exe_{name}"
+        if cache_key in ToolDetector._cache:
+            return ToolDetector._cache[cache_key]
+        
+        # Adjust name for Windows
+        if os.name == "nt":
+            exe_name = f"{name}.exe"
+        else:
+            exe_name = name
+        
+        # Search in provided paths first
+        if search_paths:
+            for path in search_paths:
+                exe_path = path / exe_name
+                if exe_path.exists() and exe_path.is_file():
+                    ToolDetector._cache[cache_key] = exe_path
+                    return exe_path
+        
+        # Search in PATH environment variable
+        path_env = os.environ.get("PATH", "").split(os.pathsep)
+        for path_str in path_env:
+            if not path_str:
+                continue
+            try:
+                exe_path = Path(path_str) / exe_name
+                if exe_path.exists() and exe_path.is_file():
+                    ToolDetector._cache[cache_key] = exe_path
+                    return exe_path
+            except (OSError, ValueError):
+                # Handle invalid path entries
+                continue
+        
+        ToolDetector._cache[cache_key] = None
+        return None
+    
+    @staticmethod
+    def get_pip_executable(python_exe: Path):
+        """
+        Get pip executable associated with a Python installation.
+        
+        Tries multiple methods:
+        1. pip in same directory as python
+        2. python -m pip (module execution)
+        3. Search in PATH
+        
+        Args:
+            python_exe: Path to Python executable
+        
+        Returns:
+            Path to pip executable, "python_module_pip" string, or None
+        """
+        cache_key = f"pip_{python_exe}"
+        if cache_key in ToolDetector._cache:
+            return ToolDetector._cache[cache_key]
+        
+        # Method 1: Try in same directory as Python
+        pip_exe = ToolDetector.find_executable("pip", [python_exe.parent])
+        if pip_exe:
+            ToolDetector._cache[cache_key] = pip_exe
+            return pip_exe
+        
+        # Method 2: Try python -m pip (most reliable cross-platform method)
+        try:
+            result = subprocess.run(
+                [str(python_exe), "-m", "pip", "--version"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=5
+            )
+            if result.returncode == 0:
+                # Return a wrapper that uses python -m pip
+                ToolDetector._cache[cache_key] = "python_module_pip"
+                return "python_module_pip"
+        except Exception:
+            pass
+        
+        # Method 3: Search in PATH
+        pip_exe = ToolDetector.find_executable("pip")
+        ToolDetector._cache[cache_key] = pip_exe
+        return pip_exe
+    
+    @staticmethod
+    def run_with_pip(python_exe: Path, pip_args: List[str], cwd: Optional[Path] = None) -> subprocess.CompletedProcess:
+        """
+        Run pip command using the appropriate method.
+        
+        Args:
+            python_exe: Path to Python executable
+            pip_args: Arguments to pass to pip
+            cwd: Working directory
+        
+        Returns:
+            CompletedProcess result
+        """
+        pip_exe = ToolDetector.get_pip_executable(python_exe)
+        
+        if pip_exe == "python_module_pip":
+            # Use python -m pip
+            cmd = [str(python_exe), "-m", "pip"] + pip_args
+        elif pip_exe:
+            # Use pip executable directly
+            cmd = [str(pip_exe)] + pip_args
+        else:
+            raise RuntimeError(
+                f"Could not find pip executable for {python_exe}\n"
+                "Tried:\n"
+                "  1. pip executable in Python directory\n"
+                "  2. python -m pip\n"
+                "  3. pip in PATH\n\n"
+                "Please ensure pip is installed or in your PATH"
+            )
+        
+        return subprocess.run(
+            cmd,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+    
+    @staticmethod
+    def diagnose_tools(python_exe: Path) -> dict:
+        """
+        Diagnose availability of required tools.
+        
+        Args:
+            python_exe: Path to Python executable
+        
+        Returns:
+            Dictionary with tool detection results
+        """
+        return {
+            "python": {
+                "path": str(python_exe),
+                "exists": python_exe.exists(),
+                "version": ToolDetector._get_version(python_exe),
+            },
+            "pip": {
+                "path": str(ToolDetector.get_pip_executable(python_exe) or "NOT FOUND"),
+                "available": ToolDetector.get_pip_executable(python_exe) is not None,
+            },
+            "git": {
+                "path": str(ToolDetector.find_executable("git") or "NOT FOUND"),
+                "available": ToolDetector.find_executable("git") is not None,
+            },
+            "sphinx": {
+                "available": ToolDetector._check_module_available(python_exe, "sphinx"),
+            }
+        }
+    
+    @staticmethod
+    def _get_version(python_exe: Path) -> str:
+        """Get Python version string."""
+        try:
+            result = subprocess.run(
+                [str(python_exe), "--version"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                timeout=5
+            )
+            return result.stdout.strip()
+        except Exception:
+            return "UNKNOWN"
+    
+    @staticmethod
+    def _check_module_available(python_exe: Path, module_name: str) -> bool:
+        """Check if a Python module is available."""
+        try:
+            result = subprocess.run(
+                [str(python_exe), "-c", f"import {module_name}"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=5
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
+
+
+# ============================================================================
 # Utility Functions
 # ============================================================================
 
@@ -577,6 +777,51 @@ def run_example_website():
     subprocess.run([str(python_exe), "main.py"])
 
 
+def diagnose_tools():
+    """Diagnose and display system tools availability."""
+    print_header("System Tools Diagnosis")
+    
+    python_exe = get_python_executable()
+    tools_info = ToolDetector.diagnose_tools(python_exe)
+    
+    print(f"  Framework Root: {FRAMEWORK_ROOT}\n")
+    
+    # Python
+    print("  Python:")
+    py_info = tools_info["python"]
+    print(f"    Path: {py_info['path']}")
+    print(f"    Version: {py_info['version']}")
+    print(f"    Status: {'✓' if py_info['exists'] else '✗'}\n")
+    
+    # Pip
+    print("  Pip (Package Manager):")
+    pip_info = tools_info["pip"]
+    print(f"    Path: {pip_info['path']}")
+    print(f"    Status: {'✓ FOUND' if pip_info['available'] else '✗ NOT FOUND'}\n")
+    
+    # Git
+    print("  Git (Version Control):")
+    git_info = tools_info["git"]
+    print(f"    Path: {git_info['path']}")
+    print(f"    Status: {'✓ FOUND' if git_info['available'] else '✗ NOT FOUND (Optional)'}\n")
+    
+    # Sphinx
+    print("  Sphinx (Documentation):")
+    sphinx_info = tools_info["sphinx"]
+    print(f"    Status: {'✓ INSTALLED' if sphinx_info['available'] else '✗ NOT INSTALLED'}")
+    print(f"    Note: {'Ready for docs build' if sphinx_info['available'] else 'Install with: pip install -e .[docs]'}\n")
+    
+    # Summary
+    print("  Summary:")
+    essential = py_info["exists"] and pip_info["available"]
+    if essential:
+        log("Essential tools available", "success")
+    else:
+        log("Missing essential tools", "error")
+    
+    print()
+
+
 # ============================================================================
 # Documentation Functions
 # ============================================================================
@@ -596,14 +841,12 @@ def build_documentation():
         return
     
     python_exe = get_python_executable()
-    pip_exe = python_exe.parent / ("pip.exe" if os.name == "nt" else "pip")
     
     log("Installing documentation dependencies...")
-    result = subprocess.run(
-        [str(pip_exe), "install", "-q", "-e", ".[docs]"], 
-        cwd=FRAMEWORK_ROOT,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+    result = ToolDetector.run_with_pip(
+        python_exe,
+        ["install", "-q", "-e", ".[docs]"],
+        cwd=FRAMEWORK_ROOT
     )
     if result.returncode != 0:
         log("Failed to install dependencies", "error")
@@ -685,6 +928,7 @@ Examples:
   python framework_manager.py example --create
   python framework_manager.py example --run
   python framework_manager.py docs
+  python framework_manager.py diagnose
         """
     )
     
@@ -703,6 +947,9 @@ Examples:
     
     # Docs command
     subparsers.add_parser("docs", help="Build documentation")
+    
+    # Diagnose command
+    subparsers.add_parser("diagnose", help="Diagnose system tools and configuration")
     
     args = parser.parse_args()
     
@@ -745,6 +992,8 @@ Examples:
             manage_example_interactive()
     elif args.command == "docs":
         build_documentation()
+    elif args.command == "diagnose":
+        diagnose_tools()
 
 
 def manage_example_interactive():
