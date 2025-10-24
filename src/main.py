@@ -511,6 +511,28 @@ def setup_app(app):
     return socketio_obj
 
 
+def run_app(host: str = "0.0.0.0", port: int = 5000, debug: bool = False) -> None:
+    """
+    Run the ParalaX Web Framework application.
+    
+    Args:
+        host: Host to bind to (default: 0.0.0.0)
+        port: Port to bind to (default: 5000)
+        debug: Enable debug mode (default: False)
+    """
+    if not FLASK_AVAILABLE:
+        raise RuntimeError("Flask is not installed. Please install it with: pip install flask")
+    
+    if not app:
+        raise RuntimeError("Flask app is not initialized")
+    
+    socketio_obj = setup_app(app)
+    if socketio_obj is None:
+        raise RuntimeError("Failed to initialize SocketIO")
+    
+    socketio_obj.run(app, host=host, port=port, debug=debug)
+
+
 # Only setup the app if we're running as main, not during import for testing
 if __name__ == "__main__":
-    setup_app(app)
+    run_app()

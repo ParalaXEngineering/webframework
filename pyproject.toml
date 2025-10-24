@@ -56,8 +56,15 @@ Homepage = "https://github.com/ParalaXEngineering/webframework"
 Documentation = "https://github.com/ParalaXEngineering/webframework/docs"
 Repository = "https://github.com/ParalaXEngineering/webframework"
 
+[project.scripts]
+paralax-webframework = "src.main:run_app"
+
 [tool.setuptools]
-packages = ["src"]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src", "src.*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
