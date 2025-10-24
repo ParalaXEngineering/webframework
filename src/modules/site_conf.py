@@ -398,15 +398,16 @@ class Site_conf:
         if not endpoint:
             endpoint = url_endpoint
         for i in range(0, len(self.m_sidebar)):
-            if "submenu" in self.m_sidebar[i]:
-                for j in range(0, len(self.m_sidebar[i]["submenu"])):
-                    if self.m_sidebar[i]["submenu"][j]["name"] == name:
-                        return
-
             if (
                 "endpoint" in self.m_sidebar[i]
                 and self.m_sidebar[i]["endpoint"] == endpoint
             ):
+                # Check if submenu already exists in THIS section only
+                if "submenu" in self.m_sidebar[i]:
+                    for j in range(0, len(self.m_sidebar[i]["submenu"])):
+                        if self.m_sidebar[i]["submenu"][j]["name"] == name and self.m_sidebar[i]["submenu"][j]["url"] == url:
+                            return
+
                 self.m_sidebar[i]["submenu"].append(
                     {"name": name, "url": url, "cat": ""}
                 )

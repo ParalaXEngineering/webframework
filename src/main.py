@@ -160,8 +160,10 @@ def setup_app(app):
                 continue
         
         try:
-            if '.' in __name__:  # Running as package
-                page_module = importlib.import_module(f".pages.{page_name}", package='src')
+            # Determine the correct package path based on how pages_module was imported
+            pages_package = pages_module.__package__
+            if pages_package:  # Running as package
+                page_module = importlib.import_module(f".{page_name}", package=pages_package)
             else:  # Running directly
                 page_module = importlib.import_module(f"pages.{page_name}")
             
