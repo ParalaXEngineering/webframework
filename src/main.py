@@ -393,9 +393,9 @@ def setup_app(app):
             return url_for(endpoint, **params)
         return url_for(endpoint)
 
-    # Index page
+    # Index page (Framework default home page)
     @app.route("/")  # type: ignore
-    def index():
+    def framework_index():
         session["page_info"] = "index"  # type: ignore
         return render_template("index.j2", title=site_conf.site_conf_obj.m_app["name"], content=site_conf.site_conf_obj.m_index)  # type: ignore
 

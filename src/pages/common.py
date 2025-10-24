@@ -8,6 +8,7 @@ assets, login, and help pages.
 from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash, session
 from functools import wraps
 from typing import Dict, Any, cast
+from ..modules.utilities import get_home_endpoint
 
 from ..modules import utilities
 from ..modules import displayer
@@ -51,7 +52,7 @@ def require_admin(f):
             disp = displayer.Displayer()
             disp.add_generic("Access Denied")
             disp.set_title("Access Denied - Admin Only")
-            disp.add_breadcrumb("Home", "demo.index", [])
+            disp.add_breadcrumb("Home", get_home_endpoint(), [])
             
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
             disp.add_display_item(displayer.DisplayerItemAlert(
@@ -69,7 +70,7 @@ def require_admin(f):
                 "btn_back",
                 "Return to Home",
                 "home",
-                link=url_for('demo.index'),
+                link=url_for(get_home_endpoint()),
                 color=displayer.BSstyle.PRIMARY
             ), column=0)
             

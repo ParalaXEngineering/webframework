@@ -68,6 +68,22 @@ class MyAction(Threaded_action):
         self.emit_console("msg")  # Real-time to user's SocketIO room
 ```
 
+### Home Page Navigation (IMPORTANT)
+Framework pages use a **configurable home endpoint** instead of hardcoded `demo.index`:
+```python
+from modules.utilities import get_home_endpoint
+disp.add_breadcrumb("Home", get_home_endpoint(), [])
+```
+Override the default home endpoint in your website's `site_conf.py`:
+```python
+class MySiteConf(Site_conf):
+    def __init__(self):
+        super().__init__()
+        self.app_details("My App", "1.0", "home", 
+                        home_endpoint="my_module.home")  # Custom home page
+```
+Default is `framework.index` (the built-in empty home page).
+
 ## Key Files
 - `src/main.py`: Initialization, feature→page mapping
 - `src/modules/site_conf.py`: `enable_*()` methods

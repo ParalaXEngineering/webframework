@@ -20,6 +20,7 @@ try:
     from ..modules.auth.auth_utils import validate_username, validate_password_strength
     from ..modules.auth.permission_registry import permission_registry
     from ..modules import utilities
+    from ..modules.utilities import get_home_endpoint
     from ..modules.log.logger_factory import get_logger
 except ImportError:
     from modules.displayer import (
@@ -31,6 +32,7 @@ except ImportError:
     from modules.auth.auth_utils import validate_username, validate_password_strength
     from modules.auth.permission_registry import permission_registry
     from modules import utilities
+    from modules.utilities import get_home_endpoint
     from modules.log.logger_factory import get_logger
 
 logger = get_logger("admin_auth")
@@ -65,7 +67,7 @@ def require_admin(f):
             disp = Displayer()
             disp.add_generic("Access Denied")
             disp.set_title("Access Denied")
-            disp.add_breadcrumb("Home", "demo.index", [])
+            disp.add_breadcrumb("Home", get_home_endpoint(), [])
             
             disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
             disp.add_display_item(DisplayerItemAlert(
@@ -83,7 +85,7 @@ def require_admin(f):
                 "btn_back",
                 "Return to Home",
                 "home",
-                link=url_for('demo.index'),
+                link=url_for(get_home_endpoint()),
                 color=BSstyle.PRIMARY
             ), column=0)
             
@@ -103,7 +105,7 @@ def manage_users():
     disp = Displayer()
     disp.add_generic("User Management")
     disp.set_title("User Management")
-    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Admin", "admin_auth.manage_users", [])
     disp.add_breadcrumb("Users", "admin_auth.manage_users", [])
     
@@ -308,7 +310,7 @@ def manage_permissions():
     disp = Displayer()
     disp.add_generic("Permission Management")
     disp.set_title("Module Permissions")
-    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Admin", "admin_auth.manage_users", [])
     disp.add_breadcrumb("Permissions", "admin_auth.manage_permissions", [])
     
@@ -436,7 +438,7 @@ def manage_groups():
     disp = Displayer()
     disp.add_generic("Group Management")
     disp.set_title("Group Management")
-    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Admin", "admin_auth.manage_users", [])
     disp.add_breadcrumb("Groups", "admin_auth.manage_groups", [])
     

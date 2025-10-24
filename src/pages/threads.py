@@ -8,6 +8,7 @@ card-based interface showing console output, logs, and process information.
 from flask import Blueprint, render_template, request, flash
 from ..modules import displayer
 from ..modules.threaded import threaded_manager
+from ..modules.utilities import get_home_endpoint
 
 bp = Blueprint("threads", __name__, url_prefix="/threads")
 
@@ -25,7 +26,7 @@ def threads():
     disp.add_generic("Thread Monitor")
     disp.set_title("Thread Monitor")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Threads", "threads.threads", [])
     
     # Get thread manager instance

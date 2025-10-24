@@ -34,7 +34,7 @@ Config structure:
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from ..modules.settings import SettingsManager
 from ..modules import displayer
-from ..modules.utilities import util_post_to_json, util_post_unmap
+from ..modules.utilities import util_post_to_json, util_post_unmap, get_home_endpoint
 from .common import require_admin
 import os
 import logging
@@ -77,7 +77,7 @@ def index():
     disp.set_title("Configuration Settings")
     
     # Add breadcrumbs
-    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Settings", "settings.index", [])
     
     # Categories overview in a nice table
@@ -364,12 +364,12 @@ def _view_settings(user_mode=False):
     if user_mode:
         disp.add_generic("My Framework Settings", display=False)
         disp.set_title("My Framework Settings")
-        disp.add_breadcrumb("Home", "demo.index", [])
+        disp.add_breadcrumb("Home", get_home_endpoint(), [])
         disp.add_breadcrumb("Framework Settings", "settings.user_view", [])
     else:
         disp.add_generic("View Settings", display=False)
         disp.set_title("View Settings")
-        disp.add_breadcrumb("Home", "demo.index", [])
+        disp.add_breadcrumb("Home", get_home_endpoint(), [])
         disp.add_breadcrumb("Settings", "settings.index", [])
         if category_filter:
             disp.add_breadcrumb(f"View {manager.get_category_friendly(category_filter)}", "settings.view", [f"category={category_filter}"])

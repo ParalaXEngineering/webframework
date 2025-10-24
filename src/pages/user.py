@@ -22,6 +22,7 @@ try:
     from ..modules.auth.auth_utils import verify_password, validate_password_strength
     from ..modules import utilities
     from ..modules.log.logger_factory import get_logger
+    from ..modules.utilities import get_home_endpoint
 except ImportError:
     from modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
@@ -33,6 +34,7 @@ except ImportError:
     from modules.auth.auth_utils import verify_password, validate_password_strength
     from modules import utilities
     from modules.log.logger_factory import get_logger
+    from modules.utilities import get_home_endpoint
 
 logger = get_logger("user_profile")
 user_profile_bp = Blueprint('user_profile', __name__, url_prefix='/user')
@@ -81,7 +83,7 @@ def profile():
     disp = Displayer()
     disp.add_generic("User Profile")
     disp.set_title("My Profile")
-    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Profile", "user_profile.profile", [])
     
     # Handle POST
@@ -290,7 +292,7 @@ def preferences():
     disp = Displayer()
     disp.add_generic("User Preferences")
     disp.set_title("My Preferences")
-    disp.add_breadcrumb("Home", "demo.index", [])
+    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Preferences", "user_profile.preferences", [])
     
     # Show info for GUEST users

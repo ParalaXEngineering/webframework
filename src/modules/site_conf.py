@@ -30,6 +30,9 @@ class Site_conf:
         self.m_include_tar_gz_dirs = []
 
         self.m_index = "Bienvenue sur la page par défaut du framework ESD"
+        
+        self.m_home_endpoint = "framework.index"
+        """Default home page endpoint - can be overridden by website modules"""
 
         self.m_sidebar = []
         """Sidebar content"""
@@ -656,7 +659,7 @@ class Site_conf:
         
         return default
 
-    def app_details(self, name: str, version: str, icon: str, footer: Optional[str] = None, index: Optional[str] = None):
+    def app_details(self, name: str, version: str, icon: str, footer: Optional[str] = None, index: Optional[str] = None, home_endpoint: Optional[str] = None):
         """Set the application details
 
         :param name: The name of the application
@@ -665,6 +668,12 @@ class Site_conf:
         :type version: str
         :param icon: The icon of the application, in mdi format
         :type icon: str
+        :param footer: Optional footer text
+        :type footer: str, optional
+        :param index: Optional index page content
+        :type index: str, optional
+        :param home_endpoint: Optional home endpoint (e.g., 'my_module.home') to override the default
+        :type home_endpoint: str, optional
         """
         self.m_app["name"] = name
         self.m_app["icon"] = icon
@@ -674,6 +683,9 @@ class Site_conf:
 
         if index:
             self.m_index = index
+        
+        if home_endpoint:
+            self.m_home_endpoint = home_endpoint
 
     def add_tar_gz(self, list_tar_gz: list):
         """
