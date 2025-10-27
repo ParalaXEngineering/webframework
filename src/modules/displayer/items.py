@@ -1,5 +1,4 @@
 from typing import Optional, List, Dict, Any, ClassVar, Union
-from enum import Enum
 
 from .core import DisplayerItems, DisplayerCategory, BSstyle
 
@@ -21,7 +20,6 @@ class DisplayerItem:
         'm_parameters': 'parameters',
         'm_path': 'path',
         'm_icon': 'icon',
-        'm_icon_style': 'icon_style',
         'm_endpoint': 'endpoint',
         'm_focus': 'focus',
         'm_date': 'date',
@@ -430,150 +428,132 @@ class DisplayerItemIconLink(DisplayerItem):
                    link="#details", parameters=["id=123", "action=view"], color=BSstyle.PRIMARY)
 
 @DisplayerCategory.BUTTON
-@DisplayerCategory.BUTTON
-class DisplayerItemButton(DisplayerItem):
-    """Specialized display item to display a button with optional link and icon support.
-    
-    This unified button class replaces both the old DisplayerItemButton and DisplayerItemButtonLink,
-    providing a consistent interface for all button types. It supports:
-    - Regular buttons (no link)
-    - Link buttons (with navigation)
-    - Icons with flexible layout styles
-    - Colors/styles
-    - Tooltips
-    - Focus control
-    """
-
-    class IconStyle(Enum):
-        """Icon layout styles for buttons."""
-        LEFT = "left"              # Icon left of text, same size as text
-        TOP = "top"                # Icon above text, larger size
-        ICON_ONLY = "icon_only"    # Only icon, no text
+class DisplayerItemButtonLink(DisplayerItem):
+    """Specialized display item to display a link icon"""
 
     def __init__(
         self,
         id: str,
         text: str,
-        icon: Optional[str] = None,
-        link: Optional[str] = None,
+        icon: str,
+        link: str = "",
         parameters: Optional[list] = None,
-        color: Optional[BSstyle] = None,
+        color: BSstyle = BSstyle.PRIMARY,
         tooltip: Optional[str] = None,
-        focus: bool = False,
-        icon_style: "DisplayerItemButton.IconStyle" = None,
     ) -> None:
         """
-        Initialize a unified button item supporting both regular and link buttons.
+        Initialize a button link item.
 
         Args:
             id: Unique identifier for the button
-            text: Button label text (can be empty for icon-only buttons)
-            icon: Optional MDI icon name (without 'mdi-' prefix)
-            link: Optional Flask endpoint or URL. If None, creates a regular button (default: None)
-            parameters: GET parameters to append to the link as a list (default: None)
-            color: Optional Bootstrap style for button color (default: None for default styling)
-            tooltip: Optional tooltip text to display on hover (default: None)
-            focus: Whether the button should have focus on page load (default: False)
-            icon_style: Layout style for icon. Options: IconStyle.LEFT (inline, same size),
-                       IconStyle.TOP (stacked, larger), IconStyle.ICON_ONLY (icon only).
-                       Defaults to LEFT for text+icon, ICON_ONLY for icon-only. (default: None)
+            text: Button text content
+            icon: MDI icon name (without 'mdi-' prefix)
+            link: Flask endpoint or URL to link to
+            parameters: GET parameters to append to the link (default: None)
+            color: Bootstrap style for button color (default: BSstyle.PRIMARY)
+            tooltip: Optional tooltip text to display on hover
 
         Example:
-            >>> # Link button with icon on the left
-            >>> button = DisplayerItemButton(
+            >>> button = DisplayerItemButtonLink(
             ...     id="submit_btn",
             ...     text="Submit",
             ...     icon="check",
             ...     link="process_form",
+            ...     parameters=["form_id=123"],
             ...     color=BSstyle.SUCCESS,
-            ...     tooltip="Submit the form"
-            ... )
-            
-            >>> # Button with icon on top
-            >>> button = DisplayerItemButton(
-            ...     id="action_btn",
-            ...     text="Action",
-            ...     icon="star",
-            ...     color=BSstyle.PRIMARY,
-            ...     icon_style=DisplayerItemButton.IconStyle.TOP
-            ... )
-            
-            >>> # Icon-only button
-            >>> button = DisplayerItemButton(
-            ...     id="delete_btn",
-            ...     text="Delete",
-            ...     icon="trash",
-            ...     color=BSstyle.ERROR,
-            ...     icon_style=DisplayerItemButton.IconStyle.ICON_ONLY
+            ...     tooltip="Click to submit the form"
             ... )
         """
-        # Determine button type based on link parameter
-        if link is not None:
-            button_type = DisplayerItems.BUTTONLINK
-        else:
-            button_type = DisplayerItems.BUTTON
-            
-        super().__init__(button_type)
-        
+        super().__init__(DisplayerItems.BUTTONLINK)
         self.m_text = text
         self.m_id = id
+        self.m_data = link
         self.m_icon = icon
-        self.m_focus = focus
-        self.m_tooltips = tooltip
-        
-        # Link-specific attributes
-        self.m_data = link  # Only set if it's a link button
         self.m_parameters = parameters
-        
-        # Handle color styling
-        if color is not None:
-            self.m_style = color.value
-        else:
-            self.m_style = None
-        
-        # Icon style - default to LEFT (icon beside text)
-        if icon_style is None:
-            self.m_icon_style = self.IconStyle.LEFT
-        else:
-            self.m_icon_style = icon_style
+        self.m_style = color.value
+        self.m_tooltips = tooltip
+        return
 
     def display(self, container: list, parent_id: Optional[str] = None) -> None:
-        """Add button to container with icon and optional link/parameters.
+        """Add button to container with icon and parameters.
         
         Args:
             container: The container element to display in.
             parent_id: The parent element ID.
         """
         super().display(container, parent_id)
-        
-        # Add icon if present
-        if self.m_icon:
-            container[-1]["icon"] = self.m_icon
-            container[-1]["icon_style"] = self.m_icon_style.value
-        
-        # Add parameters if this is a link button
-        if self.m_parameters is not None:
-            container[-1]["parameters"] = self.m_parameters
-            
+        container[-1]["icon"] = self.m_icon
+        container[-1]["parameters"] = self.m_parameters
         return
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instances with various button configurations.
+        """Create test instance with sample button link.
         
         Returns:
             Instance of the class with test data.
         """
-        return cls(
-            id="test_button",
-            text="Click Me",
-            icon="check-circle",
-            focus=False,
-            tooltip="This is a unified test button",
-            color=BSstyle.PRIMARY,
-            icon_style=cls.IconStyle.LEFT
-        )
+        return cls(id="test_button_link", text="Submit Form", icon="check",
+                   link="#action", parameters=["form_id=456"], color=BSstyle.SUCCESS,
+                   tooltip="This is a test button link")
 
+
+@DisplayerCategory.BUTTON
+class DisplayerItemButton(DisplayerItem):
+    """Specialized display item to display a simple button."""
+
+    def __init__(
+        self,
+        id: str,
+        text: str,
+        icon: Optional[str] = None,
+        focus: bool = False,
+        tooltip: Optional[str] = None,
+        color: Optional[BSstyle] = None
+    ) -> None:
+        """
+        Initialize a simple button item.
+
+        Args:
+            id: Unique identifier for the button
+            text: Button label text
+            icon: Optional MDI icon name (without 'mdi-' prefix)
+            focus: Whether the button should have focus on page load (default: False)
+            tooltip: Optional tooltip text to display on hover
+            color: Optional button color/style (BSstyle)
+
+        Example:
+            >>> button = DisplayerItemButton(id="confirm_btn", text="Confirm", icon="check", focus=True, tooltip="Click to confirm action")
+        """
+        super().__init__(DisplayerItems.BUTTON)
+        self.m_text = text
+        self.m_id = id
+        self.m_icon = icon
+        self.m_focus = focus
+        self.m_tooltips = tooltip
+        self.m_style = color
+        return
+
+    def display(self, container: list, parent_id: Optional[str] = None) -> None:
+        """Add button to container with optional icon.
+        
+        Args:
+            container: The container element to display in.
+            parent_id: The parent element ID.
+        """
+        super().display(container, parent_id)
+        if self.m_icon:
+            container[-1]["icon"] = self.m_icon
+        return
+
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample button.
+        
+        Returns:
+            Instance of the class with test data.
+        """
+        return cls(id="test_button", text="Click Me", icon="check-circle", focus=False, tooltip="This is a test button")
 
 @DisplayerCategory.BUTTON
 class DisplayerItemModalButton(DisplayerItem):
