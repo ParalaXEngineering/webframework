@@ -56,10 +56,17 @@
 
         const tableSelector = '#{{addon.get('type')}}_{{ table_id }}';
 
-        // Build SearchPanes config once
+        // DEBUG: Log what columns we're trying to show/hide
+        console.log('Table: {{ table_id }}');
+        console.log('  Total columns: {{ addon['ajax_columns']|length }}');
+        console.log('  Pane indices (should show): {{ pane_indices|list }}');
+        console.log('  Non-pane indices (should hide): {{ non_pane_indices|list }}');
+
+        // Build SearchPanes config
+        // CRITICAL: In DT2 with layout API, you MUST specify columns array to force show/hide
         const panesConfig_{{ table_id }} = {
           cascadePanes: true,
-          columns: {{ pane_indices|list }},
+          columns: {{ pane_indices|list }},  // Only show panes for these column indices
           {% if is_ssp %}
           viewTotal: true,
           dtOpts: { paging: false, searching: false }
@@ -87,42 +94,61 @@
           ],
 
           columnDefs: [
+            // Custom render function for SearchPanes with orthogonal data
+            // This enables comma-separated values to be split into individual options
             {
+              searchPanes: {
+                orthogonal: 'sp'  // Use 'sp' type for SearchPanes processing
+              },
               targets: {{ pane_indices|list }},
               render: function (data, type, row, meta) {
-                if (data == null) return '';
+                if (data == null || data === '') return '';
 
-                // For SearchPanes (type === 'sp'), strip HTML and normalize
+                // For SearchPanes orthogonal data (type === 'sp')
                 if (type === 'sp') {
-                  if (Array.isArray(data)) data = data.join(',');
-                  else if (typeof data !== 'string') data = String(data);
-                  return data
-                    .replace(/<\/?[^>]+(>|$)/g, '')
-                    .replace(/(<br\s*\/?>)/gi, '')
-                    .normalize('NFKD')
-                    .replace(/[^\x00-\x7F]/g, '')
-                    .split(',')
-                    .map(item => item.trim());
+                  var strData = data;
+                  
+                  // Handle arrays
+                  if (Array.isArray(data)) {
+                    strData = data.join(',');
+                  } else if (typeof data === 'object') {
+                    // If it's an object, try to stringify it
+                    strData = JSON.stringify(data);
+                  } else if (typeof data !== 'string') {
+                    strData = String(data);
+                  }
+                  
+                  // Strip HTML tags
+                  var stripped = strData.replace(/<\/?[^>]+(>|$)/g, '');
+                  
+                  // Split by comma and trim, return array for SearchPanes
+                  return stripped.split(',').map(function(item) { 
+                    return item.trim(); 
+                  }).filter(function(item) { 
+                    return item.length > 0; 
+                  });
                 }
                 
-                // For display, return data as-is (server sends HTML badges)
+                // For all other types (display, filter, sort), return data as-is
                 return data;
-              },
-              searchPanes: { orthogonal: 'sp' }
+              }
             }
-            {% if non_pane_indices %}
-            ,{ searchPanes: { show: false }, targets: {{ non_pane_indices }} }
-            {% endif %}
           ],
 
           stateSave: true,
 
           // DT2: explicitly place SearchPanes in the layout so it appears
+          // Use 'top' instead of 'topStart' to make SearchPanes use full width
           layout: {
-            topStart: [
-              { searchPanes: {% if addon.get("columns") %} panesConfig_{{ table_id }} {% else %} panesConfig_{{ table_id }} {% endif %} }
-            ]
-          }
+            top: 'searchPanes',
+            topStart: 'pageLength',
+            topEnd: 'search',
+            bottomStart: 'info',
+            bottomEnd: 'paging'
+          },
+          
+          // SearchPanes configuration
+          searchPanes: panesConfig_{{ table_id }}
 
           {% if addon.get("order") %},
           order: {{ addon["order"] | tojson }}

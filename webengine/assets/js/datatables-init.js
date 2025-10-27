@@ -37,12 +37,21 @@ function initializeDataTable(selector, customOptions, ajax) {
     const elements = document.querySelectorAll(selector);
     elements.forEach(element => {
         const tableId = element.id;
+        
+        // Base options
         const tableOptions = {
             colReorder: true,
             buttons: getCommonButtons(selector.includes('advanced'), tableId),
-            dom: 'BPlfrtip',
             pageLength: 25
         };
+        
+        // If customOptions uses the new 'layout' API (DT2), don't use old 'dom' string
+        // The 'dom' and 'layout' configurations conflict with each other
+        if (!customOptions.layout) {
+            // Use old dom string for backward compatibility (DT1.x style)
+            tableOptions.dom = 'BPlfrtip';
+        }
+        
         const finalOptions = { ...tableOptions, ...customOptions };
         const table = new DataTable(`#${tableId}`, finalOptions);
         // Note: Auto-refresh removed - use customOptions.ajax with proper endpoint if needed
