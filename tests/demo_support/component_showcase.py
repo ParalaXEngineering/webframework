@@ -111,7 +111,7 @@ def index():
         
         # Button
         disp.add_display_item(
-            displayer.DisplayerItemButtonLink(
+            displayer.DisplayerItemButton(
                 id=f"btn_{category}",
                 text="Browse",
                 icon="arrow-right",
@@ -185,7 +185,7 @@ def category(category: str = ""):
         
         # View button
         disp.add_display_item(
-            displayer.DisplayerItemButtonLink(
+            displayer.DisplayerItemButton(
                 id=f"view_{item_name}",
                 text="View Demo",
                 icon="eye",

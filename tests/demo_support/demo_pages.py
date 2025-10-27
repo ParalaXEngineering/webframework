@@ -47,10 +47,10 @@ def index():
     for line, (name, category, description, endpoint, badge_color) in enumerate(demos):
         # Demo name as link
         disp.add_display_item(
-            displayer.DisplayerItemButtonLink(
-                f"btn_{line}", name, "", 
-                url_for(endpoint), [], 
-                displayer.BSstyle.SECONDARY
+            displayer.DisplayerItemButton(
+                f"btn_{line}", name,
+                link=url_for(endpoint), 
+                color=displayer.BSstyle.SECONDARY
             ),
             column=0, line=line, layout_id=table_id
         )
@@ -274,9 +274,9 @@ def threading_demo():
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.VERTICAL, [6, 6]
     ))
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_monitor", "Monitor Threads", "monitor-eye",
-        "/threads/", [], displayer.BSstyle.SECONDARY
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_monitor", "Monitor Threads", icon="monitor-eye",
+        link="/threads/", color=displayer.BSstyle.SECONDARY
     ), 0)
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_stop", "Stop All Threads", icon="stop-circle", color=displayer.BSstyle.WARNING
@@ -665,11 +665,11 @@ def auth_accessible():
         ), 0)
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_home", "Back to Demos", "mdi-home", url_for('demo.index'), [], displayer.BSstyle.SECONDARY
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_home", "Back to Demos", icon="home", link=url_for('demo.index'), color=displayer.BSstyle.SECONDARY
     ), 0)
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_restricted", "Try Restricted Page", "mdi-lock", url_for('demo.auth_restricted'), [], displayer.BSstyle.WARNING
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_restricted", "Try Restricted Page", icon="lock", link=url_for('demo.auth_restricted'), color=displayer.BSstyle.WARNING
     ), 1)
     
     return render_template("base_content.j2", content=disp.display())
@@ -714,11 +714,11 @@ def auth_restricted():
     ), 0)
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_home", "Back to Demos", "mdi-home", url_for('demo.index'), [], displayer.BSstyle.SECONDARY
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_home", "Back to Demos", icon="home", link=url_for('demo.index'), color=displayer.BSstyle.SECONDARY
     ), 0)
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_admin", "Try Admin Page", "mdi-shield-crown", url_for('demo.auth_admin'), [], displayer.BSstyle.ERROR
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_admin", "Try Admin Page", icon="shield-crown", link=url_for('demo.auth_admin'), color=displayer.BSstyle.ERROR
     ), 1)
     
     return render_template("base_content.j2", content=disp.display())
@@ -781,11 +781,11 @@ def auth_admin():
         ), 0)
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_home", "Back to Demos", "mdi-home", url_for('demo.index'), [], displayer.BSstyle.SECONDARY
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_home", "Back to Demos", icon="home", link=url_for('demo.index'), color=displayer.BSstyle.SECONDARY
     ), 0)
-    disp.add_display_item(displayer.DisplayerItemButtonLink(
-        "btn_accessible", "Back to Accessible Page", "mdi-check", url_for('demo.auth_accessible'), [], displayer.BSstyle.SUCCESS
+    disp.add_display_item(displayer.DisplayerItemButton(
+        "btn_accessible", "Back to Accessible Page", icon="check", link=url_for('demo.auth_accessible'), color=displayer.BSstyle.SUCCESS
     ), 1)
     
     return render_template("base_content.j2", content=disp.display())

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 try:
     from ..modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
-        DisplayerItemText, DisplayerItemButton, DisplayerItemButtonLink,
+        DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemAlert, DisplayerItemInputString,
         DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
     )
@@ -25,7 +25,7 @@ try:
 except ImportError:
     from modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
-        DisplayerItemText, DisplayerItemButton, DisplayerItemButtonLink,
+        DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemAlert, DisplayerItemInputString,
         DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
     )
@@ -81,10 +81,10 @@ def require_admin(f):
             ), column=0)
             
             disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-            disp.add_display_item(DisplayerItemButtonLink(
+            disp.add_display_item(DisplayerItemButton(
                 "btn_back",
                 "Return to Home",
-                "home",
+                icon="home",
                 link=url_for(get_home_endpoint()),
                 color=BSstyle.PRIMARY
             ), column=0)

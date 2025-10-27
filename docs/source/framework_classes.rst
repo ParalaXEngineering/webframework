@@ -139,10 +139,6 @@ Button Items
     :members:
     :show-inheritance:
 
-.. autoclass:: src.modules.displayer.items.DisplayerItemButtonLink
-    :members:
-    :show-inheritance:
-
 Display Items
 ^^^^^^^^^^^^^
 

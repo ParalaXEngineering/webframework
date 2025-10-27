@@ -66,10 +66,10 @@ def require_admin(f):
             ), column=0)
             
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            disp.add_display_item(displayer.DisplayerItemButtonLink(
+            disp.add_display_item(displayer.DisplayerItemButton(
                 "btn_back",
                 "Return to Home",
-                "home",
+                icon="home",
                 link=url_for(get_home_endpoint()),
                 color=displayer.BSstyle.PRIMARY
             ), column=0)

@@ -95,7 +95,7 @@ def index():
             link = url_for('layouts.layout_detail', layout=layout_name.lower())
         
         disp.add_display_item(
-            displayer.DisplayerItemButtonLink(
+            displayer.DisplayerItemButton(
                 id=f"btn_{layout_name.lower().replace('-', '_')}",
                 text="View Examples",
                 icon="arrow-right",
