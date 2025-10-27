@@ -27,6 +27,7 @@ class DisplayerItem:
         'm_id': 'id',
         'm_css_class': 'css_class',
         'm_width': 'width',
+        'm_icon_style': 'icon_style',
     }
 
     def __init__(self, itemType: DisplayerItems) -> None:
@@ -429,60 +430,147 @@ class DisplayerItemIconLink(DisplayerItem):
 
 @DisplayerCategory.BUTTON
 class DisplayerItemButton(DisplayerItem):
-    """Specialized display item to display a simple button."""
+    """Specialized display item to display a button with optional link and icon support.
+    
+    This unified button class supports both regular buttons and link buttons,
+    providing a consistent interface for all button types. It supports:
+    - Regular buttons (no link)
+    - Link buttons (with navigation)
+    - Icons with flexible layout styles
+    - Colors/styles
+    - Tooltips
+    - Focus control
+    """
+
+    class IconStyle:
+        """Icon layout styles for buttons."""
+        LEFT = "left"              # Icon left of text, same size as text
+        TOP = "top"                # Icon above text, larger size
+        ICON_ONLY = "icon_only"    # Only icon, no text
 
     def __init__(
         self,
         id: str,
         text: str,
         icon: Optional[str] = None,
-        focus: bool = False,
+        link: Optional[str] = None,
+        parameters: Optional[list] = None,
+        color: Optional[BSstyle] = None,
         tooltip: Optional[str] = None,
-        color: Optional[BSstyle] = None
+        focus: bool = False,
+        icon_style: Optional[str] = None,
     ) -> None:
         """
-        Initialize a simple button item.
+        Initialize a unified button item supporting both regular and link buttons.
 
         Args:
             id: Unique identifier for the button
-            text: Button label text
+            text: Button label text (can be empty for icon-only buttons)
             icon: Optional MDI icon name (without 'mdi-' prefix)
+            link: Optional Flask endpoint or URL. If None, creates a regular button (default: None)
+            parameters: GET parameters to append to the link as a list (default: None)
+            color: Optional Bootstrap style for button color (default: None for default styling)
+            tooltip: Optional tooltip text to display on hover (default: None)
             focus: Whether the button should have focus on page load (default: False)
-            tooltip: Optional tooltip text to display on hover
-            color: Optional button color/style (BSstyle)
+            icon_style: Layout style for icon. Options: "left" (inline, same size),
+                       "top" (stacked, larger), "icon_only" (icon only).
+                       Defaults to "left". (default: None)
 
         Example:
-            >>> button = DisplayerItemButton(id="confirm_btn", text="Confirm", icon="check", focus=True, tooltip="Click to confirm action")
+            >>> # Link button with icon on the left
+            >>> button = DisplayerItemButton(
+            ...     id="submit_btn",
+            ...     text="Submit",
+            ...     icon="check",
+            ...     link="process_form",
+            ...     color=displayer.BSstyle.SUCCESS,
+            ...     tooltip="Submit the form"
+            ... )
+            
+            >>> # Button with icon on top
+            >>> button = DisplayerItemButton(
+            ...     id="action_btn",
+            ...     text="Action",
+            ...     icon="star",
+            ...     color=displayer.BSstyle.PRIMARY,
+            ...     icon_style="top"
+            ... )
+            
+            >>> # Icon-only button
+            >>> button = DisplayerItemButton(
+            ...     id="delete_btn",
+            ...     text="Delete",
+            ...     icon="trash",
+            ...     color=displayer.BSstyle.ERROR,
+            ...     icon_style="icon_only"
+            ... )
         """
-        super().__init__(DisplayerItems.BUTTON)
+        # Determine button type based on link parameter
+        if link is not None:
+            button_type = DisplayerItems.BUTTONLINK
+        else:
+            button_type = DisplayerItems.BUTTON
+            
+        super().__init__(button_type)
+        
         self.m_text = text
         self.m_id = id
         self.m_icon = icon
         self.m_focus = focus
         self.m_tooltips = tooltip
-        self.m_style = color
-        return
+        
+        # Link-specific attributes
+        self.m_data = link  # Only set if it's a link button
+        self.m_parameters = parameters
+        
+        # Handle color styling
+        if color is not None:
+            self.m_style = color.value
+        else:
+            self.m_style = None
+        
+        # Icon style - default to LEFT (icon beside text)
+        if icon_style is None:
+            self.m_icon_style = self.IconStyle.LEFT
+        else:
+            self.m_icon_style = icon_style
 
     def display(self, container: list, parent_id: Optional[str] = None) -> None:
-        """Add button to container with optional icon.
+        """Add button to container with icon and optional link/parameters.
         
         Args:
             container: The container element to display in.
             parent_id: The parent element ID.
         """
         super().display(container, parent_id)
+        
+        # Add icon if present
         if self.m_icon:
             container[-1]["icon"] = self.m_icon
+            container[-1]["icon_style"] = self.m_icon_style
+        
+        # Add parameters if this is a link button
+        if self.m_parameters is not None:
+            container[-1]["parameters"] = self.m_parameters
+            
         return
 
     @classmethod
     def instantiate_test(cls):
-        """Create test instance with sample button.
+        """Create test instances with various button configurations.
         
         Returns:
             Instance of the class with test data.
         """
-        return cls(id="test_button", text="Click Me", icon="check-circle", focus=False, tooltip="This is a test button")
+        return cls(
+            id="test_button",
+            text="Click Me",
+            icon="check-circle",
+            focus=False,
+            tooltip="This is a unified test button",
+            color=None,
+            icon_style=cls.IconStyle.LEFT
+        )
 
 @DisplayerCategory.BUTTON
 class DisplayerItemModalButton(DisplayerItem):
