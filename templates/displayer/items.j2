@@ -16,7 +16,7 @@
     {% elif item["type"] == "PLACEHOLDER" %}
         {{placeholder(item["id"], item["data"])}}
     {% elif item["type"] == "BUTTON" %}
-        {{button(item["id"], item["text"], item["disabled"], item["focus"], item["icon"] if "icon" in item else None)}}
+        {{button(item["id"], item["text"], item["disabled"], item["focus"], item["icon"] if "icon" in item else None, item["style"] if "style" in item else None, item["icon_style"] if "icon_style" in item else None)}}
     {% elif item["type"] == "MODALBUTTON" %}
         {{modalbutton(item["path"], item["text"], item["disabled"])}}
     {% elif item["type"] == "MODALLINK" %}
@@ -26,7 +26,7 @@
     {% elif item["type"] == "ICONLINK" %}
         {{iconlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
     {% elif item["type"] == "BUTTONLINK" %}
-        {{buttonlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
+        {{buttonlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"], item["icon_style"] if "icon_style" in item else None)}}
     {% elif item["type"] == "FILE" %}
         {{file(item["id"], item["value"], item["text"], item["endpoint"], item["path"], item["date"])}}
     {% elif item["type"] == "IMAGE" %}
@@ -318,9 +318,13 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="{{id}}">{{data}}</div>
 {% endmacro %}
 
-{% macro button(id, text, disabled = false, focus = false, icon = None) %}
-    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn btn-primary {%if focus %} focusable {%endif%}" {% if disabled %}disabled{% endif %}>
-        {% if icon %}<i class="mdi mdi-{{icon}}"></i>{% endif %}
+{% macro button(id, text, disabled = false, focus = false, icon = None, style = None, icon_style = None) %}
+    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn {% if style %}btn-{{style}}{% else %}btn-primary{% endif %} {%if focus %} focusable {%endif%}" {% if disabled %}disabled{% endif %}>
+        {% if icon and icon_style == "top" %}
+            <h2><i class="mdi mdi-{{icon}}"></i></h2>
+        {% elif icon %}
+            <i class="mdi mdi-{{icon}} me-2"></i>
+        {% endif %}
         {% if text %}{{text}}{% endif %}
     </button>
 {% endmacro %}
@@ -433,47 +437,75 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 {% endmacro %}
 
-{% macro buttonlink(id, text, link, icon, style, parameters) %}
+{% macro buttonlink(id, text, link, icon, style, parameters, icon_style=None) %}
     {% if link %}
         {% if "http" in link%}
         <a href="{{link}}" class="btn btn-{{style}}">
-        <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+        {% if icon_style == "top" %}
+            <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+        {% else %}
+            <i class="mdi mdi-{{icon}} text-light me-2"></i>
+        {% endif %}
         {{text}}
         </a>
         {% elif "#" in link%}
         <a id="{{id}}" href="{{link}}" class="btn btn-{{style}}">
-        <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+        {% if icon_style == "top" %}
+            <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+        {% else %}
+            <i class="mdi mdi-{{icon}} text-light me-2"></i>
+        {% endif %}
         {{text}}
         </a>
         {% else %}
             {% if '/' in link %}
                 {% if parameters %}
                     <a href="{{link}}?{{parameters | join('&')}}" class="btn btn-{{style}}">
-                        <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+                        {% if icon_style == "top" %}
+                            <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+                        {% else %}
+                            <i class="mdi mdi-{{icon}} text-light me-2"></i>
+                        {% endif %}
                         {{text}}
                     </a>
                 {% else %}
                     <a href="{{link}}" class="btn btn-{{style}}">
-                        <h2><i class="mdi mdi-{{icon}} text-light" ></i></h2>
+                        {% if icon_style == "top" %}
+                            <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+                        {% else %}
+                            <i class="mdi mdi-{{icon}} text-light me-2"></i>
+                        {% endif %}
                         {{text}}
                     </a>
                 {% endif %}
             {% else %}
                 {% if parameters %}
                     <a href="{{url_for(link)}}?{{parameters | join('&')}}" class="btn btn-{{style}}">
-                        <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+                        {% if icon_style == "top" %}
+                            <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+                        {% else %}
+                            <i class="mdi mdi-{{icon}} text-light me-2"></i>
+                        {% endif %}
                         {{text}}
                     </a>
                 {% else %}
                     <a href="{{url_for(link)}}" class="btn btn-{{style}}">
-                        <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+                        {% if icon_style == "top" %}
+                            <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
+                        {% else %}
+                            <i class="mdi mdi-{{icon}} text-light me-2"></i>
+                        {% endif %}
                         {{text}}
                     </a>
                 {% endif %}
             {% endif %}
         {% endif %}
     {% else %}
-    <h2><i class="mdi mdi-{{icon}} text-{{style}}"></i></h2>
+    {% if icon_style == "top" %}
+        <h2><i class="mdi mdi-{{icon}} text-{{style}}"></i></h2>
+    {% else %}
+        <i class="mdi mdi-{{icon}} text-{{style}} me-2"></i>
+    {% endif %}
     {{text}}
     {% endif %}
 {% endmacro %}
