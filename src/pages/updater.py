@@ -5,7 +5,6 @@ from ..modules.auth.auth_manager import auth_manager
 from ..modules import site_conf
 from ..modules import displayer
 from ..modules import SFTPConnection
-from ..modules.settings import SettingsManager
 from ..modules.utilities import get_config_or_error
 
 from ..modules.threaded.threaded_action import Threaded_action
@@ -25,24 +24,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# Global settings manager
-_settings_manager = None
-
-
 def get_settings_manager():
-    """Get or create settings manager instance and merge optional configs based on site_conf."""
-    global _settings_manager
-    if _settings_manager is None:
-        from ..modules import site_conf
-        
-        config_path = os.path.join(os.getcwd(), "config.json")
-        _settings_manager = SettingsManager(config_path)
-        _settings_manager.load()
-        
-        # Merge optional configurations based on enabled features
-        if site_conf.site_conf_obj:
-            _settings_manager.merge_optional_configs(site_conf.site_conf_obj)
-    return _settings_manager
+    """Get the global settings manager instance (initialized at startup)."""
+    from ..modules.settings import settings_manager
+    return settings_manager
 
 
 class SETUP_Updater(Threaded_action):

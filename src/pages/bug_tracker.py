@@ -5,7 +5,6 @@ from ..modules import displayer
 from ..modules import site_conf
 from ..modules import User_defined_module
 from ..modules.auth.auth_manager import auth_manager
-from ..modules.settings import SettingsManager
 from ..modules.utilities import get_config_or_error
 
 from redminelib import Redmine
@@ -27,13 +26,9 @@ bp = Blueprint("bug", __name__, url_prefix="/bug")
 
 
 def get_settings_manager():
-    """Get or create settings manager instance."""
-    global _settings_manager
-    if '_settings_manager' not in globals():
-        config_path = os.path.join(os.getcwd(), "config.json")
-        globals()['_settings_manager'] = SettingsManager(config_path)
-        globals()['_settings_manager'].load()
-    return globals()['_settings_manager']
+    """Get the global settings manager instance (initialized at startup)."""
+    from ..modules.settings import settings_manager
+    return settings_manager
 
 
 @bp.route("/edit/<int:issue_id>", methods=["GET", "POST"])

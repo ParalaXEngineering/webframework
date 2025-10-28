@@ -646,7 +646,13 @@ class Site_conf:
             # Try to get from global settings
             try:
                 from .settings import SettingsManager
-                config_path = os.path.join(os.getcwd(), "config.json")
+                
+                # Use the app path set by the framework
+                if site_conf_app_path:
+                    config_path = os.path.join(site_conf_app_path, "website", "config.json")
+                else:
+                    config_path = os.path.join(os.getcwd(), "website", "config.json")
+                
                 manager = SettingsManager(config_path)
                 manager.load()
                 value = manager.get_setting(f"framework_ui.{key}")

@@ -199,6 +199,28 @@ def setup_app(app):
         auth_manager_module.auth_manager = None
         globals()['auth_manager'] = None
         logger.info("Auth manager disabled")
+    
+    # Initialize settings manager (always enabled, needed for framework config)
+    try:
+        from .modules import settings as settings_module
+        from .modules.settings import SettingsManager
+    except ImportError:
+        from modules import settings as settings_module
+        from modules.settings import SettingsManager
+    
+    # Use site_conf_app_path if set, otherwise fall back to local app_path
+    config_base_path = site_conf.site_conf_app_path if site_conf.site_conf_app_path else app_path
+    config_path = os.path.join(config_base_path, "website", "config.json")
+    settings_manager_instance = SettingsManager(config_path)
+    settings_manager_instance.load()
+    
+    # Merge optional configurations based on enabled features
+    if site_config:
+        settings_manager_instance.merge_optional_configs(site_config)
+    
+    settings_module.settings_manager = settings_manager_instance
+    globals()['settings_manager'] = settings_manager_instance
+    logger.info(f"Settings manager initialized with config: {config_path}")
 
     # Conditionally initialize scheduler based on feature flag
     if site_config.m_enable_scheduler:
