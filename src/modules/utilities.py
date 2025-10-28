@@ -46,11 +46,11 @@ def get_home_endpoint():
     """
     Get the configured home endpoint from site_conf.
     
-    Returns the home endpoint configured in site_conf, or 'framework.index' as default.
+    Returns the home endpoint configured in site_conf, or 'framework_index' as default.
     This allows websites to override the default home page by setting a custom endpoint.
     
     Returns:
-        str: The endpoint name for the home page (e.g., 'framework.index' or 'my_module.home')
+        str: The endpoint name for the home page (e.g., 'framework_index' or 'my_module.home')
     """
     try:
         from . import site_conf
@@ -58,7 +58,7 @@ def get_home_endpoint():
             return site_conf.site_conf_obj.m_home_endpoint
     except (ImportError, AttributeError):
         pass
-    return "framework.index"
+    return "framework_index"
 
 def get_breadcrumbs():
     """
