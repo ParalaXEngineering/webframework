@@ -82,7 +82,7 @@ class MySiteConf(Site_conf):
         self.app_details("My App", "1.0", "home", 
                         home_endpoint="my_module.home")  # Custom home page
 ```
-Default is `framework.index` (the built-in empty home page).
+Default is `framework_index` (the built-in empty home page).
 
 ## Key Files
 - `src/main.py`: Initialization, feature→page mapping

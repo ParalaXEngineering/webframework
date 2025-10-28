@@ -31,7 +31,7 @@ class Site_conf:
 
         self.m_index = "Bienvenue sur la page par défaut du framework ESD"
         
-        self.m_home_endpoint = "framework.index"
+        self.m_home_endpoint = "framework_index"
         """Default home page endpoint - can be overridden by website modules"""
 
         self.m_sidebar = []
