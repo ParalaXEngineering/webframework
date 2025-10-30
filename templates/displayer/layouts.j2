@@ -8,7 +8,7 @@
     {% elif layout["type"] == "TABLE" %}
         {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"], layout["user_id"]) }}
     {% elif layout["type"] == "TABS" %}
-        {{ display_tabs_layout(layout["header"], layout["lines"], layout["user_id"]) }}
+        {{ display_tabs_layout(layout["header"], layout["lines"], layout["user_id"], layout["subtitle"]) }}
     {% elif layout["type"] == "SPACER" %}
         <div><p style="margin-bottom:1cm;"></p></div>
     {% elif layout["type"] == "GRID" %}
@@ -115,8 +115,11 @@
     </div>
 {% endmacro %}
 
-{% macro display_tabs_layout(header=[], lines=[], user_id=none) %}
+{% macro display_tabs_layout(header=[], lines=[], user_id=none, subtitle=none) %}
     {% set tab_id = user_id if user_id else 'myTab' %}
+    {% if subtitle %}
+    <h6 class="mb-2">{{ subtitle }}</h6>
+    {% endif %}
     <ul class="nav nav-tabs" id="{{ tab_id }}" role="tablist">
     {% for head in header %}
     <li class="nav-item" role="presentation">
