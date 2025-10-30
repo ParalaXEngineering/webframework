@@ -4,24 +4,24 @@
     {% if layout["type"] == "VERT" %}
         {{ display_vertical_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["height"], layout["background"], layout["user_id"], layout["style"]) }}
     {% elif layout["type"] == "HORIZ" %}
-        {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"]) }}
+        {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["background"], layout["style"], layout["user_id"]) }}
     {% elif layout["type"] == "TABLE" %}
-        {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"], layout["user_id"]) }}
+        {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"], layout["user_id"], layout["background"], layout["style"], layout["spacing"]) }}
     {% elif layout["type"] == "TABS" %}
-        {{ display_tabs_layout(layout["header"], layout["lines"], layout["user_id"], layout["subtitle"]) }}
+        {{ display_tabs_layout(layout["header"], layout["lines"], layout["user_id"], layout["subtitle"], layout["background"], layout["style"], layout["spacing"]) }}
     {% elif layout["type"] == "SPACER" %}
         <div><p style="margin-bottom:1cm;"></p></div>
     {% elif layout["type"] == "GRID" %}
-        {{ display_grid_layout(layout["grid_config"], layout["containers"], layout["user_id"]) }}
+        {{ display_grid_layout(layout["grid_config"], layout["containers"], layout["user_id"], layout["background"], layout["style"], layout["spacing"]) }}
           
     {% endif %}
 {% endmacro %}
 
-{% macro display_horizontal_layout(columns=[], containers = [], align = [], spacing = 0) %}
+{% macro display_horizontal_layout(columns=[], containers = [], align = [], spacing = 0, background = none, style = none, user_id = none) %}
     {# HORIZONTAL layout: single column with items stacked vertically #}
     {# columns[0] defines the Bootstrap column width (e.g., 12 for full width) #}
     {% if columns and columns|length > 0 %}
-        <div class="row my-1 {{spacing}}">
+        <div class="row my-1 {{spacing}} {% if background %}bg-{{background}}{% endif %} {% if style %}{{style}}{% endif %}" {% if user_id %} id="{{user_id}}"{% endif %}>
             <div class="col-{{columns[0]}} text-{{align[0] if align else 'left'}}">
                 {# Display all items in the single container, stacked vertically #}
                 {% for element in containers[0] %}
@@ -74,8 +74,8 @@
 
 {% endmacro %}
 
-{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None, user_id = none) %}    
-    <div class="row m-1" {% if user_id %} id="{{user_id}}"{% endif %}>
+{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None, user_id = none, background = none, style = none, spacing = 0) %}    
+    <div class="row m-1 {{spacing}} {% if background %}bg-{{background}}{% endif %} {% if style %}{{style}}{% endif %}" {% if user_id %} id="{{user_id}}"{% endif %}>
     <div class="table-responsive">
         <table class="table table-striped mb-0" 
                    {% if responsive %}
@@ -115,48 +115,50 @@
     </div>
 {% endmacro %}
 
-{% macro display_tabs_layout(header=[], lines=[], user_id=none, subtitle=none) %}
+{% macro display_tabs_layout(header=[], lines=[], user_id=none, subtitle=none, background=none, style=none, spacing=0) %}
     {% set tab_id = user_id if user_id else 'myTab' %}
-    {% if subtitle %}
-    <h6 class="mb-2">{{ subtitle }}</h6>
-    {% endif %}
-    <ul class="nav nav-tabs" id="{{ tab_id }}" role="tablist">
-    {% for head in header %}
-    <li class="nav-item" role="presentation">
-        <a class="nav-link {% if loop.first %}active{% endif %}" 
-        id="{{ tab_id }}_tab{{ loop.index }}" 
-        data-bs-toggle="tab" 
-        href="#{{ tab_id }}_pane{{ loop.index }}" 
-        role="tab" 
-        aria-controls="{{ tab_id }}_pane{{ loop.index }}" 
-        aria-selected="{{ 'true' if loop.first else 'false' }}">
-        {{ head }}
-        </a>
-    </li>
-    {% endfor %}
-    </ul>
+    <div class="{{spacing}} {% if background %}bg-{{background}}{% endif %} {% if style %}{{style}}{% endif %}">
+        {% if subtitle %}
+        <h6 class="mb-2">{{ subtitle }}</h6>
+        {% endif %}
+        <ul class="nav nav-tabs" id="{{ tab_id }}" role="tablist">
+        {% for head in header %}
+        <li class="nav-item" role="presentation">
+            <a class="nav-link {% if loop.first %}active{% endif %}" 
+            id="{{ tab_id }}_tab{{ loop.index }}" 
+            data-bs-toggle="tab" 
+            href="#{{ tab_id }}_pane{{ loop.index }}" 
+            role="tab" 
+            aria-controls="{{ tab_id }}_pane{{ loop.index }}" 
+            aria-selected="{{ 'true' if loop.first else 'false' }}">
+            {{ head }}
+            </a>
+        </li>
+        {% endfor %}
+        </ul>
 
-    <div class="tab-content" id="{{ tab_id }}_content">
-    {% for items in lines[0] %}
-        <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
-            id="{{ tab_id }}_pane{{ loop.index }}" 
-            role="tabpanel" 
-            aria-labelledby="{{ tab_id }}_tab{{ loop.index }}">
-            {% for element in items %}
-                {% if element["object"] == "item" %}
-                    {{ disp_item.display_item(element) }}
-                {% elif element["object"] == "layout" %}
-                    {{ display_layout(element) }}
-                {% else %}
-                    NOT SUPPORTED IN TABS for {{ element["object"] }}
-                {% endif %}
-            {% endfor %}
+        <div class="tab-content" id="{{ tab_id }}_content">
+        {% for items in lines[0] %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                id="{{ tab_id }}_pane{{ loop.index }}" 
+                role="tabpanel" 
+                aria-labelledby="{{ tab_id }}_tab{{ loop.index }}">
+                {% for element in items %}
+                    {% if element["object"] == "item" %}
+                        {{ disp_item.display_item(element) }}
+                    {% elif element["object"] == "layout" %}
+                        {{ display_layout(element) }}
+                    {% else %}
+                        NOT SUPPORTED IN TABS for {{ element["object"] }}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endfor %}
         </div>
-    {% endfor %}
     </div>
 {% endmacro %}
 
-{% macro display_grid_layout(config={}, containers={}, user_id=none) %}
+{% macro display_grid_layout(config={}, containers={}, user_id=none, background=none, style=none, spacing=0) %}
     {# GRID layout: Custom grid based on GridStack configuration #}
     {# Use CSS Grid to match GridStack's positioning capabilities #}
     {% if config and config['items'] %}
@@ -170,7 +172,7 @@
             {% endif %}
         {% endfor %}
         
-        <div class="user-defined-grid" 
+        <div class="user-defined-grid {{spacing}} {% if background %}bg-{{background}}{% endif %} {% if style %}{{style}}{% endif %}" 
              {% if user_id %}id="{{user_id}}"{% endif %}
              style="display: grid; 
                     grid-template-columns: repeat({{columns}}, 1fr); 
@@ -205,7 +207,7 @@
             {% endfor %}
         </div>
     {% else %}
-        <div class="row my-1" {% if user_id %}id="{{user_id}}"{% endif %}>
+        <div class="row my-1 {{spacing}} {% if background %}bg-{{background}}{% endif %} {% if style %}{{style}}{% endif %}" {% if user_id %}id="{{user_id}}"{% endif %}>
             <div class="col-12">
                 <div class="alert alert-warning">
                     No GRID layout configuration provided
