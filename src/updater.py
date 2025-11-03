@@ -417,7 +417,7 @@ def update():
         if "create" in data_in:
             packager = SETUP_Updater()
             packager.set_action("create")
-            packager.set_distribution(data_in["distrib"], data_in["is_beta"])
+            packager.set_distribution(data_in["distrib"], data_in.get("is_beta", False))
             packager.start()
         elif "upload" in data_in:
             packager = SETUP_Updater()
