@@ -60,14 +60,16 @@ class Threaded_action:
         # Register the thread
         threaded_manager.thread_manager_obj.add_thread(self)
 
-        logging.config.fileConfig("submodules/framework/log_config.ini")
+        from submodules.framework.src import log_utils
+        log_utils.setup_logging()
         self.m_logger = logging.getLogger("website")
         self.m_logger.info("Threaded action started")
 
         self.m_scheduler = scheduler.scheduler_obj
 
     def __del__(self):
-        logging.config.fileConfig("submodules/framework/log_config.ini")
+        from submodules.framework.src import log_utils
+        log_utils.setup_logging()
         self.m_logger = logging.getLogger("website")
         self.m_logger.info("Threaded action finished")
 

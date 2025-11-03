@@ -21,6 +21,7 @@ from submodules.framework.src import scheduler
 from submodules.framework.src import threaded_manager
 from submodules.framework.src import access_manager
 from submodules.framework.src import site_conf
+from submodules.framework.src import log_utils
 
 app = Flask(
         __name__,
@@ -43,7 +44,9 @@ def setup_app(app):
     Session(app)
 
     socketio_obj = SocketIO(app)
-    logging.config.fileConfig("submodules/framework/log_config.ini")
+    
+    # Configure logging with appropriate paths
+    log_utils.setup_logging()
 
     # Detect if we're running from exe
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):

@@ -8,6 +8,7 @@ from submodules.framework.src import User_defined_module
 import json
 import subprocess
 import psutil
+import socket
 import importlib
 import os
 import sys
@@ -501,15 +502,25 @@ def logs():
     disp.add_generic("Log", display=False)
     disp.set_title(f"Logs display")
 
-    log_files = ["website.log", "root.log"]
+    # Determine log path based on on_target status
+    hostname = socket.gethostname()
+    on_target = "al70x" in hostname
+    
+    if on_target:
+        log_files = ["/tmp/website.log", "/tmp/root.log"]
+    else:
+        log_files = ["website.log", "root.log"]
+    
     for log_file in log_files:
         log_entries = parse_log_file(log_file)
 
+        # Extract just the filename for display
+        log_name = os.path.basename(log_file)
         disp.add_master_layout(
             displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
                 ["Time", "Level", "File", "Function", "Line", "Message"],
-                log_file[:-4].upper(),
+                log_name[:-4].upper(),
             )
         )
 

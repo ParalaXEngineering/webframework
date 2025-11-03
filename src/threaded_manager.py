@@ -1,5 +1,6 @@
 import threading
 import logging
+from submodules.framework.src import log_utils
 
 thread_manager_obj = None
 
@@ -9,7 +10,7 @@ class Threaded_manager:
 
     def __init__(self):
         self.m_running_threads = []  # ✅ déplacement ici : variable d'instance
-        logging.config.fileConfig("submodules/framework/log_config.ini")
+        log_utils.setup_logging()
         self.m_logger = logging.getLogger("website")
         self.m_logger.info("Scheduler started")
 

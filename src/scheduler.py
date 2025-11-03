@@ -6,6 +6,7 @@ import logging.config
 from enum import Enum
 
 from submodules.framework.src import threaded_manager
+from submodules.framework.src import log_utils
 
 scheduler_obj = None
 scheduler_ltobj = None
@@ -25,7 +26,7 @@ class Scheduler_LongTerm:
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.running = False
 
-        logging.config.fileConfig("submodules/framework/log_config.ini")
+        log_utils.setup_logging()
         self.m_logger = logging.getLogger("website")
 
     def register_function(self, function, period: int) -> None:
@@ -218,7 +219,7 @@ class Scheduler:
 
     def start(self):
         """Start the scheduler"""
-        logging.config.fileConfig("submodules/framework/log_config.ini")
+        log_utils.setup_logging()
         self.m_logger = logging.getLogger("website")
         self.m_logger.info("Scheduler started")
 

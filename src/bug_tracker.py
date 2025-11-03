@@ -1,4 +1,6 @@
 from flask import Blueprint, render_template, request
+import os
+import socket
 
 from submodules.framework.src import utilities
 from submodules.framework.src import access_manager
@@ -46,13 +48,24 @@ def bugtracker():
                 if version.name == version_name:
                     version_redmine = version.id
 
+            # Determine log path based on on_target status
+            hostname = socket.gethostname()
+            on_target = "al70x" in hostname
+            
+            if on_target:
+                website_log = "/tmp/website.log"
+                root_log = "/tmp/root.log"
+            else:
+                website_log = "website.log"
+                root_log = "root.log"
+
             try:
                 redmine.issue.create(
                     subject=data_in["subject"],
                     description=data_in["description"] + '\r\n' + "Added by OuFNis User " + access_manager.auth_object.get_user(),
                     project_id=project_id,
                     custom_fields=[{"id": 10, "value": version_redmine}, {"id": 11, "value": "-"}, {"id": 16, "value": "-"}, {"id": 20, "value": "-"}, {"id": 20, "value": "-"}],
-                    uploads=[{'path': 'website.log', 'description': 'Website log'}, {'path': 'root.log', 'description': 'Root log'}]
+                    uploads=[{'path': website_log, 'description': 'Website log'}, {'path': root_log, 'description': 'Root log'}]
                 )
             except Exception as e:
                 return render_template("failure.j2", message=f"Issue creation failed with the following message: {e}")
