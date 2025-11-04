@@ -22,6 +22,7 @@ from submodules.framework.src import threaded_manager
 from submodules.framework.src import access_manager
 from submodules.framework.src import site_conf
 from submodules.framework.src import log_utils
+from jinja2 import ChoiceLoader, FileSystemLoader
 
 app = Flask(
         __name__,
@@ -29,6 +30,12 @@ app = Flask(
         static_folder=os.path.join("..", "webengine", "assets"),
         template_folder=os.path.join("..", "templates")
     )
+
+# Configure multiple template folders: app templates override framework templates
+app.jinja_loader = ChoiceLoader([
+    FileSystemLoader(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "..", "website", "templates")),
+    FileSystemLoader(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates"))
+])
 
 def authorize_refresh(f):
     f._disable_csrf = True  # Ajouter un attribut personnalisé

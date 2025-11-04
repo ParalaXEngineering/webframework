@@ -465,6 +465,9 @@
     </script>
 
     {% include 'easter_egg.j2' %}
+    
+    {# Allow apps to define their own easter eggs - try to include if exists #}
+    {% include 'easter_egg_app.j2' ignore missing %}
 
 </body>
 
