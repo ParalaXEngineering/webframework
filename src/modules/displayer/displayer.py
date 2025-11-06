@@ -451,6 +451,11 @@ class Displayer:
                 return -1 
             if "containers" in master_layout and column >= len(master_layout["containers"]):
                 return -1
+        
+        elif layout.m_type == Layouts.GRID.value:
+            # GRID layouts can be added as slaves to VERTICAL/HORIZONTAL layouts
+            # No column validation needed for GRID (uses field_id strings)
+            pass
             
         # Add the display item
         if layout.m_type == Layouts.VERTICAL.value or layout.m_type == Layouts.HORIZONTAL.value:
@@ -527,6 +532,32 @@ class Displayer:
             # Adding a TABLE layout as a child (similar logic)
             if "containers" in master_layout:
                 layout.display(master_layout["containers"][column], self.g_next_layout)
+                self.g_next_layout += 1
+                for item in layout.m_all_layout:
+                    if item == "responsive_addon" and item in self.m_all_layout:
+                        self.m_all_layout[item].update(layout.m_all_layout[item])
+                    else:
+                        self.m_all_layout[item] = layout.m_all_layout[item]
+                return self.g_next_layout - 1
+        
+        elif layout.m_type == Layouts.GRID.value:
+            # Adding a GRID layout as a child to VERTICAL/HORIZONTAL/TABLE parent
+            if "containers" in master_layout:
+                # Add to containers (VERTICAL/HORIZONTAL layouts use containers)
+                layout.display(master_layout["containers"][column], self.g_next_layout)
+                self.g_next_layout += 1
+                # Merge responsive_addon to preserve all tables
+                for item in layout.m_all_layout:
+                    if item == "responsive_addon" and item in self.m_all_layout:
+                        self.m_all_layout[item].update(layout.m_all_layout[item])
+                    else:
+                        self.m_all_layout[item] = layout.m_all_layout[item]
+                return self.g_next_layout - 1
+            elif "lines" in master_layout:
+                # Add to lines (TABLE layouts use lines)
+                if not master_layout["lines"]:
+                    master_layout["lines"] = [[[] for _ in range(len(master_layout["header"]))]]
+                layout.display(master_layout["lines"][line][column], self.g_next_layout)
                 self.g_next_layout += 1
                 for item in layout.m_all_layout:
                     if item == "responsive_addon" and item in self.m_all_layout:
