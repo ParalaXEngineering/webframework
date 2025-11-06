@@ -282,13 +282,22 @@ class Displayer:
         Returns:
             The found layout or None
         """
-        # Search in containers (VERTICAL/HORIZONTAL layouts)
+        # Search in containers (VERTICAL/HORIZONTAL/GRID layouts)
         containers = layout.get("containers")
         if containers:
-            for container in containers:
-                found = self.find_layout(container, layout_id)
-                if found:
-                    return found
+            # Handle both list (VERTICAL/HORIZONTAL) and dict (GRID) containers
+            if isinstance(containers, dict):
+                # GRID layout: containers is a dict with field_id keys
+                for field_id, container in containers.items():
+                    found = self.find_layout(container, layout_id)
+                    if found:
+                        return found
+            else:
+                # VERTICAL/HORIZONTAL: containers is a list
+                for container in containers:
+                    found = self.find_layout(container, layout_id)
+                    if found:
+                        return found
         
         # Search in lines (TABLE/TABS layouts)
         lines = layout.get("lines")
