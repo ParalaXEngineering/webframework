@@ -36,7 +36,7 @@
     {% elif item["type"] == "INDATE" %}
         {{indate(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INNUM" %}
-        {{innum(item["id"], item["value"], item["text"])}}
+        {{innum(item["id"], item["value"], item["text"], item.get("step"))}}
     {% elif item["type"] == "INSTRING" %}
         {{instring(item["id"], item["value"], item["text"], item["focus"])}}
     {% elif item["type"] == "INSTRINGICON" %}
@@ -563,15 +563,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
 {% endmacro %}
 
-{% macro innum(id, value, text) %}
+{% macro innum(id, value, text, step=None) %}
     {% if text %}
         {{ text }}
     {% endif %}
 
     {% if value %}
-        {{ common_input.number(id, value)}}
+        {{ common_input.number(id, value, step)}}
     {% else %}
-        {{ common_input.number(id, history[id] if history is defined else None)}}
+        {{ common_input.number(id, history[id] if history is defined else None, step)}}
     {% endif %}
 {% endmacro %}
 

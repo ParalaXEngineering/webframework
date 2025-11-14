@@ -110,8 +110,8 @@
     <input type="hidden" name="{{ name }}" id="{{ name }}" value="{{ value | e }}">
 {% endmacro %}
 
-{% macro number(name, default=None) %}
-    <input type="number" step=".01" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% else %} value="0" {% endif %} class="form-control">
+{% macro number(name, default=None, step=None) %}
+    <input type="number" step="{{ step if step is not none else '.01' }}" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% else %} value="0" {% endif %} class="form-control">
 {% endmacro %}
 
 {% macro files_level(name, level, levelNb, class) %}

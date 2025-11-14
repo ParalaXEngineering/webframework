@@ -28,6 +28,7 @@ class DisplayerItem:
         'm_css_class': 'css_class',
         'm_width': 'width',
         'm_icon_style': 'icon_style',
+        'm_step': 'step',
     }
 
     def __init__(self, itemType: DisplayerItems) -> None:
@@ -1507,7 +1508,7 @@ class DisplayerItemInputListText(DisplayerItem):
 class DisplayerItemInputNumeric(DisplayerItem):
     """Specialized display to display an input number field."""
 
-    def __init__(self, id: str, text: Optional[str] = None, value: Optional[float] = None, focus: bool = False) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[float] = None, focus: bool = False, step: Optional[float] = None) -> None:
         """
         Initialize a numeric input.
 
@@ -1516,13 +1517,15 @@ class DisplayerItemInputNumeric(DisplayerItem):
             text: Optional label text (default: None)
             value: Initial numeric value (default: None)
             focus: Whether the input should have focus on page load (default: False)
+            step: Step value for increment/decrement (default: None for any, use 1 for integers)
 
         Example:
             >>> numeric = DisplayerItemInputNumeric(
             ...     id="quantity",
             ...     text="Enter Quantity",
             ...     value=100.5,
-            ...     focus=True
+            ...     focus=True,
+            ...     step=1
             ... )
         """
         super().__init__(DisplayerItems.INNUM)
@@ -1530,6 +1533,7 @@ class DisplayerItemInputNumeric(DisplayerItem):
         self.m_value = value
         self.m_id = id
         self.m_focus = focus
+        self.m_step = step
         return
 
     @classmethod
