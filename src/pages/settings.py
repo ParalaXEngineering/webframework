@@ -170,53 +170,59 @@ def _render_setting_row(disp, layout_id, line, category, key, setting, user_mode
         column=1, line=line, layout_id=layout_id
     )
     
-    # Value - render appropriate input widget
-    if setting_type == "bool":
+    # Value - render appropriate input widget based on type
+    if setting_type == "bool" or setting_type == "boolean":
+        # Boolean - checkbox
         disp.add_display_item(
-            displayer.DisplayerItemInputCheckbox(form_field_name, "", value or False),
+            displayer.DisplayerItemInputCheckbox(form_field_name, "", value if isinstance(value, bool) else False),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "int":
+    elif setting_type == "int" or setting_type == "integer" or setting_type == "number":
+        # Integer/Number - numeric input
         disp.add_display_item(
-            displayer.DisplayerItemInputNumeric(form_field_name, "", value or 0),
+            displayer.DisplayerItemInputNumeric(form_field_name, "", value if isinstance(value, (int, float)) else 0),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "select":
+    elif setting_type == "select" or setting_type == "dropdown":
+        # Single select dropdown
         disp.add_display_item(
             displayer.DisplayerItemInputSelect(form_field_name, "", value, options or []),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "multi_select":
+    elif setting_type == "multi_select" or setting_type == "multiselect":
+        # Multi-select checkboxes
         disp.add_display_item(
-            displayer.DisplayerItemInputMultiSelect(form_field_name, "", value or [], options or []),
+            displayer.DisplayerItemInputMultiSelect(form_field_name, "", value if isinstance(value, list) else [], options or []),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "text_list":
+    elif setting_type == "text_list" or setting_type == "list" or setting_type == "array":
+        # User-editable list
         disp.add_display_item(
-            displayer.DisplayerItemInputTextList(form_field_name, "", value or []),
+            displayer.DisplayerItemInputTextList(form_field_name, "", value if isinstance(value, list) else []),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "key_value_pairs":
-        # Convert dict to list of [key, value] pairs for the widget
-        value_list = [[k, v] for k, v in (value or {}).items()]
+    elif setting_type == "key_value_pairs" or setting_type == "dict" or setting_type == "object":
+        # Key-value pairs
+        value_list = [[k, v] for k, v in (value or {}).items()] if isinstance(value, dict) else []
         disp.add_display_item(
             displayer.DisplayerItemInputKeyValue(form_field_name, "", value_list),
             column=2, line=line, layout_id=layout_id
         )
     elif setting_type == "dropdown_mapping":
-        # Convert dict to list of [key, value] pairs for the widget
-        value_list = [[k, v] for k, v in (value or {}).items()]
+        # Dropdown with custom values
+        value_list = [[k, v] for k, v in (value or {}).items()] if isinstance(value, dict) else []
         disp.add_display_item(
             displayer.DisplayerItemInputDropdownValue(form_field_name, "", value_list, options or []),
             column=2, line=line, layout_id=layout_id
         )
     elif setting_type == "icon":
+        # Icon selector
         disp.add_display_item(
-            displayer.DisplayerItemInputStringIcon(form_field_name, "", value or ""),
+            displayer.DisplayerItemInputStringIcon(form_field_name, "", value if isinstance(value, str) else ""),
             column=2, line=line, layout_id=layout_id
         )
     elif setting_type == "serial_port":
-        # For serial ports, try to get available ports or use provided options
+        # Serial port selector
         try:
             import serial.tools.list_ports
             serial_ports = [port.device for port in serial.tools.list_ports.comports()]
@@ -226,9 +232,17 @@ def _render_setting_row(disp, layout_id, line, category, key, setting, user_mode
             displayer.DisplayerItemInputSelect(form_field_name, "", value, serial_ports),
             column=2, line=line, layout_id=layout_id
         )
-    else:  # string, text, etc.
+    elif setting_type == "string" or setting_type == "text" or setting_type == "str":
+        # Explicit string type
         disp.add_display_item(
-            displayer.DisplayerItemInputString(form_field_name, "", value or ""),
+            displayer.DisplayerItemInputString(form_field_name, "", value if isinstance(value, str) else str(value or "")),
+            column=2, line=line, layout_id=layout_id
+        )
+    else:
+        # Unknown type - log warning and render as string with alert
+        logger.warning(f"Unknown setting type '{setting_type}' for {category}.{key}, rendering as string input")
+        disp.add_display_item(
+            displayer.DisplayerItemInputString(form_field_name, "", str(value or "")),
             column=2, line=line, layout_id=layout_id
         )
     
@@ -283,6 +297,38 @@ def _view_settings(user_mode=False):
                 unmapped_data = util_post_unmap(wrapped_data)
                 settings_data = unmapped_data.get("settings", settings_data)
                 
+                # Build list of all expected bool settings for checkbox handling
+                # Unchecked checkboxes don't send data, so we need to default them to False
+                all_bool_settings = set()
+                if category_filter:
+                    categories_to_check = [category_filter]
+                else:
+                    categories_to_check = manager.list_categories()
+                
+                for cat in categories_to_check:
+                    cat_data = manager.get_category(cat)
+                    for key, setting in cat_data.items():
+                        if key == "friendly" or not isinstance(setting, dict):
+                            continue
+                        if "type" in setting:
+                            setting_type = setting["type"]
+                            if setting_type in ["bool", "boolean"]:
+                                full_key = f"{cat}.{key}"
+                                all_bool_settings.add(full_key)
+                        else:
+                            # Check nested subcategories
+                            for subkey, subsetting in setting.items():
+                                if subkey in ["friendly", "_description"] or not isinstance(subsetting, dict):
+                                    continue
+                                if "type" in subsetting:
+                                    setting_type = subsetting["type"]
+                                    if setting_type in ["bool", "boolean"]:
+                                        full_key = f"{cat}.{key}.{subkey}"
+                                        all_bool_settings.add(full_key)
+                
+                # Track which settings were actually processed
+                processed_settings = set()
+                
                 # Process each setting
                 for category, category_data in settings_data.items():
                     if category in ["csrf_token", "save"]:
@@ -296,6 +342,7 @@ def _view_settings(user_mode=False):
                             continue
                         
                         full_key = f"{category}.{setting_key}"
+                        processed_settings.add(full_key)
                         
                         # Get setting metadata to determine expected type
                         try:
@@ -317,18 +364,29 @@ def _view_settings(user_mode=False):
                                     setting_type = setting_data.get("type", "string")
                                     
                                     # Type conversion based on setting type
-                                    if setting_type == "int":
+                                    if setting_type in ["int", "integer", "number"]:
                                         try:
                                             value = int(value)
                                         except (ValueError, TypeError):
                                             value = setting_data.get("value", 0)
-                                    elif setting_type == "bool":
+                                    elif setting_type in ["bool", "boolean"]:
                                         value = value in [True, "true", "on", "1", 1]
-                                    elif setting_type in ["text_list", "multi_select"]:
-                                        # These come as strings with # separator from util_post_to_json
-                                        if isinstance(value, str):
-                                            value = [v for v in value.split('#') if v]  # Split and filter empty
-                                        elif not isinstance(value, list):
+                                    elif setting_type in ["text_list", "list", "array"]:
+                                        # util_post_to_json may already parse as list
+                                        if isinstance(value, list):
+                                            pass  # Already a list
+                                        elif isinstance(value, str):
+                                            value = [v.strip() for v in value.split('#') if v.strip()]  # Split and filter empty
+                                        else:
+                                            value = []
+                                    elif setting_type in ["multi_select", "multiselect"]:
+                                        # Multi-select uses checkbox format: key_value: on
+                                        # util_post_to_json already parsed this as list
+                                        if isinstance(value, list):
+                                            pass  # Already a list
+                                        elif isinstance(value, str):
+                                            value = [v.strip() for v in value.split('#') if v.strip()]
+                                        else:
                                             value = []
                                     # For dicts (key_value_pairs, dropdown_mapping), already parsed correctly
                                     
@@ -336,6 +394,11 @@ def _view_settings(user_mode=False):
                                     auth_manager.set_user_framework_override(current_user, full_key, value)
                         except Exception as e:
                             logger.exception("Error setting user framework override")
+                
+                # Handle unchecked checkboxes - set to False
+                for bool_key in all_bool_settings:
+                    if bool_key not in processed_settings:
+                        auth_manager.set_user_framework_override(current_user, bool_key, False)
                 
                 flash("Settings saved successfully!", "success")
                 # Stay on the same page - rebuild URL with category if present
@@ -374,6 +437,37 @@ def _view_settings(user_mode=False):
                 # Track overridable checkboxes
                 overridable_keys = set()
                 
+                # Build list of all expected bool settings for checkbox handling
+                all_bool_settings = set()
+                if category_filter:
+                    categories_to_check = [category_filter]
+                else:
+                    categories_to_check = manager.list_categories()
+                
+                for cat in categories_to_check:
+                    cat_data = manager.get_category(cat)
+                    for key, setting in cat_data.items():
+                        if key == "friendly" or not isinstance(setting, dict):
+                            continue
+                        if "type" in setting:
+                            setting_type = setting["type"]
+                            if setting_type in ["bool", "boolean"]:
+                                full_key = f"{cat}.{key}"
+                                all_bool_settings.add(full_key)
+                        else:
+                            # Check nested subcategories
+                            for subkey, subsetting in setting.items():
+                                if subkey in ["friendly", "_description"] or not isinstance(subsetting, dict):
+                                    continue
+                                if "type" in subsetting:
+                                    setting_type = subsetting["type"]
+                                    if setting_type in ["bool", "boolean"]:
+                                        full_key = f"{cat}.{key}.{subkey}"
+                                        all_bool_settings.add(full_key)
+                
+                # Track which settings were actually processed
+                processed_settings = set()
+                
                 # Process each setting
                 for category, category_data in settings_data.items():
                     if category in ["csrf_token", "save"]:
@@ -392,6 +486,7 @@ def _view_settings(user_mode=False):
                             continue
                         
                         full_key = f"{category}.{setting_key}"
+                        processed_settings.add(full_key)
                         
                         # Get setting metadata to determine expected type
                         try:
@@ -413,18 +508,29 @@ def _view_settings(user_mode=False):
                                     setting_type = setting_data.get("type", "string")
                                     
                                     # Type conversion based on setting type
-                                    if setting_type == "int":
+                                    if setting_type in ["int", "integer", "number"]:
                                         try:
                                             value = int(value)
                                         except (ValueError, TypeError):
                                             value = setting_data.get("value", 0)
-                                    elif setting_type == "bool":
+                                    elif setting_type in ["bool", "boolean"]:
                                         value = value in [True, "true", "on", "1", 1]
-                                    elif setting_type in ["text_list", "multi_select"]:
-                                        # These come as strings with # separator from util_post_to_json
-                                        if isinstance(value, str):
-                                            value = [v for v in value.split('#') if v]  # Split and filter empty
-                                        elif not isinstance(value, list):
+                                    elif setting_type in ["text_list", "list", "array"]:
+                                        # util_post_to_json may already parse as list
+                                        if isinstance(value, list):
+                                            pass  # Already a list
+                                        elif isinstance(value, str):
+                                            value = [v.strip() for v in value.split('#') if v.strip()]  # Split and filter empty
+                                        else:
+                                            value = []
+                                    elif setting_type in ["multi_select", "multiselect"]:
+                                        # Multi-select uses checkbox format: key_value: on
+                                        # util_post_to_json already parsed this as list
+                                        if isinstance(value, list):
+                                            pass  # Already a list
+                                        elif isinstance(value, str):
+                                            value = [v.strip() for v in value.split('#') if v.strip()]
+                                        else:
                                             value = []
                                     # For dicts (key_value_pairs, dropdown_mapping), already parsed correctly
                                     
@@ -432,6 +538,11 @@ def _view_settings(user_mode=False):
                                     manager.set_setting(full_key, value)
                         except Exception:
                             logger.exception("Error setting global config value")
+                
+                # Handle unchecked checkboxes - set to False
+                for bool_key in all_bool_settings:
+                    if bool_key not in processed_settings:
+                        manager.set_setting(bool_key, False)
                 
                 # Handle overridable checkboxes
                 for setting_key in overridable_keys:

@@ -973,10 +973,15 @@ document.addEventListener('DOMContentLoaded', function() {
         {% endif %}
 
         <div id="{{id}}.div" class="col-sm-10">
-        {% for list_item in value %}
+        {% if value and value | length > 0 %}
+            {% for list_item in value %}
             {{ common_input.input_js(id + ".list" + loop.index0 | string, "settings_list_format('" + id + "')", list_item)}}
-        {% endfor %}
-        {{ common_input.hidden(id, value | join('#')) }}
+            {% endfor %}
+        {% else %}
+            {# Always render at least one empty input field so the + button works #}
+            {{ common_input.input_js(id + ".list0", "settings_list_format('" + id + "')", "")}}
+        {% endif %}
+        {{ common_input.hidden(id, value | join('#') if value else '') }}
         </div>
         <div class="col-sm-2">
         <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
