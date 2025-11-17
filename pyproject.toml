@@ -35,6 +35,8 @@ dependencies = [
     "urllib3>=1.26.0",
     "paramiko>=2.8.0",
     "textile>=4.0.0",
+    "Pillow>=10.0.0",
+    "PyMuPDF>=1.23.0",
 ]
 
 [project.optional-dependencies]
