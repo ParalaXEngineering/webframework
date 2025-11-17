@@ -7,6 +7,9 @@ This module provides secure file management capabilities with support for:
 - Secure file serving with path traversal prevention
 - Organized storage structure by category/subcategory
 - File deletion with soft-delete support
+- File versioning with group IDs
+- Tag-based organization
+- Content-addressable storage with hashfs (deduplication)
 """
 
 from pathlib import Path
@@ -14,11 +17,19 @@ from typing import Optional, Dict, List, Tuple
 from datetime import datetime
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
+from flask import session
 import logging
 import os
 import re
 import shutil
 import mimetypes
+import hashlib
+
+# Database imports
+from sqlalchemy import create_engine, and_
+from sqlalchemy.orm import sessionmaker, Session
+from .file_manager_models import Base, FileGroup, FileVersion, FileTag
+from .file_storage import ContentAddressableStorage
 
 # Image processing
 try:
@@ -38,16 +49,18 @@ logger = logging.getLogger(__name__)
 
 
 class FileManager:
-    """Manages file upload, storage, retrieval, and deletion with thumbnail support."""
+    """Manages file upload, storage, retrieval, and deletion with versioning and tagging."""
     
     def __init__(self, settings_manager):
-        """Initialize FileManager with settings.
+        """Initialize FileManager with settings and database.
         
         Args:
             settings_manager: SettingsManager instance for configuration
         """
         self.settings = settings_manager
         self._load_config()
+        self._init_database()
+        self._init_storage()
     
     def _load_config(self):
         """Load configuration from settings manager."""
@@ -85,6 +98,17 @@ class FileManager:
             categories_config = self.settings.get_setting("file_storage.categories")
             self.categories = categories_config.get("value", ["general", "documents", "images"])
             
+            # Tags (Phase 3)
+            tags_config = self.settings.get_setting("file_storage.tags")
+            self.tags = tags_config.get("value", ["invoice", "contract", "photo", "report"])
+            
+            # HashFS settings (Phase 3)
+            use_hashfs_config = self.settings.get_setting("file_storage.use_hashfs")
+            self.use_hashfs = use_hashfs_config.get("value", True)
+            
+            hashfs_path_config = self.settings.get_setting("file_storage.hashfs_path")
+            self.hashfs_path = Path(hashfs_path_config.get("value", "resources/hashfs_storage"))
+            
         except Exception as e:
             logger.warning(f"Failed to load file storage config, using defaults: {e}")
             # Fallback to defaults
@@ -100,9 +124,48 @@ class FileManager:
             self.image_quality = 85
             self.strip_exif = True
             self.categories = ["general", "documents", "images"]
+            self.tags = ["invoice", "contract", "photo", "report"]
+            self.use_hashfs = True
+            self.hashfs_path = Path("resources/hashfs_storage")
         
         # Ensure base path exists
         self.base_path.mkdir(parents=True, exist_ok=True)
+    
+    def _init_database(self):
+        """Initialize SQLite database for file metadata."""
+        try:
+            # Get settings directory from SettingsManager
+            settings_dir = Path(self.settings.storage.config_path).parent
+            self.db_path = settings_dir / ".file_metadata.db"
+            
+            # Create SQLAlchemy engine
+            self.engine = create_engine(f'sqlite:///{self.db_path}', echo=False)
+            
+            # Create all tables (including version tables via Continuum)
+            Base.metadata.create_all(self.engine)
+            
+            # Create session maker
+            SessionLocal = sessionmaker(bind=self.engine)
+            self.db_session: Session = SessionLocal()
+            
+            logger.info(f"File manager database initialized at {self.db_path}")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize file manager database: {e}", exc_info=True)
+            raise
+    
+    def _init_storage(self):
+        """Initialize content-addressable storage (hashfs) if enabled."""
+        if self.use_hashfs:
+            try:
+                self.storage = ContentAddressableStorage(self.hashfs_path)
+                logger.info("Content-addressable storage (hashfs) initialized")
+            except Exception as e:
+                logger.error(f"Failed to initialize hashfs: {e}", exc_info=True)
+                self.use_hashfs = False
+                self.storage = None
+        else:
+            self.storage = None
     
     def _sanitize_filename(self, filename: str) -> str:
         """Sanitize filename to prevent security issues.
@@ -212,23 +275,32 @@ class FileManager:
         
         return abs_path
     
-    def upload_file(self, file_obj: FileStorage, category: str, subcategory: str = "") -> Dict:
-        """Upload file and return metadata.
+    def upload_file(self, file_obj: FileStorage, category: str = None, subcategory: str = "", 
+                    group_id: str = None, tags: List[str] = None) -> Dict:
+        """Upload file with versioning support.
         
         Args:
             file_obj: Flask FileStorage object from request.files
-            category: Top-level category (e.g., "documents", "images")
-            subcategory: Optional subcategory (e.g., user ID, module name)
+            category: Category for file organization (deprecated for group_id, kept for compatibility)
+            subcategory: Subcategory (deprecated for group_id, kept for compatibility)
+            group_id: Logical group ID for versioning (empty field shown in admin)
+            tags: List of tags for file organization
             
         Returns:
             Dictionary with file metadata:
             {
-                "path": "category/subcategory/filename.ext",
+                "id": Database ID,
+                "path": "storage/path/in/hashfs or filesystem",
                 "name": "filename.ext",
                 "size": 12345,
-                "uploaded_at": "2025-11-14T10:30:00Z",
-                "thumbnail_small": "path/to/thumb_150.jpg" (if generated),
-                "thumbnail_medium": "path/to/thumb_300.jpg" (if generated)
+                "group_id": "group identifier",
+                "version": 2,
+                "is_current": True,
+                "uploaded_at": "2025-11-17T10:30:00Z",
+                "uploaded_by": "username",
+                "checksum": "sha256hash...",
+                "tags": ["tag1", "tag2"],
+                "thumbnail_150x150": "path/to/thumb" (if generated)
             }
             
         Raises:
@@ -247,50 +319,170 @@ class FileManager:
         if not safe_filename:
             raise ValueError(f"Invalid filename: '{original_filename}'")
         
-        # Construct storage path
-        category_safe = self._sanitize_filename(category)
-        subcategory_safe = self._sanitize_filename(subcategory) if subcategory else ""
+        # Determine group_id (admin can specify, or empty string for user to see)
+        if not group_id:
+            # Empty group_id - will be shown as empty field in admin
+            group_id = ""
         
-        if subcategory_safe:
-            storage_dir = self.base_path / category_safe / subcategory_safe
-            relative_dir = f"{category_safe}/{subcategory_safe}"
+        # Get current user
+        current_user = session.get('user', 'GUEST')
+        
+        # Check if file group exists, create if needed (only if group_id specified)
+        if group_id:
+            file_group = self.db_session.query(FileGroup).filter_by(group_id=group_id).first()
+            if not file_group:
+                file_group = FileGroup(
+                    group_id=group_id,
+                    name=group_id,
+                    description=f"Auto-created group for {group_id}",
+                    created_by=current_user
+                )
+                self.db_session.add(file_group)
+                self.db_session.commit()
+        
+        # Check for existing versions of this file in the same group
+        if group_id:
+            existing_versions = self.db_session.query(FileVersion).filter(
+                and_(
+                    FileVersion.group_id == group_id,
+                    FileVersion.filename == safe_filename
+                )
+            ).all()
+            version_number = len(existing_versions) + 1
+            
+            # Mark all existing versions as not current
+            for existing in existing_versions:
+                existing.is_current = False
         else:
-            storage_dir = self.base_path / category_safe
-            relative_dir = category_safe
+            # No group_id means standalone file
+            version_number = 1
         
-        # Create directory if needed
-        storage_dir.mkdir(parents=True, exist_ok=True)
+        # Store file content
+        storage_path = None
+        checksum = None
+        file_size = 0
         
-        # Get unique filename
-        unique_filename = self._get_unique_filename(storage_dir, safe_filename)
-        file_path = storage_dir / unique_filename
-        relative_path = f"{relative_dir}/{unique_filename}"
+        if self.use_hashfs and self.storage:
+            # Use content-addressable storage
+            try:
+                storage_metadata = self.storage.store(file_obj.stream, safe_filename)
+                storage_path = storage_metadata['storage_path']
+                checksum = storage_metadata['checksum']
+                file_size = storage_metadata['size']
+                
+                if storage_metadata['is_duplicate']:
+                    logger.info(f"File deduplicated (existing content): {safe_filename}")
+            except Exception as e:
+                logger.error(f"HashFS storage failed, falling back to filesystem: {e}")
+                self.use_hashfs = False  # Disable for this session
         
-        # Save file
-        try:
-            file_obj.save(str(file_path))
-        except Exception as e:
-            logger.error(f"Failed to save file {file_path}: {e}")
-            raise IOError(f"Failed to save file: {e}")
+        if not self.use_hashfs or not storage_path:
+            # Fallback to traditional filesystem storage
+            category_safe = self._sanitize_filename(category) if category else "general"
+            subcategory_safe = self._sanitize_filename(subcategory) if subcategory else ""
+            
+            if subcategory_safe:
+                storage_dir = self.base_path / category_safe / subcategory_safe
+                relative_dir = f"{category_safe}/{subcategory_safe}"
+            else:
+                storage_dir = self.base_path / category_safe
+                relative_dir = category_safe
+            
+            storage_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Add version suffix to physical filename
+            if version_number > 1:
+                name_part = Path(safe_filename).stem
+                ext_part = Path(safe_filename).suffix
+                versioned_filename = f"{name_part}_v{version_number}{ext_part}"
+            else:
+                versioned_filename = safe_filename
+            
+            file_path = storage_dir / versioned_filename
+            storage_path = f"{relative_dir}/{versioned_filename}"
+            
+            # Save file
+            try:
+                file_obj.seek(0)  # Reset stream position
+                file_obj.save(str(file_path))
+                file_size = file_path.stat().st_size
+                
+                # Calculate checksum
+                checksum = self._calculate_checksum(file_path)
+            except Exception as e:
+                logger.error(f"Failed to save file {file_path}: {e}")
+                raise IOError(f"Failed to save file: {e}")
         
-        # Get file size
-        file_size = file_path.stat().st_size
+        # Get MIME type
+        mime_type = mimetypes.guess_type(safe_filename)[0] or 'application/octet-stream'
         
-        # Prepare metadata
+        # Create database record
+        file_version = FileVersion(
+            group_id=group_id if group_id else None,
+            filename=safe_filename,
+            storage_path=storage_path,
+            file_size=file_size,
+            mime_type=mime_type,
+            checksum=checksum,
+            uploaded_by=current_user,
+            is_current=True
+        )
+        
+        # Add tags if provided
+        if tags:
+            for tag_name in tags:
+                tag = self.db_session.query(FileTag).filter_by(tag_name=tag_name).first()
+                if not tag:
+                    tag = FileTag(tag_name=tag_name)
+                    self.db_session.add(tag)
+                file_version.tags.append(tag)
+        
+        self.db_session.add(file_version)
+        self.db_session.commit()
+        
+        # Prepare metadata response
         metadata = {
-            "path": relative_path.replace('\\', '/'),
-            "name": unique_filename,
+            "id": file_version.id,
+            "path": storage_path,
+            "name": safe_filename,
             "size": file_size,
-            "uploaded_at": datetime.utcnow().isoformat() + "Z"
+            "group_id": group_id or "",
+            "version": version_number,
+            "is_current": True,
+            "uploaded_at": file_version.uploaded_at.isoformat() + "Z",
+            "uploaded_by": current_user,
+            "checksum": checksum,
+            "tags": [tag.tag_name for tag in file_version.tags]
         }
         
-        # Generate thumbnails for images and documents
+        # Generate thumbnails
         if self.generate_thumbnails:
-            thumbnails = self._generate_thumbnails(file_path, relative_path)
+            # Get actual file path for thumbnail generation
+            if self.use_hashfs and self.storage:
+                actual_file_path = self.storage.get(storage_path)
+            else:
+                actual_file_path = self.base_path / storage_path
+            
+            thumbnails = self._generate_thumbnails(actual_file_path, storage_path)
             metadata.update(thumbnails)
         
-        logger.info(f"File uploaded successfully: {relative_path} ({file_size} bytes)")
+        logger.info(f"File uploaded: {safe_filename} (group: {group_id or 'none'}, version: {version_number}, size: {file_size} bytes)")
         return metadata
+    
+    def _calculate_checksum(self, file_path: Path) -> str:
+        """Calculate SHA256 checksum for a file.
+        
+        Args:
+            file_path: Path to file
+            
+        Returns:
+            SHA256 hash as hex string
+        """
+        sha256_hash = hashlib.sha256()
+        with open(file_path, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+        return sha256_hash.hexdigest()
     
     def _generate_thumbnails(self, file_path: Path, relative_path: str) -> Dict:
         """Generate thumbnails for images and documents.
@@ -628,3 +820,257 @@ class FileManager:
             List of category names
         """
         return self.categories.copy()
+    
+    def get_tags(self) -> List[str]:
+        """Get list of configured file tags.
+        
+        Returns:
+            List of tag names
+        """
+        return self.tags.copy()
+    
+    def create_file_group(self, group_id: str, name: str, description: str = "") -> FileGroup:
+        """Create a new file group.
+        
+        Args:
+            group_id: Unique identifier for the group
+            name: Human-readable name
+            description: Optional description
+            
+        Returns:
+            FileGroup object
+        """
+        file_group = FileGroup(
+            group_id=group_id,
+            name=name,
+            description=description,
+            created_by=session.get('user', 'GUEST')
+        )
+        self.db_session.add(file_group)
+        self.db_session.commit()
+        return file_group
+    
+    def get_file_by_id(self, file_id: int) -> Optional[FileVersion]:
+        """Get file version by database ID.
+        
+        Args:
+            file_id: Database ID
+            
+        Returns:
+            FileVersion object or None
+        """
+        return self.db_session.query(FileVersion).filter_by(id=file_id).first()
+    
+    def get_current_file(self, group_id: str, filename: str) -> Optional[FileVersion]:
+        """Get current version of a file in a group.
+        
+        Args:
+            group_id: Group identifier
+            filename: Filename to search for
+            
+        Returns:
+            FileVersion object or None
+        """
+        return self.db_session.query(FileVersion).filter(
+            and_(
+                FileVersion.group_id == group_id,
+                FileVersion.filename == filename,
+                FileVersion.is_current == True
+            )
+        ).first()
+    
+    def get_file_versions(self, group_id: str, filename: str) -> List[Dict]:
+        """Get all versions of a file using SQLAlchemy-Continuum.
+        
+        Args:
+            group_id: Group identifier
+            filename: Filename
+            
+        Returns:
+            List of version dictionaries with metadata
+        """
+        # Get all versions (current and historical)
+        all_versions = self.db_session.query(FileVersion).filter(
+            and_(
+                FileVersion.group_id == group_id,
+                FileVersion.filename == filename
+            )
+        ).order_by(FileVersion.uploaded_at).all()
+        
+        versions = []
+        for idx, version in enumerate(all_versions, start=1):
+            versions.append({
+                'id': version.id,
+                'version_number': idx,
+                'filename': version.filename,
+                'storage_path': version.storage_path,
+                'file_size': version.file_size,
+                'mime_type': version.mime_type,
+                'checksum': version.checksum,
+                'uploaded_at': version.uploaded_at.isoformat() + "Z",
+                'uploaded_by': version.uploaded_by,
+                'is_current': version.is_current,
+                'tags': [tag.tag_name for tag in version.tags]
+            })
+        
+        return versions
+    
+    def restore_version(self, file_id: int, target_version_id: int) -> FileVersion:
+        """Restore an old version by creating a new version as a copy.
+        
+        This preserves the audit trail by creating a new version record that points
+        to the same physical file as the target version.
+        
+        Args:
+            file_id: ID of current file version
+            target_version_id: ID of version to restore from
+            
+        Returns:
+            New FileVersion object (the restored copy)
+            
+        Raises:
+            ValueError: If files not found
+        """
+        current = self.db_session.query(FileVersion).get(file_id)
+        target = self.db_session.query(FileVersion).get(target_version_id)
+        
+        if not current or not target:
+            raise ValueError("File version not found")
+        
+        if current.group_id != target.group_id or current.filename != target.filename:
+            raise ValueError("Cannot restore from different file")
+        
+        # Mark current as not current
+        current.is_current = False
+        
+        # Create new version as copy of target
+        restored = FileVersion(
+            group_id=current.group_id,
+            filename=current.filename,
+            storage_path=target.storage_path,  # Reuse same physical file!
+            file_size=target.file_size,
+            mime_type=target.mime_type,
+            checksum=target.checksum,
+            uploaded_by=session.get('user', 'GUEST'),
+            is_current=True,
+            source_version_id=target_version_id
+        )
+        
+        # Copy tags from target version
+        for tag in target.tags:
+            restored.tags.append(tag)
+        
+        self.db_session.add(restored)
+        self.db_session.commit()
+        
+        logger.info(f"Restored file version: {current.filename} (from v{target_version_id} to new version)")
+        return restored
+    
+    def search_by_tags(self, tags: List[str], match_all: bool = False) -> List[FileVersion]:
+        """Search files by tags.
+        
+        Args:
+            tags: List of tag names to search for
+            match_all: If True, file must have ALL tags. If False, any tag matches.
+            
+        Returns:
+            List of FileVersion objects matching the search
+        """
+        query = self.db_session.query(FileVersion).join(
+            FileVersion.tags
+        ).filter(
+            FileTag.tag_name.in_(tags),
+            FileVersion.is_current == True
+        )
+        
+        if match_all:
+            # Must have all tags
+            for tag_name in tags:
+                query = query.filter(
+                    FileVersion.tags.any(FileTag.tag_name == tag_name)
+                )
+        
+        return query.distinct().all()
+    
+    def list_files_from_db(self, group_id: str = None, tag: str = None, limit: int = None) -> List[Dict]:
+        """List files from database (replaces filesystem-based list_files).
+        
+        Args:
+            group_id: Filter by group ID (optional)
+            tag: Filter by tag (optional)
+            limit: Maximum number of results (optional)
+            
+        Returns:
+            List of file metadata dictionaries
+        """
+        query = self.db_session.query(FileVersion).filter(FileVersion.is_current == True)
+        
+        if group_id:
+            query = query.filter(FileVersion.group_id == group_id)
+        
+        if tag:
+            query = query.join(FileVersion.tags).filter(FileTag.tag_name == tag)
+        
+        query = query.order_by(FileVersion.uploaded_at.desc())
+        
+        if limit:
+            query = query.limit(limit)
+        
+        files = []
+        for file_version in query.all():
+            metadata = {
+                "id": file_version.id,
+                "path": file_version.storage_path,
+                "name": file_version.filename,
+                "size": file_version.file_size,
+                "group_id": file_version.group_id or "",
+                "uploaded_at": file_version.uploaded_at.isoformat() + "Z",
+                "uploaded_by": file_version.uploaded_by,
+                "checksum": file_version.checksum,
+                "tags": [tag.tag_name for tag in file_version.tags],
+                "mime_type": file_version.mime_type
+            }
+            
+            # Add thumbnail paths if they exist
+            for size_str in self.thumbnail_sizes:
+                width, height = map(int, size_str.split('x'))
+                thumb_key = f"thumb_{width}x{height}"
+                
+                # Construct thumbnail path
+                storage_path_obj = Path(file_version.storage_path)
+                thumb_path = self.base_path / ".thumbs" / size_str / storage_path_obj.parent / f"{storage_path_obj.stem}_thumb.jpg"
+                
+                if thumb_path.exists():
+                    thumb_relative = str(thumb_path.relative_to(self.base_path)).replace('\\', '/')
+                    metadata[thumb_key] = thumb_relative
+            
+            files.append(metadata)
+        
+        return files
+    
+    def update_group_id(self, file_id: int, new_group_id: str) -> bool:
+        """Update the group_id of a file (admin function).
+        
+        Args:
+            file_id: Database ID of file
+            new_group_id: New group ID to assign
+            
+        Returns:
+            True if successful
+        """
+        file_version = self.db_session.query(FileVersion).get(file_id)
+        if not file_version:
+            return False
+        
+        # Create group if it doesn't exist
+        if new_group_id:
+            file_group = self.db_session.query(FileGroup).filter_by(group_id=new_group_id).first()
+            if not file_group:
+                self.create_file_group(new_group_id, new_group_id, "Auto-created")
+        
+        file_version.group_id = new_group_id if new_group_id else None
+        self.db_session.commit()
+        
+        logger.info(f"Updated group_id for file {file_id}: {new_group_id}")
+        return True
+

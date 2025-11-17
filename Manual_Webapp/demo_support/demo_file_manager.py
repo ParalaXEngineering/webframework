@@ -75,21 +75,21 @@ def file_manager_demo():
     </div>
     """
     
-    gallery_card = f"""
+    admin_card = f"""
     <div class="card h-100">
         <div class="card-body text-center">
-            <i class="bi bi-images" style="font-size: 3rem; color: var(--bs-success);"></i>
-            <h5 class="card-title mt-3">File Gallery</h5>
-            <p class="card-text">Browse uploaded files with thumbnail previews</p>
-            <a href="{url_for('demo_files.gallery_demo')}" class="btn btn-success">
-                <i class="bi bi-images"></i> View Gallery
+            <i class="bi bi-gear" style="font-size: 3rem; color: var(--bs-success);"></i>
+            <h5 class="card-title mt-3">File Administration</h5>
+            <p class="card-text">Manage files, view versions, edit metadata, and history</p>
+            <a href="{url_for('demo_files.admin_demo')}" class="btn btn-success">
+                <i class="bi bi-gear"></i> Manage Files
             </a>
         </div>
     </div>
     """
     
     disp.add_display_item(displayer.DisplayerItemAlert(upload_card, displayer.BSstyle.NONE), column=0)
-    disp.add_display_item(displayer.DisplayerItemAlert(gallery_card, displayer.BSstyle.NONE), column=1)
+    disp.add_display_item(displayer.DisplayerItemAlert(admin_card, displayer.BSstyle.NONE), column=1)
     
     return render_template('base_content.j2', content=disp.display())
 
@@ -106,10 +106,12 @@ def upload_demo():
     disp.add_breadcrumb("File Manager Demo", "demo_files.file_manager_demo", [])
     disp.add_breadcrumb("Upload", "demo_files.upload_demo", [])
     
+    # Initialize file manager
+    file_mgr = FileManager(settings.settings_manager)
+    
     # Handle file upload
     if request.method == 'POST':
         try:
-            file_mgr = FileManager(settings.settings_manager)
             
             # Framework prefixes input IDs with page title
             file_key = 'Upload Demo.demo_file'
@@ -118,12 +120,23 @@ def upload_demo():
                 file = request.files[file_key]
                 
                 if file.filename:
-                    # Get category from form (default to 'demo')
+                    # Get form data
                     data_in = utilities.util_post_to_json(request.form.to_dict())
-                    category = data_in.get("Upload Demo", {}).get("category", "demo")
+                    upload_category = data_in.get("Upload Demo", {}).get("category", "demo")
+                    group_id = data_in.get("Upload Demo", {}).get("group_id", "")
+                    tags_str = data_in.get("Upload Demo", {}).get("tags", "")
                     
-                    # Upload file
-                    metadata = file_mgr.upload_file(file, category=category, subcategory="uploads")
+                    # Parse tags
+                    tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else None
+                    
+                    # Upload file with new parameters
+                    metadata = file_mgr.upload_file(
+                        file, 
+                        category=upload_category, 
+                        subcategory="uploads",
+                        group_id=group_id,
+                        tags=tags
+                    )
                     
                     # Show success with metadata
                     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
@@ -134,9 +147,12 @@ def upload_demo():
                     <div class="row">
                         <div class="col-md-6">
                             <strong>Filename:</strong> {metadata['name']}<br>
-                            <strong>Path:</strong> {metadata['path']}<br>
+                            <strong>Group ID:</strong> {metadata['group_id'] or '(none)'}<br>
+                            <strong>Version:</strong> {metadata['version']}<br>
                             <strong>Size:</strong> {metadata['size']} bytes ({metadata['size'] / 1024:.2f} KB)<br>
-                            <strong>Uploaded:</strong> {metadata['uploaded_at']}
+                            <strong>Uploaded:</strong> {metadata['uploaded_at']}<br>
+                            <strong>Tags:</strong> {', '.join(metadata['tags']) if metadata['tags'] else '(none)'}<br>
+                            <strong>Checksum:</strong> {metadata['checksum'][:16]}...
                         </div>
                         <div class="col-md-6">
                     """
@@ -162,11 +178,11 @@ def upload_demo():
                         <i class='bi bi-download'></i> Download File
                     </a>
                     <a href="{}" class="btn btn-success">
-                        <i class='bi bi-images'></i> View Gallery
+                        <i class='bi bi-gear'></i> Manage Files
                     </a>
                     """.format(
                         url_for('file_handler.download', filepath=metadata['path']),
-                        url_for('demo_files.gallery_demo')
+                        url_for('demo_files.admin_demo')
                     )
                     
                     disp.add_display_item(displayer.DisplayerItemAlert(success_html, displayer.BSstyle.SUCCESS), column=0)
@@ -202,10 +218,27 @@ def upload_demo():
     # Upload form
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="Upload a File"))
     
-    disp.add_display_item(displayer.DisplayerItemInputString(
+    # Category dropdown (fixed: use DisplayerItemInputSelect instead of InputString)
+    categories = file_mgr.get_categories()
+    disp.add_display_item(displayer.DisplayerItemInputSelect(
         id="category",
         text="Category",
+        choices=categories,
         value="demo"
+    ), column=0)
+    
+    # Group ID input
+    disp.add_display_item(displayer.DisplayerItemInputString(
+        id="group_id",
+        text="Group ID (optional - for versioning)",
+        value="demo_group"
+    ), column=0)
+    
+    # Tags input
+    disp.add_display_item(displayer.DisplayerItemInputString(
+        id="tags",
+        text="Tags (comma-separated, optional)",
+        value=""
     ), column=0)
     
     disp.add_display_item(displayer.DisplayerItemInputFile(
@@ -232,32 +265,37 @@ def upload_demo():
     return render_template("base_content.j2", content=disp.display(), target="demo_files.upload_demo")
 
 
-@demo_file_bp.route('/gallery-demo')
+@demo_file_bp.route('/admin-demo')
 @require_login
-def gallery_demo():
-    """File gallery demonstration with thumbnails."""
+def admin_demo():
+    """File administration with version management and history."""
     disp = displayer.Displayer()
-    disp.add_generic("Gallery Demo")
-    disp.set_title("File Gallery Demo")
+    disp.add_generic("File Administration")
+    disp.set_title("File Administration")
     
     disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("File Manager Demo", "demo_files.file_manager_demo", [])
-    disp.add_breadcrumb("Gallery", "demo_files.gallery_demo", [])
+    disp.add_breadcrumb("Admin", "demo_files.admin_demo", [])
     
     try:
         file_mgr = FileManager(settings.settings_manager)
         
-        # Get category filter
-        category = request.args.get('category', 'demo')
+        # Get filters
+        group_id = request.args.get('group_id', None)
+        tag = request.args.get('tag', None)
         
-        # List files
-        files = file_mgr.list_files(category=category)
+        # List files from database (Phase 3)
+        files = file_mgr.list_files_from_db(
+            group_id=group_id if group_id else None,
+            tag=tag if tag else None
+        )
         
         if files:
             # Statistics
             total_size = sum(f['size'] for f in files)
+            unique_groups = len(set(f.get('group_id', '') for f in files if f.get('group_id')))
             
-            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [4, 4, 4]))
+            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [3, 3, 3, 3]))
             
             disp.add_display_item(displayer.DisplayerItemAlert(
                 f"<h4 class='text-center'>{len(files)}</h4><p class='text-center mb-0'>Files</p>",
@@ -270,15 +308,20 @@ def gallery_demo():
             ), column=1)
             
             disp.add_display_item(displayer.DisplayerItemAlert(
-                f"<h4 class='text-center'>{category}</h4><p class='text-center mb-0'>Category</p>",
+                f"<h4 class='text-center'>{unique_groups}</h4><p class='text-center mb-0'>Groups</p>",
                 displayer.BSstyle.PRIMARY
             ), column=2)
             
-            # File grid
+            disp.add_display_item(displayer.DisplayerItemAlert(
+                f"<h4 class='text-center'>{tag or 'All'}</h4><p class='text-center mb-0'>Tag Filter</p>",
+                displayer.BSstyle.WARNING
+            ), column=3)
+            
+            # File grid with admin actions
             disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
-                ["Preview", "Filename", "Category", "Size", "Uploaded", "Actions"],
-                subtitle="Uploaded Files"
+                ["Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Actions"],
+                subtitle="File Administration"
             ))
             
             for idx, file_meta in enumerate(files):
@@ -288,7 +331,7 @@ def gallery_demo():
                 if 'thumb_150x150' in file_meta:
                     # Show thumbnail
                     preview_html = f"""
-                    <a href="{url_for('file_handler.download', filepath=file_meta['path'])}" target="_blank">
+                    <a href="{url_for('file_handler.download_by_id', file_id=file_meta.get('id', 0))}" target="_blank">
                         <img src="{url_for('file_handler.download', filepath=file_meta['thumb_150x150'])}?inline=true" 
                              alt="{file_meta['name']}" class="img-thumbnail" style="max-width: 120px; max-height: 120px;">
                     </a>
@@ -314,67 +357,131 @@ def gallery_demo():
                 disp.add_display_item(displayer.DisplayerItemText(file_meta['name']),
                                     column=1, line=idx)
                 
-                # Category column (extract from path)
-                path_parts = file_meta['path'].split('/')
-                file_category = path_parts[0] if len(path_parts) > 0 else 'unknown'
-                subcategory = path_parts[1] if len(path_parts) > 2 else ''
-                category_display = f"{file_category}/{subcategory}" if subcategory else file_category
-                disp.add_display_item(displayer.DisplayerItemText(category_display),
+                # Group ID column - editable
+                group_id_val = file_meta.get('group_id', '') or '(none)'
+                group_id_html = f"""
+                <span id="group-display-{idx}">{group_id_val}</span>
+                <a href="javascript:editGroupId({idx}, '{file_meta['id']}', '{group_id_val}')" 
+                   class="ms-2" title="Edit Group ID">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                """
+                disp.add_display_item(displayer.DisplayerItemAlert(group_id_html, displayer.BSstyle.NONE),
                                     column=2, line=idx)
+                
+                # Tags column
+                tags_display = ', '.join(file_meta.get('tags', [])) or '(none)'
+                disp.add_display_item(displayer.DisplayerItemText(tags_display),
+                                    column=3, line=idx)
+                
+                # Version column - show version count and current version
+                if file_meta.get('group_id'):
+                    try:
+                        versions = file_mgr.get_file_versions(file_meta['group_id'], file_meta['name'])
+                        current_ver = next((i+1 for i, v in enumerate(reversed(versions)) if v['is_current']), len(versions))
+                        version_display = f"v{current_ver}/{len(versions)}"
+                    except:
+                        version_display = "v1/1"
+                else:
+                    version_display = "v1/1"
+                disp.add_display_item(displayer.DisplayerItemText(version_display),
+                                    column=4, line=idx)
                 
                 # Size column
                 size_str = f"{file_meta['size'] / 1024:.1f} KB" if file_meta['size'] < 1024*1024 else f"{file_meta['size'] / (1024*1024):.2f} MB"
                 disp.add_display_item(displayer.DisplayerItemText(size_str),
-                                    column=3, line=idx)
+                                    column=5, line=idx)
                 
                 # Uploaded date column
                 uploaded_date = file_meta['uploaded_at'][:16].replace('T', ' ')
                 disp.add_display_item(displayer.DisplayerItemText(uploaded_date),
-                                    column=4, line=idx)
+                                    column=6, line=idx)
                 
-                # Actions column - use DisplayerItemActionButtons
-                download_url = url_for('file_handler.download', filepath=file_meta['path'])
-                delete_url = f"javascript:deleteFile('{file_meta['path']}', {idx})"
+                # Actions column - enhanced with version management
+                actions = [
+                    {
+                        "type": "download",
+                        "url": url_for('file_handler.download_by_id', file_id=file_meta['id']),
+                        "icon": "mdi mdi-download",
+                        "style": "primary",
+                        "tooltip": "Download file"
+                    }
+                ]
+                
+                # Add history button if file has group_id (versioning enabled)
+                if file_meta.get('group_id'):
+                    actions.append({
+                        "type": "custom",
+                        "url": f"javascript:viewHistory('{file_meta['group_id']}', '{file_meta['name']}')",
+                        "icon": "mdi mdi-history",
+                        "style": "info",
+                        "tooltip": "View version history"
+                    })
+                
+                # Add delete button
+                actions.append({
+                    "type": "delete",
+                    "url": f"javascript:deleteFile('{file_meta['path']}', {idx})",
+                    "icon": "mdi mdi-delete",
+                    "style": "danger",
+                    "tooltip": "Delete file"
+                })
                 
                 disp.add_display_item(
                     displayer.DisplayerItemActionButtons(
                         id=f"file_actions_{idx}",
-                        actions=[
-                            {
-                                "type": "download",
-                                "url": download_url,
-                                "icon": "mdi mdi-download",
-                                "style": "primary",
-                                "tooltip": "Download file"
-                            },
-                            {
-                                "type": "delete",
-                                "url": delete_url,
-                                "icon": "mdi mdi-delete",
-                                "style": "danger",
-                                "tooltip": "Delete file"
-                            }
-                        ],
+                        actions=actions,
                         size="sm"
                     ),
-                    column=5, line=idx
+                    column=7, line=idx
                 )
                 
-                # Add status div for delete feedback
+                # Add status div for feedback
                 disp.add_display_item(
-                    displayer.DisplayerItemText(f'<div id="delete-status-{idx}"></div>'),
+                    displayer.DisplayerItemText(f'<div id="status-{idx}"></div>'),
                     column=2, line=idx
                 )
             
-            # Add delete script
-            delete_script = """
+            # Add admin scripts
+            admin_scripts = """
             <script>
+            function editGroupId(idx, fileId, currentGroupId) {
+                const newGroupId = prompt('Edit Group ID:\\n(Leave empty for standalone file)', currentGroupId === '(none)' ? '' : currentGroupId);
+                if (newGroupId === null) return; // Cancelled
+                
+                const statusDiv = document.getElementById('status-' + idx);
+                statusDiv.innerHTML = '<small class="text-info">Updating...</small>';
+                
+                fetch('/files/update_group_id', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({file_id: fileId, group_id: newGroupId})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('group-display-' + idx).textContent = newGroupId || '(none)';
+                        statusDiv.innerHTML = '<small class="text-success">✓ Updated</small>';
+                        setTimeout(() => statusDiv.innerHTML = '', 2000);
+                    } else {
+                        statusDiv.innerHTML = '<small class="text-danger">Error: ' + data.error + '</small>';
+                    }
+                })
+                .catch(error => {
+                    statusDiv.innerHTML = '<small class="text-danger">Failed: ' + error + '</small>';
+                });
+            }
+            
+            function viewHistory(groupId, filename) {
+                window.location.href = `/files/versions/${groupId}/${filename}`;
+            }
+            
             function deleteFile(filepath, idx) {
                 if (!confirm('Delete this file?\\n\\nFile: ' + filepath + '\\n\\nIt will be moved to trash.')) {
                     return;
                 }
                 
-                const statusDiv = document.getElementById('delete-status-' + idx);
+                const statusDiv = document.getElementById('status-' + idx);
                 statusDiv.innerHTML = '<small class="text-info">Deleting...</small>';
                 
                 fetch('/files/delete/' + filepath, {
@@ -397,13 +504,13 @@ def gallery_demo():
             """
             
             # Add script as hidden HTML item at the end
-            disp.add_display_item(displayer.DisplayerItemText(delete_script), column=0)
+            disp.add_display_item(displayer.DisplayerItemText(admin_scripts), column=0)
             
         else:
             # No files
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
             disp.add_display_item(displayer.DisplayerItemAlert(
-                f"<p class='text-center mb-0'>No files found in category '{category}'.</p>"
+                "<p class='text-center mb-0'>No files found.</p>"
                 "<p class='text-center'><a href='" + url_for('demo_files.upload_demo') + "' class='btn btn-primary mt-2'>"
                 "<i class='bi bi-upload'></i> Upload Files</a></p>",
                 displayer.BSstyle.INFO
@@ -419,10 +526,10 @@ def gallery_demo():
         ), column=0)
         
     except Exception as e:
-        logger.error(f"Gallery error: {e}", exc_info=True)
+        logger.error(f"Admin error: {e}", exc_info=True)
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<strong>Error loading gallery:</strong> {e}",
+            f"<strong>Error loading admin page:</strong> {e}",
             displayer.BSstyle.ERROR
         ), column=0)
     

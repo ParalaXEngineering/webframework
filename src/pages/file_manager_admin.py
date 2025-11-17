@@ -92,23 +92,22 @@ def index():
     disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
     
     try:
-        # Get file list (no filtering by URL params needed - DataTables handles it)
-        files = file_manager.list_files()
+        # Get file list from database (Phase 3 - includes versions, tags, group_id)
+        files = file_manager.list_files_from_db()
         
         # Calculate statistics
         total_files = len(files)
         total_size = sum(f['size'] for f in files)
         total_size_mb = total_size / (1024 * 1024)
         
-        # Get unique categories
-        categories = set()
+        # Get unique group IDs and tags
+        unique_groups = len(set(f.get('group_id', '') for f in files if f.get('group_id')))
+        all_tags = set()
         for f in files:
-            path_parts = f['path'].split('/')
-            if len(path_parts) > 0:
-                categories.add(path_parts[0])
+            all_tags.update(f.get('tags', []))
         
         # Statistics section
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [4, 4, 4]))
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [3, 3, 3, 3]))
         
         disp.add_display_item(displayer.DisplayerItemAlert(
             f"<h3 class='text-center'>{total_files}</h3>"
@@ -123,17 +122,23 @@ def index():
         ), column=1)
         
         disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h3 class='text-center'>{len(categories)}</h3>"
-            f"<p class='text-center mb-0'>Categories</p>",
+            f"<h3 class='text-center'>{unique_groups}</h3>"
+            f"<p class='text-center mb-0'>Version Groups</p>",
             BSstyle.PRIMARY
         ), column=2)
         
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h3 class='text-center'>{len(all_tags)}</h3>"
+            f"<p class='text-center mb-0'>Unique Tags</p>",
+            BSstyle.WARNING
+        ), column=3)
+        
         # File list table with DataTables
         if files:
-            # Add table layout
+            # Add table layout with Phase 3 columns
             table_layout_id = disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
-                ["Preview", "Filename", "Path", "Size", "Uploaded", "Actions"],
+                ["Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Actions"],
                 subtitle="Files",
                 datatable_config={
                     "table_id": "file_list_table",
@@ -154,33 +159,74 @@ def index():
                 disp.add_display_item(displayer.DisplayerItemText(file_meta['name']), 
                                     column=1, line=idx, layout_id=table_layout_id)
                 
-                # Path
-                disp.add_display_item(displayer.DisplayerItemText(file_meta['path']), 
+                # Group ID (editable)
+                group_id_val = file_meta.get('group_id', '') or '(none)'
+                group_id_html = f"""
+                <span id="group-display-{idx}">{group_id_val}</span>
+                <a href="javascript:editGroupId({idx}, '{file_meta.get('id', 0)}', '{group_id_val}')" 
+                   class="ms-2" title="Edit Group ID">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                """
+                disp.add_display_item(displayer.DisplayerItemAlert(group_id_html, displayer.BSstyle.NONE), 
                                     column=2, line=idx, layout_id=table_layout_id)
+                
+                # Tags
+                tags_display = ', '.join(file_meta.get('tags', [])) or '(none)'
+                disp.add_display_item(displayer.DisplayerItemText(tags_display), 
+                                    column=3, line=idx, layout_id=table_layout_id)
+                
+                # Version info
+                if file_meta.get('group_id'):
+                    try:
+                        versions = file_manager.get_file_versions(file_meta['group_id'], file_meta['name'])
+                        current_ver = next((i+1 for i, v in enumerate(reversed(versions)) if v['is_current']), len(versions))
+                        version_display = f"v{current_ver}/{len(versions)}"
+                    except:
+                        version_display = "v1/1"
+                else:
+                    version_display = "v1/1"
+                disp.add_display_item(displayer.DisplayerItemText(version_display), 
+                                    column=4, line=idx, layout_id=table_layout_id)
                 
                 # Size (human readable)
                 size_str = _format_file_size(file_meta['size'])
                 disp.add_display_item(displayer.DisplayerItemText(size_str), 
-                                    column=3, line=idx, layout_id=table_layout_id)
+                                    column=5, line=idx, layout_id=table_layout_id)
                 
                 # Upload date
                 upload_date = _format_date(file_meta['uploaded_at'])
                 disp.add_display_item(displayer.DisplayerItemText(upload_date), 
-                                    column=4, line=idx, layout_id=table_layout_id)
+                                    column=6, line=idx, layout_id=table_layout_id)
                 
-                # Actions (download + delete buttons)
-                download_url = url_for('file_handler.download', filepath=file_meta['path'])
+                # Actions (download, history, delete buttons)
+                download_url = url_for('file_handler.download_by_id', file_id=file_meta.get('id', 0))
+                
                 actions_html = f"""
                 <a href="{download_url}" class="btn btn-sm btn-primary" title="Download">
                     <i class="bi bi-download"></i>
                 </a>
+                """
+                
+                # Add history button if file has group_id
+                if file_meta.get('group_id'):
+                    history_url = url_for('file_handler.get_versions', group_id=file_meta['group_id'], filename=file_meta['name'])
+                    actions_html += f"""
+                    <a href="{history_url}" class="btn btn-sm btn-info" title="View History">
+                        <i class="bi bi-clock-history"></i>
+                    </a>
+                    """
+                
+                actions_html += f"""
                 <button class="btn btn-sm btn-danger" 
                         onclick="deleteFile('{file_meta['path']}')" title="Delete">
                     <i class="bi bi-trash"></i>
                 </button>
+                <div id="status-{idx}" class="mt-1"></div>
                 """
+                
                 disp.add_display_item(displayer.DisplayerItemAlert(actions_html, displayer.BSstyle.NONE), 
-                                    column=5, line=idx, layout_id=table_layout_id)
+                                    column=7, line=idx, layout_id=table_layout_id)
         else:
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
             disp.add_display_item(displayer.DisplayerItemAlert(
@@ -188,9 +234,36 @@ def index():
                 BSstyle.INFO
             ), column=0)
         
-        # Add delete confirmation script
-        delete_script = """
+        # Add admin scripts for version management
+        admin_scripts = """
         <script>
+        function editGroupId(idx, fileId, currentGroupId) {
+            const newGroupId = prompt('Edit Group ID:\\n(Leave empty for standalone file)', currentGroupId === '(none)' ? '' : currentGroupId);
+            if (newGroupId === null) return; // Cancelled
+            
+            const statusDiv = document.getElementById('status-' + idx);
+            statusDiv.innerHTML = '<small class="text-info">Updating...</small>';
+            
+            fetch('/files/update_group_id', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({file_id: fileId, group_id: newGroupId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('group-display-' + idx).textContent = newGroupId || '(none)';
+                    statusDiv.innerHTML = '<small class="text-success">✓ Updated</small>';
+                    setTimeout(() => statusDiv.innerHTML = '', 2000);
+                } else {
+                    statusDiv.innerHTML = '<small class="text-danger">Error: ' + data.error + '</small>';
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = '<small class="text-danger">Failed: ' + error + '</small>';
+            });
+        }
+        
         function deleteFile(filepath) {
             if (!confirm('Are you sure you want to delete this file?\\n\\nFile: ' + filepath + '\\n\\nThis will move it to trash.')) {
                 return;
@@ -216,7 +289,7 @@ def index():
         """
         
         # Add script as hidden HTML item
-        disp.add_display_item(displayer.DisplayerItemText(delete_script), column=0)
+        disp.add_display_item(displayer.DisplayerItemText(admin_scripts), column=0)
         
         return render_template("base_content.j2", content=disp.display())
         

@@ -37,6 +37,8 @@ dependencies = [
     "textile>=4.0.0",
     "Pillow>=10.0.0",
     "PyMuPDF>=1.23.0",
+    "SQLAlchemy>=1.4.0",
+    "hashfs>=0.7.2",
 ]
 
 [project.optional-dependencies]

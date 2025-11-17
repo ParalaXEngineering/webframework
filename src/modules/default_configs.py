@@ -194,6 +194,36 @@ FILE_STORAGE_CONFIG = {
             "friendly": "Remove EXIF Metadata from Images",
             "value": True,
             "persistent": True
+        },
+        
+        "tags": {
+            "type": "array",
+            "friendly": "Available File Tags",
+            "value": [
+                "invoice",
+                "contract",
+                "photo",
+                "diagram",
+                "report",
+                "archive",
+                "important",
+                "draft"
+            ],
+            "persistent": True
+        },
+        
+        "use_hashfs": {
+            "type": "bool",
+            "friendly": "Use Content-Addressable Storage (Deduplication)",
+            "value": True,
+            "persistent": True
+        },
+        
+        "hashfs_path": {
+            "type": "path",
+            "friendly": "HashFS Storage Directory",
+            "value": "resources/hashfs_storage",
+            "persistent": True
         }
     }
 }

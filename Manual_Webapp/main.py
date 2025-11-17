@@ -110,7 +110,7 @@ class TestSiteConf(site_conf.Site_conf):
         # File Manager Demo
         self.add_sidebar_section("File Manager", "folder", "file_demo")
         self.add_sidebar_submenu("Upload Files", "demo_files.upload_demo", endpoint="file_demo")
-        self.add_sidebar_submenu("Gallery", "demo_files.gallery_demo", endpoint="file_demo")
+        self.add_sidebar_submenu("Admin", "demo_files.admin_demo", endpoint="file_demo")
         
         # Authorization demos
         self.add_sidebar_section("Authorization Demos", "shield-check", "auth")
