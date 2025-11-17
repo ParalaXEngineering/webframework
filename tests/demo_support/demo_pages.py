@@ -37,6 +37,7 @@ def index():
     
     demos = [
         ("Simple Form", "Basics", "Basic form handling with text input", "demo.simple_form_demo", "success"),
+        ("File Manager", "New!", "Secure file upload, thumbnails, and gallery display", "demo_files.file_manager_demo", "success"),
         ("Threading System", "Core System", "Background task execution with real-time monitoring", "demo.threading_demo", "primary"),
         ("Scheduler & Actions", "Core System", "Real-time UI updates, button control, and alert system", "demo.scheduler_demo", "primary"),
         ("Workflow System", "New!", "Multi-step wizards with state persistence and conditional steps", "demo.workflow_demo", "success"),

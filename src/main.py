@@ -141,6 +141,8 @@ def setup_app(app):
         'packager': 'm_enable_packager',
         'user': 'm_enable_authentication',
         'admin': 'm_enable_authentication',
+        'file_handler': 'm_enable_file_manager',
+        'file_manager_admin': 'm_file_manager_admin',
     }
     
     # Get the pages directory path
@@ -221,6 +223,25 @@ def setup_app(app):
     settings_module.settings_manager = settings_manager_instance
     globals()['settings_manager'] = settings_manager_instance
     logger.info(f"Settings manager initialized with config: {config_path}")
+
+    # Conditionally initialize file manager based on feature flag
+    if site_config.m_enable_file_manager:
+        try:
+            from .modules.file_manager import FileManager
+            from .pages import file_handler, file_manager_admin
+        except ImportError:
+            from modules.file_manager import FileManager
+            from pages import file_handler, file_manager_admin
+        
+        # Create FileManager instance and inject into route modules
+        file_manager_instance = FileManager(settings_manager_instance)
+        file_handler.file_manager = file_manager_instance
+        if site_config.m_file_manager_admin:
+            file_manager_admin.file_manager = file_manager_instance
+        
+        logger.info("File manager initialized")
+    else:
+        logger.info("File manager disabled")
 
     # Conditionally initialize scheduler based on feature flag
     if site_config.m_enable_scheduler:

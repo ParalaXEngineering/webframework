@@ -23,6 +23,7 @@ from demo_support.demo_pages import demo_bp
 from demo_support.component_showcase import showcase_bp
 from demo_support.layout_showcase import layout_bp
 from demo_support.demo_grid_layout import grid_layout_bp
+from demo_support.demo_file_manager import demo_file_bp
 
 from src.modules.auth.permission_registry import permission_registry
 
@@ -98,6 +99,11 @@ class TestSiteConf(site_conf.Site_conf):
                 endpoint="layout_main"
             )
         
+        # File Manager Demo
+        self.add_sidebar_section("File Manager", "folder", "file_demo")
+        self.add_sidebar_submenu("Upload Files", "demo_files.upload_demo", endpoint="file_demo")
+        self.add_sidebar_submenu("Gallery", "demo_files.gallery_demo", endpoint="file_demo")
+        
         # Authorization demos
         self.add_sidebar_section("Authorization Demos", "shield-check", "auth")
         self.add_sidebar_submenu("Accessible Page", "demo.auth_accessible", endpoint="auth")
@@ -108,6 +114,9 @@ class TestSiteConf(site_conf.Site_conf):
         # This includes: Authentication (User Management + Admin), Threads, Logs, 
         # Bug Tracker, Settings, Updater, Packager
         self.enable_all_features(add_to_sidebar=True)
+        
+        # Enable File Manager separately (not in enable_all_features yet)
+        self.enable_file_manager(add_to_sidebar=True, enable_admin_page=True)
         
         # Configure topbar login display (don't overwrite m_topbar, just update it)
         # The enable_all_features() already configured the topbar with thread status
@@ -149,7 +158,8 @@ app.register_blueprint(demo_bp)
 app.register_blueprint(showcase_bp)
 app.register_blueprint(layout_bp)
 app.register_blueprint(grid_layout_bp)
-logger.info("Registered demo pages, component showcase, layout showcase, and grid layout blueprints")
+app.register_blueprint(demo_file_bp)
+logger.info("Registered demo pages, component showcase, layout showcase, grid layout, and file manager demo blueprints")
 
 # Register user profile and admin blueprints
 logger.info("Registered auth management blueprints")
@@ -160,6 +170,7 @@ permission_registry.register_module("Demo_Components", ["view", "edit"])
 permission_registry.register_module("Demo_Threading", ["view", "execute"])
 permission_registry.register_module("Demo_Scheduler", ["view", "execute", "configure"])
 permission_registry.register_module("Demo_Authorization", ["view"])
+permission_registry.register_module("FileManager", ["view", "upload", "download", "delete", "list"])
 
 logger.info("Registered demo module permissions")
 

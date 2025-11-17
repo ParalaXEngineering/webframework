@@ -284,6 +284,11 @@ When you enable a feature like `enable_updater()` or `enable_bug_tracker()`, the
   - FTP or folder-based maintenance server configuration
   - Update source, credentials, and paths
 
+- **File Manager**: Requires `enable_file_manager()`
+  - Secure file upload/download system with thumbnail generation
+  - Configurable storage path, file size limits, allowed types
+  - Auto-generates thumbnails for images and PDFs
+
 ### Usage in site_conf.py
 
 ```python
@@ -434,6 +439,100 @@ You can run it:
 cd example_website
 python main.py
 ```
+
+## 📁 File Manager Usage
+
+The File Manager provides secure file upload/download with automatic thumbnail generation for images and PDFs.
+
+### Enable File Manager
+
+```python
+# In website/site_conf.py
+class MySiteConf(Site_conf):
+    def __init__(self):
+        super().__init__()
+        self.enable_file_manager(add_to_sidebar=True, enable_admin_page=True)
+```
+
+### Upload Files in Your Pages
+
+```python
+from flask import request, flash
+from submodules.framework.src.modules.file_manager import FileManager
+from submodules.framework.src.modules import settings
+
+@bp.route('/upload', methods=['POST'])
+def handle_upload():
+    # Get file manager instance
+    file_mgr = FileManager(settings.settings_manager)
+    
+    if 'document' in request.files:
+        file = request.files['document']
+        try:
+            # Upload with automatic validation, thumbnail generation
+            metadata = file_mgr.upload_file(
+                file, 
+                category="user_docs",  # Organize by category
+                subcategory="2025"      # Optional subcategory
+            )
+            
+            # metadata = {
+            #     "path": "user_docs/2025/report.pdf",
+            #     "name": "report.pdf",
+            #     "size": 123456,
+            #     "uploaded_at": "2025-11-14T10:30:00Z",
+            #     "thumb_150x150": ".thumbs/150x150/user_docs/2025/report_thumb.jpg"
+            # }
+            
+            flash(f"File uploaded: {metadata['name']}", "success")
+        except ValueError as e:
+            flash(f"Upload failed: {e}", "error")
+```
+
+### Display Files with Thumbnails
+
+```python
+from submodules.framework.src.modules.displayer import Displayer, DisplayerItemImage
+
+@bp.route('/gallery')
+def gallery():
+    file_mgr = FileManager(settings.settings_manager)
+    files = file_mgr.list_files(category="photos")
+    
+    disp = Displayer()
+    disp.add_generic("Photo Gallery")
+    
+    for file_meta in files:
+        if 'thumb_300x300' in file_meta:
+            # Display thumbnail with link to full image
+            disp.add_display_item(DisplayerItemImage(
+                src=f"/files/download/{file_meta['thumb_300x300']}?inline=true",
+                link=f"/files/download/{file_meta['path']}",
+                alt=file_meta['name']
+            ))
+    
+    return disp.display()
+```
+
+### Configuration
+
+File Manager settings in `config.json`:
+- `base_path`: Storage directory (default: `resources/uploads`)
+- `max_file_size_mb`: Maximum file size in MB (default: 50)
+- `allowed_extensions`: List of allowed file types
+- `generate_thumbnails`: Auto-generate image/PDF thumbnails (default: true)
+- `thumbnail_sizes`: Thumbnail dimensions (default: ["150x150", "300x300"])
+- `image_quality`: JPEG compression quality 1-100 (default: 85)
+- `strip_exif`: Remove EXIF metadata from images (default: true)
+
+### Admin Interface
+
+When `enable_admin_page=True`, access the file browser at `/file_manager`:
+- Browse all uploaded files with thumbnails
+- Search and filter by category
+- View storage statistics
+- Upload new files via web interface
+- Delete files (moved to trash by default)
 
 ## 🔧 Framework Development
 

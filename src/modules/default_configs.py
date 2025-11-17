@@ -125,10 +125,84 @@ UPDATES_CONFIG = {
     }
 }
 
+# Default configuration for file storage/management
+FILE_STORAGE_CONFIG = {
+    "file_storage": {
+        "friendly": "File Storage Settings",
+        
+        "base_path": {
+            "type": "path",
+            "friendly": "Storage Directory",
+            "value": "resources/uploads",
+            "persistent": True
+        },
+        
+        "max_file_size_mb": {
+            "type": "int",
+            "friendly": "Max File Size (MB)",
+            "value": 50,
+            "persistent": True
+        },
+        
+        "allowed_extensions": {
+            "type": "array",
+            "friendly": "Allowed Extensions",
+            "value": [
+                ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
+                ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+                ".txt", ".csv", ".zip", ".7z", ".rar"
+            ],
+            "persistent": True
+        },
+        
+        "categories": {
+            "type": "array",
+            "friendly": "File Categories",
+            "value": [
+                "general",
+                "documents",
+                "images",
+                "reports",
+                "archives"
+            ],
+            "persistent": True
+        },
+        
+        "generate_thumbnails": {
+            "type": "bool",
+            "friendly": "Generate Thumbnails",
+            "value": True,
+            "persistent": True
+        },
+        
+        "thumbnail_sizes": {
+            "type": "array",
+            "friendly": "Thumbnail Sizes (WxH)",
+            "value": ["150x150", "300x300"],
+            "persistent": True
+        },
+        
+        "image_quality": {
+            "type": "int",
+            "friendly": "Image Compression Quality (1-100)",
+            "value": 85,
+            "persistent": True
+        },
+        
+        "strip_exif": {
+            "type": "bool",
+            "friendly": "Remove EXIF Metadata from Images",
+            "value": True,
+            "persistent": True
+        }
+    }
+}
+
 # Map of feature flags to their config sections
 FEATURE_CONFIGS = {
     "framework_ui": FRAMEWORK_UI_CONFIG,  # Added when threads or logs enabled
     "bug_tracker": REDMINE_CONFIG,
     "updater": UPDATES_CONFIG,
     "packager": UPDATES_CONFIG,  # Packager uses same config as updater
+    "file_manager": FILE_STORAGE_CONFIG,
 }

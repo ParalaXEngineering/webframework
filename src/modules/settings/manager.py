@@ -147,6 +147,7 @@ class SettingsManager:
             "bug_tracker": site_conf_obj.m_enable_bug_tracker,
             "updater": site_conf_obj.m_enable_updater,
             "packager": site_conf_obj.m_enable_packager,
+            "file_manager": site_conf_obj.m_enable_file_manager,
         }
         
         for feature, is_enabled in feature_map.items():

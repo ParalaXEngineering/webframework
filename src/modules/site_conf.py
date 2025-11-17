@@ -79,6 +79,12 @@ class Site_conf:
         
         self.m_enable_packager = False
         """Enable packager page"""
+        
+        self.m_enable_file_manager = False
+        """Enable file manager system"""
+        
+        self.m_file_manager_admin = False
+        """Enable file manager admin interface"""
 
     def _ensure_system_title(self):
         """Helper to ensure 'System' title exists in sidebar."""
@@ -242,6 +248,27 @@ class Site_conf:
             if not has_deployment:
                 self.add_sidebar_section("Deployment", "package-variant", "deployment")
             self.add_sidebar_submenu("Packager", "packager.packager", endpoint="deployment")
+    
+    def enable_file_manager(self, add_to_sidebar: bool = False, enable_admin_page: bool = True):
+        """Enable file upload/download management system.
+        
+        :param add_to_sidebar: If True, adds file manager admin page to sidebar, defaults to False
+        :type add_to_sidebar: bool, optional
+        :param enable_admin_page: If True, creates admin interface for file browsing (requires auth), defaults to True
+        :type enable_admin_page: bool, optional
+        """
+        self.m_enable_file_manager = True
+        self.m_file_manager_admin = enable_admin_page
+        
+        if add_to_sidebar and enable_admin_page:
+            self._ensure_system_title()
+            # Check if Tools section exists, create if not
+            has_tools = any(
+                item.get("endpoint") == "tools" for item in self.m_sidebar
+            )
+            if not has_tools:
+                self.add_sidebar_section("Tools", "toolbox", "tools")
+            self.add_sidebar_submenu("File Manager", "file_manager_admin.index", endpoint="tools")
     
     def enable_all_features(self, add_to_sidebar: bool = True, add_to_topbar: bool = True):
         """Enable all framework features (useful for demos and testing).
