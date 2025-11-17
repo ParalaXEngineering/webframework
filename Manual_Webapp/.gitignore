@@ -1,0 +1,12 @@
+# Runtime generated folders
+flask_session/
+logs/
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Database files
+*.db

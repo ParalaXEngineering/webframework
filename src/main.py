@@ -189,14 +189,21 @@ def setup_app(app):
         from modules.auth.auth_manager import AuthManager
     
     if site_config.m_enable_authentication:
-        # Create and set the global auth_manager instance
-        auth_manager_instance = AuthManager(auth_dir=os.path.join(app_path, "website", "auth"))
-        auth_manager_module.auth_manager = auth_manager_instance
-        
-        # Also update the local module reference so the inject_endpoint function can access it
-        globals()['auth_manager'] = auth_manager_instance
-        
-        logger.info("Auth manager initialized")
+        # Check if auth_manager was already configured by the calling application
+        if auth_manager_module.auth_manager is None:
+            # Use site_conf_app_path if set, otherwise fall back to app_path
+            auth_base_path = site_conf.site_conf_app_path if site_conf.site_conf_app_path else app_path
+            auth_manager_instance = AuthManager(auth_dir=os.path.join(auth_base_path, "website", "auth"))
+            auth_manager_module.auth_manager = auth_manager_instance
+            
+            # Also update the local module reference so the inject_endpoint function can access it
+            globals()['auth_manager'] = auth_manager_instance
+            
+            logger.info("Auth manager initialized")
+        else:
+            # Auth manager was pre-configured by calling application
+            globals()['auth_manager'] = auth_manager_module.auth_manager
+            logger.info("Auth manager already configured, using existing instance")
     else:
         auth_manager_module.auth_manager = None
         globals()['auth_manager'] = None

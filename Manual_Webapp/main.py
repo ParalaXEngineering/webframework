@@ -2,15 +2,28 @@
 Manual Test Web Application
 
 A Flask application for manual testing of the ParalaX Web Framework.
-Uses the framework's main.py setup_app() function properly.
+This demonstrates how to properly use the framework as an external application.
 
 Usage:
-    python tests/manual_test_webapp.py
+    python Manual_Webapp/main.py
 """
 
 import sys
 import os
 import logging
+
+# Get the Manual_Webapp directory (where this file is located)
+manual_webapp_root = os.path.dirname(os.path.abspath(__file__))
+
+# Get the framework root (parent of Manual_Webapp)
+framework_root = os.path.dirname(manual_webapp_root)
+
+# Add framework root to path so we can import src modules
+sys.path.insert(0, framework_root)
+sys.path.insert(0, os.path.join(framework_root, 'src'))
+
+# Add Manual_Webapp to path for demo_support imports
+sys.path.insert(0, manual_webapp_root)
 
 # Import framework setup
 from src.main import app, setup_app, FLASK_AVAILABLE
@@ -27,14 +40,9 @@ from demo_support.demo_file_manager import demo_file_bp
 
 from src.modules.auth.permission_registry import permission_registry
 
-# Add project root to path
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
-sys.path.insert(0, os.path.join(project_root, 'src'))
-sys.path.insert(0, os.path.join(project_root, 'tests'))  # Add tests to path for website module
-
 # Initialize auth manager BEFORE creating app
-auth_manager_instance = AuthManager(auth_dir="tests/website/auth")
+# Auth dir is now relative to Manual_Webapp
+auth_manager_instance = AuthManager(auth_dir=os.path.join(manual_webapp_root, "website", "auth"))
 
 if not FLASK_AVAILABLE or app is None:
     print("ERROR: Flask is not available. Please install dependencies.")
@@ -52,7 +60,7 @@ class TestSiteConf(site_conf.Site_conf):
         
         # Configure app details
         self.m_app = {
-            "name": "OuFNis FRAMEWORK",
+            "name": "ParalaX FRAMEWORK Demo",
             "version": "1.0.0",
             "icon": "flask",
             "footer": "2025 &copy; ParalaX Engineering"
@@ -125,11 +133,11 @@ class TestSiteConf(site_conf.Site_conf):
         self.m_enable_easter_eggs = False
     
     def get_statics(self, app_path: str) -> dict:
-        """Override get_statics to point to test website location."""
-        # For test app, website is at tests/website/ instead of website/
+        """Override get_statics to point to Manual_Webapp website location."""
+        # For Manual_Webapp, website is at Manual_Webapp/website/
         return {
-            "images": os.path.join(app_path, "tests", "website", "assets", "images"),
-            "js": os.path.join(app_path, "tests", "website", "assets", "js")
+            "images": os.path.join(app_path, "website", "assets", "images"),
+            "js": os.path.join(app_path, "website", "assets", "js")
         }
     
     def context_processor(self):
@@ -142,10 +150,13 @@ class TestSiteConf(site_conf.Site_conf):
 # Setup the application using framework's setup_app
 logger.info("Initializing manual test application using framework setup")
 
-# Create and inject the test site_conf BEFORE calling setup_app
+# CRITICAL: Set app_path to Manual_Webapp root so config.json is loaded from Manual_Webapp/website/config.json
 site_conf.site_conf_obj = TestSiteConf()
-# Set app_path so get_statics() works correctly
-site_conf.site_conf_app_path = project_root
+site_conf.site_conf_app_path = manual_webapp_root
+
+# IMPORTANT: Keep working directory at framework root for templates/static resolution
+# The framework's Flask app is configured to use framework_root/templates and framework_root/webengine
+# We only override the config path via site_conf_app_path
 
 # Inject auth_manager into auth module
 auth_module.auth_manager = auth_manager_instance
@@ -153,7 +164,6 @@ auth_module.auth_manager = auth_manager_instance
 socketio = setup_app(app)
 
 # Register demo pages blueprint
-
 app.register_blueprint(demo_bp)
 app.register_blueprint(showcase_bp)
 app.register_blueprint(layout_bp)
@@ -200,4 +210,3 @@ if __name__ == "__main__":
     log.setLevel(logging.ERROR)
     
     socketio.run(app, debug=False, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True, log_output=False)  # type: ignore
-
