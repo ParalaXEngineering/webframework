@@ -29,7 +29,6 @@ def simple_form_demo():
     disp.add_generic("Simple Form Demo")
     disp.set_title("Simple Form Example")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Simple Form", "demo.simple_form_demo", [])
     
     # Handle POST - display submitted data
@@ -81,7 +80,6 @@ def threading_demo():
     disp.add_module(DemoThreadedAction)
     disp.set_title("Threading System Demo")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Threading Demo", "demo.threading_demo", [])
     
     # Handle POST requests
@@ -322,7 +320,6 @@ def scheduler_demo():
     disp.add_module(DemoSchedulerAction)
     disp.set_title("Scheduler & Action System Demo")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Scheduler", "demo.scheduler_demo", [])
     
     if message:
@@ -589,7 +586,6 @@ def auth_accessible():
     disp.add_generic("Accessible Page")
     disp.set_title("Public Demo Page")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Accessible Page", "demo.auth_accessible", [])
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
@@ -616,9 +612,6 @@ def auth_accessible():
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
     disp.add_display_item(displayer.DisplayerItemButton(
-        "btn_home", "Back to Demos", icon="home", link=url_for('demo.index'), color=displayer.BSstyle.SECONDARY
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemButton(
         "btn_restricted", "Try Restricted Page", icon="lock", link=url_for('demo.auth_restricted'), color=displayer.BSstyle.WARNING
     ), 1)
     
@@ -639,7 +632,6 @@ def auth_restricted():
     disp.add_module(DemoAuthorizationAction)
     disp.set_title("Protected Demo Page")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Restricted Page", "demo.auth_restricted", [])
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
@@ -665,9 +657,6 @@ def auth_restricted():
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
     disp.add_display_item(displayer.DisplayerItemButton(
-        "btn_home", "Back to Demos", icon="home", link=url_for('demo.index'), color=displayer.BSstyle.SECONDARY
-    ), 0)
-    disp.add_display_item(displayer.DisplayerItemButton(
         "btn_admin", "Try Admin Page", icon="shield-crown", link=url_for('demo.auth_admin'), color=displayer.BSstyle.ERROR
     ), 1)
     
@@ -690,7 +679,6 @@ def auth_admin():
     disp.add_generic("Admin Page")
     disp.set_title("Administrator Only")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Admin Page", "demo.auth_admin", [])
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
@@ -731,9 +719,6 @@ def auth_admin():
         ), 0)
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
-    disp.add_display_item(displayer.DisplayerItemButton(
-        "btn_home", "Back to Demos", icon="home", link=url_for('demo.index'), color=displayer.BSstyle.SECONDARY
-    ), 0)
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_accessible", "Back to Accessible Page", icon="check", link=url_for('demo.auth_accessible'), color=displayer.BSstyle.SUCCESS
     ), 1)

@@ -58,7 +58,6 @@ def index():
     disp.add_generic("Component Showcase")
     disp.set_title("DisplayerItem Component Showcase")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Components", "showcase.index", [])
     
     # Info alert
@@ -139,7 +138,6 @@ def category(category: str = ""):
     disp.add_generic(category_name)
     disp.set_title(category_name)
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Components", "showcase.index", [])
     disp.add_breadcrumb(category_name, "showcase.category", [f"category={category}"])
     
@@ -218,7 +216,6 @@ def component(category: str = "", component: str = ""):
     disp.add_generic(component)
     disp.set_title(f"{component} Demo")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Components", "showcase.index", [])
     disp.add_breadcrumb(get_category_friendly_name(category), 
                        "showcase.category", [f"category={category}"])

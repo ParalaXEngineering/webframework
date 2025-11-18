@@ -226,7 +226,7 @@ def index():
                 # Delete
                 actions.append({
                     "type": "delete",
-                    "url": f"javascript:deleteFile('{file_meta['path']}')",
+                    "url": f"javascript:deleteFile({file_meta.get('id', 0)})",
                     "icon": "bi bi-trash",
                     "style": "danger",
                     "tooltip": "Delete"
@@ -247,15 +247,15 @@ def index():
                 BSstyle.INFO
             ), column=0)
         
-        # Add delete script only (edit is now a separate page)
+        # Add delete script
         delete_script = """
         <script>
-        function deleteFile(filepath) {
-            if (!confirm('Are you sure you want to delete this file?\\n\\nFile: ' + filepath + '\\n\\nThis will move it to trash.')) {
+        function deleteFile(fileId) {
+            if (!confirm('Are you sure you want to delete this file?\\n\\nFile ID: ' + fileId + '\\n\\nThis will permanently remove it.')) {
                 return;
             }
             
-            fetch('/files/delete/' + filepath, {
+            fetch('/files/delete/' + fileId, {
                 method: 'DELETE'
             })
             .then(response => response.json())

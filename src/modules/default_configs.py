@@ -130,10 +130,10 @@ FILE_STORAGE_CONFIG = {
     "file_storage": {
         "friendly": "File Storage Settings",
         
-        "base_path": {
+        "hashfs_path": {
             "type": "path",
-            "friendly": "Storage Directory",
-            "value": "resources/uploads",
+            "friendly": "HashFS Storage Directory",
+            "value": "resources/hashfs_storage",
             "persistent": True
         },
         
@@ -209,20 +209,6 @@ FILE_STORAGE_CONFIG = {
                 "important",
                 "draft"
             ],
-            "persistent": True
-        },
-        
-        "use_hashfs": {
-            "type": "bool",
-            "friendly": "Use Content-Addressable Storage (Deduplication)",
-            "value": True,
-            "persistent": True
-        },
-        
-        "hashfs_path": {
-            "type": "path",
-            "friendly": "HashFS Storage Directory",
-            "value": "resources/hashfs_storage",
             "persistent": True
         }
     }

@@ -34,7 +34,6 @@ def index():
     disp.add_generic("Grid Layout Editor")
     disp.set_title("GRID Layout - Interactive Editor")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "layouts.index", [])
     disp.add_breadcrumb("Grid", "grid_layout.index", [])
     

@@ -119,13 +119,10 @@ def upload():
 
 @bp.route("/download/<path:filepath>", methods=["GET"])
 def download(filepath):
-    """Serve a file for download (supports both legacy paths and database storage).
+    """Serve a file for download from HashFS storage.
     
     Args:
-        filepath: Relative path to file or storage path from database
-    
-    Query params:
-        version: Optional version ID to download specific version
+        filepath: Storage path from database
     
     Returns:
         File download response
@@ -138,17 +135,8 @@ def download(filepath):
         abort(403, "Permission denied")
     
     try:
-        # Check if this is a hashfs path or traditional filesystem path
-        if file_manager.use_hashfs and file_manager.storage:
-            try:
-                # Try to get file from hashfs
-                file_path = file_manager.storage.get(filepath)
-            except IOError:
-                # Fall back to traditional filesystem
-                file_path = file_manager.get_file_path(filepath)
-        else:
-            # Get absolute file path with security checks
-            file_path = file_manager.get_file_path(filepath)
+        # Get file from hashfs
+        file_path = file_manager.storage.get(filepath)
         
         # Get MIME type
         mime_type = file_manager.get_mime_type(filepath)
@@ -158,21 +146,20 @@ def download(filepath):
         
         logger.info(f"File download by {session.get('user', 'GUEST')}: {filepath}")
         
-        # Send file
+        # Send file - read into BytesIO to avoid Windows long path issues
+        from io import BytesIO
+        with open(file_path, 'rb') as f:
+            file_data = BytesIO(f.read())
+        
         return send_file(
-            file_path,
+            file_data,
             mimetype=mime_type,
             as_attachment=not is_thumbnail,  # Thumbnails display inline
             download_name=file_path.name if not is_thumbnail else None
         )
         
-    except ValueError as e:
-        # Path traversal or invalid path
+    except IOError as e:
         logger.warning(f"Invalid download path attempt: {filepath} - {e}")
-        abort(400, str(e))
-        
-    except FileNotFoundError:
-        logger.warning(f"Download requested for non-existent file: {filepath}")
         abort(404, "File not found")
         
     except Exception as e:
@@ -180,15 +167,12 @@ def download(filepath):
         abort(500, "Internal server error")
 
 
-@bp.route("/delete/<path:filepath>", methods=["DELETE", "POST"])
-def delete(filepath):
-    """Delete a file.
+@bp.route("/delete/<int:file_id>", methods=["DELETE", "POST"])
+def delete(file_id):
+    """Delete a file by database ID.
     
     Args:
-        filepath: Relative path to file
-    
-    Query params:
-        permanent: If 'true', permanently delete instead of soft-delete
+        file_id: Database ID of file version
     
     Returns:
         JSON response with success/error status
@@ -200,43 +184,32 @@ def delete(filepath):
     if not _require_permission("FileManager", "delete"):
         return jsonify({"error": "Permission denied"}), 403
     
-    # Get delete mode
-    permanent = request.args.get('permanent', 'false').lower() == 'true'
-    soft_delete = not permanent
-    
     try:
-        # Delete file
-        success = file_manager.delete_file(filepath, soft_delete=soft_delete)
+        # Delete file (reference-counted in HashFS)
+        success = file_manager.delete_file(file_id)
         
         if success:
-            logger.info(f"File {'permanently ' if permanent else ''}deleted by {session.get('user', 'GUEST')}: {filepath}")
+            logger.info(f"File deleted by {session.get('user', 'GUEST')}: ID {file_id}")
             return jsonify({
                 "success": True,
-                "message": f"File {'permanently deleted' if permanent else 'moved to trash'}"
+                "message": "File deleted successfully"
             }), 200
         else:
             return jsonify({"error": "Failed to delete file"}), 500
             
-    except ValueError as e:
-        logger.warning(f"Invalid delete path attempt: {filepath} - {e}")
-        return jsonify({"error": str(e)}), 400
-        
     except Exception as e:
-        logger.error(f"Unexpected delete error for {filepath}: {e}", exc_info=True)
+        logger.error(f"Unexpected delete error for file ID {file_id}: {e}", exc_info=True)
         return jsonify({"error": "Internal server error"}), 500
 
 
 @bp.route("/list", methods=["GET"])
 def list_files():
-    """List files (supports both filesystem and database queries).
+    """List files from database.
     
     Query params:
-        category: Category to list (optional, deprecated)
-        subcategory: Subcategory to list (optional, deprecated)
         group_id: Filter by group_id (optional)
         tag: Filter by tag (optional)
         limit: Maximum number of results (optional)
-        use_db: If 'true', use database query (default: true)
     
     Returns:
         JSON response with file list
@@ -248,21 +221,13 @@ def list_files():
     if not _require_permission("FileManager", "list"):
         return jsonify({"error": "Permission denied"}), 403
     
-    use_db = request.args.get('use_db', 'true').lower() == 'true'
-    
     try:
-        if use_db:
-            # Use database query (Phase 3)
-            group_id = request.args.get('group_id')
-            tag = request.args.get('tag')
-            limit = request.args.get('limit', type=int)
-            
-            files = file_manager.list_files_from_db(group_id=group_id, tag=tag, limit=limit)
-        else:
-            # Legacy filesystem query
-            category = request.args.get('category', '')
-            subcategory = request.args.get('subcategory', '')
-            files = file_manager.list_files(category, subcategory)
+        # Get query parameters
+        group_id = request.args.get('group_id')
+        tag = request.args.get('tag')
+        limit = request.args.get('limit', type=int)
+        
+        files = file_manager.list_files_from_db(group_id=group_id, tag=tag, limit=limit)
         
         return jsonify({
             "success": True,
@@ -277,7 +242,7 @@ def list_files():
 
 @bp.route("/download/by_id/<int:file_id>", methods=["GET"])
 def download_by_id(file_id):
-    """Download file by database ID.
+    """Download file by database ID from HashFS.
     
     Args:
         file_id: Database ID of file version
@@ -298,38 +263,24 @@ def download_by_id(file_id):
     if not file_version:
         abort(404, "File not found")
     
-    logger.info(f"Download request for file_id={file_id}: {file_version.filename}, storage_path={file_version.storage_path}")
-    
     try:
-        # Try hashfs storage first, fallback to traditional filesystem
-        file_path = None
-        
-        if file_manager.use_hashfs and file_manager.storage:
-            try:
-                file_path = file_manager.storage.get(file_version.storage_path)
-                logger.info(f"HashFS returned path: {file_path}")
-            except (OSError, FileNotFoundError) as e:
-                logger.warning(f"File not in hashfs ({e}), trying traditional path: {file_version.storage_path}")
-        
-        # Fallback to traditional filesystem if hashfs failed or not enabled
-        if not file_path or not file_path.exists():
-            # For traditional filesystem, storage_path is relative to base_path
-            # e.g., storage_path="documents/uploads/file.xlsx" -> resources/uploads/documents/uploads/file.xlsx
-            fallback_path = file_manager.base_path / file_version.storage_path
-            logger.info(f"Trying traditional path: {fallback_path}")
-            file_path = fallback_path
+        # Get file from HashFS
+        file_path = file_manager.storage.get(file_version.storage_path)
         
         # Check if file exists
         if not file_path.exists():
-            logger.error(f"File not found on disk: {file_path} (storage_path in DB: {file_version.storage_path})")
-            logger.error(f"This is likely an orphaned database record. The file may have been deleted or never uploaded properly.")
-            abort(404, f"File '{file_version.filename}' not found on disk (orphaned database record)")
+            logger.error(f"File not found in HashFS: {file_version.storage_path} (orphaned DB record)")
+            abort(404, f"File '{file_version.filename}' not found on disk")
         
         logger.info(f"File download by {session.get('user', 'GUEST')}: {file_version.filename} (ID: {file_id})")
         
-        # Send file
+        # Send file - read into BytesIO to avoid Windows long path issues with send_file
+        from io import BytesIO
+        with open(file_path, 'rb') as f:
+            file_data = BytesIO(f.read())
+        
         return send_file(
-            file_path,
+            file_data,
             mimetype=file_version.mime_type,
             as_attachment=True,
             download_name=file_version.filename
@@ -337,7 +288,7 @@ def download_by_id(file_id):
         
     except Exception as e:
         logger.error(f"Download by ID error for {file_id}: {e}", exc_info=True)
-        raise
+        abort(500, "Internal server error")
 
 
 @bp.route("/versions/<group_id>/<filename>", methods=["GET"])

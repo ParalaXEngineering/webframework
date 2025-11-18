@@ -33,8 +33,6 @@ def upload_demo():
     disp.add_generic("Upload Demo")
     disp.set_title("File Upload Demo")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
-    disp.add_breadcrumb("File Manager Demo", "demo_files.file_manager_demo", [])
     disp.add_breadcrumb("Upload", "demo_files.upload_demo", [])
     
     # Initialize file manager
@@ -180,14 +178,6 @@ def upload_demo():
         icon="upload",
         color=displayer.BSstyle.PRIMARY
     ), column=0)
-    
-    disp.add_display_item(displayer.DisplayerItemButton(
-        id="back_btn",
-        text="Back to Demo Home",
-        icon="arrow-left",
-        link=url_for('demo_files.file_manager_demo'),
-        color=displayer.BSstyle.SECONDARY
-    ), column=1)
     
     return render_template("base_content.j2", content=disp.display(), target="demo_files.upload_demo")
 

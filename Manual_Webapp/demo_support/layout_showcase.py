@@ -48,7 +48,6 @@ def index():
     disp.add_generic("Layout Showcase")
     disp.set_title("DisplayerLayout Showcase")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "layouts.index", [])
     
     # Info alert
@@ -147,7 +146,6 @@ def show_vertical_layout():
     disp.add_generic("Vertical Layout")
     disp.set_title("Vertical Layout - Column-Based Grid")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "layouts.index", [])
     disp.add_breadcrumb("Vertical", "layouts.layout_detail", ["layout=vertical"])
     
@@ -248,7 +246,6 @@ def show_horizontal_layout():
     disp.add_generic("Horizontal Layout")
     disp.set_title("Horizontal Layout - Force Vertical Stacking")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "layouts.index", [])
     disp.add_breadcrumb("Horizontal", "layouts.layout_detail", ["layout=horizontal"])
     
@@ -419,7 +416,6 @@ def show_table_layout():
     disp.add_generic("Table Layout")
     disp.set_title("Table Layout - All Table Modes")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "layouts.index", [])
     disp.add_breadcrumb("Table", "layouts.layout_detail", ["layout=table"])
     
@@ -706,7 +702,6 @@ def show_tabs_layout():
     disp.add_generic("Tabs Layout")
     disp.set_title("Tabs Layout - Tabbed Interface")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "layouts.index", [])
     disp.add_breadcrumb("Tabs", "layouts.layout_detail", ["layout=tabs"])
     
@@ -780,7 +775,6 @@ def show_spacer_layout():
     disp.add_generic("Spacer Layout")
     disp.set_title("Spacer Layout - Visual Separation")
     
-    disp.add_breadcrumb("Home", "demo.index", [])
     disp.add_breadcrumb("Layouts", "layouts.index", [])
     disp.add_breadcrumb("Spacer", "layouts.layout_detail", ["layout=spacer"])
     

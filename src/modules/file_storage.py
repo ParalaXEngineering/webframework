@@ -75,14 +75,16 @@ class ContentAddressableStorage:
         checksum = hashlib.sha256(content).hexdigest()
         
         # Check if file already exists (deduplication check)
-        try:
-            existing_addr = self.fs.get(checksum)
+        is_duplicate = False
+        address = None
+        
+        if self.fs.exists(checksum):
+            # File already exists, get its address
             is_duplicate = True
-            address = existing_addr
+            address = self.fs.get(checksum)
             logger.debug(f"File already exists (deduplication): {checksum[:16]}...")
-        except IOError:
+        else:
             # File doesn't exist, store it
-            is_duplicate = False
             address = self.fs.put(BytesIO(content))
             logger.debug(f"Stored new file: {checksum[:16]}...")
         

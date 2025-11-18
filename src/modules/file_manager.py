@@ -65,9 +65,9 @@ class FileManager:
     def _load_config(self):
         """Load configuration from settings manager."""
         try:
-            # Base path for file storage
-            base_path_config = self.settings.get_setting("file_storage.base_path")
-            self.base_path = Path(base_path_config.get("value", "resources/uploads"))
+            # HashFS path for file storage
+            hashfs_path_config = self.settings.get_setting("file_storage.hashfs_path")
+            self.hashfs_path = Path(hashfs_path_config.get("value", "resources/hashfs_storage"))
             
             # Max file size in bytes
             max_size_mb = self.settings.get_setting("file_storage.max_file_size_mb")
@@ -98,21 +98,14 @@ class FileManager:
             categories_config = self.settings.get_setting("file_storage.categories")
             self.categories = categories_config.get("value", ["general", "documents", "images"])
             
-            # Tags (Phase 3)
+            # Tags
             tags_config = self.settings.get_setting("file_storage.tags")
             self.tags = tags_config.get("value", ["invoice", "contract", "photo", "report"])
-            
-            # HashFS settings (Phase 3)
-            use_hashfs_config = self.settings.get_setting("file_storage.use_hashfs")
-            self.use_hashfs = use_hashfs_config.get("value", True)
-            
-            hashfs_path_config = self.settings.get_setting("file_storage.hashfs_path")
-            self.hashfs_path = Path(hashfs_path_config.get("value", "resources/hashfs_storage"))
             
         except Exception as e:
             logger.warning(f"Failed to load file storage config, using defaults: {e}")
             # Fallback to defaults
-            self.base_path = Path("resources/uploads")
+            self.hashfs_path = Path("resources/hashfs_storage")
             self.max_file_size = 50 * 1024 * 1024
             self.allowed_extensions = {
                 ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
@@ -125,11 +118,9 @@ class FileManager:
             self.strip_exif = True
             self.categories = ["general", "documents", "images"]
             self.tags = ["invoice", "contract", "photo", "report"]
-            self.use_hashfs = True
-            self.hashfs_path = Path("resources/hashfs_storage")
         
-        # Ensure base path exists
-        self.base_path.mkdir(parents=True, exist_ok=True)
+        # Ensure hashfs path exists
+        self.hashfs_path.mkdir(parents=True, exist_ok=True)
     
     def _init_database(self):
         """Initialize SQLite database for file metadata."""
@@ -155,17 +146,13 @@ class FileManager:
             raise
     
     def _init_storage(self):
-        """Initialize content-addressable storage (hashfs) if enabled."""
-        if self.use_hashfs:
-            try:
-                self.storage = ContentAddressableStorage(self.hashfs_path)
-                logger.info("Content-addressable storage (hashfs) initialized")
-            except Exception as e:
-                logger.error(f"Failed to initialize hashfs: {e}", exc_info=True)
-                self.use_hashfs = False
-                self.storage = None
-        else:
-            self.storage = None
+        """Initialize content-addressable storage (hashfs)."""
+        try:
+            self.storage = ContentAddressableStorage(self.hashfs_path)
+            logger.info("Content-addressable storage (hashfs) initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize hashfs: {e}", exc_info=True)
+            raise RuntimeError(f"HashFS initialization failed: {e}")
     
     def _sanitize_filename(self, filename: str) -> str:
         """Sanitize filename to prevent security issues.
@@ -244,36 +231,6 @@ class FileManager:
             if not (directory / new_filename).exists():
                 return new_filename
             counter += 1
-    
-    def _secure_path(self, relative_path: str) -> Path:
-        """Validate and resolve path to prevent traversal attacks.
-        
-        Args:
-            relative_path: Path relative to base_path
-            
-        Returns:
-            Resolved absolute Path
-            
-        Raises:
-            ValueError: If path traversal attempt detected
-        """
-        # Normalize path separators
-        relative_path = relative_path.replace('\\', '/')
-        
-        # Check for path traversal attempts
-        if '..' in relative_path or relative_path.startswith('/') or ':' in relative_path:
-            raise ValueError(f"Invalid path: path traversal attempt detected in '{relative_path}'")
-        
-        # Resolve absolute path
-        abs_path = (self.base_path / relative_path).resolve()
-        
-        # Ensure resolved path is within base_path
-        try:
-            abs_path.relative_to(self.base_path.resolve())
-        except ValueError:
-            raise ValueError(f"Invalid path: '{relative_path}' resolves outside storage directory")
-        
-        return abs_path
     
     def upload_file(self, file_obj: FileStorage, category: str = None, subcategory: str = "", 
                     group_id: str = None, tags: List[str] = None) -> Dict:
@@ -357,61 +314,18 @@ class FileManager:
             # No group_id means standalone file
             version_number = 1
         
-        # Store file content
-        storage_path = None
-        checksum = None
-        file_size = 0
-        
-        if self.use_hashfs and self.storage:
-            # Use content-addressable storage
-            try:
-                storage_metadata = self.storage.store(file_obj.stream, safe_filename)
-                storage_path = storage_metadata['storage_path']
-                checksum = storage_metadata['checksum']
-                file_size = storage_metadata['size']
-                
-                if storage_metadata['is_duplicate']:
-                    logger.info(f"File deduplicated (existing content): {safe_filename}")
-            except Exception as e:
-                logger.error(f"HashFS storage failed, falling back to filesystem: {e}")
-                self.use_hashfs = False  # Disable for this session
-        
-        if not self.use_hashfs or not storage_path:
-            # Fallback to traditional filesystem storage
-            category_safe = self._sanitize_filename(category) if category else "general"
-            subcategory_safe = self._sanitize_filename(subcategory) if subcategory else ""
+        # Store file content in HashFS
+        try:
+            storage_metadata = self.storage.store(file_obj.stream, safe_filename)
+            storage_path = storage_metadata['storage_path']
+            checksum = storage_metadata['checksum']
+            file_size = storage_metadata['size']
             
-            if subcategory_safe:
-                storage_dir = self.base_path / category_safe / subcategory_safe
-                relative_dir = f"{category_safe}/{subcategory_safe}"
-            else:
-                storage_dir = self.base_path / category_safe
-                relative_dir = category_safe
-            
-            storage_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Add version suffix to physical filename
-            if version_number > 1:
-                name_part = Path(safe_filename).stem
-                ext_part = Path(safe_filename).suffix
-                versioned_filename = f"{name_part}_v{version_number}{ext_part}"
-            else:
-                versioned_filename = safe_filename
-            
-            file_path = storage_dir / versioned_filename
-            storage_path = f"{relative_dir}/{versioned_filename}"
-            
-            # Save file
-            try:
-                file_obj.seek(0)  # Reset stream position
-                file_obj.save(str(file_path))
-                file_size = file_path.stat().st_size
-                
-                # Calculate checksum
-                checksum = self._calculate_checksum(file_path)
-            except Exception as e:
-                logger.error(f"Failed to save file {file_path}: {e}")
-                raise IOError(f"Failed to save file: {e}")
+            if storage_metadata['is_duplicate']:
+                logger.info(f"File deduplicated (existing content): {safe_filename}")
+        except Exception as e:
+            logger.error(f"HashFS storage failed: {e}", exc_info=True)
+            raise IOError(f"Failed to store file in HashFS: {e}")
         
         # Get MIME type
         mime_type = mimetypes.guess_type(safe_filename)[0] or 'application/octet-stream'
@@ -457,13 +371,9 @@ class FileManager:
         
         # Generate thumbnails
         if self.generate_thumbnails:
-            # Get actual file path for thumbnail generation
-            if self.use_hashfs and self.storage:
-                actual_file_path = self.storage.get(storage_path)
-            else:
-                actual_file_path = self.base_path / storage_path
-            
-            thumbnails = self._generate_thumbnails(actual_file_path, storage_path)
+            # Get actual file path from HashFS
+            actual_file_path = self.storage.get(storage_path)
+            thumbnails = self._generate_thumbnails(actual_file_path, storage_path, safe_filename)
             metadata.update(thumbnails)
         
         logger.info(f"File uploaded: {safe_filename} (group: {group_id or 'none'}, version: {version_number}, size: {file_size} bytes)")
@@ -484,18 +394,20 @@ class FileManager:
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
     
-    def _generate_thumbnails(self, file_path: Path, relative_path: str) -> Dict:
+    def _generate_thumbnails(self, file_path: Path, relative_path: str, original_filename: str) -> Dict:
         """Generate thumbnails for images and documents.
         
         Args:
-            file_path: Absolute path to file
+            file_path: Absolute path to file (may not have extension in HashFS)
             relative_path: Relative path for thumbnail naming
+            original_filename: Original filename with extension (for type determination)
             
         Returns:
             Dictionary with thumbnail paths (e.g., {"thumbnail_small": "path"})
         """
         thumbnails = {}
-        ext = file_path.suffix.lower()
+        # Get extension from original filename, not the HashFS path
+        ext = Path(original_filename).suffix.lower()
         
         # Determine file type and generate thumbnails
         if ext in {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}:
@@ -556,8 +468,9 @@ class FileManager:
                         width, height = map(int, size_str.split('x'))
                         thumb_name = f"thumb_{width}x{height}"
                         
-                        # Create thumbnail directory
-                        thumb_dir = self.base_path / ".thumbs" / size_str / Path(relative_path).parent
+                        # Create thumbnail directory (separate from hashfs)
+                        thumb_base = self.hashfs_path.parent / ".thumbs"
+                        thumb_dir = thumb_base / size_str / Path(relative_path).parent
                         thumb_dir.mkdir(parents=True, exist_ok=True)
                         
                         # Generate thumbnail path
@@ -612,8 +525,9 @@ class FileManager:
                     width, height = map(int, size_str.split('x'))
                     thumb_name = f"thumb_{width}x{height}"
                     
-                    # Create thumbnail directory
-                    thumb_dir = self.base_path / ".thumbs" / size_str / Path(relative_path).parent
+                    # Create thumbnail directory (separate from hashfs)
+                    thumb_base = self.hashfs_path.parent / ".thumbs"
+                    thumb_dir = thumb_base / size_str / Path(relative_path).parent
                     thumb_dir.mkdir(parents=True, exist_ok=True)
                     
                     # Generate thumbnail path
@@ -647,84 +561,88 @@ class FileManager:
         
         return thumbnails
     
-    def get_file_path(self, relative_path: str) -> Path:
-        """Get absolute path for a relative file path with security checks.
+    def get_file_path(self, storage_path: str) -> Path:
+        """Get absolute path for a file from HashFS storage.
         
         Args:
-            relative_path: Path relative to base_path
+            storage_path: Storage path returned from upload (hashfs relative path)
             
         Returns:
             Absolute Path object
             
         Raises:
-            ValueError: Path traversal attempt detected
             FileNotFoundError: File does not exist
         """
-        abs_path = self._secure_path(relative_path)
-        
-        if not abs_path.exists():
-            raise FileNotFoundError(f"File not found: {relative_path}")
-        
-        return abs_path
+        try:
+            abs_path = self.storage.get(storage_path)
+            if not abs_path.exists():
+                raise FileNotFoundError(f"File not found in storage: {storage_path}")
+            return abs_path
+        except IOError as e:
+            raise FileNotFoundError(f"File not found: {storage_path}") from e
     
-    def delete_file(self, relative_path: str, soft_delete: bool = True) -> bool:
-        """Delete a file.
+    def delete_file(self, file_id: int) -> bool:
+        """Delete a file by database ID.
+        
+        Note: HashFS files are reference-counted. Physical deletion only occurs
+        when no other file versions reference the same content.
         
         Args:
-            relative_path: Path relative to base_path
-            soft_delete: Move to .trash instead of permanent delete (default: True)
+            file_id: Database ID of file version to delete
             
         Returns:
             True if successful, False otherwise
         """
         try:
-            file_path = self._secure_path(relative_path)
+            # Get file from database
+            file_version = self.db_session.query(FileVersion).get(file_id)
             
-            if not file_path.exists():
-                logger.warning(f"Attempted to delete non-existent file: {relative_path}")
+            if not file_version:
+                logger.warning(f"Attempted to delete non-existent file ID: {file_id}")
                 return False
             
-            if soft_delete:
-                # Move to trash
-                trash_dir = self.base_path / ".trash"
-                trash_dir.mkdir(parents=True, exist_ok=True)
-                
-                # Preserve directory structure in trash
-                trash_path = trash_dir / relative_path
-                trash_path.parent.mkdir(parents=True, exist_ok=True)
-                
-                # Add timestamp to avoid collisions
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                trash_filename = f"{file_path.stem}_{timestamp}{file_path.suffix}"
-                trash_path = trash_path.parent / trash_filename
-                
-                shutil.move(str(file_path), str(trash_path))
-                logger.info(f"File moved to trash: {relative_path} -> {trash_path}")
-            else:
-                # Permanent delete
-                file_path.unlink()
-                logger.info(f"File permanently deleted: {relative_path}")
+            storage_path = file_version.storage_path
+            checksum = file_version.checksum
             
-            # Delete associated thumbnails
-            self._delete_thumbnails(relative_path)
+            # Delete associated thumbnails first
+            self._delete_thumbnails(storage_path)
+            
+            # Remove database record
+            self.db_session.delete(file_version)
+            self.db_session.commit()
+            
+            # Check if any other file versions reference this checksum
+            other_refs = self.db_session.query(FileVersion).filter_by(checksum=checksum).count()
+            
+            if other_refs == 0:
+                # No other references, safe to delete physical file
+                try:
+                    self.storage.delete(storage_path)
+                    logger.info(f"Deleted physical file (no other references): {storage_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to delete physical file {storage_path}: {e}")
+            else:
+                logger.info(f"File {file_id} deleted from DB, physical file retained ({other_refs} other references)")
             
             return True
             
         except Exception as e:
-            logger.error(f"Failed to delete file {relative_path}: {e}")
+            logger.error(f"Failed to delete file {file_id}: {e}", exc_info=True)
+            self.db_session.rollback()
             return False
     
-    def _delete_thumbnails(self, relative_path: str):
+    def _delete_thumbnails(self, storage_path: str):
         """Delete all thumbnails associated with a file.
         
         Args:
-            relative_path: Original file's relative path
+            storage_path: HashFS storage path
         """
-        file_stem = Path(relative_path).stem
-        file_parent = Path(relative_path).parent
+        file_stem = Path(storage_path).stem
+        file_parent = Path(storage_path).parent
         
+        thumb_base = self.hashfs_path.parent / ".thumbs"
         for size_str in self.thumbnail_sizes:
-            thumb_dir = self.base_path / ".thumbs" / size_str / file_parent
+            thumb_dir = thumb_base / size_str / file_parent
             if thumb_dir.exists():
                 thumb_file = thumb_dir / f"{file_stem}_thumb.jpg"
                 if thumb_file.exists():
@@ -734,83 +652,18 @@ class FileManager:
                     except Exception as e:
                         logger.warning(f"Failed to delete thumbnail {thumb_file}: {e}")
     
-    def list_files(self, category: str = "", subcategory: str = "") -> List[Dict]:
-        """List all files in a category/subcategory.
+    def get_mime_type(self, storage_path: str) -> str:
+        """Get MIME type for a file from its storage path.
         
         Args:
-            category: Top-level category (empty = all categories)
-            subcategory: Subcategory (empty = all subcategories)
-            
-        Returns:
-            List of metadata dicts (same format as upload_file)
-        """
-        files = []
-        
-        if category:
-            category_safe = self._sanitize_filename(category)
-            if subcategory:
-                subcategory_safe = self._sanitize_filename(subcategory)
-                search_dir = self.base_path / category_safe / subcategory_safe
-            else:
-                search_dir = self.base_path / category_safe
-        else:
-            search_dir = self.base_path
-        
-        if not search_dir.exists():
-            return []
-        
-        # Walk through directory tree
-        for file_path in search_dir.rglob('*'):
-            # Skip directories, hidden files, and special folders
-            if file_path.is_dir() or file_path.name.startswith('.'):
-                continue
-            
-            # Skip files in special folders (.thumbs, .trash)
-            if any(part.startswith('.') for part in file_path.parts):
-                continue
-            
-            try:
-                relative_path = file_path.relative_to(self.base_path)
-                stat = file_path.stat()
-                
-                metadata = {
-                    "path": str(relative_path).replace('\\', '/'),
-                    "name": file_path.name,
-                    "size": stat.st_size,
-                    "uploaded_at": datetime.fromtimestamp(stat.st_mtime).isoformat() + "Z"
-                }
-                
-                # Add thumbnail paths if they exist
-                for size_str in self.thumbnail_sizes:
-                    width, height = map(int, size_str.split('x'))
-                    thumb_key = f"thumb_{width}x{height}"
-                    thumb_path = self.base_path / ".thumbs" / size_str / relative_path.parent / f"{file_path.stem}_thumb.jpg"
-                    
-                    if thumb_path.exists():
-                        thumb_relative = str(thumb_path.relative_to(self.base_path)).replace('\\', '/')
-                        metadata[thumb_key] = thumb_relative
-                
-                files.append(metadata)
-                
-            except Exception as e:
-                logger.warning(f"Failed to process file {file_path}: {e}")
-        
-        # Sort by upload date (most recent first)
-        files.sort(key=lambda x: x['uploaded_at'], reverse=True)
-        
-        return files
-    
-    def get_mime_type(self, relative_path: str) -> str:
-        """Get MIME type for a file.
-        
-        Args:
-            relative_path: Path relative to base_path
+            storage_path: HashFS storage path
             
         Returns:
             MIME type string (e.g., "image/jpeg")
         """
-        file_path = self._secure_path(relative_path)
-        mime_type, _ = mimetypes.guess_type(str(file_path))
+        # Extract filename from storage path
+        filename = Path(storage_path).name
+        mime_type, _ = mimetypes.guess_type(filename)
         return mime_type or 'application/octet-stream'
     
     def get_categories(self) -> List[str]:
@@ -1032,17 +885,18 @@ class FileManager:
             }
             
             # Add thumbnail paths if they exist
+            thumb_base = self.hashfs_path.parent / ".thumbs"
             for size_str in self.thumbnail_sizes:
                 width, height = map(int, size_str.split('x'))
                 thumb_key = f"thumb_{width}x{height}"
                 
                 # Construct thumbnail path
                 storage_path_obj = Path(file_version.storage_path)
-                thumb_path = self.base_path / ".thumbs" / size_str / storage_path_obj.parent / f"{storage_path_obj.stem}_thumb.jpg"
+                thumb_path = thumb_base / size_str / storage_path_obj.parent / f"{storage_path_obj.stem}_thumb.jpg"
                 
                 if thumb_path.exists():
-                    thumb_relative = str(thumb_path.relative_to(self.base_path)).replace('\\', '/')
-                    metadata[thumb_key] = thumb_relative
+                    thumb_relative = f".thumbs/{size_str}/{storage_path_obj.parent}/{storage_path_obj.stem}_thumb.jpg"
+                    metadata[thumb_key] = thumb_relative.replace('\\', '/')
             
             files.append(metadata)
         
