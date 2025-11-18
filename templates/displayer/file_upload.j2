@@ -1,0 +1,250 @@
+{% import 'common/inputs.j2' as common_input %}
+
+{#
+    File Upload Widget with FilePond
+    
+    Displays a complete file upload interface with optional category, subcategory, group_id, and tags.
+    Fields are shown only when their value is None/empty, hidden when provided.
+    
+    Args:
+        id: Unique identifier for the upload widget
+        text: Label text
+        category: Fixed category (hidden if set, shown if None)
+        subcategory: Fixed subcategory (hidden if set, shown if None)
+        group_id: Fixed group_id (hidden if set, shown if None)
+        tags: Fixed tags list (hidden if set, shown if None)
+        accept_types: Accepted file types
+        multiple: Allow multiple files
+        file_manager: FileManager instance (for dropdowns)
+#}
+
+{% macro fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups) %}
+<div class="file-upload-widget mb-3" id="{{ id }}_widget">
+    {% if text %}
+    <label class="form-label">{{ text }}</label>
+    {% endif %}
+    
+    {# Category selector (shown only if category is None) #}
+    {% if category is none and file_manager %}
+    <div class="mb-2">
+        <label for="{{ id }}_category" class="form-label">Category</label>
+        <select class="form-select" id="{{ id }}_category" name="{{ id }}_category">
+            {% for cat in file_manager.get_categories() %}
+            <option value="{{ cat }}">{{ cat|title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% else %}
+        {# Hidden field for fixed category #}
+        {{ common_input.hidden(id + "_category", category) }}
+    {% endif %}
+    
+    {# Subcategory input (shown only if subcategory is None) #}
+    {% if subcategory is none %}
+    <div class="mb-2">
+        <label for="{{ id }}_subcategory" class="form-label">Subcategory (Optional)</label>
+        <input type="text" class="form-control" id="{{ id }}_subcategory" name="{{ id }}_subcategory" 
+               placeholder="e.g., 2025, project_name">
+    </div>
+    {% else %}
+        {# Hidden field for fixed subcategory #}
+        {{ common_input.hidden(id + "_subcategory", subcategory if subcategory else "") }}
+    {% endif %}
+    
+    {# Group ID selector (shown only if group_id is None) #}
+    {% if group_id is none and file_manager %}
+    <div class="mb-2">
+        <label for="{{ id }}_group_id" class="form-label">Group ID (Optional - for versioning)</label>
+        <input type="text" class="form-control" id="{{ id }}_group_id" name="{{ id }}_group_id" 
+               placeholder="Enter group ID or leave empty" list="{{ id }}_group_list">
+        <datalist id="{{ id }}_group_list">
+            {% for group_name in existing_groups %}
+            <option value="{{ group_name }}">
+            {% endfor %}
+        </datalist>
+        <div class="form-text">Files with the same group_id and filename are versioned</div>
+    </div>
+    {% else %}
+        {# Hidden field for fixed group_id #}
+        {{ common_input.hidden(id + "_group_id", group_id if group_id else "") }}
+    {% endif %}
+    
+    {# Tags multi-select (shown only if tags is None) #}
+    {% if tags is none and file_manager %}
+    <div class="mb-2">
+        <label for="{{ id }}_tags" class="form-label">Tags (Optional)</label>
+        <select class="form-select" id="{{ id }}_tags" name="{{ id }}_tags" multiple>
+            {% for tag in file_manager.get_tags() %}
+            <option value="{{ tag }}">{{ tag }}</option>
+            {% endfor %}
+        </select>
+        <div class="form-text">Hold Ctrl/Cmd to select multiple tags</div>
+    </div>
+    {% elif tags %}
+        {# Hidden fields for fixed tags #}
+        {% for tag in tags %}
+        <input type="hidden" name="{{ id }}_tags" value="{{ tag }}">
+        {% endfor %}
+    {% endif %}
+    
+    {# FilePond file input #}
+    <div class="mb-2">
+        <input type="file" 
+               class="filepond-upload" 
+               id="{{ id }}_file" 
+               name="{{ id }}_file"
+               {% if accept_types %}
+               data-accept-types="{{ accept_types|join(',') }}"
+               {% endif %}
+               {% if multiple %}
+               multiple
+               {% endif %}>
+    </div>
+    
+    {# Upload result message area #}
+    <div id="{{ id }}_result" class="mt-2"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputElement = document.getElementById('{{ id }}_file');
+    
+    if (inputElement && typeof FilePond !== 'undefined') {
+        // Create FilePond instance
+        const pond = FilePond.create(inputElement, {
+            allowMultiple: {{ 'true' if multiple else 'false' }},
+            {% if accept_types %}
+            acceptedFileTypes: {{ accept_types|tojson }},
+            {% endif %}
+            server: {
+                process: {
+                    url: '/files/upload',
+                    method: 'POST',
+                    onload: (response) => {
+                        const data = JSON.parse(response);
+                        if (data.success) {
+                            showUploadSuccess(data.file);
+                        }
+                        return data.file.id;
+                    },
+                    onerror: (response) => {
+                        const data = JSON.parse(response);
+                        showUploadError(data.error || 'Upload failed');
+                    }
+                }
+            },
+            onprocessfile: (error, file) => {
+                if (!error) {
+                    console.log('File uploaded:', file.filename);
+                }
+            }
+        });
+        
+        // Before upload, add metadata to form data
+        pond.setOptions({
+            server: {
+                process: (fieldName, file, metadata, load, error, progress, abort) => {
+                    const formData = new FormData();
+                    formData.append('file', file, file.name);
+                    
+                    // Add category
+                    const category = document.getElementById('{{ id }}_category');
+                    if (category) {
+                        formData.append('category', category.value || '');
+                    }
+                    
+                    // Add subcategory
+                    const subcategory = document.getElementById('{{ id }}_subcategory');
+                    if (subcategory) {
+                        formData.append('subcategory', subcategory.value || '');
+                    }
+                    
+                    // Add group_id
+                    const group_id = document.getElementById('{{ id }}_group_id');
+                    if (group_id) {
+                        formData.append('group_id', group_id.value || '');
+                    }
+                    
+                    // Add tags
+                    const tagsSelect = document.getElementById('{{ id }}_tags');
+                    if (tagsSelect) {
+                        const selectedTags = Array.from(tagsSelect.selectedOptions).map(opt => opt.value);
+                        formData.append('tags', selectedTags.join(','));
+                    } else {
+                        // Fixed tags from hidden inputs
+                        const tagInputs = document.querySelectorAll('input[name="{{ id }}_tags"]');
+                        const tags = Array.from(tagInputs).map(input => input.value);
+                        formData.append('tags', tags.join(','));
+                    }
+                    
+                    // Upload with fetch
+                    const request = new XMLHttpRequest();
+                    request.open('POST', '/files/upload');
+                    
+                    request.upload.onprogress = (e) => {
+                        progress(e.lengthComputable, e.loaded, e.total);
+                    };
+                    
+                    request.onload = function() {
+                        if (request.status >= 200 && request.status < 300) {
+                            const data = JSON.parse(request.responseText);
+                            if (data.success) {
+                                showUploadSuccess(data.file);
+                                load(data.file.id);
+                            } else {
+                                showUploadError(data.error || 'Upload failed');
+                                error('Upload failed');
+                            }
+                        } else {
+                            try {
+                                const data = JSON.parse(request.responseText);
+                                showUploadError(data.error || 'Upload failed');
+                            } catch(e) {
+                                showUploadError('Upload failed');
+                            }
+                            error('Upload failed');
+                        }
+                    };
+                    
+                    request.onerror = function() {
+                        showUploadError('Network error');
+                        error('Network error');
+                    };
+                    
+                    request.send(formData);
+                    
+                    return {
+                        abort: () => {
+                            request.abort();
+                            abort();
+                        }
+                    };
+                }
+            }
+        });
+        
+        function showUploadSuccess(fileData) {
+            const resultDiv = document.getElementById('{{ id }}_result');
+            resultDiv.innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show">
+                    <i class="bi bi-check-circle"></i> 
+                    <strong>Success!</strong> ${fileData.name} uploaded successfully.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+        
+        function showUploadError(errorMsg) {
+            const resultDiv = document.getElementById('{{ id }}_result');
+            resultDiv.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <i class="bi bi-x-circle"></i> 
+                    <strong>Error:</strong> ${errorMsg}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+    }
+});
+</script>
+{% endmacro %}

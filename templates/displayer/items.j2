@@ -1,5 +1,7 @@
 {% import 'common/inputs.j2' as common_input %}
 {% import 'common/controls.j2' as common_controls %}
+{% import 'displayer/file_upload.j2' as file_upload %}
+{% import 'displayer/file_display.j2' as file_display %}
 {% set path_count = namespace(value=0) %}
 
 {% macro display_item(item) %}
@@ -113,6 +115,10 @@
         {{progressbar(item["itemId"], item["value"], item["text"], item["style"], item["data"])}}
     {% elif item["type"] == "GRIDEDITOR" %}
         {{grideditor(item["id"], item["data"], item["value"], item["text"])}}
+    {% elif item["type"] == "FILEUPLOAD" %}
+        {{fileupload(item["id"], item["text"], item["category"], item["subcategory"], item["group_id"], item["tags"], item["accept_types"], item["multiple"], item["file_manager"], item["existing_groups"])}}
+    {% elif item["type"] == "FILEDISPLAY" %}
+        {{filedisplay(item["file_id"], item["file_metadata"], item["actions"], item["compact"], item["file_manager"])}}
     {% endif %}
 
     {% if "itemId" in item %}
@@ -1389,4 +1395,13 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 {% endmacro %}
 
+
+{# File manager macros - wrappers for imported templates #}
+{% macro fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups) %}
+    {{ file_upload.fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups) }}
+{% endmacro %}
+
+{% macro filedisplay(file_id, file_metadata, actions, compact, file_manager) %}
+    {{ file_display.filedisplay(file_id, file_metadata, actions, compact, file_manager) }}
+{% endmacro %}
 

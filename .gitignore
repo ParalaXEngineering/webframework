@@ -33,3 +33,4 @@ tests/core/output
 tests/output
 tests/flask_session
 website
+resources/*

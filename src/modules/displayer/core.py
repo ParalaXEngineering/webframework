@@ -358,6 +358,8 @@ class DisplayerItems(Enum):
     CODE = "CODE"
     PROGRESSBAR = "PROGRESSBAR"
     GRIDEDITOR = "GRIDEDITOR"
+    FILEUPLOAD = "FILEUPLOAD"
+    FILEDISPLAY = "FILEDISPLAY"
 
 
 class BSstyle(Enum):

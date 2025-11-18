@@ -90,6 +90,12 @@ from .items import (
     DisplayerItemGridEditor,
 )
 
+# File manager items
+from .file_items import (
+    DisplayerItemFileUpload,
+    DisplayerItemFileDisplay,
+)
+
 __all__ = [
     # Core
     'ResourceRegistry',
@@ -158,6 +164,8 @@ __all__ = [
     'DisplayerItemConsole',
     'DisplayerItemCode',
     'DisplayerItemProgressBar',
+    'DisplayerItemFileUpload',
+    'DisplayerItemFileDisplay',
 ]
 
 # Backward compatibility aliases for clearer naming

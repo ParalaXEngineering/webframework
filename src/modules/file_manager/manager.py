@@ -98,6 +98,14 @@ class FileManager:
             categories_config = self.settings.get_setting("file_storage.categories")
             self.categories = categories_config.get("value", ["general", "documents", "images"])
             
+            # Subcategories
+            subcategories_config = self.settings.get_setting("file_storage.subcategories")
+            self.subcategories = subcategories_config.get("value", ["2024", "2025"])
+            
+            # Group IDs
+            group_ids_config = self.settings.get_setting("file_storage.group_ids")
+            self.group_ids = group_ids_config.get("value", [])
+            
             # Tags
             tags_config = self.settings.get_setting("file_storage.tags")
             self.tags = tags_config.get("value", ["invoice", "contract", "photo", "report"])
@@ -117,6 +125,8 @@ class FileManager:
             self.image_quality = 85
             self.strip_exif = True
             self.categories = ["general", "documents", "images"]
+            self.subcategories = ["2024", "2025"]
+            self.group_ids = []
             self.tags = ["invoice", "contract", "photo", "report"]
         
         # Ensure hashfs path exists
@@ -293,6 +303,14 @@ class FileManager:
                     f"Invalid category: '{category}'. Valid categories are: {valid_categories}"
                 )
         
+        # Validate subcategory (if provided)
+        if subcategory:
+            valid_subcategories = self.subcategories
+            if valid_subcategories and subcategory not in valid_subcategories:
+                raise ValueError(
+                    f"Invalid subcategory: '{subcategory}'. Valid subcategories are: {valid_subcategories}"
+                )
+        
         # Determine group_id (admin can specify, or empty string for user to see)
         if not group_id:
             # Empty group_id - will be shown as empty field in admin
@@ -390,8 +408,15 @@ class FileManager:
         if self.generate_thumbnails:
             # Get actual file path from HashFS
             actual_file_path = self.storage.get(storage_path)
+            logger.info(f"Generating thumbnails for {safe_filename} at {actual_file_path}")
             thumbnails = self._generate_thumbnails(actual_file_path, storage_path, safe_filename)
-            metadata.update(thumbnails)
+            if thumbnails:
+                logger.info(f"Adding {len(thumbnails)} thumbnails to metadata: {list(thumbnails.keys())}")
+                metadata.update(thumbnails)
+            else:
+                logger.warning(f"No thumbnails generated for {safe_filename}")
+        else:
+            logger.info("Thumbnail generation is disabled")
         
         logger.info(f"File uploaded: {safe_filename} (group: {group_id or 'none'}, version: {version_number}, size: {file_size} bytes)")
         return metadata
@@ -426,22 +451,31 @@ class FileManager:
         # Get extension from original filename, not the HashFS path
         ext = Path(original_filename).suffix.lower()
         
+        logger.info(f"Attempting thumbnail generation for {original_filename} (ext: {ext})")
+        
         # Determine file type and generate thumbnails
         if ext in {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}:
             # Image files - use Pillow
             if PIL_AVAILABLE:
+                logger.info(f"Generating image thumbnails for {original_filename}")
                 thumbnails = self._generate_image_thumbnails(file_path, relative_path)
+            else:
+                logger.warning("PIL not available - cannot generate image thumbnails")
         
         elif ext == '.pdf':
             # PDF files - use PyMuPDF
             if PYMUPDF_AVAILABLE:
+                logger.info(f"Generating PDF thumbnails for {original_filename}")
                 thumbnails = self._generate_pdf_thumbnails(file_path, relative_path)
+            else:
+                logger.warning("PyMuPDF not available - cannot generate PDF thumbnails")
         
         elif ext in {'.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'}:
             # Office files - would need LibreOffice or similar, skip for now
             # Could be added as Phase 3 enhancement
             logger.debug(f"Thumbnail generation for {ext} not yet implemented")
         
+        logger.info(f"Generated {len(thumbnails)} thumbnails for {original_filename}: {list(thumbnails.keys())}")
         return thumbnails
     
     def _generate_image_thumbnails(self, file_path: Path, relative_path: str) -> Dict:
@@ -501,10 +535,10 @@ class FileManager:
                         img_copy.save(thumb_path, 'JPEG', quality=self.image_quality, optimize=True)
                         
                         thumbnails[thumb_name] = thumb_relative.replace('\\', '/')
-                        logger.debug(f"Generated thumbnail: {thumb_relative}")
+                        logger.info(f"Generated thumbnail: {thumb_relative} at {thumb_path}")
                         
                     except Exception as e:
-                        logger.warning(f"Failed to generate {size_str} thumbnail for {relative_path}: {e}")
+                        logger.error(f"Failed to generate {size_str} thumbnail for {relative_path}: {e}", exc_info=True)
         
         except Exception as e:
             logger.error(f"Failed to process image {file_path}: {e}")
@@ -690,6 +724,22 @@ class FileManager:
             List of category names
         """
         return self.categories.copy()
+    
+    def get_subcategories(self) -> List[str]:
+        """Get list of configured file subcategories.
+        
+        Returns:
+            List of subcategory names
+        """
+        return self.subcategories.copy()
+    
+    def get_group_ids(self) -> List[str]:
+        """Get list of configured group IDs.
+        
+        Returns:
+            List of group IDs
+        """
+        return self.group_ids.copy()
     
     def get_tags(self) -> List[str]:
         """Get list of configured file tags.
@@ -914,6 +964,9 @@ class FileManager:
                 if thumb_path.exists():
                     thumb_relative = f".thumbs/{size_str}/{storage_path_obj.parent}/{storage_path_obj.stem}_thumb.jpg"
                     metadata[thumb_key] = thumb_relative.replace('\\', '/')
+                    logger.debug(f"Found thumbnail for {file_version.filename}: {thumb_relative}")
+                else:
+                    logger.debug(f"Thumbnail not found for {file_version.filename}: {thumb_path}")
             
             files.append(metadata)
         

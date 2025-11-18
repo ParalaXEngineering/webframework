@@ -74,7 +74,7 @@ class TestSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Threading Demo", "demo.threading_demo", endpoint="demo")
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo", endpoint="demo")
         self.add_sidebar_submenu("Workflow Demo", "demo.workflow_demo", endpoint="demo")
-        self.add_sidebar_submenu("Upload Files", "demo_files.upload_demo", endpoint="demo")
+        self.add_sidebar_submenu("FileManager demo", "demo_files.file_manager_demo", endpoint="demo")
         
         # Component Showcase - Auto-generated from DisplayerCategory
         self.add_sidebar_title("Displayer Showcase")
@@ -157,6 +157,16 @@ site_conf.site_conf_app_path = manual_webapp_root
 auth_module.auth_manager = auth_manager_instance
 
 socketio = setup_app(app)
+
+# Inject file_manager instance into demo blueprint
+try:
+    from src.pages import file_handler
+    if hasattr(file_handler, 'file_manager') and file_handler.file_manager:
+        import demo_support.demo_file_manager as demo_file_module
+        demo_file_module.file_manager = file_handler.file_manager
+        logger.info("Injected file_manager instance into demo blueprint")
+except Exception as e:
+    logger.warning(f"Could not inject file_manager into demo: {e}")
 
 # Register demo pages blueprint
 app.register_blueprint(demo_bp)

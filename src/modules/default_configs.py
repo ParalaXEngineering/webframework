@@ -168,6 +168,32 @@ FILE_STORAGE_CONFIG = {
             "persistent": True
         },
         
+        "subcategories": {
+            "type": "array",
+            "friendly": "File Subcategories",
+            "value": [
+                "2024",
+                "2025",
+                "project_a",
+                "project_b",
+                "user_files",
+                "shared"
+            ],
+            "persistent": True
+        },
+        
+        "group_ids": {
+            "type": "array",
+            "friendly": "Available Group IDs",
+            "value": [
+                "invoice_group",
+                "contract_group",
+                "photo_group",
+                "report_group"
+            ],
+            "persistent": True
+        },
+        
         "generate_thumbnails": {
             "type": "bool",
             "friendly": "Generate Thumbnails",

@@ -1,0 +1,336 @@
+{#
+    File Display Widget
+    
+    Displays a file with preview, metadata, and action buttons.
+    Two modes: full card or compact single-line.
+    
+    Args:
+        file_id: Database file ID
+        file_metadata: File metadata dict (if already fetched)
+        actions: List of action buttons ("download", "edit", "history", "delete")
+        compact: Boolean - full card (false) or compact line (true)
+        file_manager: FileManager instance
+#}
+
+{% macro filedisplay(file_id, file_metadata, actions, compact, file_manager) %}
+{% if file_metadata %}
+    {% set file = file_metadata %}
+{% elif file_id and file_manager %}
+    {% set file = file_manager.get_file_by_id(file_id) %}
+{% else %}
+    {% set file = none %}
+{% endif %}
+
+{% if file %}
+    {% if compact %}
+        {# Compact mode - single line with icon + filename + actions #}
+        <div class="file-display-compact d-flex align-items-center gap-2 p-2 border rounded">
+            {# Preview icon/thumbnail #}
+            <div class="file-preview-icon">
+                {{ _render_preview(file, "40px", file_manager) }}
+            </div>
+            
+            {# Filename #}
+            <div class="file-name flex-grow-1">
+                {% if file.filename is defined %}
+                    <strong>{{ file.filename }}</strong>
+                {% else %}
+                    <strong>{{ file.get('name', '') if file.get else file['name'] }}</strong>
+                {% endif %}
+            </div>
+            
+            {# Action buttons #}
+            <div class="file-actions d-flex gap-1">
+                {{ _render_actions(file, actions, "sm", file_manager) }}
+            </div>
+        </div>
+    {% else %}
+        {# Full mode - card with complete metadata #}
+        <div class="file-display-full card">
+            <div class="card-body">
+                <div class="row">
+                    {# Preview column #}
+                    <div class="col-md-2 text-center">
+                        {{ _render_preview(file, "150px", file_manager) }}
+                    </div>
+                    
+                    {# Metadata column #}
+                    <div class="col-md-7">
+                        <h5 class="card-title">
+                            <i class="bi bi-file-earmark"></i> 
+                            {% if file.filename is defined %}
+                                {{ file.filename }}
+                            {% else %}
+                                {{ file.get('name', '') if file.get else file['name'] }}
+                            {% endif %}
+                        </h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {% if file.file_size is defined %}
+                                    <p class="mb-1"><strong>Size:</strong> {{ _format_size(file.file_size) }}</p>
+                                {% elif file.get %}
+                                    <p class="mb-1"><strong>Size:</strong> {{ _format_size(file.get('size', 0)) }}</p>
+                                {% endif %}
+                                
+                                {% if file.mime_type is defined %}
+                                    <p class="mb-1"><strong>Type:</strong> {{ file.mime_type }}</p>
+                                {% elif file.get %}
+                                    <p class="mb-1"><strong>Type:</strong> {{ file.get('mime_type', 'Unknown') }}</p>
+                                {% endif %}
+                                
+                                {% if file.uploaded_at is defined %}
+                                    <p class="mb-1"><strong>Uploaded:</strong> {{ _format_date(file.uploaded_at) }}</p>
+                                {% elif file.get %}
+                                    <p class="mb-1"><strong>Uploaded:</strong> {{ _format_date(file.get('uploaded_at', '')) }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                {% if file.group_id is defined %}
+                                    {% set group_id = file.group_id %}
+                                {% elif file.get %}
+                                    {% set group_id = file.get('group_id', '') %}
+                                {% else %}
+                                    {% set group_id = '' %}
+                                {% endif %}
+                                <p class="mb-1"><strong>Group ID:</strong> {{ group_id if group_id else '(none)' }}</p>
+                                
+                                {% set version_info = _get_version_info(file, file_manager) %}
+                                <p class="mb-1"><strong>Version:</strong> {{ version_info }}</p>
+                                
+                                {% if file.tags is defined %}
+                                    {% set file_tags = file.tags %}
+                                {% elif file.get %}
+                                    {% set file_tags = file.get('tags', []) %}
+                                {% else %}
+                                    {% set file_tags = [] %}
+                                {% endif %}
+                                
+                                {% if file_tags %}
+                                <p class="mb-1"><strong>Tags:</strong>
+                                    {% for tag in file_tags %}
+                                        {% if tag.tag_name is defined %}
+                                            <span class="badge bg-secondary">{{ tag.tag_name }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ tag }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {# Actions column #}
+                    <div class="col-md-3 d-flex flex-column gap-2 justify-content-center">
+                        {{ _render_actions(file, actions, "md", file_manager) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> File not found (ID: {{ file_id }})
+    </div>
+{% endif %}
+{% endmacro %}
+
+
+{# Helper macro: Render preview (thumbnail or icon) #}
+{% macro _render_preview(file, size, file_manager) %}
+    {% if file.filename is defined %}
+        {% set filename = file.filename %}
+        {% set file_id = file.id %}
+    {% else %}
+        {% set filename = file.get('name', '') if file.get else file['name'] %}
+        {% set file_id = file.get('id', 0) if file.get else file['id'] %}
+    {% endif %}
+    
+    {# Check for thumbnail #}
+    {% set has_thumb = false %}
+    {% if file.thumb_150x150 is defined %}
+        {% set has_thumb = true %}
+        {% set thumb_path = file.thumb_150x150 %}
+    {% elif file.get and file.get('thumb_150x150') %}
+        {% set has_thumb = true %}
+        {% set thumb_path = file.get('thumb_150x150') %}
+    {% endif %}
+    
+    {% if has_thumb %}
+        <img src="{{ url_for('file_handler.download', filepath=thumb_path, inline='true') }}" 
+             alt="Preview" 
+             class="img-thumbnail" 
+             style="max-width: {{ size }}; max-height: {{ size }};">
+    {% else %}
+        {# Show icon based on file extension #}
+        {% set icon_class = _get_file_icon(filename) %}
+        <i class="bi {{ icon_class }}" style="font-size: 2.5rem;"></i>
+    {% endif %}
+{% endmacro %}
+
+
+{# Helper macro: Render action buttons #}
+{% macro _render_actions(file, actions, size, file_manager) %}
+    {% if file.id is defined %}
+        {% set file_id = file.id %}
+        {% set filename = file.filename %}
+        {% set group_id = file.group_id %}
+    {% else %}
+        {% set file_id = file.get('id', 0) if file.get else file['id'] %}
+        {% set filename = file.get('name', '') if file.get else file['name'] %}
+        {% set group_id = file.get('group_id', '') if file.get else file['group_id'] %}
+    {% endif %}
+    
+    {% for action in actions %}
+        {% if action == "download" %}
+            <a href="{{ url_for('file_handler.download_by_id', file_id=file_id) }}" 
+               class="btn btn-{{ size }} btn-primary" 
+               title="Download">
+                <i class="bi bi-download"></i> 
+                {% if size != "sm" %}Download{% endif %}
+            </a>
+        {% elif action == "edit" %}
+            <a href="{{ url_for('file_manager_admin.edit_file', file_id=file_id) }}" 
+               class="btn btn-{{ size }} btn-warning" 
+               title="Edit Metadata">
+                <i class="bi bi-pencil"></i> 
+                {% if size != "sm" %}Edit{% endif %}
+            </a>
+        {% elif action == "history" and group_id %}
+            <a href="{{ url_for('file_handler.get_versions', group_id=group_id, filename=filename) }}" 
+               class="btn btn-{{ size }} btn-info" 
+               title="View History">
+                <i class="bi bi-clock-history"></i> 
+                {% if size != "sm" %}History{% endif %}
+            </a>
+        {% elif action == "delete" %}
+            <button onclick="deleteFile{{ file_id }}()" 
+                    class="btn btn-{{ size }} btn-danger" 
+                    title="Delete">
+                <i class="bi bi-trash"></i> 
+                {% if size != "sm" %}Delete{% endif %}
+            </button>
+            <script>
+            function deleteFile{{ file_id }}() {
+                if (!confirm('Are you sure you want to delete {{ filename }}?')) {
+                    return;
+                }
+                fetch('/files/delete/{{ file_id }}', { method: 'DELETE' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('File deleted successfully');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.error);
+                        }
+                    })
+                    .catch(error => alert('Failed to delete file: ' + error));
+            }
+            </script>
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
+
+{# Helper macro: Get file icon based on extension #}
+{% macro _get_file_icon(filename) %}
+    {% set ext = filename.split('.')[-1].lower() if '.' in filename else '' %}
+    {% if ext in ['pdf'] %}
+        bi-file-earmark-pdf-fill text-danger
+    {% elif ext in ['doc', 'docx'] %}
+        bi-file-earmark-word-fill text-primary
+    {% elif ext in ['xls', 'xlsx'] %}
+        bi-file-earmark-excel-fill text-success
+    {% elif ext in ['ppt', 'pptx'] %}
+        bi-file-earmark-ppt-fill text-warning
+    {% elif ext in ['zip', '7z', 'rar'] %}
+        bi-file-earmark-zip-fill text-secondary
+    {% elif ext in ['txt', 'csv'] %}
+        bi-file-earmark-text
+    {% elif ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'] %}
+        bi-file-earmark-image text-info
+    {% else %}
+        bi-file-earmark
+    {% endif %}
+{% endmacro %}
+
+
+{# Helper macro: Format file size #}
+{% macro _format_size(size_bytes) %}
+    {% set size = size_bytes | int %}
+    {% if size < 1024 %}
+        {{ size }} B
+    {% elif size < 1048576 %}
+        {{ "%.1f"|format(size / 1024) }} KB
+    {% elif size < 1073741824 %}
+        {{ "%.2f"|format(size / 1048576) }} MB
+    {% else %}
+        {{ "%.2f"|format(size / 1073741824) }} GB
+    {% endif %}
+{% endmacro %}
+
+
+{# Helper macro: Format date #}
+{% macro _format_date(date_obj) %}
+    {% if date_obj %}
+        {# Convert datetime object to string if needed #}
+        {% if date_obj.strftime is defined %}
+            {{ date_obj.strftime('%Y-%m-%d %H:%M') }}
+        {% else %}
+            {# Handle string dates #}
+            {% set date_str = date_obj | string %}
+            {% if 'T' in date_str %}
+                {% set date_only = date_str.split('T')[0] %}
+                {% set time_part = date_str.split('T')[1].split('.')[0] %}
+                {{ date_only }} {{ time_part[:5] }}
+            {% else %}
+                {{ date_str }}
+            {% endif %}
+        {% endif %}
+    {% else %}
+        Unknown
+    {% endif %}
+{% endmacro %}
+
+
+{# Helper macro: Get version info #}
+{% macro _get_version_info(file, file_manager) %}
+    {% if file.group_id is defined %}
+        {% set group_id = file.group_id %}
+    {% elif file.get %}
+        {% set group_id = file.get('group_id', '') %}
+    {% else %}
+        {% set group_id = '' %}
+    {% endif %}
+    
+    {% if file.filename is defined %}
+        {% set filename = file.filename %}
+    {% elif file.get %}
+        {% set filename = file.get('name', '') %}
+    {% else %}
+        {% set filename = '' %}
+    {% endif %}
+    
+    {% if file.id is defined %}
+        {% set file_id = file.id %}
+    {% elif file.get %}
+        {% set file_id = file.get('id', 0) %}
+    {% else %}
+        {% set file_id = 0 %}
+    {% endif %}
+    
+    {% if group_id %}
+        {% set versions = file_manager.get_file_versions(group_id, filename) %}
+        {% set current_idx = 0 %}
+        {% for ver in versions | reverse %}
+            {% if ver['id'] == file_id %}
+                {% set current_idx = loop.index %}
+            {% endif %}
+        {% endfor %}
+        v{{ current_idx }}/{{ versions | length }}
+    {% else %}
+        v1/1
+    {% endif %}
+{% endmacro %}

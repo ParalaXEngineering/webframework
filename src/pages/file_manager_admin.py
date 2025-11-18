@@ -403,10 +403,10 @@ def _format_date(iso_date_str: str) -> str:
         return iso_date_str
 
 
-@bp.route("/upload_form", methods=["GET"])
+@bp.route("/upload_form", methods=["GET", "POST"])
 @require_file_manager_permission
 def upload_form():
-    """Display file upload form."""
+    """Display file upload form and handle uploads."""
     displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
     
     disp = displayer.Displayer()
@@ -416,146 +416,164 @@ def upload_form():
     disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
     disp.add_breadcrumb("Upload", "file_manager_admin.upload_form", [])
     
-    # Get available categories
-    categories = file_manager.get_categories() if file_manager else ["general"]
-    
-    # Build category options HTML
-    category_options = ""
-    for cat in categories:
-        selected = 'selected' if cat == 'general' else ''
-        category_options += f'<option value="{cat}" {selected}>{cat.title()}</option>\n'
-    
-    # Upload form
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="Upload New Files"))
-    
-    upload_form_html = f"""
-    <form id="uploadForm" enctype="multipart/form-data" class="needs-validation" novalidate>
-        <div class="mb-3">
-            <label for="fileInput" class="form-label">Select File(s)</label>
-            <input type="file" class="form-control" id="fileInput" name="file" required multiple>
-            <div class="form-text">Maximum file size: 50 MB. Allowed types: PDF, Images, Office documents, Archives.</div>
-        </div>
-        
-        <div class="mb-3">
-            <label for="categoryInput" class="form-label">Category</label>
-            <select class="form-select" id="categoryInput" name="category" required>
-                {category_options}
-            </select>
-            <div class="form-text">Choose a category to organize your files</div>
-        </div>
-        
-        <div class="mb-3">
-            <label for="subcategoryInput" class="form-label">Subcategory (Optional)</label>
-            <input type="text" class="form-control" id="subcategoryInput" name="subcategory" 
-                   placeholder="e.g., 2025, user123">
-            <div class="form-text">Further organize files within category (e.g., year, project name, user ID)</div>
-        </div>
-        
-        <div class="mb-3">
-            <div class="progress" style="display:none;" id="uploadProgress">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                     role="progressbar" style="width: 0%"></div>
-            </div>
-        </div>
-        
-        <button type="submit" class="btn btn-primary" id="uploadBtn">
-            <i class="bi bi-upload"></i> Upload Files
-        </button>
-        <a href="{url_for('file_manager_admin.index')}" class="btn btn-secondary">
-            <i class="bi bi-x-circle"></i> Cancel
-        </a>
-    </form>
-    
-    <div id="uploadResults" class="mt-3"></div>
-    
-    <script>
-    document.getElementById('uploadForm').addEventListener('submit', async function(e) {{
-        e.preventDefault();
-        
-        const formData = new FormData();
-        const fileInput = document.getElementById('fileInput');
-        const category = document.getElementById('categoryInput').value;
-        const subcategory = document.getElementById('subcategoryInput').value;
-        const resultsDiv = document.getElementById('uploadResults');
-        const progressBar = document.getElementById('uploadProgress');
-        const uploadBtn = document.getElementById('uploadBtn');
-        
-        resultsDiv.innerHTML = '';
-        uploadBtn.disabled = true;
-        
-        // Upload each file separately
-        const files = fileInput.files;
-        let successCount = 0;
-        let errorCount = 0;
-        
-        for (let i = 0; i < files.length; i++) {{
-            const file = files[i];
-            const fileData = new FormData();
-            fileData.append('file', file);
-            fileData.append('category', category);
-            fileData.append('subcategory', subcategory);
+    # Handle POST (form submission)
+    if request.method == "POST":
+        try:
+            from ..modules import utilities
             
-            try {{
-                progressBar.style.display = 'block';
-                progressBar.querySelector('.progress-bar').style.width = ((i / files.length) * 100) + '%';
-                
-                const response = await fetch('/files/upload', {{
-                    method: 'POST',
-                    body: fileData
-                }});
-                
-                const data = await response.json();
-                
-                if (data.success) {{
-                    successCount++;
-                    resultsDiv.innerHTML += `
-                        <div class="alert alert-success alert-dismissible fade show">
-                            <i class="bi bi-check-circle"></i> Uploaded: ${{file.name}}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    `;
-                }} else {{
-                    errorCount++;
-                    resultsDiv.innerHTML += `
-                        <div class="alert alert-danger alert-dismissible fade show">
-                            <i class="bi bi-x-circle"></i> Failed: ${{file.name}} - ${{data.error}}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    `;
-                }}
-            }} catch (error) {{
-                errorCount++;
-                resultsDiv.innerHTML += `
-                    <div class="alert alert-danger alert-dismissible fade show">
-                        <i class="bi bi-x-circle"></i> Error: ${{file.name}} - ${{error.message}}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                `;
-            }}
-        }}
-        
-        progressBar.querySelector('.progress-bar').style.width = '100%';
-        
-        // Show summary
-        if (successCount > 0 || errorCount > 0) {{
-            resultsDiv.innerHTML = `
-                <div class="alert alert-info">
-                    <strong>Upload Complete:</strong> ${{successCount}} succeeded, ${{errorCount}} failed
-                </div>
-            ` + resultsDiv.innerHTML;
-        }}
-        
-        uploadBtn.disabled = false;
-        if (successCount > 0) {{
-            setTimeout(() => window.location.href = '{url_for('file_manager_admin.index')}', 2000);
-        }}
-    }});
-    </script>
+            # Check if file was uploaded
+            if 'file' not in request.files:
+                raise ValueError("No file selected")
+            
+            uploaded_file = request.files['file']
+            
+            # Get form data
+            data_in = utilities.util_post_to_json(request.form.to_dict())
+            form_data = data_in.get("Upload Files", {})
+            
+            category = form_data.get("category", "general")
+            subcategory = form_data.get("subcategory", "")
+            group_id = form_data.get("group_id", "")
+            
+            # Handle "(none)" values from dropdowns
+            if subcategory == "(none)":
+                subcategory = ""
+            if group_id == "(none)":
+                group_id = ""
+            
+            # Handle tags (can be list from multi-select or empty)
+            tags_input = form_data.get("tags", [])
+            if isinstance(tags_input, list):
+                tags = tags_input
+            elif isinstance(tags_input, str) and tags_input:
+                tags = [tags_input]
+            else:
+                tags = []
+            
+            # Upload file using file manager
+            result = file_manager.upload_file(
+                uploaded_file,
+                category=category,
+                subcategory=subcategory,
+                group_id=group_id,
+                tags=tags
+            )
+            
+            # Show success message
+            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+            
+            success_html = f"""
+            <div class="alert alert-success">
+                <h5><i class="bi bi-check-circle"></i> File Uploaded Successfully!</h5>
+                <hr>
+                <p><strong>Filename:</strong> {result['name']}</p>
+                <p><strong>Size:</strong> {_format_file_size(result['size'])}</p>
+                <p><strong>Category:</strong> {category}</p>
+                {f"<p><strong>Subcategory:</strong> {subcategory}</p>" if subcategory else ""}
+                {f"<p><strong>Group ID:</strong> {group_id}</p>" if group_id else ""}
+                {f"<p><strong>Tags:</strong> {', '.join(tags)}</p>" if tags else ""}
+                <hr>
+                <p>Redirecting to file manager...</p>
+            </div>
+            <script>
+                setTimeout(function() {{
+                    window.location.href = '{url_for('file_manager_admin.index')}';
+                }}, 2000);
+            </script>
+            """
+            
+            disp.add_display_item(displayer.DisplayerItemAlert(success_html, BSstyle.SUCCESS), column=0)
+            
+            return render_template("base_content.j2", content=disp.display())
+            
+        except Exception as e:
+            logger.error(f"Upload error: {e}", exc_info=True)
+            
+            # Show error and fall through to display form again
+            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+            disp.add_display_item(displayer.DisplayerItemAlert(
+                f"<h4><i class='bi bi-x-circle'></i> Upload Failed</h4><p>{str(e)}</p>",
+                BSstyle.ERROR
+            ), column=0)
+    
+    # Display upload form (GET request or after error)
+    
+    # Get available options from file manager
+    categories = file_manager.get_categories() if file_manager else ["general"]
+    subcategories = file_manager.get_subcategories() if file_manager else []
+    group_ids = file_manager.get_group_ids() if file_manager else []
+    tags = file_manager.get_tags() if file_manager else []
+    
+    # Form layout
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="Upload New File"))
+    
+    # File input (using HTML since Displayer doesn't have file input)
+    file_input_html = """
+    <div class="mb-3">
+        <label for="file" class="form-label">Select File</label>
+        <input type="file" class="form-control" id="file" name="file" required>
+        <div class="form-text">Maximum file size: 50 MB. Allowed types: PDF, Images, Office documents, Archives.</div>
+    </div>
     """
+    disp.add_display_item(displayer.DisplayerItemAlert(file_input_html, BSstyle.NONE), column=0)
     
-    disp.add_display_item(displayer.DisplayerItemAlert(upload_form_html, BSstyle.NONE), column=0)
+    # Category dropdown
+    disp.add_display_item(displayer.DisplayerItemInputSelect(
+        id="category",
+        text="Category",
+        choices=categories,
+        value="general"
+    ), column=0)
     
-    return render_template("base_content.j2", content=disp.display())
+    # Subcategory dropdown (optional)
+    if subcategories:
+        subcategory_choices = ["(none)"] + subcategories
+        disp.add_display_item(displayer.DisplayerItemInputSelect(
+            id="subcategory",
+            text="Subcategory (Optional)",
+            choices=subcategory_choices,
+            value="(none)"
+        ), column=0)
+    
+    # Group ID dropdown (optional)
+    if group_ids:
+        group_id_choices = ["(none)"] + group_ids
+        disp.add_display_item(displayer.DisplayerItemInputSelect(
+            id="group_id",
+            text="Group ID (Optional)",
+            choices=group_id_choices,
+            value="(none)"
+        ), column=0)
+    
+    # Tags multi-select
+    disp.add_display_item(displayer.DisplayerItemInputMultiSelect(
+        id="tags",
+        text="Tags (Optional)",
+        choices=tags,
+        value=[]
+    ), column=0)
+    
+    # Buttons
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        id="upload_btn",
+        text="Upload File",
+        icon="upload",
+        color=BSstyle.PRIMARY
+    ), column=0)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        id="cancel_btn",
+        text="Cancel",
+        icon="close-circle",
+        link=url_for('file_manager_admin.index'),
+        color=BSstyle.SECONDARY
+    ), column=1)
+    
+    # Form should post back to this same URL
+    form_action = url_for('file_manager_admin.upload_form')
+    return render_template("base_content.j2", content=disp.display(), form_action=form_action)
 
 
 @bp.route("/edit/<int:file_id>", methods=["GET", "POST"])
