@@ -6,7 +6,6 @@ This module provides HTTP endpoints for secure file management operations.
 
 from flask import Blueprint, request, send_file, jsonify, session, abort, url_for, render_template
 from werkzeug.exceptions import RequestEntityTooLarge
-from pathlib import Path
 import logging
 
 logger = logging.getLogger(__name__)
@@ -135,14 +134,22 @@ def download(filepath):
         abort(403, "Permission denied")
     
     try:
-        # Get file from hashfs
-        file_path = file_manager.storage.get(filepath)
+        # Check if this is a thumbnail request
+        is_thumbnail = '.thumbs' in filepath or request.args.get('inline') == 'true'
+        
+        if '.thumbs' in filepath:
+            # Thumbnail files are stored outside HashFS in .thumbs directory
+            thumb_path = file_manager.hashfs_path.parent / filepath
+            if not thumb_path.exists():
+                logger.warning(f"Thumbnail not found: {thumb_path}")
+                abort(404, "Thumbnail not found")
+            file_path = thumb_path
+        else:
+            # Regular files from HashFS
+            file_path = file_manager.storage.get(filepath)
         
         # Get MIME type
         mime_type = file_manager.get_mime_type(filepath)
-        
-        # Check if this is a thumbnail request (in-browser display)
-        is_thumbnail = '.thumbs' in filepath or request.args.get('inline') == 'true'
         
         logger.info(f"File download by {session.get('user', 'GUEST')}: {filepath}")
         
@@ -348,7 +355,7 @@ def get_versions(group_id, filename):
         if versions:
             disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
-                ["Version", "Status", "Size", "Checksum", "Uploaded", "Uploaded By", "Actions"],
+                ["Preview", "Version", "Status", "Size", "Checksum", "Uploaded", "Uploaded By", "Actions"],
                 subtitle="All Versions"
             ))
             
@@ -356,11 +363,34 @@ def get_versions(group_id, filename):
             sorted_versions = sorted(versions, key=lambda v: v['uploaded_at'], reverse=True)
             
             for idx, version in enumerate(sorted_versions):
+                # Preview
+                file_meta = {
+                    'name': version['filename'],
+                    'id': version['id'],
+                    'path': version.get('storage_path', '')
+                }
+                # Check for thumbnails
+                thumb_base = file_manager.hashfs_path.parent / ".thumbs"
+                for size_str in ["150x150"]:
+                    from pathlib import Path as PathLib
+                    storage_path_obj = PathLib(version.get('storage_path', ''))
+                    thumb_path = thumb_base / size_str / storage_path_obj.parent / f"{storage_path_obj.stem}_thumb.jpg"
+                    if thumb_path.exists():
+                        thumb_relative = f".thumbs/{size_str}/{storage_path_obj.parent}/{storage_path_obj.stem}_thumb.jpg"
+                        file_meta[f'thumb_{size_str}'] = thumb_relative.replace('\\', '/')
+                        break
+                
+                # Import helper function
+                from ..pages.file_manager_admin import _generate_preview_html
+                preview_html = _generate_preview_html(file_meta, size="50px")
+                disp.add_display_item(displayer.DisplayerItemAlert(preview_html, BSstyle.NONE), 
+                                    column=0, line=idx)
+                
                 # Version number (count from oldest)
                 version_num = len(versions) - sorted_versions.index(version)
                 version_badge = f"<span class='badge bg-primary'>v{version_num}</span>"
                 disp.add_display_item(displayer.DisplayerItemAlert(version_badge, BSstyle.NONE), 
-                                    column=0, line=idx)
+                                    column=1, line=idx)
                 
                 # Status (current or archived)
                 if version.get('is_current'):
@@ -368,10 +398,10 @@ def get_versions(group_id, filename):
                 else:
                     status_html = "<span class='badge bg-secondary'>Archived</span>"
                 disp.add_display_item(displayer.DisplayerItemAlert(status_html, BSstyle.NONE), 
-                                    column=1, line=idx)
+                                    column=2, line=idx)
                 
                 # Size
-                size_bytes = version.get('size', 0)
+                size_bytes = version.get('file_size', 0)
                 if size_bytes < 1024:
                     size_str = f"{size_bytes} B"
                 elif size_bytes < 1024 * 1024:
@@ -379,23 +409,23 @@ def get_versions(group_id, filename):
                 else:
                     size_str = f"{size_bytes / (1024 * 1024):.2f} MB"
                 disp.add_display_item(displayer.DisplayerItemText(size_str), 
-                                    column=2, line=idx)
+                                    column=3, line=idx)
                 
                 # Checksum (truncated)
                 checksum = version.get('checksum', 'N/A')
                 checksum_short = checksum[:8] + "..." if len(checksum) > 8 else checksum
                 disp.add_display_item(displayer.DisplayerItemText(checksum_short), 
-                                    column=3, line=idx)
+                                    column=4, line=idx)
                 
                 # Uploaded date
                 upload_date = version.get('uploaded_at', '')[:16].replace('T', ' ')
                 disp.add_display_item(displayer.DisplayerItemText(upload_date), 
-                                    column=4, line=idx)
+                                    column=5, line=idx)
                 
                 # Uploaded by
                 uploaded_by = version.get('uploaded_by', 'Unknown')
                 disp.add_display_item(displayer.DisplayerItemText(uploaded_by), 
-                                    column=5, line=idx)
+                                    column=6, line=idx)
                 
                 # Actions
                 file_id = version.get('id')
@@ -420,7 +450,7 @@ def get_versions(group_id, filename):
                 actions_html += f'<div id="status-{idx}" class="mt-1"></div>'
                 
                 disp.add_display_item(displayer.DisplayerItemAlert(actions_html, BSstyle.NONE), 
-                                    column=6, line=idx)
+                                    column=7, line=idx)
             
             # Add restore script
             restore_script = """
@@ -454,15 +484,6 @@ def get_versions(group_id, filename):
             """
             disp.add_display_item(displayer.DisplayerItemText(restore_script), column=0)
         
-        # Back button
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-        disp.add_display_item(displayer.DisplayerItemButton(
-            "back_btn", "Back to File Manager",
-            icon="arrow-left",
-            link=url_for('file_manager_admin.index'),
-            color=BSstyle.SECONDARY
-        ), column=0)
-        
         return render_template("base_content.j2", content=disp.display())
         
     except Exception as e:
@@ -489,6 +510,9 @@ def restore_version():
         return jsonify({"error": "Permission denied"}), 403
     
     try:
+        if not request.json:
+            return jsonify({"error": "No JSON data provided"}), 400
+            
         target_version_id = request.json.get('target_version_id')
         
         if not target_version_id:
@@ -496,7 +520,6 @@ def restore_version():
         
         # Get target version to find group_id and filename
         from ..modules.file_manager import FileVersion
-        from sqlalchemy.orm import Session
         
         session_db = file_manager.db_session
         target_version = session_db.query(FileVersion).filter_by(id=target_version_id).first()
@@ -556,6 +579,9 @@ def update_group_id():
         return jsonify({"error": "Permission denied"}), 403
     
     try:
+        if not request.json:
+            return jsonify({"error": "No JSON data provided"}), 400
+            
         file_id = request.json.get('file_id')
         new_group_id = request.json.get('new_group_id', '')
         

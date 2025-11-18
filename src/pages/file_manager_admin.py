@@ -309,11 +309,12 @@ def index():
         return render_template("base_content.j2", content=disp.display())
 
 
-def _generate_preview_html(file_meta: dict) -> str:
+def _generate_preview_html(file_meta: dict, size: str = "60px") -> str:
     """Generate preview HTML for a file (thumbnail or icon).
     
     Args:
         file_meta: File metadata dictionary
+        size: Preview size (default "60px")
         
     Returns:
         HTML string for preview
@@ -321,15 +322,16 @@ def _generate_preview_html(file_meta: dict) -> str:
     # Check if thumbnail exists
     if 'thumb_150x150' in file_meta:
         thumb_path = file_meta['thumb_150x150']
-        return f"""
-        <img src="{url_for('file_handler.download', filepath=thumb_path, inline='true')}" 
-             alt="Preview" class="img-thumbnail" style="max-width: 60px; max-height: 60px;">
-        """
+        try:
+            thumb_url = url_for('file_handler.download', filepath=thumb_path, inline='true')
+            return f'<img src="{thumb_url}" alt="Preview" class="img-thumbnail" style="max-width: {size}; max-height: {size};">'
+        except Exception:
+            # Fall back to icon if url_for fails
+            pass
     
-    # Otherwise show file type icon
+    # No thumbnail - show file type icon
     ext = Path(file_meta['name']).suffix.lower()
     icon_class = _get_file_icon(ext)
-    
     return f'<i class="bi {icon_class}" style="font-size: 2rem;"></i>'
 
 
@@ -596,10 +598,17 @@ def edit_file(file_id):
             form_data = data_in.get("Edit File Metadata", {})
             
             new_group_id = form_data.get("group_id", "").strip()
-            tags_str = form_data.get("tags", "").strip()
+            if new_group_id == "(none)":
+                new_group_id = ""
             
-            # Parse tags
-            new_tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else []
+            # Handle tags (can be list from multi-select or string)
+            tags_input = form_data.get("tags", [])
+            if isinstance(tags_input, list):
+                new_tags = tags_input
+            elif isinstance(tags_input, str):
+                new_tags = [tag.strip() for tag in tags_input.split(',') if tag.strip()] if tags_input else []
+            else:
+                new_tags = []
             
             # Update group_id
             if new_group_id != (file_version.group_id or ""):
@@ -660,7 +669,6 @@ def edit_file(file_id):
     
     # Display edit form (GET request or after error)
     current_tags = [tag.tag_name for tag in file_version.tags]
-    tags_str = ', '.join(current_tags)
     
     # File info section
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="File Information"))
@@ -674,18 +682,39 @@ def edit_file(file_id):
         except Exception:
             version_num = 1
     
+    # Generate preview
+    file_meta = {
+        'name': file_version.filename,
+        'id': file_id,
+        'path': file_version.storage_path
+    }
+    # Add thumbnail if exists
+    thumb_base = file_manager.hashfs_path.parent / ".thumbs"
+    for size_str in ["150x150"]:
+        storage_path_obj = Path(file_version.storage_path)
+        thumb_path = thumb_base / size_str / storage_path_obj.parent / f"{storage_path_obj.stem}_thumb.jpg"
+        if thumb_path.exists():
+            thumb_relative = f".thumbs/{size_str}/{storage_path_obj.parent}/{storage_path_obj.stem}_thumb.jpg"
+            file_meta[f'thumb_{size_str}'] = thumb_relative.replace('\\', '/')
+            break
+    
+    preview_html = _generate_preview_html(file_meta, size="150px")
+    
     info_html = f"""
     <div class="card">
         <div class="card-body">
             <h5 class="card-title"><i class="bi bi-file-earmark"></i> {file_version.filename}</h5>
             <hr>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-2 text-center">
+                    {preview_html}
+                </div>
+                <div class="col-md-5">
                     <p><strong>Size:</strong> {_format_file_size(file_version.file_size)}</p>
                     <p><strong>Type:</strong> {file_version.mime_type}</p>
                     <p><strong>Uploaded:</strong> {_format_date(file_version.uploaded_at.isoformat())}</p>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <p><strong>Group ID:</strong> {file_version.group_id or '(none)'}</p>
                     <p><strong>Version:</strong> v{version_num}</p>
                     <p><strong>Checksum:</strong> {file_version.checksum[:16] if file_version.checksum else 'N/A'}...</p>
@@ -700,28 +729,39 @@ def edit_file(file_id):
     # Edit form
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="Edit Metadata"))
     
-    # Group ID input with explanatory text above
+    # Get all existing group IDs from database
+    from ..modules.file_manager import FileGroup
+    existing_groups = file_manager.db_session.query(FileGroup).all()
+    group_choices = ["(none)"] + [g.group_id for g in existing_groups]
+    
+    # Group ID dropdown with explanatory text above
     disp.add_display_item(displayer.DisplayerItemAlert(
-        "<small class='text-muted'>Group ID for versioning. Files with the same group_id and filename are treated as versions of the same file. Leave empty for standalone file.</small>",
+        "<small class='text-muted'>Group ID for versioning. Files with the same group_id and filename are treated as versions of the same file.</small>",
         BSstyle.NONE
     ), column=0)
     
-    disp.add_display_item(displayer.DisplayerItemInputString(
+    current_group = file_version.group_id if file_version.group_id else "(none)"
+    disp.add_display_item(displayer.DisplayerItemInputSelect(
         id="group_id",
         text="Group ID",
-        value=file_version.group_id or ""
+        choices=group_choices,
+        value=current_group
     ), column=0)
     
-    # Tags input with explanatory text above
+    # Get configured tags
+    available_tags = file_manager.get_tags()
+    
+    # Tags multi-select with explanatory text above
     disp.add_display_item(displayer.DisplayerItemAlert(
-        "<small class='text-muted'>Organize files with custom tags. Separate multiple tags with commas.</small>",
+        "<small class='text-muted'>Organize files with tags for easy searching and filtering.</small>",
         BSstyle.NONE
     ), column=0)
     
-    disp.add_display_item(displayer.DisplayerItemInputString(
+    disp.add_display_item(displayer.DisplayerItemInputMultiSelect(
         id="tags",
-        text="Tags (comma-separated)",
-        value=tags_str
+        text="Tags",
+        choices=available_tags,
+        value=current_tags
     ), column=0)
     
     # Buttons

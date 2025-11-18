@@ -53,10 +53,17 @@ def upload_demo():
                     data_in = utilities.util_post_to_json(request.form.to_dict())
                     upload_category = data_in.get("Upload Demo", {}).get("category", "demo")
                     group_id = data_in.get("Upload Demo", {}).get("group_id", "")
-                    tags_str = data_in.get("Upload Demo", {}).get("tags", "")
+                    if group_id == "(none)":
+                        group_id = ""
                     
-                    # Parse tags
-                    tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else None
+                    # Handle tags (can be list from multi-select or string)
+                    tags_input = data_in.get("Upload Demo", {}).get("tags", [])
+                    if isinstance(tags_input, list):
+                        tags = tags_input if tags_input else None
+                    elif isinstance(tags_input, str):
+                        tags = [tag.strip() for tag in tags_input.split(',') if tag.strip()] if tags_input else None
+                    else:
+                        tags = None
                     
                     # Upload file with new parameters
                     metadata = file_mgr.upload_file(
@@ -152,18 +159,25 @@ def upload_demo():
         value="demo"
     ), column=0)
     
-    # Group ID input
-    disp.add_display_item(displayer.DisplayerItemInputString(
+    # Group ID dropdown with existing groups
+    from src.modules.file_manager import FileGroup
+    existing_groups = file_mgr.db_session.query(FileGroup).all()
+    group_choices = ["(none)", "demo_group"] + [g.group_id for g in existing_groups if g.group_id not in ["demo_group"]]
+    
+    disp.add_display_item(displayer.DisplayerItemInputSelect(
         id="group_id",
-        text="Group ID (optional - for versioning)",
+        text="Group ID (for versioning)",
+        choices=group_choices,
         value="demo_group"
     ), column=0)
     
-    # Tags input
-    disp.add_display_item(displayer.DisplayerItemInputString(
+    # Tags multi-select
+    available_tags = file_mgr.get_tags()
+    disp.add_display_item(displayer.DisplayerItemInputMultiSelect(
         id="tags",
-        text="Tags (comma-separated, optional)",
-        value=""
+        text="Tags (optional)",
+        choices=available_tags,
+        value=[]
     ), column=0)
     
     disp.add_display_item(displayer.DisplayerItemInputFile(
