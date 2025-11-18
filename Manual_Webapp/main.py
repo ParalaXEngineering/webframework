@@ -70,11 +70,11 @@ class TestSiteConf(site_conf.Site_conf):
         # Configure sidebar with demo pages
         self.add_sidebar_title("Demo Pages")
         self.add_sidebar_section("Demos", "test-tube", "demo")
-        self.add_sidebar_submenu("Demo Index", "demo.index", endpoint="demo")
         self.add_sidebar_submenu("Simple Form", "demo.simple_form_demo", endpoint="demo")
         self.add_sidebar_submenu("Threading Demo", "demo.threading_demo", endpoint="demo")
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo", endpoint="demo")
         self.add_sidebar_submenu("Workflow Demo", "demo.workflow_demo", endpoint="demo")
+        self.add_sidebar_submenu("Upload Files", "demo_files.upload_demo", endpoint="demo")
         
         # Component Showcase - Auto-generated from DisplayerCategory
         self.add_sidebar_title("Displayer Showcase")
@@ -106,11 +106,6 @@ class TestSiteConf(site_conf.Site_conf):
                 parameter=f"layout={layout_key}",
                 endpoint="layout_main"
             )
-        
-        # File Manager Demo
-        self.add_sidebar_section("File Manager", "folder", "file_demo")
-        self.add_sidebar_submenu("Upload Files", "demo_files.upload_demo", endpoint="file_demo")
-        self.add_sidebar_submenu("Admin", "demo_files.admin_demo", endpoint="file_demo")
         
         # Authorization demos
         self.add_sidebar_section("Authorization Demos", "shield-check", "auth")

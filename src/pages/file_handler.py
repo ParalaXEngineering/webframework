@@ -292,22 +292,38 @@ def download_by_id(file_id):
     if not _require_permission("FileManager", "download"):
         abort(403, "Permission denied")
     
+    # Get file from database
+    file_version = file_manager.get_file_by_id(file_id)
+    
+    if not file_version:
+        abort(404, "File not found")
+    
+    logger.info(f"Download request for file_id={file_id}: {file_version.filename}, storage_path={file_version.storage_path}")
+    
     try:
-        # Get file from database
-        file_version = file_manager.get_file_by_id(file_id)
+        # Try hashfs storage first, fallback to traditional filesystem
+        file_path = None
         
-        if not file_version:
-            abort(404, "File not found")
-        
-        # Get actual file path
         if file_manager.use_hashfs and file_manager.storage:
-            file_path = file_manager.storage.get(file_version.storage_path)
-        else:
-            file_path = file_manager.base_path / file_version.storage_path
+            try:
+                file_path = file_manager.storage.get(file_version.storage_path)
+                logger.info(f"HashFS returned path: {file_path}")
+            except (OSError, FileNotFoundError) as e:
+                logger.warning(f"File not in hashfs ({e}), trying traditional path: {file_version.storage_path}")
+        
+        # Fallback to traditional filesystem if hashfs failed or not enabled
+        if not file_path or not file_path.exists():
+            # For traditional filesystem, storage_path is relative to base_path
+            # e.g., storage_path="documents/uploads/file.xlsx" -> resources/uploads/documents/uploads/file.xlsx
+            fallback_path = file_manager.base_path / file_version.storage_path
+            logger.info(f"Trying traditional path: {fallback_path}")
+            file_path = fallback_path
         
         # Check if file exists
         if not file_path.exists():
-            abort(404, "File not found on disk")
+            logger.error(f"File not found on disk: {file_path} (storage_path in DB: {file_version.storage_path})")
+            logger.error(f"This is likely an orphaned database record. The file may have been deleted or never uploaded properly.")
+            abort(404, f"File '{file_version.filename}' not found on disk (orphaned database record)")
         
         logger.info(f"File download by {session.get('user', 'GUEST')}: {file_version.filename} (ID: {file_id})")
         
@@ -321,7 +337,7 @@ def download_by_id(file_id):
         
     except Exception as e:
         logger.error(f"Download by ID error for {file_id}: {e}", exc_info=True)
-        abort(500, "Internal server error")
+        raise
 
 
 @bp.route("/versions/<group_id>/<filename>", methods=["GET"])

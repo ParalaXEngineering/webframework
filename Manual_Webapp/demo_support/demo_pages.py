@@ -21,57 +21,6 @@ def require_login(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
-@demo_bp.route('/index')
-@require_login
-def index():
-    """Main index page - demo landing page."""
-    disp = displayer.Displayer()
-    disp.add_generic("Demo Landing")
-    disp.set_title("ParalaX Framework Demos")
-       
-    table_id = disp.add_master_layout(
-        displayer.DisplayerLayout(displayer.Layouts.TABLE,
-                                 columns=["Demo", "Category", "Description"], subtitle="Available Demos")
-    )
-    
-    demos = [
-        ("Simple Form", "Basics", "Basic form handling with text input", "demo.simple_form_demo", "success"),
-        ("File Manager", "New!", "Secure file upload, thumbnails, and gallery display", "demo_files.file_manager_demo", "success"),
-        ("Threading System", "Core System", "Background task execution with real-time monitoring", "demo.threading_demo", "primary"),
-        ("Scheduler & Actions", "Core System", "Real-time UI updates, button control, and alert system", "demo.scheduler_demo", "primary"),
-        ("Workflow System", "New!", "Multi-step wizards with state persistence and conditional steps", "demo.workflow_demo", "success"),
-        ("Component Showcase", "UI Components", "All available displayer items and layouts", "showcase.index", "info"),
-        ("Authentication System", "Security", "Role-based access control and permissions", "demo.auth_accessible", "warning"),
-    ]
-    
-    for line, (name, category, description, endpoint, badge_color) in enumerate(demos):
-        # Demo name as link
-        disp.add_display_item(
-            displayer.DisplayerItemButton(
-                f"btn_{line}", name,
-                link=url_for(endpoint), 
-                color=displayer.BSstyle.SECONDARY
-            ),
-            column=0, line=line, layout_id=table_id
-        )
-        
-        # Category badge
-        badge_style = getattr(displayer.BSstyle, badge_color.upper())
-        disp.add_display_item(
-            displayer.DisplayerItemBadge(category, badge_style),
-            column=1, line=line, layout_id=table_id
-        )
-        
-        # Description
-        disp.add_display_item(
-            displayer.DisplayerItemText(description),
-            column=2, line=line, layout_id=table_id
-        )
-    
-    return render_template("base_content.j2", content=disp.display(), target="demo.index")
-
-
 @demo_bp.route('/simple-form-demo', methods=['GET', 'POST'])
 @require_login
 def simple_form_demo():

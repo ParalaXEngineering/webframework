@@ -159,16 +159,9 @@ def index():
                 disp.add_display_item(displayer.DisplayerItemText(file_meta['name']), 
                                     column=1, line=idx, layout_id=table_layout_id)
                 
-                # Group ID (editable)
+                # Group ID (read-only display)
                 group_id_val = file_meta.get('group_id', '') or '(none)'
-                group_id_html = f"""
-                <span id="group-display-{idx}">{group_id_val}</span>
-                <a href="javascript:editGroupId({idx}, '{file_meta.get('id', 0)}', '{group_id_val}')" 
-                   class="ms-2" title="Edit Group ID">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
-                """
-                disp.add_display_item(displayer.DisplayerItemAlert(group_id_html, displayer.BSstyle.NONE), 
+                disp.add_display_item(displayer.DisplayerItemText(group_id_val), 
                                     column=2, line=idx, layout_id=table_layout_id)
                 
                 # Tags
@@ -199,34 +192,54 @@ def index():
                 disp.add_display_item(displayer.DisplayerItemText(upload_date), 
                                     column=6, line=idx, layout_id=table_layout_id)
                 
-                # Actions (download, history, delete buttons)
-                download_url = url_for('file_handler.download_by_id', file_id=file_meta.get('id', 0))
+                # Actions (download, edit, history, delete buttons)
+                actions = []
                 
-                actions_html = f"""
-                <a href="{download_url}" class="btn btn-sm btn-primary" title="Download">
-                    <i class="bi bi-download"></i>
-                </a>
-                """
+                # Download
+                actions.append({
+                    "type": "download",
+                    "url": url_for('file_handler.download_by_id', file_id=file_meta.get('id', 0)),
+                    "icon": "bi bi-download",
+                    "style": "primary",
+                    "tooltip": "Download"
+                })
                 
-                # Add history button if file has group_id
+                # Edit
+                actions.append({
+                    "type": "custom",
+                    "url": url_for('file_manager_admin.edit_file', file_id=file_meta.get('id', 0)),
+                    "icon": "bi bi-pencil",
+                    "style": "warning",
+                    "tooltip": "Edit Metadata"
+                })
+                
+                # History (if versioned)
                 if file_meta.get('group_id'):
-                    history_url = url_for('file_handler.get_versions', group_id=file_meta['group_id'], filename=file_meta['name'])
-                    actions_html += f"""
-                    <a href="{history_url}" class="btn btn-sm btn-info" title="View History">
-                        <i class="bi bi-clock-history"></i>
-                    </a>
-                    """
+                    actions.append({
+                        "type": "custom",
+                        "url": url_for('file_handler.get_versions', group_id=file_meta['group_id'], filename=file_meta['name']),
+                        "icon": "bi bi-clock-history",
+                        "style": "info",
+                        "tooltip": "View History"
+                    })
                 
-                actions_html += f"""
-                <button class="btn btn-sm btn-danger" 
-                        onclick="deleteFile('{file_meta['path']}')" title="Delete">
-                    <i class="bi bi-trash"></i>
-                </button>
-                <div id="status-{idx}" class="mt-1"></div>
-                """
+                # Delete
+                actions.append({
+                    "type": "delete",
+                    "url": f"javascript:deleteFile('{file_meta['path']}')",
+                    "icon": "bi bi-trash",
+                    "style": "danger",
+                    "tooltip": "Delete"
+                })
                 
-                disp.add_display_item(displayer.DisplayerItemAlert(actions_html, displayer.BSstyle.NONE), 
-                                    column=7, line=idx, layout_id=table_layout_id)
+                disp.add_display_item(
+                    displayer.DisplayerItemActionButtons(
+                        id=f"file_actions_{idx}",
+                        actions=actions,
+                        size="sm"
+                    ),
+                    column=7, line=idx, layout_id=table_layout_id
+                )
         else:
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
             disp.add_display_item(displayer.DisplayerItemAlert(
@@ -234,36 +247,9 @@ def index():
                 BSstyle.INFO
             ), column=0)
         
-        # Add admin scripts for version management
-        admin_scripts = """
+        # Add delete script only (edit is now a separate page)
+        delete_script = """
         <script>
-        function editGroupId(idx, fileId, currentGroupId) {
-            const newGroupId = prompt('Edit Group ID:\\n(Leave empty for standalone file)', currentGroupId === '(none)' ? '' : currentGroupId);
-            if (newGroupId === null) return; // Cancelled
-            
-            const statusDiv = document.getElementById('status-' + idx);
-            statusDiv.innerHTML = '<small class="text-info">Updating...</small>';
-            
-            fetch('/files/update_group_id', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({file_id: fileId, group_id: newGroupId})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('group-display-' + idx).textContent = newGroupId || '(none)';
-                    statusDiv.innerHTML = '<small class="text-success">✓ Updated</small>';
-                    setTimeout(() => statusDiv.innerHTML = '', 2000);
-                } else {
-                    statusDiv.innerHTML = '<small class="text-danger">Error: ' + data.error + '</small>';
-                }
-            })
-            .catch(error => {
-                statusDiv.innerHTML = '<small class="text-danger">Failed: ' + error + '</small>';
-            });
-        }
-        
         function deleteFile(filepath) {
             if (!confirm('Are you sure you want to delete this file?\\n\\nFile: ' + filepath + '\\n\\nThis will move it to trash.')) {
                 return;
@@ -289,7 +275,7 @@ def index():
         """
         
         # Add script as hidden HTML item
-        disp.add_display_item(displayer.DisplayerItemText(admin_scripts), column=0)
+        disp.add_display_item(displayer.DisplayerItemText(delete_script), column=0)
         
         return render_template("base_content.j2", content=disp.display())
         
@@ -550,3 +536,194 @@ def upload_form():
     disp.add_display_item(displayer.DisplayerItemAlert(upload_form_html, BSstyle.NONE), column=0)
     
     return render_template("base_content.j2", content=disp.display())
+
+
+@bp.route("/edit/<int:file_id>", methods=["GET", "POST"])
+@require_file_manager_permission
+def edit_file(file_id):
+    """Edit file metadata (group_id, tags).
+    
+    Args:
+        file_id: Database ID of the file version to edit
+    """
+    if not file_manager:
+        return "File manager not initialized", 500
+    
+    displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
+    
+    disp = displayer.Displayer()
+    disp.add_generic("Edit File Metadata")
+    disp.set_title("Edit File Metadata")
+    
+    disp.add_breadcrumb("Home", get_home_endpoint(), [])
+    disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
+    disp.add_breadcrumb("Edit File", "file_manager_admin.edit_file", [f"file_id={file_id}"])
+    
+    # Get file from database
+    file_version = file_manager.get_file_by_id(file_id)
+    
+    if not file_version:
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            "<h4>File Not Found</h4><p>The requested file could not be found.</p>",
+            BSstyle.ERROR
+        ), column=0)
+        return render_template("base_content.j2", content=disp.display())
+    
+    # Handle form submission
+    if request.method == 'POST':
+        try:
+            from ..modules import utilities
+            data_in = utilities.util_post_to_json(request.form.to_dict())
+            form_data = data_in.get("Edit File Metadata", {})
+            
+            new_group_id = form_data.get("group_id", "").strip()
+            tags_str = form_data.get("tags", "").strip()
+            
+            # Parse tags
+            new_tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else []
+            
+            # Update group_id
+            if new_group_id != (file_version.group_id or ""):
+                success = file_manager.update_group_id(file_id, new_group_id)
+                if not success:
+                    raise Exception("Failed to update group_id")
+                logger.info(f"Updated group_id for file {file_id}: {file_version.group_id} -> {new_group_id}")
+            
+            # Update tags
+            current_tags = [tag.tag_name for tag in file_version.tags]
+            if set(new_tags) != set(current_tags):
+                # Remove old tags
+                file_version.tags.clear()
+                
+                # Add new tags
+                from ..modules.file_manager_models import FileTag
+                for tag_name in new_tags:
+                    tag = file_manager.db_session.query(FileTag).filter_by(tag_name=tag_name).first()
+                    if not tag:
+                        tag = FileTag(tag_name=tag_name)
+                        file_manager.db_session.add(tag)
+                    file_version.tags.append(tag)
+                
+                file_manager.db_session.commit()
+                logger.info(f"Updated tags for file {file_id}: {current_tags} -> {new_tags}")
+            
+            # Show success and redirect
+            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+            
+            success_html = f"""
+            <div class="alert alert-success">
+                <h5><i class="bi bi-check-circle"></i> File Metadata Updated!</h5>
+                <hr>
+                <p><strong>Filename:</strong> {file_version.filename}</p>
+                <p><strong>Group ID:</strong> {new_group_id or '(none)'}</p>
+                <p><strong>Tags:</strong> {', '.join(new_tags) if new_tags else '(none)'}</p>
+                <hr>
+                <p>Redirecting to file manager...</p>
+            </div>
+            <script>
+                setTimeout(function() {{
+                    window.location.href = '{url_for('file_manager_admin.index')}';
+                }}, 2000);
+            </script>
+            """
+            
+            disp.add_display_item(displayer.DisplayerItemAlert(success_html, BSstyle.SUCCESS), column=0)
+            
+            return render_template("base_content.j2", content=disp.display())
+            
+        except Exception as e:
+            logger.error(f"Edit file error: {e}", exc_info=True)
+            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+            disp.add_display_item(displayer.DisplayerItemAlert(
+                f"<h4>Update Failed</h4><p>{str(e)}</p>",
+                BSstyle.ERROR
+            ), column=0)
+    
+    # Display edit form (GET request or after error)
+    current_tags = [tag.tag_name for tag in file_version.tags]
+    tags_str = ', '.join(current_tags)
+    
+    # File info section
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="File Information"))
+    
+    # Get version number
+    version_num = 1
+    if file_version.group_id:
+        try:
+            versions = file_manager.get_file_versions(file_version.group_id, file_version.filename)
+            version_num = next((i+1 for i, v in enumerate(reversed(versions)) if v['id'] == file_id), len(versions))
+        except Exception:
+            version_num = 1
+    
+    info_html = f"""
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title"><i class="bi bi-file-earmark"></i> {file_version.filename}</h5>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Size:</strong> {_format_file_size(file_version.file_size)}</p>
+                    <p><strong>Type:</strong> {file_version.mime_type}</p>
+                    <p><strong>Uploaded:</strong> {_format_date(file_version.uploaded_at.isoformat())}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Group ID:</strong> {file_version.group_id or '(none)'}</p>
+                    <p><strong>Version:</strong> v{version_num}</p>
+                    <p><strong>Checksum:</strong> {file_version.checksum[:16] if file_version.checksum else 'N/A'}...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+    
+    disp.add_display_item(displayer.DisplayerItemAlert(info_html, BSstyle.NONE), column=0)
+    
+    # Edit form
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="Edit Metadata"))
+    
+    # Group ID input with explanatory text above
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        "<small class='text-muted'>Group ID for versioning. Files with the same group_id and filename are treated as versions of the same file. Leave empty for standalone file.</small>",
+        BSstyle.NONE
+    ), column=0)
+    
+    disp.add_display_item(displayer.DisplayerItemInputString(
+        id="group_id",
+        text="Group ID",
+        value=file_version.group_id or ""
+    ), column=0)
+    
+    # Tags input with explanatory text above
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        "<small class='text-muted'>Organize files with custom tags. Separate multiple tags with commas.</small>",
+        BSstyle.NONE
+    ), column=0)
+    
+    disp.add_display_item(displayer.DisplayerItemInputString(
+        id="tags",
+        text="Tags (comma-separated)",
+        value=tags_str
+    ), column=0)
+    
+    # Buttons
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        id="save_btn",
+        text="Save Changes",
+        icon="save",
+        color=BSstyle.PRIMARY
+    ), column=0)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        id="cancel_btn",
+        text="Cancel",
+        icon="x-circle",
+        link=url_for('file_manager_admin.index'),
+        color=BSstyle.SECONDARY
+    ), column=1)
+    
+    # Form should post back to this same URL
+    form_action = url_for('file_manager_admin.edit_file', file_id=file_id)
+    return render_template("base_content.j2", content=disp.display(), form_action=form_action)
