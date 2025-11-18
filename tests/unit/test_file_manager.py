@@ -50,10 +50,10 @@ class MockSettingsManager:
             "file_storage.image_quality": {"value": 85},
             "file_storage.strip_exif": {"value": True},
             "file_storage.categories": {
-                "value": ["general", "documents", "images", "test"]
+                "value": ["general", "documents", "images", "test", "docs", "uploads", "temp", "workflow_test", "mixed"]
             },
             "file_storage.tags": {
-                "value": ["test", "demo", "invoice", "important"]
+                "value": ["test", "demo", "invoice", "important", "2025", "contract", "draft"]
             },
             "file_storage.hashfs_path": {"value": str(Path(self.base_path_value) / "hashfs_storage")}
         }

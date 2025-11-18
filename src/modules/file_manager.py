@@ -276,6 +276,23 @@ class FileManager:
         if not safe_filename:
             raise ValueError(f"Invalid filename: '{original_filename}'")
         
+        # Validate tags (if provided)
+        if tags:
+            valid_tags = self.tags
+            invalid_tags = [t for t in tags if t not in valid_tags]
+            if invalid_tags:
+                raise ValueError(
+                    f"Invalid tags: {invalid_tags}. Valid tags are: {valid_tags}"
+                )
+        
+        # Validate category (if provided and not empty)
+        if category and category != 'general':
+            valid_categories = self.categories
+            if category not in valid_categories:
+                raise ValueError(
+                    f"Invalid category: '{category}'. Valid categories are: {valid_categories}"
+                )
+        
         # Determine group_id (admin can specify, or empty string for user to see)
         if not group_id:
             # Empty group_id - will be shown as empty field in admin
@@ -927,4 +944,53 @@ class FileManager:
         
         logger.info(f"Updated group_id for file {file_id}: {new_group_id}")
         return True
+    
+    def verify_file_integrity(self, file_id: int) -> Tuple[bool, str]:
+        """Verify file integrity by checking existence and checksum.
+        
+        Args:
+            file_id: Database ID of file version to verify
+            
+        Returns:
+            Tuple of (is_valid, status_message):
+            - (True, "OK"): File exists and checksum matches
+            - (False, "Missing"): Physical file not found
+            - (False, "Checksum mismatch"): File exists but checksum doesn't match
+            - (False, "Not found"): File record not in database
+        """
+        # Get file from database
+        file_version = self.db_session.query(FileVersion).get(file_id)
+        
+        if not file_version:
+            return False, "Not found"
+        
+        try:
+            # Get physical file path (this may raise IOError if not found)
+            file_path = self.storage.get(file_version.storage_path)
+        except IOError:
+            # File not found in storage
+            logger.warning(f"File integrity check failed - missing: {file_version.storage_path}")
+            return False, "Missing"
+        
+        try:
+            # Check if file exists (double-check after get())
+            if not file_path.exists():
+                logger.warning(f"File integrity check failed - missing: {file_version.storage_path}")
+                return False, "Missing"
+            
+            # Verify checksum
+            actual_checksum = self._calculate_checksum(file_path)
+            if actual_checksum != file_version.checksum:
+                logger.error(
+                    f"File integrity check failed - checksum mismatch: {file_version.storage_path} "
+                    f"(expected: {file_version.checksum[:8]}..., actual: {actual_checksum[:8]}...)"
+                )
+                return False, "Checksum mismatch"
+            
+            # All checks passed
+            return True, "OK"
+            
+        except Exception as e:
+            logger.error(f"File integrity check error for file {file_id}: {e}")
+            return False, f"Error: {str(e)}"
 

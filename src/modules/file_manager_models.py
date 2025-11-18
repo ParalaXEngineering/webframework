@@ -5,7 +5,7 @@ This module defines the database schema for file versioning, grouping, and taggi
 Uses manual version tracking instead of SQLAlchemy-Continuum for better control.
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table, Index, UniqueConstraint, CheckConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -67,6 +67,11 @@ class FileVersion(Base):
         uploaded_by: Username of uploader
         is_current: True if this is the current version (latest)
         source_version_id: If restored from old version, points to original
+    
+    Constraints:
+        - Unique constraint on (group_id, filename, uploaded_at) to prevent duplicate versions
+        - Index on checksum for fast deduplication queries
+        - Index on (group_id, filename, is_current) for fast current version lookup
     """
     __tablename__ = 'file_versions'
     
@@ -86,6 +91,19 @@ class FileVersion(Base):
     group = relationship('FileGroup', back_populates='files')
     tags = relationship('FileTag', secondary=file_version_tags, back_populates='file_versions')
     source_version = relationship('FileVersion', remote_side=[id], uselist=False)
+    
+    # Constraints and Indexes
+    __table_args__ = (
+        # Index on checksum for deduplication queries
+        Index('idx_checksum', 'checksum'),
+        
+        # Composite index for fast current version lookup
+        Index('idx_group_filename_current', 'group_id', 'filename', 'is_current'),
+        
+        # Unique constraint on (group_id, filename, uploaded_at)
+        # This prevents exact duplicate uploads at same timestamp
+        UniqueConstraint('group_id', 'filename', 'uploaded_at', name='uq_group_filename_timestamp'),
+    )
     
     def __repr__(self):
         return f"<FileVersion(id={self.id}, filename='{self.filename}', group_id='{self.group_id}', is_current={self.is_current})>"
