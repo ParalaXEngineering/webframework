@@ -159,7 +159,7 @@ class TestDatabaseConstraints:
     
     def test_checksum_deduplication_query(self, file_manager):
         """Checksum index should enable fast deduplication queries."""
-        from src.modules.file_manager_models import FileVersion
+        from src.modules.file_manager import FileVersion
         
         # Upload file
         content = b"Deduplication test content"
@@ -179,7 +179,7 @@ class TestDatabaseConstraints:
     
     def test_current_version_lookup_performance(self, file_manager):
         """Composite index should enable fast current version lookup."""
-        from src.modules.file_manager_models import FileVersion
+        from src.modules.file_manager import FileVersion
         
         # Upload multiple versions
         for i in range(3):
@@ -209,7 +209,7 @@ class TestIndexPerformance:
     
     def test_checksum_index_speeds_up_deduplication(self, file_manager):
         """Checksum index should make deduplication checks fast."""
-        from src.modules.file_manager_models import FileVersion
+        from src.modules.file_manager import FileVersion
         
         # Upload several files with different content
         for i in range(10):
@@ -232,7 +232,7 @@ class TestIndexPerformance:
     
     def test_composite_index_speeds_up_current_version_query(self, file_manager):
         """Composite index should make current version queries fast."""
-        from src.modules.file_manager_models import FileVersion
+        from src.modules.file_manager import FileVersion
         
         # Create multiple groups with multiple files
         for group_num in range(3):

@@ -495,7 +495,7 @@ def restore_version():
             return jsonify({"error": "Missing target_version_id"}), 400
         
         # Get target version to find group_id and filename
-        from ..modules.file_manager_models import FileVersion
+        from ..modules.file_manager import FileVersion
         from sqlalchemy.orm import Session
         
         session_db = file_manager.db_session

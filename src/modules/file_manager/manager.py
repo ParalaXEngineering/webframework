@@ -28,8 +28,8 @@ import hashlib
 # Database imports
 from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker, Session
-from .file_manager_models import Base, FileGroup, FileVersion, FileTag
-from .file_storage import ContentAddressableStorage
+from .models import Base, FileGroup, FileVersion, FileTag
+from .storage import ContentAddressableStorage
 
 # Image processing
 try:

@@ -135,10 +135,10 @@ def index():
         
         # File list table with DataTables
         if files:
-            # Add table layout with Phase 3 columns
+            # Add table layout with Phase 3 columns including integrity status
             table_layout_id = disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
-                ["Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Actions"],
+                ["Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Integrity", "Actions"],
                 subtitle="Files",
                 datatable_config={
                     "table_id": "file_list_table",
@@ -192,6 +192,24 @@ def index():
                 disp.add_display_item(displayer.DisplayerItemText(upload_date), 
                                     column=6, line=idx, layout_id=table_layout_id)
                 
+                # Integrity status
+                file_id = file_meta.get('id', 0)
+                is_valid, status = file_manager.verify_file_integrity(file_id)
+                
+                if is_valid:
+                    integrity_html = '<span class="badge bg-success" title="File intact"><i class="bi bi-check-circle"></i> OK</span>'
+                elif status == "Missing":
+                    integrity_html = '<span class="badge bg-warning" title="Physical file not found"><i class="bi bi-exclamation-triangle"></i> Missing</span>'
+                elif status == "Checksum mismatch":
+                    integrity_html = '<span class="badge bg-danger" title="File corrupted"><i class="bi bi-x-circle"></i> Corrupted</span>'
+                elif status == "Not found":
+                    integrity_html = '<span class="badge bg-secondary" title="Database record missing"><i class="bi bi-question-circle"></i> Not Found</span>'
+                else:
+                    integrity_html = f'<span class="badge bg-danger" title="{status}"><i class="bi bi-bug"></i> Error</span>'
+                
+                disp.add_display_item(displayer.DisplayerItemAlert(integrity_html, displayer.BSstyle.NONE), 
+                                    column=7, line=idx, layout_id=table_layout_id)
+                
                 # Actions (download, edit, history, delete buttons)
                 actions = []
                 
@@ -238,7 +256,7 @@ def index():
                         actions=actions,
                         size="sm"
                     ),
-                    column=7, line=idx, layout_id=table_layout_id
+                    column=8, line=idx, layout_id=table_layout_id
                 )
         else:
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
@@ -597,7 +615,7 @@ def edit_file(file_id):
                 file_version.tags.clear()
                 
                 # Add new tags
-                from ..modules.file_manager_models import FileTag
+                from ..modules.file_manager import FileTag
                 for tag_name in new_tags:
                     tag = file_manager.db_session.query(FileTag).filter_by(tag_name=tag_name).first()
                     if not tag:
