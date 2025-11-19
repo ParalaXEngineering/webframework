@@ -184,28 +184,3 @@ class ContentAddressableStorage:
             for byte_block in iter(lambda: f.read(4096), b""):
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
-    
-    def get_stats(self) -> Dict[str, int]:
-        """Get storage statistics.
-        
-        Returns:
-            Dictionary with storage stats::
-            
-                {
-                    'total_files': Number of unique files stored,
-                    'total_size': Total size in bytes
-                }
-        """
-        total_files = 0
-        total_size = 0
-        
-        # Walk through hashfs directory structure
-        for file_path in self.storage_path.rglob('*'):
-            if file_path.is_file():
-                total_files += 1
-                total_size += file_path.stat().st_size
-        
-        return {
-            'total_files': total_files,
-            'total_size': total_size
-        }

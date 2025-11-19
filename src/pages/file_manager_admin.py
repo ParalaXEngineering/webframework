@@ -8,9 +8,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from functools import wraps
 import logging
 from pathlib import Path
-from datetime import datetime
-from typing import Optional, Dict, List, Tuple, Any
-from ..modules.utilities import util_format_file_size, util_format_date, util_get_file_icon
+from typing import Optional, Any
+from ..modules.utilities import util_format_file_size, util_format_date, util_get_file_icon, util_generate_preview_html
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +87,7 @@ def index():
     displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
     
     disp = displayer.Displayer()
-    disp.add_generic("File Manager")
+    disp.add_generic("File Manager", display=False)
     disp.set_title("File Manager - Browse Files")
     disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
@@ -96,64 +95,12 @@ def index():
     try:
         # Get file list from database (Phase 3 - includes versions, tags, group_id)
         files = file_manager.list_files_from_db()
-        
-        # Calculate statistics
-        total_files = len(files)
-        total_size = sum(f['size'] for f in files)
-        total_size_mb = total_size / (1024 * 1024)
-        
-        # Get unique group IDs and tags
-        unique_groups = len(set(f.get('group_id', '') for f in files if f.get('group_id')))
-        all_tags = set()
-        for f in files:
-            all_tags.update(f.get('tags', []))
-        
-        # Statistics section
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [3, 3, 3, 3]))
-        
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h3 class='text-center'>{total_files}</h3>"
-            f"<p class='text-center mb-0'>Total Files</p>",
-            BSstyle.INFO
-        ), column=0)
-        
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h3 class='text-center'>{total_size_mb:.2f} MB</h3>"
-            f"<p class='text-center mb-0'>Total Size</p>",
-            BSstyle.SUCCESS
-        ), column=1)
-        
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h3 class='text-center'>{unique_groups}</h3>"
-            f"<p class='text-center mb-0'>Version Groups</p>",
-            BSstyle.PRIMARY
-        ), column=2)
-        
-        disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h3 class='text-center'>{len(all_tags)}</h3>"
-            f"<p class='text-center mb-0'>Unique Tags</p>",
-            BSstyle.WARNING
-        ), column=3)
-        
+                
         # File list table with DataTables
-        if files:
-            # Add table layout with Phase 3 columns including integrity status
-            # Multi-delete button (uses form submission)
-            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            multi_delete_button_html = """
-            <button type="submit" formaction="/file_manager/delete-multiple" class="btn btn-danger">
-                <i class="bi bi-trash"></i> Delete Selected
-            </button>
-            """
-            disp.add_display_item(
-                displayer.DisplayerItemAlert(multi_delete_button_html, displayer.BSstyle.NONE),
-                column=0
-            )
-            
+        if files:            
             table_layout_id = disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
                 ["Select", "Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Integrity", "Actions"],
-                subtitle="Files",
                 datatable_config={
                     "table_id": "file_list_table",
                     "mode": displayer.TableMode.INTERACTIVE,
@@ -176,7 +123,7 @@ def index():
                                     column=0, line=idx, layout_id=table_layout_id)
                 
                 # Preview column (thumbnail or icon)
-                preview_html = _generate_preview_html(file_meta)
+                preview_html = util_generate_preview_html(file_meta)
                 disp.add_display_item(displayer.DisplayerItemAlert(preview_html, displayer.BSstyle.NONE), 
                                     column=1, line=idx, layout_id=table_layout_id)
                 
@@ -285,7 +232,7 @@ def index():
                         group_param = file_meta.get('group_id') or '(none)'
                         actions.append({
                             "type": "custom",
-                            "url": url_for('file_handler.get_versions', group_id=group_param, filename=file_meta['name']),
+                            "url": url_for('file_manager_admin.version_history', group_id=group_param, filename=file_meta['name']),
                             "icon": "bi bi-clock-history",
                             "style": "info",
                             "tooltip": "View History"
@@ -310,6 +257,19 @@ def index():
                     ),
                     column=9, line=idx, layout_id=table_layout_id
                 )
+
+            # Add table layout with Phase 3 columns including integrity status
+            # Multi-delete button (submit button for form)
+            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+            disp.add_display_item(
+                displayer.DisplayerItemButton(
+                    id="delete_selected_btn",
+                    text="Delete Selected",
+                    icon="trash",
+                    color=BSstyle.ERROR
+                ),
+                column=0
+            )
         else:
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
             disp.add_display_item(displayer.DisplayerItemAlert(
@@ -317,10 +277,10 @@ def index():
                 BSstyle.INFO
             ), column=0)
         
-        # Note: Multi-delete form wraps the table automatically via form_action parameter
+        # Multi-delete form wraps the table automatically via form_action parameter
         # Checkboxes use name="file_ids[]" for array submission
-        
-        return render_template("base_content.j2", content=disp.display())
+        form_action = url_for('file_manager_admin.delete_multiple')
+        return render_template("base_content.j2", content=disp.display(), form_action=form_action)
         
     except Exception as e:
         logger.error(f"File manager index error: {e}", exc_info=True)
@@ -370,153 +330,6 @@ def _generate_preview_html(file_meta: dict, size: str = "60px") -> str:
     # No thumbnail - show file type icon
     icon_class = util_get_file_icon(file_meta['name'])
     return f'<i class="bi {icon_class}" style="font-size: 2rem;"></i>'
-
-
-@bp.route("/upload_form", methods=["GET", "POST"])
-@require_file_manager_permission
-def upload_form():
-    """Display file upload form and handle uploads."""
-    displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
-    
-    disp = displayer.Displayer()
-    disp.add_generic("Upload Files")
-    disp.set_title("File Manager - Upload")
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
-    disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
-    disp.add_breadcrumb("Upload", "file_manager_admin.upload_form", [])
-    
-    # Handle POST (form submission)
-    if request.method == "POST":
-        try:
-            from ..modules import utilities
-            
-            # Check if file was uploaded
-            if 'file' not in request.files:
-                raise ValueError("No file selected")
-            
-            uploaded_file = request.files['file']
-            
-            # Get form data
-            data_in = utilities.util_post_to_json(request.form.to_dict())
-            form_data = data_in.get("Upload Files", {})
-            
-            category = form_data.get("category", "general")
-            subcategory = form_data.get("subcategory", "")
-            group_id = form_data.get("group_id", "")
-            
-            # Handle "(none)" values from dropdowns
-            if subcategory == "(none)":
-                subcategory = ""
-            if group_id == "(none)":
-                group_id = ""
-            
-            # Handle tags (can be list from multi-select or empty)
-            tags_input = form_data.get("tags", [])
-            if isinstance(tags_input, list):
-                tags = tags_input
-            elif isinstance(tags_input, str) and tags_input:
-                tags = [tags_input]
-            else:
-                tags = []
-            
-            # Upload file using file manager
-            current_user = session.get('user', 'GUEST')
-            result = file_manager.upload_file(
-                uploaded_file,
-                category=category,
-                subcategory=subcategory,
-                group_id=group_id,
-                tags=tags,
-                uploaded_by=current_user
-            )
-            
-            # Flash success message and redirect
-            flash_msg = f"File '{result['name']}' uploaded successfully ({util_format_file_size(result['size'])})"
-            if group_id:
-                flash_msg += f" to group '{group_id}'"
-            if tags:
-                flash_msg += f" with tags: {', '.join(tags)}"
-            
-            flash(flash_msg, "success")
-            return redirect(url_for('file_manager_admin.index'))
-            
-        except Exception as e:
-            logger.error(f"Upload error: {e}", exc_info=True)
-            
-            # Show error and fall through to display form again
-            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            disp.add_display_item(displayer.DisplayerItemAlert(
-                f"<h4><i class='bi bi-x-circle'></i> Upload Failed</h4><p>{str(e)}</p>",
-                BSstyle.ERROR
-            ), column=0)
-    
-    # Display upload form (GET request or after error)
-    
-    # Get available options from file manager
-    categories = file_manager.get_categories() if file_manager else ["general"]
-    group_ids = file_manager.get_group_ids() if file_manager else []
-    tags = file_manager.get_tags() if file_manager else []
-    
-    # Form layout
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="Upload New File"))
-    
-    # File input (using HTML since Displayer doesn't have file input)
-    file_input_html = """
-    <div class="mb-3">
-        <label for="file" class="form-label">Select File</label>
-        <input type="file" class="form-control" id="file" name="file" required>
-        <div class="form-text">Maximum file size: 50 MB. Allowed types: PDF, Images, Office documents, Archives.</div>
-    </div>
-    """
-    disp.add_display_item(displayer.DisplayerItemAlert(file_input_html, BSstyle.NONE), column=0)
-    
-    # Category dropdown
-    disp.add_display_item(displayer.DisplayerItemInputSelect(
-        id="category",
-        text="Category",
-        choices=categories,
-        value="general"
-    ), column=0)
-    
-    # Group ID dropdown (optional)
-    if group_ids:
-        group_id_choices = ["(none)"] + group_ids
-        disp.add_display_item(displayer.DisplayerItemInputSelect(
-            id="group_id",
-            text="Group ID (Optional)",
-            choices=group_id_choices,
-            value="(none)"
-        ), column=0)
-    
-    # Tags multi-select
-    disp.add_display_item(displayer.DisplayerItemInputMultiSelect(
-        id="tags",
-        text="Tags (Optional)",
-        choices=tags,
-        value=[]
-    ), column=0)
-    
-    # Buttons
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
-    
-    disp.add_display_item(displayer.DisplayerItemButton(
-        id="upload_btn",
-        text="Upload File",
-        icon="upload",
-        color=BSstyle.PRIMARY
-    ), column=0)
-    
-    disp.add_display_item(displayer.DisplayerItemButton(
-        id="cancel_btn",
-        text="Cancel",
-        icon="close-circle",
-        link=url_for('file_manager_admin.index'),
-        color=BSstyle.SECONDARY
-    ), column=1)
-    
-    # Form should post back to this same URL
-    form_action = url_for('file_manager_admin.upload_form')
-    return render_template("base_content.j2", content=disp.display(), form_action=form_action)
 
 
 @bp.route("/edit/<int:file_id>", methods=["GET", "POST"])
@@ -639,7 +452,7 @@ def edit_file(file_id):
             file_meta[f'thumb_{size_str}'] = thumb_relative.replace('\\', '/')
             break
     
-    preview_html = _generate_preview_html(file_meta, size="150px")
+    preview_html = util_generate_preview_html(file_meta, size="150px")
     
     info_html = f"""
     <div class="card">
@@ -968,3 +781,237 @@ def confirm_delete():
     ), column=0)
     
     return render_template("base_content.j2", content=disp.display())
+
+
+@bp.route('/version-history/<group_id>/<filename>', methods=['GET'])
+@require_file_manager_permission
+def version_history(group_id, filename):
+    """Display version history page for a file.
+    
+    Args:
+        group_id: Group identifier (use '(none)' for files without a group)
+        filename: Filename
+    
+    Returns:
+        HTML page with version history table
+    """
+    if not file_manager:
+        return "File manager not initialized", 500
+    
+    displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
+    
+    try:
+        # Convert '(none)' placeholder back to None for files without a group
+        actual_group_id = None if group_id == '(none)' else group_id
+        versions = file_manager.get_file_versions(actual_group_id, filename)
+        
+        # Build version history page
+        disp = displayer.Displayer()
+        disp.add_generic(f"Version History - {filename}")
+        disp.set_title(f"Version History: {filename}")
+        disp.add_breadcrumb("Home", get_home_endpoint(), [])
+        disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
+        disp.add_breadcrumb("Version History", "file_manager_admin.version_history", [group_id, filename])
+        
+        # Header with file info
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        group_display = actual_group_id if actual_group_id else "(none)"
+        header_html = f"""
+        <div class="card mb-3">
+            <div class="card-body">
+                <h4><i class="bi bi-clock-history"></i> Version History</h4>
+                <p class="mb-1"><strong>Filename:</strong> {filename}</p>
+                <p class="mb-0"><strong>Group ID:</strong> {group_display}</p>
+                <p class="mb-0"><strong>Total Versions:</strong> {len(versions)}</p>
+            </div>
+        </div>
+        """
+        disp.add_display_item(displayer.DisplayerItemAlert(header_html, BSstyle.NONE), column=0)
+        
+        # Version table
+        if versions:
+            disp.add_master_layout(displayer.DisplayerLayout(
+                displayer.Layouts.TABLE,
+                ["Preview", "Version", "Status", "Size", "Checksum", "Uploaded", "Uploaded By", "Actions"],
+                subtitle="All Versions"
+            ))
+            
+            # Sort versions by upload date (newest first)
+            sorted_versions = sorted(versions, key=lambda v: v['uploaded_at'], reverse=True)
+            
+            for idx, version in enumerate(sorted_versions):
+                # Preview
+                file_meta = {
+                    'name': version['filename'],
+                    'id': version['id'],
+                    'path': version.get('storage_path', '')
+                }
+                # Check for thumbnails
+                thumb_base = file_manager.hashfs_path.parent / ".thumbs"
+                for size_str in ["150x150"]:
+                    storage_path_obj = Path(version.get('storage_path', ''))
+                    thumb_path = thumb_base / size_str / storage_path_obj.parent / f"{storage_path_obj.stem}_thumb.jpg"
+                    if thumb_path.exists():
+                        thumb_relative = f".thumbs/{size_str}/{storage_path_obj.parent}/{storage_path_obj.stem}_thumb.jpg"
+                        file_meta[f'thumb_{size_str}'] = thumb_relative.replace('\\', '/')
+                        break
+                
+                preview_html = util_generate_preview_html(file_meta, size="50px")
+                disp.add_display_item(displayer.DisplayerItemAlert(preview_html, BSstyle.NONE), 
+                                    column=0, line=idx)
+                
+                # Version number (count from oldest)
+                version_num = len(versions) - sorted_versions.index(version)
+                version_badge = f"<span class='badge bg-primary'>v{version_num}</span>"
+                disp.add_display_item(displayer.DisplayerItemAlert(version_badge, BSstyle.NONE), 
+                                    column=1, line=idx)
+                
+                # Status (current or archived)
+                if version.get('is_current'):
+                    status_html = "<span class='badge bg-success'><i class='bi bi-check-circle'></i> Current</span>"
+                else:
+                    status_html = "<span class='badge bg-secondary'>Archived</span>"
+                disp.add_display_item(displayer.DisplayerItemAlert(status_html, BSstyle.NONE), 
+                                    column=2, line=idx)
+                
+                # Size
+                size_str = util_format_file_size(version.get('file_size', 0))
+                disp.add_display_item(displayer.DisplayerItemText(size_str), 
+                                    column=3, line=idx)
+                
+                # Checksum (truncated)
+                checksum = version.get('checksum', 'N/A')
+                checksum_short = checksum[:8] + "..." if len(checksum) > 8 else checksum
+                disp.add_display_item(displayer.DisplayerItemText(checksum_short), 
+                                    column=4, line=idx)
+                
+                # Uploaded date
+                upload_date = util_format_date(version.get('uploaded_at', ''))
+                disp.add_display_item(displayer.DisplayerItemText(upload_date), 
+                                    column=5, line=idx)
+                
+                # Uploaded by
+                uploaded_by = version.get('uploaded_by', 'Unknown')
+                disp.add_display_item(displayer.DisplayerItemText(uploaded_by), 
+                                    column=6, line=idx)
+                
+                # Actions
+                file_id = version.get('id')
+                download_url = url_for('file_handler.download_by_id', file_id=file_id)
+                
+                # Action buttons
+                actions = []
+                
+                # Download button
+                actions.append({
+                    "type": "download",
+                    "url": download_url,
+                    "icon": "bi bi-download",
+                    "style": "primary",
+                    "tooltip": "Download this version"
+                })
+                
+                # Restore button for non-current versions (simple GET link)
+                if not version.get('is_current'):
+                    restore_url = url_for('file_manager_admin.restore_version', 
+                                        target_version_id=file_id,
+                                        group_id=group_id,
+                                        filename=filename)
+                    actions.append({
+                        "type": "custom",
+                        "url": restore_url,
+                        "icon": "bi bi-arrow-clockwise",
+                        "style": "success",
+                        "tooltip": f"Restore v{version_num} as current"
+                    })
+                
+                disp.add_display_item(
+                    displayer.DisplayerItemActionButtons(
+                        id=f"version_actions_{idx}",
+                        actions=actions,
+                        size="sm"
+                    ),
+                    column=7, line=idx
+                )
+        
+        # Back button
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemButton(
+            id="back_btn",
+            text="Back to File Manager",
+            icon="arrow-left",
+            link=url_for('file_manager_admin.index'),
+            color=BSstyle.SECONDARY
+        ), column=0)
+        
+        return render_template("base_content.j2", content=disp.display())
+        
+    except Exception as e:
+        logger.error(f"Failed to display version history: {e}", exc_info=True)
+        
+        disp = displayer.Displayer()
+        disp.add_generic("Error")
+        disp.set_title("Version History Error")
+        disp.add_breadcrumb("Home", get_home_endpoint(), [])
+        disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
+        
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            f"<h4>Error Loading Version History</h4><p>{str(e)}</p>",
+            BSstyle.ERROR
+        ), column=0)
+        
+        return render_template("base_content.j2", content=disp.display()), 500
+
+
+@bp.route('/restore-version/<int:target_version_id>/<group_id>/<filename>', methods=['GET'])
+@require_file_manager_permission
+def restore_version(target_version_id, group_id, filename):
+    """Restore an old version of a file using a simple GET link.
+    
+    Args:
+        target_version_id: Version to restore from
+        group_id: Group identifier for redirect
+        filename: Filename for redirect
+    
+    Returns:
+        Redirect to version history with flash message
+    """
+    if not file_manager:
+        flash("File manager not initialized", "error")
+        return redirect(url_for('file_manager_admin.index'))
+    
+    try:
+        # Get target version to find group_id and filename
+        from ..modules.file_manager import FileVersion
+        
+        session_db = file_manager.db_session
+        target_version = session_db.query(FileVersion).filter_by(id=target_version_id).first()
+        
+        if not target_version:
+            flash("Target version not found", "error")
+            return redirect(url_for('file_manager_admin.index'))
+        
+        # Find current version in same group
+        current_version = session_db.query(FileVersion).filter_by(
+            group_id=target_version.group_id,
+            filename=target_version.filename,
+            is_current=True
+        ).first()
+        
+        if not current_version:
+            flash("Current version not found", "error")
+            return redirect(url_for('file_manager_admin.index'))
+        
+        # Restore version
+        restored = file_manager.restore_version(current_version.id, target_version_id)
+        
+        logger.info(f"Version restored by {session.get('user', 'GUEST')}: {restored.filename}")
+        flash("Version restored successfully! A new version has been created.", "success")
+        
+    except Exception as e:
+        logger.error(f"Failed to restore version: {e}", exc_info=True)
+        flash(f"Failed to restore version: {str(e)}", "error")
+    
+    # Redirect back to version history page
+    return redirect(url_for('file_manager_admin.version_history', group_id=group_id, filename=filename))

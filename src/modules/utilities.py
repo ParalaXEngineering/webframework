@@ -932,3 +932,42 @@ def util_get_file_icon(filename: str) -> str:
     }
     
     return icon_map.get(ext, 'bi-file-earmark')
+
+
+def util_generate_preview_html(file_meta: dict, size: str = "60px") -> str:
+    """Generate preview HTML for a file (thumbnail or icon).
+    
+    Creates an HTML img tag for files with thumbnails, or a Bootstrap icon
+    for files without thumbnails. Gracefully falls back to icon if thumbnail
+    URL generation fails.
+    
+    Args:
+        file_meta: File metadata dictionary containing:
+            - 'name': Filename for extension detection
+            - 'thumb_150x150' (optional): Relative path to 150x150 thumbnail
+        size: CSS size value for preview (default "60px")
+        
+    Returns:
+        HTML string containing either <img> tag or <i> icon tag
+        
+    Examples:
+        >>> util_generate_preview_html({'name': 'photo.jpg', 'thumb_150x150': '.thumbs/...'})
+        '<img src="/files/download/..." class="img-thumbnail" ...>'
+        
+        >>> util_generate_preview_html({'name': 'document.pdf'})
+        '<i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size: 2rem;"></i>'
+    """
+    # Check if thumbnail exists
+    if 'thumb_150x150' in file_meta:
+        thumb_path = file_meta['thumb_150x150']
+        try:
+            from flask import url_for
+            thumb_url = url_for('file_handler.download', filepath=thumb_path, inline='true')
+            return f'<img src="{thumb_url}" alt="Preview" class="img-thumbnail" style="max-width: {size}; max-height: {size};">'
+        except Exception:
+            # Fall back to icon if url_for fails
+            pass
+    
+    # No thumbnail - show file type icon
+    icon_class = util_get_file_icon(file_meta['name'])
+    return f'<i class="bi {icon_class}" style="font-size: 2rem;"></i>'

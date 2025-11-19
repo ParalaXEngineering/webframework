@@ -63,7 +63,6 @@ def file_manager_demo():
     
     disp = displayer.Displayer()
     disp.add_generic("File Manager Demo")
-    disp.set_title("File Manager Demo")
     
     disp.add_breadcrumb("Home", "framework_index", [])
     disp.add_breadcrumb("File Manager Demo", "demo_files.file_manager_demo", [])
@@ -108,7 +107,6 @@ def file_manager_demo():
                 if is_simple_upload:
                     # Pre-filled values for simple upload
                     category = 'documents'
-                    subcategory = ''
                     group_id = ''
                     tags = ['demo', 'example']
                 else:
@@ -121,14 +119,6 @@ def file_manager_demo():
                             break
                     if not category:
                         category = 'general'
-                    
-                    subcategory = ''
-                    for key in request.form:
-                        if 'subcategory' in key:
-                            subcategory = request.form.get(key, '')
-                            break
-                    if subcategory == '(none)':
-                        subcategory = ''
                     
                     group_id = ''
                     for key in request.form:
@@ -145,12 +135,11 @@ def file_manager_demo():
                             tags = request.form.getlist(key)
                             break
                 
-                logger.info(f"Uploading: category={category}, subcategory={subcategory}, group_id={group_id}, tags={tags}")
+                logger.info(f"Uploading: category={category}, group_id={group_id}, tags={tags}")
                 
                 metadata = file_manager.upload_file(
                     file,
                     category=category,
-                    subcategory=subcategory,
                     group_id=group_id,
                     tags=tags if tags else []
                 )
@@ -171,7 +160,6 @@ def file_manager_demo():
     
     # Get available options
     categories = file_manager.get_categories()
-    subcategories = file_manager.get_subcategories()
     group_ids = file_manager.get_group_ids()
     tags = file_manager.get_tags()
     
@@ -197,30 +185,13 @@ def file_manager_demo():
                 column=0
             )
     
-    # Introduction
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-    disp.add_display_item(
-        displayer.DisplayerItemAlert(
-            """
-            <h4><i class="bi bi-info-circle"></i> File Manager Demo</h4>
-            <p>This page demonstrates file upload with constrained selections:</p>
-            <ul>
-                <li><strong>Constrained dropdowns</strong> - Category, subcategory, group_id, and tags from configuration</li>
-                <li><strong>Simple upload button</strong> - Standard form submission using framework's form handling</li>
-                <li><strong>Two scenarios</strong> - Full control vs. pre-filled values</li>
-            </ul>
-            """,
-            displayer.BSstyle.INFO
-        ),
-        column=0
-    )
-    
+
     # Section 1: Full Upload (user selects everything)
     disp.add_master_layout(
         displayer.DisplayerLayout(
             displayer.Layouts.VERTICAL, 
             [12], 
-            subtitle="1. Full Upload - User Selects Category, Subcategory, Group ID, and Tags"
+            subtitle="1. Full Upload - User Selects Category, Group ID, and Tags"
         )
     )
     disp.add_display_item(
@@ -244,16 +215,6 @@ def file_manager_demo():
         choices=categories,
         value="general"
     ), column=0)
-    
-    # Subcategory dropdown
-    if subcategories:
-        subcategory_choices = ["(none)"] + subcategories
-        disp.add_display_item(displayer.DisplayerItemInputSelect(
-            id="subcategory",
-            text="Subcategory (Optional)",
-            choices=subcategory_choices,
-            value="(none)"
-        ), column=0)
     
     # Group ID dropdown
     if group_ids:
@@ -323,7 +284,6 @@ def file_manager_demo():
     # Get latest file for display examples
     latest_file_id = get_latest_uploaded_file()
     logger.info(f"Latest file ID for display: {latest_file_id}")
-    print(f"DEBUG: Latest file ID for display: {latest_file_id}")  # Force output
     
     # Section 3: Latest File - Full Display with Actions
     disp.add_master_layout(
@@ -392,25 +352,6 @@ def file_manager_demo():
             ),
             column=0
         )
-    
-    # Summary
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-    disp.add_display_item(
-        displayer.DisplayerItemAlert(
-            """
-            <h4><i class="bi bi-check-circle"></i> Summary</h4>
-            <p>This demo shows file management with constrained inputs:</p>
-            <ul>
-                <li><strong>Constrained selections</strong> - Categories, subcategories, group IDs, and tags from configuration</li>
-                <li><strong>Simple form submission</strong> - Framework handles upload via form_action parameter</li>
-                <li><strong>Flexible display</strong> - Compact or full mode with configurable actions</li>
-            </ul>
-            <p>For more file management features, visit the <a href="{{ url_for('file_manager_admin.index') }}">File Manager</a> page.</p>
-            """,
-            displayer.BSstyle.SUCCESS
-        ),
-        column=0
-    )
     
     # Use framework's form handling - submit to this same page
     return render_template("base_content.j2", content=disp.display(), 

@@ -61,66 +61,29 @@ class FileManager:
         self._init_storage()
     
     def _load_config(self):
-        """Load configuration from settings manager."""
-        try:
-            # HashFS path for file storage
-            hashfs_path_config = self.settings.get_setting("file_storage.hashfs_path")
-            self.hashfs_path = Path(hashfs_path_config.get("value", "resources/hashfs_storage"))
-            
-            # Max file size in bytes
-            max_size_mb = self.settings.get_setting("file_storage.max_file_size_mb")
-            self.max_file_size = int(max_size_mb.get("value", 50)) * 1024 * 1024
-            
-            # Allowed extensions
-            allowed_ext = self.settings.get_setting("file_storage.allowed_extensions")
-            self.allowed_extensions = set(allowed_ext.get("value", [
-                ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
-                ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
-                ".txt", ".csv", ".zip", ".7z", ".rar"
-            ]))
-            
-            # Thumbnail settings
-            thumbnails_config = self.settings.get_setting("file_storage.generate_thumbnails")
-            self.generate_thumbnails = thumbnails_config.get("value", True)
-            
-            sizes_config = self.settings.get_setting("file_storage.thumbnail_sizes")
-            self.thumbnail_sizes = sizes_config.get("value", ["150x150", "300x300"])
-            
-            quality_config = self.settings.get_setting("file_storage.image_quality")
-            self.image_quality = int(quality_config.get("value", 85))
-            
-            exif_config = self.settings.get_setting("file_storage.strip_exif")
-            self.strip_exif = exif_config.get("value", True)
-            
-            # Categories
-            categories_config = self.settings.get_setting("file_storage.categories")
-            self.categories = categories_config.get("value", ["general", "documents", "images"])
-            
-            # Group IDs (deprecated - any string accepted, kept for backward compatibility)
-            group_ids_config = self.settings.get_setting("file_storage.group_ids")
-            self.group_ids = group_ids_config.get("value", [])
-            
-            # Tags
-            tags_config = self.settings.get_setting("file_storage.tags")
-            self.tags = tags_config.get("value", ["invoice", "contract", "photo", "report"])
-            
-        except Exception as e:
-            logger.warning(f"Failed to load file storage config, using defaults: {e}")
-            # Fallback to defaults
-            self.hashfs_path = Path("resources/hashfs_storage")
-            self.max_file_size = 50 * 1024 * 1024
-            self.allowed_extensions = {
-                ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
-                ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
-                ".txt", ".csv", ".zip", ".7z", ".rar"
-            }
-            self.generate_thumbnails = True
-            self.thumbnail_sizes = ["150x150", "300x300"]
-            self.image_quality = 85
-            self.strip_exif = True
-            self.categories = ["general", "documents", "images"]
-            self.group_ids = []
-            self.tags = ["invoice", "contract", "photo", "report"]
+        """Load configuration from settings manager.
+        
+        Framework's default_configs.py ensures all values exist, so no manual fallbacks needed.
+        """
+        # HashFS path for file storage
+        self.hashfs_path = Path(self.settings.get_setting("file_storage.hashfs_path"))
+        
+        # Max file size in bytes
+        self.max_file_size = int(self.settings.get_setting("file_storage.max_file_size_mb")) * 1024 * 1024
+        
+        # Allowed extensions (convert to set for fast lookup)
+        self.allowed_extensions = set(self.settings.get_setting("file_storage.allowed_extensions"))
+        
+        # Thumbnail settings
+        self.generate_thumbnails = self.settings.get_setting("file_storage.generate_thumbnails")
+        self.thumbnail_sizes = self.settings.get_setting("file_storage.thumbnail_sizes")
+        self.image_quality = int(self.settings.get_setting("file_storage.image_quality"))
+        self.strip_exif = self.settings.get_setting("file_storage.strip_exif")
+        
+        # Categories, group IDs, and tags
+        self.categories = self.settings.get_setting("file_storage.categories")
+        self.group_ids = self.settings.get_setting("file_storage.group_ids")
+        self.tags = self.settings.get_setting("file_storage.tags")
         
         # Ensure hashfs path exists
         self.hashfs_path.mkdir(parents=True, exist_ok=True)
