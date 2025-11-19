@@ -825,3 +825,110 @@ def get_config_or_error(settings_manager, *config_paths):
             f"Missing key: {str(e)}"
         )
         return None, render_template("error.j2", traceback=error_message)
+
+
+def util_format_file_size(bytes_size: int) -> str:
+    """Format file size from bytes to human-readable format.
+    
+    Converts byte values to appropriate units (B, KB, MB, GB, TB) with 2 decimal places.
+    
+    Args:
+        bytes_size: File size in bytes
+        
+    Returns:
+        Formatted string with size and unit (e.g., "1.50 MB")
+        
+    Examples:
+        >>> util_format_file_size(0)
+        '0.00 B'
+        >>> util_format_file_size(1024)
+        '1.00 KB'
+        >>> util_format_file_size(1536)
+        '1.50 KB'
+        >>> util_format_file_size(1048576)
+        '1.00 MB'
+        >>> util_format_file_size(1073741824)
+        '1.00 GB'
+    """
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if bytes_size < 1024.0:
+            return f"{bytes_size:.2f} {unit}"
+        bytes_size /= 1024.0
+    return f"{bytes_size:.2f} PB"
+
+
+def util_format_date(iso_date: str) -> str:
+    """Format ISO 8601 date string to human-readable format.
+    
+    Converts datetime strings from ISO format to 'YYYY-MM-DD HH:MM' format.
+    Handles various ISO 8601 formats including timezone info and microseconds.
+    
+    Args:
+        iso_date: Date string in ISO 8601 format (e.g., "2024-03-15T14:30:45.123456")
+        
+    Returns:
+        Formatted string in 'YYYY-MM-DD HH:MM' format, or original string if parsing fails
+        
+    Examples:
+        >>> util_format_date('2024-03-15T14:30:45')
+        '2024-03-15 14:30'
+        >>> util_format_date('2024-03-15T14:30:45.123456')
+        '2024-03-15 14:30'
+        >>> util_format_date('2024-03-15T14:30:45+00:00')
+        '2024-03-15 14:30'
+        >>> util_format_date('invalid')
+        'invalid'
+    """
+    from datetime import datetime
+    try:
+        # Handle both with and without timezone/microseconds
+        dt = datetime.fromisoformat(iso_date.replace('Z', '+00:00'))
+        return dt.strftime('%Y-%m-%d %H:%M')
+    except (ValueError, AttributeError):
+        return iso_date
+
+
+def util_get_file_icon(filename: str) -> str:
+    """Get Bootstrap icon class for file based on extension.
+    
+    Maps file extensions to appropriate Bootstrap Icons classes for visual representation.
+    Supports common document, media, archive, and code file types.
+    
+    Args:
+        filename: Name of the file (with or without path)
+        
+    Returns:
+        Bootstrap icon class name (e.g., "bi-file-pdf")
+        
+    Examples:
+        >>> util_get_file_icon('document.pdf')
+        'bi-file-pdf'
+        >>> util_get_file_icon('image.jpg')
+        'bi-file-image'
+        >>> util_get_file_icon('archive.zip')
+        'bi-file-zip'
+        >>> util_get_file_icon('script.py')
+        'bi-file-code'
+        >>> util_get_file_icon('unknown.xyz')
+        'bi-file-earmark'
+    """
+    import os
+    ext = os.path.splitext(filename)[1].lower()
+    
+    icon_map = {
+        '.pdf': 'bi-file-pdf',
+        '.doc': 'bi-file-word', '.docx': 'bi-file-word',
+        '.xls': 'bi-file-excel', '.xlsx': 'bi-file-excel',
+        '.ppt': 'bi-file-ppt', '.pptx': 'bi-file-ppt',
+        '.jpg': 'bi-file-image', '.jpeg': 'bi-file-image', '.png': 'bi-file-image',
+        '.gif': 'bi-file-image', '.bmp': 'bi-file-image', '.svg': 'bi-file-image',
+        '.mp4': 'bi-file-play', '.avi': 'bi-file-play', '.mov': 'bi-file-play',
+        '.mp3': 'bi-file-music', '.wav': 'bi-file-music', '.flac': 'bi-file-music',
+        '.zip': 'bi-file-zip', '.rar': 'bi-file-zip', '.7z': 'bi-file-zip',
+        '.tar': 'bi-file-zip', '.gz': 'bi-file-zip',
+        '.txt': 'bi-file-text', '.md': 'bi-file-text', '.log': 'bi-file-text',
+        '.py': 'bi-file-code', '.js': 'bi-file-code', '.html': 'bi-file-code',
+        '.css': 'bi-file-code', '.json': 'bi-file-code', '.xml': 'bi-file-code',
+    }
+    
+    return icon_map.get(ext, 'bi-file-earmark')

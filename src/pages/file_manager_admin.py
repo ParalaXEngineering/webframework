@@ -10,6 +10,7 @@ import logging
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, Dict, List, Tuple, Any
+from ..modules.utilities import util_format_file_size, util_format_date, util_get_file_icon
 
 logger = logging.getLogger(__name__)
 
@@ -220,18 +221,24 @@ def index():
                                     column=5, line=idx, layout_id=table_layout_id)
                 
                 # Size (human readable)
-                size_str = _format_file_size(file_meta['size'])
+                size_str = util_format_file_size(file_meta['size'])
                 disp.add_display_item(displayer.DisplayerItemText(size_str), 
                                     column=6, line=idx, layout_id=table_layout_id)
                 
                 # Upload date
-                upload_date = _format_date(file_meta['uploaded_at'])
+                upload_date = util_format_date(file_meta['uploaded_at'])
                 disp.add_display_item(displayer.DisplayerItemText(upload_date), 
                                     column=7, line=idx, layout_id=table_layout_id)
-                
-                # Integrity status
+            
+            # Bulk integrity check (single DB query + N file I/O operations)
+            # This is much more efficient than N individual verify_file_integrity() calls
+            file_ids = [f.get('id', 0) for f in files]
+            integrity_results = file_manager.verify_files_bulk(file_ids)
+            
+            # Display integrity status for each file
+            for idx, file_meta in enumerate(files):
                 file_id = file_meta.get('id', 0)
-                is_valid, status = file_manager.verify_file_integrity(file_id)
+                is_valid, status = integrity_results.get(file_id, (False, "Unknown"))
                 
                 if is_valid:
                     integrity_html = '<span class="badge bg-success" title="File intact"><i class="bi bi-check-circle"></i> OK</span>'
@@ -330,12 +337,25 @@ def index():
 def _generate_preview_html(file_meta: dict, size: str = "60px") -> str:
     """Generate preview HTML for a file (thumbnail or icon).
     
+    Creates an HTML img tag for files with thumbnails, or a Bootstrap icon
+    for files without thumbnails. Gracefully falls back to icon if thumbnail
+    URL generation fails.
+    
     Args:
-        file_meta: File metadata dictionary
-        size: Preview size (default "60px")
+        file_meta: File metadata dictionary containing:
+            - 'name': Filename for extension detection
+            - 'thumb_150x150' (optional): Relative path to 150x150 thumbnail
+        size: CSS size value for preview (default "60px")
         
     Returns:
-        HTML string for preview
+        HTML string containing either <img> tag or <i> icon tag
+        
+    Examples:
+        >>> _generate_preview_html({'name': 'photo.jpg', 'thumb_150x150': '.thumbs/...'})
+        '<img src="/files/download/..." class="img-thumbnail" ...>'
+        
+        >>> _generate_preview_html({'name': 'document.pdf'})
+        '<i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size: 2rem;"></i>'
     """
     # Check if thumbnail exists
     if 'thumb_150x150' in file_meta:
@@ -348,77 +368,8 @@ def _generate_preview_html(file_meta: dict, size: str = "60px") -> str:
             pass
     
     # No thumbnail - show file type icon
-    ext = Path(file_meta['name']).suffix.lower()
-    icon_class = _get_file_icon(ext)
+    icon_class = util_get_file_icon(file_meta['name'])
     return f'<i class="bi {icon_class}" style="font-size: 2rem;"></i>'
-
-
-def _get_file_icon(extension: str) -> str:
-    """Get Bootstrap icon class for file extension.
-    
-    Args:
-        extension: File extension (e.g., ".pdf")
-        
-    Returns:
-        Bootstrap icon class name
-    """
-    icon_map = {
-        '.pdf': 'bi-file-earmark-pdf-fill text-danger',
-        '.doc': 'bi-file-earmark-word-fill text-primary',
-        '.docx': 'bi-file-earmark-word-fill text-primary',
-        '.xls': 'bi-file-earmark-excel-fill text-success',
-        '.xlsx': 'bi-file-earmark-excel-fill text-success',
-        '.ppt': 'bi-file-earmark-ppt-fill text-warning',
-        '.pptx': 'bi-file-earmark-ppt-fill text-warning',
-        '.zip': 'bi-file-earmark-zip-fill text-secondary',
-        '.7z': 'bi-file-earmark-zip-fill text-secondary',
-        '.rar': 'bi-file-earmark-zip-fill text-secondary',
-        '.txt': 'bi-file-earmark-text',
-        '.csv': 'bi-file-earmark-spreadsheet',
-        '.jpg': 'bi-file-earmark-image text-info',
-        '.jpeg': 'bi-file-earmark-image text-info',
-        '.png': 'bi-file-earmark-image text-info',
-        '.gif': 'bi-file-earmark-image text-info',
-        '.bmp': 'bi-file-earmark-image text-info',
-        '.webp': 'bi-file-earmark-image text-info',
-    }
-    
-    return icon_map.get(extension, 'bi-file-earmark')
-
-
-def _format_file_size(size_bytes: int) -> str:
-    """Format file size in human-readable format.
-    
-    Args:
-        size_bytes: Size in bytes
-        
-    Returns:
-        Formatted string (e.g., "1.5 MB")
-    """
-    if size_bytes < 1024:
-        return f"{size_bytes} B"
-    elif size_bytes < 1024 * 1024:
-        return f"{size_bytes / 1024:.1f} KB"
-    elif size_bytes < 1024 * 1024 * 1024:
-        return f"{size_bytes / (1024 * 1024):.2f} MB"
-    else:
-        return f"{size_bytes / (1024 * 1024 * 1024):.2f} GB"
-
-
-def _format_date(iso_date_str: str) -> str:
-    """Format ISO date string to readable format.
-    
-    Args:
-        iso_date_str: ISO 8601 date string
-        
-    Returns:
-        Formatted date string
-    """
-    try:
-        dt = datetime.fromisoformat(iso_date_str.replace('Z', '+00:00'))
-        return dt.strftime('%Y-%m-%d %H:%M')
-    except Exception:
-        return iso_date_str
 
 
 @bp.route("/upload_form", methods=["GET", "POST"])
@@ -469,16 +420,18 @@ def upload_form():
                 tags = []
             
             # Upload file using file manager
+            current_user = session.get('user', 'GUEST')
             result = file_manager.upload_file(
                 uploaded_file,
                 category=category,
                 subcategory=subcategory,
                 group_id=group_id,
-                tags=tags
+                tags=tags,
+                uploaded_by=current_user
             )
             
             # Flash success message and redirect
-            flash_msg = f"File '{result['name']}' uploaded successfully ({_format_file_size(result['size'])})"
+            flash_msg = f"File '{result['name']}' uploaded successfully ({util_format_file_size(result['size'])})"
             if group_id:
                 flash_msg += f" to group '{group_id}'"
             if tags:
@@ -698,9 +651,9 @@ def edit_file(file_id):
                     {preview_html}
                 </div>
                 <div class="col-md-5">
-                    <p><strong>Size:</strong> {_format_file_size(file_version.file_size)}</p>
+                    <p><strong>Size:</strong> {util_format_file_size(file_version.file_size)}</p>
                     <p><strong>Type:</strong> {file_version.mime_type}</p>
-                    <p><strong>Uploaded:</strong> {_format_date(file_version.uploaded_at.isoformat())}</p>
+                    <p><strong>Uploaded:</strong> {util_format_date(file_version.uploaded_at.isoformat())}</p>
                 </div>
                 <div class="col-md-5">
                     <p><strong>Group ID:</strong> {file_version.group_id or '(none)'}</p>
@@ -924,10 +877,10 @@ def confirm_delete():
                                     column=0, line=idx)
                 disp.add_display_item(displayer.DisplayerItemText(file_info['group_id']), 
                                     column=1, line=idx)
-                size_str = _format_file_size(file_info['size'])
+                size_str = util_format_file_size(file_info['size'])
                 disp.add_display_item(displayer.DisplayerItemText(size_str), 
                                     column=2, line=idx)
-                date_str = _format_date(file_info['uploaded_at'])
+                date_str = util_format_date(file_info['uploaded_at'])
                 disp.add_display_item(displayer.DisplayerItemText(date_str), 
                                     column=3, line=idx)
         

@@ -84,16 +84,20 @@ def upload():
     tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else None
     
     try:
+        # Get current user
+        current_user = session.get('user', 'GUEST')
+        
         # Upload file with new parameters
         metadata = file_manager.upload_file(
             file, 
             category=category, 
             subcategory=subcategory,
             group_id=group_id,
-            tags=tags
+            tags=tags,
+            uploaded_by=current_user
         )
         
-        logger.info(f"File uploaded by {session.get('user', 'GUEST')}: {metadata['name']} (group: {metadata['group_id']}, version: {metadata['version']})")
+        logger.info(f"File uploaded by {current_user}: {metadata['name']} (group: {metadata['group_id']}, version: {metadata['version']})")
         
         return jsonify({
             "success": True,
