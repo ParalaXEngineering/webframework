@@ -23,6 +23,15 @@ bp = Blueprint("file_manager_admin", __name__, url_prefix="/file_manager")
 file_manager: Optional[Any] = None
 
 
+def _get_auth_manager():
+    """Get auth_manager dynamically to avoid initialization issues."""
+    try:
+        from ..modules.auth import auth_manager
+        return auth_manager
+    except ImportError:
+        return None
+
+
 def _get_displayer_modules():
     """Get displayer modules dynamically."""
     try:
@@ -52,10 +61,11 @@ def index():
     disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
     
     # Check user permissions
+    auth_manager = _get_auth_manager()
     current_user = session.get('user', 'GUEST')
-    can_upload = auth_manager.has_permission(current_user, "FileManager", "upload")
-    can_delete = auth_manager.has_permission(current_user, "FileManager", "delete")
-    can_edit = auth_manager.has_permission(current_user, "FileManager", "edit")
+    can_upload = auth_manager.has_permission(current_user, "FileManager", "upload") if auth_manager else True
+    can_delete = auth_manager.has_permission(current_user, "FileManager", "delete") if auth_manager else True
+    can_edit = auth_manager.has_permission(current_user, "FileManager", "edit") if auth_manager else True
     
     try:
         # Get file list from database (Phase 3 - includes versions, tags, group_id)

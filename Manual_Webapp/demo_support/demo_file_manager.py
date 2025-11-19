@@ -8,7 +8,7 @@ from flask import Blueprint, render_template, session, request
 from src.modules import displayer
 from src.modules.file_manager import FileManager
 from src.modules import settings
-from src.modules.auth import auth_manager as auth_module, require_permission
+from src.modules.auth import require_permission
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,6 +17,15 @@ demo_file_bp = Blueprint('demo_files', __name__)
 
 # File manager instance (injected by main.py)
 file_manager = None
+
+
+def _get_auth_manager():
+    """Get auth_manager dynamically to avoid initialization issues."""
+    try:
+        from src.modules.auth import auth_manager
+        return auth_manager
+    except ImportError:
+        return None
 
 
 def get_latest_uploaded_file():
@@ -62,7 +71,7 @@ def file_manager_demo():
     upload_result = None
     if request.method == 'POST':
         # Check if user has upload permission
-        auth_manager = auth_module.auth_manager
+        auth_manager = _get_auth_manager()
         if auth_manager:
             current_user = session.get('user')
             if not auth_manager.has_permission(current_user, "FileManager", "upload"):
@@ -158,7 +167,7 @@ def file_manager_demo():
     
     # Check if user has upload permission for UI display
     has_upload_permission = True
-    auth_manager = auth_module.auth_manager
+    auth_manager = _get_auth_manager()
     if auth_manager:
         current_user = session.get('user')
         has_upload_permission = auth_manager.has_permission(current_user, "FileManager", "upload")

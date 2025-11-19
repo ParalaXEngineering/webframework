@@ -114,7 +114,9 @@ def require_admin():
             if not current_user:
                 return redirect(url_for('common.login'))
             
-            if not auth_manager.is_admin(current_user):
+            # Check if user is in admin group
+            user_obj = auth_manager.get_user(current_user)
+            if not user_obj or 'admin' not in user_obj.groups:
                 # User is logged in but not admin - show access denied
                 from src.modules import displayer
                 disp = displayer.Displayer()

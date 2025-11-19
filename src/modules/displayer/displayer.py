@@ -107,7 +107,7 @@ class Displayer:
         required_action = getattr(module, 'm_required_action', 'view')
         
         # Get the current auth_manager instance from the module (not the import-time value)
-        auth_manager = auth_manager_module.auth_manager
+        auth_manager = auth_manager_module.auth_manager if auth_manager_module else None
         
         logger.info(f"[Displayer] Module: {default_name}, required_permission={required_permission}, required_action={required_action}")
         logger.info(f"[Displayer] auth_manager={auth_manager}, session available={session is not None}")
