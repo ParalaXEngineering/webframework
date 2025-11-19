@@ -303,7 +303,7 @@ def get_versions(group_id, filename):
     """Display version history page for a file.
     
     Args:
-        group_id: Group identifier
+        group_id: Group identifier (use '(none)' for files without a group)
         filename: Filename
     
     Returns:
@@ -327,7 +327,9 @@ def get_versions(group_id, filename):
             from modules.displayer import BSstyle
             from modules.utilities import get_home_endpoint
         
-        versions = file_manager.get_file_versions(group_id, filename)
+        # Convert '(none)' placeholder back to None for files without a group
+        actual_group_id = None if group_id == '(none)' else group_id
+        versions = file_manager.get_file_versions(actual_group_id, filename)
         
         # Build version history page
         disp = displayer.Displayer()
@@ -335,16 +337,18 @@ def get_versions(group_id, filename):
         disp.set_title(f"Version History: {filename}")
         disp.add_breadcrumb("Home", get_home_endpoint(), [])
         disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
+        # Use the original group_id parameter for breadcrumb (may be '(none)' placeholder)
         disp.add_breadcrumb("Version History", "file_handler.get_versions", [group_id, filename])
         
         # Header with file info
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        group_display = actual_group_id if actual_group_id else "(none)"
         header_html = f"""
         <div class="card mb-3">
             <div class="card-body">
                 <h4><i class="bi bi-clock-history"></i> Version History</h4>
                 <p class="mb-1"><strong>Filename:</strong> {filename}</p>
-                <p class="mb-0"><strong>Group ID:</strong> {group_id}</p>
+                <p class="mb-0"><strong>Group ID:</strong> {group_display}</p>
                 <p class="mb-0"><strong>Total Versions:</strong> {len(versions)}</p>
             </div>
         </div>

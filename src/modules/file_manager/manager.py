@@ -311,10 +311,10 @@ class FileManager:
                     f"Invalid subcategory: '{subcategory}'. Valid subcategories are: {valid_subcategories}"
                 )
         
-        # Determine group_id (admin can specify, or empty string for user to see)
+        # Determine group_id (admin can specify, or None for files without a group)
+        # Convert empty strings to None for consistent NULL handling in database
         if not group_id:
-            # Empty group_id - will be shown as empty field in admin
-            group_id = ""
+            group_id = None
         
         # Get current user
         current_user = session.get('user', 'GUEST')
@@ -332,22 +332,31 @@ class FileManager:
                 self.db_session.add(file_group)
                 self.db_session.commit()
         
-        # Check for existing versions of this file in the same group
+        # Check for existing versions of this file
+        # For files with group_id: match by group_id and filename
+        # For files without group_id (NULL): match by NULL group_id and filename
         if group_id:
+            # Files with a specific group
             existing_versions = self.db_session.query(FileVersion).filter(
                 and_(
                     FileVersion.group_id == group_id,
                     FileVersion.filename == safe_filename
                 )
             ).all()
-            version_number = len(existing_versions) + 1
-            
-            # Mark all existing versions as not current
-            for existing in existing_versions:
-                existing.is_current = False
         else:
-            # No group_id means standalone file
-            version_number = 1
+            # Files without a group (group_id is NULL) - these should still version together
+            existing_versions = self.db_session.query(FileVersion).filter(
+                and_(
+                    FileVersion.group_id.is_(None),
+                    FileVersion.filename == safe_filename
+                )
+            ).all()
+        
+        version_number = len(existing_versions) + 1
+        
+        # Mark all existing versions as not current
+        for existing in existing_versions:
+            existing.is_current = False
         
         # Store file content in HashFS
         try:
@@ -366,8 +375,9 @@ class FileManager:
         mime_type = mimetypes.guess_type(safe_filename)[0] or 'application/octet-stream'
         
         # Create database record
+        # Note: group_id can be None (NULL in database) for files without a group
         file_version = FileVersion(
-            group_id=group_id if group_id else None,
+            group_id=group_id,
             filename=safe_filename,
             storage_path=storage_path,
             file_size=file_size,
@@ -803,19 +813,28 @@ class FileManager:
         """Get all versions of a file using SQLAlchemy-Continuum.
         
         Args:
-            group_id: Group identifier
+            group_id: Group identifier (can be None or empty string for files without a group)
             filename: Filename
             
         Returns:
             List of version dictionaries with metadata
         """
         # Get all versions (current and historical)
-        all_versions = self.db_session.query(FileVersion).filter(
-            and_(
-                FileVersion.group_id == group_id,
-                FileVersion.filename == filename
-            )
-        ).order_by(FileVersion.uploaded_at).all()
+        # Handle None/empty string group_id for files without a group
+        if group_id:
+            all_versions = self.db_session.query(FileVersion).filter(
+                and_(
+                    FileVersion.group_id == group_id,
+                    FileVersion.filename == filename
+                )
+            ).order_by(FileVersion.uploaded_at).all()
+        else:
+            all_versions = self.db_session.query(FileVersion).filter(
+                and_(
+                    FileVersion.group_id.is_(None),
+                    FileVersion.filename == filename
+                )
+            ).order_by(FileVersion.uploaded_at).all()
         
         versions = []
         for idx, version in enumerate(all_versions, start=1):

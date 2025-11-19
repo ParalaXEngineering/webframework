@@ -105,6 +105,41 @@ class FileVersion(Base):
         UniqueConstraint('group_id', 'filename', 'uploaded_at', name='uq_group_filename_timestamp'),
     )
     
+    @property
+    def thumb_150x150(self):
+        """Get thumbnail path for 150x150 size if it exists.
+        
+        Returns:
+            str or None: Relative path to thumbnail file
+        """
+        from pathlib import Path
+        # Thumbnail path format: .thumbs/150x150/df/60/d42de39f...._thumb.jpg
+        if self.storage_path:
+            path = Path(self.storage_path)
+            # Get the hash directories (e.g., df/60)
+            hash_dirs = path.parent
+            # Get the filename without extension
+            hash_name = path.stem
+            thumb_path = f".thumbs/150x150/{hash_dirs}/{hash_name}_thumb.jpg"
+            return thumb_path
+        return None
+    
+    @property
+    def thumb_300x300(self):
+        """Get thumbnail path for 300x300 size if it exists.
+        
+        Returns:
+            str or None: Relative path to thumbnail file
+        """
+        from pathlib import Path
+        if self.storage_path:
+            path = Path(self.storage_path)
+            hash_dirs = path.parent
+            hash_name = path.stem
+            thumb_path = f".thumbs/300x300/{hash_dirs}/{hash_name}_thumb.jpg"
+            return thumb_path
+        return None
+    
     def __repr__(self):
         return f"<FileVersion(id={self.id}, filename='{self.filename}', group_id='{self.group_id}', is_current={self.is_current})>"
 

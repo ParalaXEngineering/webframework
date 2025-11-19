@@ -136,61 +136,97 @@ def index():
         # File list table with DataTables
         if files:
             # Add table layout with Phase 3 columns including integrity status
+            # Multi-delete button
+            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+            multi_delete_button_html = """
+            <button type="button" class="btn btn-danger" onclick="confirmMultiDelete()">
+                <i class="bi bi-trash"></i> Delete Selected
+            </button>
+            """
+            disp.add_display_item(
+                displayer.DisplayerItemAlert(multi_delete_button_html, displayer.BSstyle.NONE),
+                column=0
+            )
+            
             table_layout_id = disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
-                ["Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Integrity", "Actions"],
+                ["Select", "Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Integrity", "Actions"],
                 subtitle="Files",
                 datatable_config={
                     "table_id": "file_list_table",
                     "mode": displayer.TableMode.INTERACTIVE,
                     "page_length": 25,
-                    "searchable": True
+                    "searchable": True,
+                    "ordering": [[2, "asc"]],  # Sort by filename by default
+                    "columnDefs": [
+                        {"orderable": False, "targets": [0, 1, 9]},  # Disable sorting for checkbox, preview, and actions
+                        {"className": "text-center", "targets": [0, 1, 5, 7, 8, 9]}  # Center align some columns
+                    ]
                 }
             ))
             
             # Populate table rows
             for idx, file_meta in enumerate(files):
+                # Checkbox column
+                file_id = file_meta.get('id', 0)
+                checkbox_html = f'<input type="checkbox" class="file-select" value="{file_id}" data-filename="{file_meta["name"]}">'
+                disp.add_display_item(displayer.DisplayerItemAlert(checkbox_html, displayer.BSstyle.NONE), 
+                                    column=0, line=idx, layout_id=table_layout_id)
+                
                 # Preview column (thumbnail or icon)
                 preview_html = _generate_preview_html(file_meta)
                 disp.add_display_item(displayer.DisplayerItemAlert(preview_html, displayer.BSstyle.NONE), 
-                                    column=0, line=idx, layout_id=table_layout_id)
+                                    column=1, line=idx, layout_id=table_layout_id)
                 
                 # Filename
                 disp.add_display_item(displayer.DisplayerItemText(file_meta['name']), 
-                                    column=1, line=idx, layout_id=table_layout_id)
+                                    column=2, line=idx, layout_id=table_layout_id)
                 
                 # Group ID (read-only display)
                 group_id_val = file_meta.get('group_id', '') or '(none)'
                 disp.add_display_item(displayer.DisplayerItemText(group_id_val), 
-                                    column=2, line=idx, layout_id=table_layout_id)
-                
-                # Tags
-                tags_display = ', '.join(file_meta.get('tags', [])) or '(none)'
-                disp.add_display_item(displayer.DisplayerItemText(tags_display), 
                                     column=3, line=idx, layout_id=table_layout_id)
                 
+                # Tags - formatted with commas and line breaks for better datatable display
+                # Handle both new format (list) and old format (tags with # separator)
+                tags_list = file_meta.get('tags', [])
+                if tags_list:
+                    # Split any tags that contain # (old format) and flatten the list
+                    expanded_tags = []
+                    for tag in tags_list:
+                        if '#' in tag:
+                            expanded_tags.extend(tag.split('#'))
+                        else:
+                            expanded_tags.append(tag)
+                    tags_display = ',<br>'.join(expanded_tags)
+                else:
+                    tags_display = '(none)'
+                disp.add_display_item(displayer.DisplayerItemAlert(tags_display, displayer.BSstyle.NONE), 
+                                    column=4, line=idx, layout_id=table_layout_id)
+                
                 # Version info
-                if file_meta.get('group_id'):
-                    try:
-                        versions = file_manager.get_file_versions(file_meta['group_id'], file_meta['name'])
+                try:
+                    # Get versions (group_id can be None/empty for files without a group)
+                    versions = file_manager.get_file_versions(file_meta.get('group_id'), file_meta['name'])
+                    if versions:
                         current_ver = next((i+1 for i, v in enumerate(reversed(versions)) if v['is_current']), len(versions))
                         version_display = f"v{current_ver}/{len(versions)}"
-                    except:
+                    else:
                         version_display = "v1/1"
-                else:
+                except Exception:
                     version_display = "v1/1"
                 disp.add_display_item(displayer.DisplayerItemText(version_display), 
-                                    column=4, line=idx, layout_id=table_layout_id)
+                                    column=5, line=idx, layout_id=table_layout_id)
                 
                 # Size (human readable)
                 size_str = _format_file_size(file_meta['size'])
                 disp.add_display_item(displayer.DisplayerItemText(size_str), 
-                                    column=5, line=idx, layout_id=table_layout_id)
+                                    column=6, line=idx, layout_id=table_layout_id)
                 
                 # Upload date
                 upload_date = _format_date(file_meta['uploaded_at'])
                 disp.add_display_item(displayer.DisplayerItemText(upload_date), 
-                                    column=6, line=idx, layout_id=table_layout_id)
+                                    column=7, line=idx, layout_id=table_layout_id)
                 
                 # Integrity status
                 file_id = file_meta.get('id', 0)
@@ -208,7 +244,7 @@ def index():
                     integrity_html = f'<span class="badge bg-danger" title="{status}"><i class="bi bi-bug"></i> Error</span>'
                 
                 disp.add_display_item(displayer.DisplayerItemAlert(integrity_html, displayer.BSstyle.NONE), 
-                                    column=7, line=idx, layout_id=table_layout_id)
+                                    column=8, line=idx, layout_id=table_layout_id)
                 
                 # Actions (download, edit, history, delete buttons)
                 actions = []
@@ -231,20 +267,28 @@ def index():
                     "tooltip": "Edit Metadata"
                 })
                 
-                # History (if versioned)
-                if file_meta.get('group_id'):
-                    actions.append({
-                        "type": "custom",
-                        "url": url_for('file_handler.get_versions', group_id=file_meta['group_id'], filename=file_meta['name']),
-                        "icon": "bi bi-clock-history",
-                        "style": "info",
-                        "tooltip": "View History"
-                    })
+                # History (show for all files that might have versions)
+                # Extract version info from the version_display we calculated earlier
+                try:
+                    versions = file_manager.get_file_versions(file_meta.get('group_id'), file_meta['name'])
+                    if versions and len(versions) > 0:
+                        # Show history button for files with versions
+                        # Use '(none)' as URL placeholder for files without a group
+                        group_param = file_meta.get('group_id') or '(none)'
+                        actions.append({
+                            "type": "custom",
+                            "url": url_for('file_handler.get_versions', group_id=group_param, filename=file_meta['name']),
+                            "icon": "bi bi-clock-history",
+                            "style": "info",
+                            "tooltip": "View History"
+                        })
+                except Exception:
+                    pass  # Skip history button if we can't get versions
                 
                 # Delete
                 actions.append({
-                    "type": "delete",
-                    "url": f"javascript:deleteFile({file_meta.get('id', 0)})",
+                    "type": "custom",
+                    "url": url_for('file_manager_admin.confirm_delete', file_id=file_meta.get('id', 0)),
                     "icon": "bi bi-trash",
                     "style": "danger",
                     "tooltip": "Delete"
@@ -256,7 +300,7 @@ def index():
                         actions=actions,
                         size="sm"
                     ),
-                    column=8, line=idx, layout_id=table_layout_id
+                    column=9, line=idx, layout_id=table_layout_id
                 )
         else:
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
@@ -265,35 +309,41 @@ def index():
                 BSstyle.INFO
             ), column=0)
         
-        # Add delete script
-        delete_script = """
+        # Add multi-select form and scripts
+        multi_delete_form = """
+        <form id="multi_delete_form" method="POST" action="/file_manager/confirm-delete" style="display:none;">
+            <input type="hidden" name="file_ids_to_delete" id="file_ids_input">
+        </form>
         <script>
-        function deleteFile(fileId) {
-            if (!confirm('Are you sure you want to delete this file?\\n\\nFile ID: ' + fileId + '\\n\\nThis will permanently remove it.')) {
+        // Inject select-all checkbox into the table header after DataTable initializes
+        $(document).ready(function() {
+            setTimeout(function() {
+                // Find the first column header and add checkbox
+                $('#file_list_table thead th:first-child').html('<input type="checkbox" id="select_all" onclick="toggleSelectAll(this)">');
+            }, 100);
+        });
+        
+        function toggleSelectAll(checkbox) {
+            const checkboxes = document.querySelectorAll('.file-select');
+            checkboxes.forEach(cb => cb.checked = checkbox.checked);
+        }
+        
+        function confirmMultiDelete() {
+            const selected = Array.from(document.querySelectorAll('.file-select:checked'));
+            if (selected.length === 0) {
+                alert('Please select at least one file to delete');
                 return;
             }
             
-            fetch('/files/delete/' + fileId, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('File deleted successfully');
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            })
-            .catch(error => {
-                alert('Failed to delete file: ' + error);
-            });
+            const fileIds = selected.map(cb => cb.value).join(',');
+            document.getElementById('file_ids_input').value = fileIds;
+            document.getElementById('multi_delete_form').submit();
         }
         </script>
         """
         
-        # Add script as hidden HTML item
-        disp.add_display_item(displayer.DisplayerItemText(delete_script), column=0)
+        # Add script and form as hidden HTML item
+        disp.add_display_item(displayer.DisplayerItemText(multi_delete_form), column=0)
         
         return render_template("base_content.j2", content=disp.display())
         
@@ -803,3 +853,217 @@ def edit_file(file_id):
     # Form should post back to this same URL
     form_action = url_for('file_manager_admin.edit_file', file_id=file_id)
     return render_template("base_content.j2", content=disp.display(), form_action=form_action)
+
+
+@bp.route('/confirm-delete', methods=['GET', 'POST'])
+def confirm_delete():
+    """Confirmation page for deleting file(s).
+    
+    GET with file_id: Single file delete confirmation
+    POST with file_ids_to_delete: Show multi-delete confirmation or execute deletion
+    POST with confirm=true: Execute the deletion
+    """
+    if not file_manager:
+        return "File manager not initialized", 500
+    
+    # Get modules
+    displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
+    auth_manager = _get_auth_manager()
+    
+    # Check permission
+    if auth_manager:
+        current_user = session.get('user', 'GUEST')
+        if not auth_manager.has_permission(current_user, "FileManager", "delete"):
+            return render_template("error.j2", error="Permission denied"), 403
+    
+    disp = displayer.Displayer()
+    
+    # Check if this is a confirmation (second POST) or deletion request
+    from modules.utilities import util_post_to_json
+    is_executing = request.method == 'POST' and request.form.get('confirm_deletion') == 'true'
+    
+    if is_executing:
+        # Execute deletion (second POST)
+        data = util_post_to_json(request.form.to_dict())
+        file_ids_str = data.get('file_ids_to_delete', '')
+        if not file_ids_str:
+            return "No files specified", 400
+        
+        try:
+            file_ids = [int(fid) for fid in file_ids_str.split(',') if fid.strip()]
+        except ValueError:
+            return "Invalid file IDs", 400
+    else:
+        # Show confirmation page (GET or first POST)
+        if request.method == 'GET':
+            # Single file deletion from GET
+            single_file_id = request.args.get('file_id', type=int)
+            if single_file_id:
+                file_ids = [single_file_id]
+            else:
+                return "No files specified", 400
+        else:
+            # Multi-delete from POST
+            data = util_post_to_json(request.form.to_dict())
+            multi_file_ids = data.get('file_ids_to_delete', '')
+            if multi_file_ids:
+                try:
+                    file_ids = [int(fid) for fid in multi_file_ids.split(',') if fid.strip()]
+                except ValueError:
+                    return "Invalid file IDs", 400
+            else:
+                return "No files specified", 400
+        
+        # Get file metadata
+        files_to_delete = []
+        for fid in file_ids:
+            file_meta = file_manager.get_file_by_id(fid)
+            if file_meta:
+                files_to_delete.append({
+                    'id': fid,
+                    'filename': file_meta.filename,
+                    'size': file_meta.file_size,
+                    'uploaded_at': file_meta.uploaded_at.isoformat() + "Z",
+                    'group_id': file_meta.group_id or '(none)'
+                })
+        
+        if not files_to_delete:
+            return "No valid files found", 404
+        
+        # Build confirmation page
+        disp.add_generic("Confirm Delete")
+        disp.set_title("Confirm File Deletion")
+        
+        from modules.utilities import get_home_endpoint
+        disp.add_breadcrumb("Home", get_home_endpoint(), [])
+        disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
+        disp.add_breadcrumb("Confirm Delete", "file_manager_admin.confirm_delete", [])
+        
+        # Warning message
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        
+        if len(files_to_delete) == 1:
+            warning_html = f"""
+            <div class="alert alert-danger" role="alert">
+                <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Confirm Deletion</h4>
+                <p>You are about to permanently delete the following file:</p>
+                <hr>
+                <p class="mb-0"><strong>{files_to_delete[0]['filename']}</strong></p>
+                <p class="mb-0 text-muted">This action cannot be undone.</p>
+            </div>
+            """
+        else:
+            warning_html = f"""
+            <div class="alert alert-danger" role="alert">
+                <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Confirm Multiple Deletion</h4>
+                <p>You are about to permanently delete <strong>{len(files_to_delete)} files</strong>:</p>
+                <p class="mb-0 text-muted">This action cannot be undone.</p>
+            </div>
+            """
+        
+        disp.add_display_item(displayer.DisplayerItemAlert(warning_html, BSstyle.NONE), column=0)
+        
+        # File list table
+        if len(files_to_delete) > 1:
+            disp.add_master_layout(displayer.DisplayerLayout(
+                displayer.Layouts.TABLE,
+                ["Filename", "Group ID", "Size", "Uploaded"],
+                subtitle="Files to Delete"
+            ))
+            
+            for idx, file_info in enumerate(files_to_delete):
+                disp.add_display_item(displayer.DisplayerItemText(file_info['filename']), 
+                                    column=0, line=idx)
+                disp.add_display_item(displayer.DisplayerItemText(file_info['group_id']), 
+                                    column=1, line=idx)
+                size_str = _format_file_size(file_info['size'])
+                disp.add_display_item(displayer.DisplayerItemText(size_str), 
+                                    column=2, line=idx)
+                date_str = _format_date(file_info['uploaded_at'])
+                disp.add_display_item(displayer.DisplayerItemText(date_str), 
+                                    column=3, line=idx)
+        
+        # Hidden fields with file IDs and confirmation flag
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        file_ids_str = ','.join(str(fid) for fid in file_ids)
+        hidden_fields_html = f"""
+        <input type="hidden" name="file_ids_to_delete" value="{file_ids_str}">
+        <input type="hidden" name="confirm_deletion" value="true">
+        """
+        disp.add_display_item(displayer.DisplayerItemAlert(hidden_fields_html, BSstyle.NONE), column=0)
+        
+        # Buttons
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
+        
+        disp.add_display_item(displayer.DisplayerItemButton(
+            id="confirm_delete_btn",
+            text="Yes, Delete",
+            icon="trash",
+            color=BSstyle.ERROR
+        ), column=0)
+        
+        disp.add_display_item(displayer.DisplayerItemButton(
+            id="cancel_btn",
+            text="Cancel",
+            icon="x-circle",
+            link=url_for('file_manager_admin.index'),
+            color=BSstyle.SECONDARY
+        ), column=1)
+        
+        return render_template("base_content.j2", content=disp.display(), 
+                             form_action=url_for('file_manager_admin.confirm_delete'))
+    
+    # Execute deletion (is_executing == True)
+    # Delete files
+    deleted_count = 0
+    failed_files = []
+    
+    for fid in file_ids:
+        try:
+            success = file_manager.delete_file(fid)
+            if success:
+                deleted_count += 1
+                logger.info(f"File deleted by {session.get('user', 'GUEST')}: ID {fid}")
+            else:
+                failed_files.append(fid)
+        except Exception as e:
+            logger.error(f"Failed to delete file {fid}: {e}", exc_info=True)
+            failed_files.append(fid)
+    
+    # Show result page
+    disp.add_generic("Deletion Complete")
+    disp.set_title("Deletion Complete")
+    
+    disp.add_breadcrumb("Home", get_home_endpoint(), [])
+    disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
+    disp.add_breadcrumb("Deletion Complete", "file_manager_admin.confirm_delete", [])
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    
+    if failed_files:
+        result_html = f"""
+        <div class="alert alert-warning" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-check-circle"></i> Partially Complete</h4>
+            <p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>
+            <p><strong>{len(failed_files)}</strong> file(s) failed to delete.</p>
+        </div>
+        """
+    else:
+        result_html = f"""
+        <div class="alert alert-success" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-check-circle-fill"></i> Success</h4>
+            <p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>
+        </div>
+        """
+    
+    disp.add_display_item(displayer.DisplayerItemAlert(result_html, BSstyle.NONE), column=0)
+    
+    disp.add_display_item(displayer.DisplayerItemButton(
+        id="return_btn",
+        text="Return to File Manager",
+        icon="arrow-left",
+        link=url_for('file_manager_admin.index'),
+        color=BSstyle.PRIMARY
+    ), column=0)
+    
+    return render_template("base_content.j2", content=disp.display())
