@@ -19,9 +19,9 @@ import shutil
 import traceback
 import subprocess
 import copy
-import logging
+from ..modules.log.logger_factory import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_settings_manager():

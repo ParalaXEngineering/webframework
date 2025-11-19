@@ -5,27 +5,18 @@ This module provides a web interface for browsing, searching, and managing uploa
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from functools import wraps
-import logging
 from pathlib import Path
 from typing import Optional, Any
 from ..modules.utilities import util_format_file_size, util_format_date, util_get_file_icon, util_generate_preview_html
+from ..modules.log.logger_factory import get_logger
+from ..modules.auth.auth_manager import auth_manager
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 bp = Blueprint("file_manager_admin", __name__, url_prefix="/file_manager")
 
 # File manager instance will be injected by main.py
 file_manager: Optional[Any] = None
-
-
-def _get_auth_manager():
-    """Get auth_manager dynamically to avoid initialization issues."""
-    try:
-        from ..modules.auth.auth_manager import auth_manager
-        return auth_manager
-    except ImportError:
-        return None
 
 
 def _get_displayer_modules():
@@ -41,44 +32,8 @@ def _get_displayer_modules():
     return displayer, BSstyle, get_home_endpoint
 
 
-def require_file_manager_permission(f):
-    """Decorator to require FileManager module permission."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        auth_manager = _get_auth_manager()
-        displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
-        
-        if auth_manager:
-            current_user = session.get('user')
-            if not current_user:
-                flash("Please log in to access File Manager.", "warning")
-                return redirect(url_for('common.login'))
-            
-            # Check permission
-            if not auth_manager.has_permission(current_user, "FileManager", "view"):
-                disp = displayer.Displayer()
-                disp.add_generic("Access Denied")
-                disp.set_title("Access Denied")
-                disp.add_breadcrumb("Home", get_home_endpoint(), [])
-                
-                disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-                disp.add_display_item(displayer.DisplayerItemAlert(
-                    "<h4><i class='bi bi-shield-lock'></i> File Manager Access Required</h4>"
-                    "<p>You do not have permission to access the File Manager.</p>"
-                    f"<p><strong>Current User:</strong> {current_user}</p>"
-                    "<hr>"
-                    "<p>If you need access, please contact your system administrator.</p>",
-                    BSstyle.WARNING
-                ), column=0)
-                
-                return render_template("base_content.j2", content=disp.display())
-        
-        return f(*args, **kwargs)
-    return decorated_function
-
-
 @bp.route("/", methods=["GET"])
-@require_file_manager_permission
+@auth_manager.require_permission("FileManager", "view")
 def index():
     """File manager main page - browse files, view statistics."""
     if not file_manager:
@@ -333,7 +288,7 @@ def _generate_preview_html(file_meta: dict, size: str = "60px") -> str:
 
 
 @bp.route("/edit/<int:file_id>", methods=["GET", "POST"])
-@require_file_manager_permission
+@auth_manager.require_permission("FileManager", "view")
 def edit_file(file_id):
     """Edit file metadata (group_id, tags).
     
@@ -542,7 +497,7 @@ def edit_file(file_id):
 
 
 @bp.route('/delete-multiple', methods=['POST'])
-@require_file_manager_permission
+@auth_manager.require_permission("FileManager", "delete")
 def delete_multiple():
     """Handle multiple file deletion from checkboxes (redirects to confirm_delete)."""
     if not file_manager:
@@ -563,6 +518,7 @@ def delete_multiple():
 
 
 @bp.route('/confirm-delete', methods=['GET', 'POST'])
+@auth_manager.require_permission("FileManager", "delete")
 def confirm_delete():
     """Confirmation page for deleting file(s).
     
@@ -575,13 +531,6 @@ def confirm_delete():
     
     # Get modules
     displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
-    auth_manager = _get_auth_manager()
-    
-    # Check permission
-    if auth_manager:
-        current_user = session.get('user', 'GUEST')
-        if not auth_manager.has_permission(current_user, "FileManager", "delete"):
-            return render_template("error.j2", error="Permission denied"), 403
     
     disp = displayer.Displayer()
     
@@ -784,7 +733,7 @@ def confirm_delete():
 
 
 @bp.route('/version-history/<group_id>/<filename>', methods=['GET'])
-@require_file_manager_permission
+@auth_manager.require_permission("FileManager", "view")
 def version_history(group_id, filename):
     """Display version history page for a file.
     
@@ -965,7 +914,7 @@ def version_history(group_id, filename):
 
 
 @bp.route('/restore-version/<int:target_version_id>/<group_id>/<filename>', methods=['GET'])
-@require_file_manager_permission
+@auth_manager.require_permission("FileManager", "edit")
 def restore_version(target_version_id, group_id, filename):
     """Restore an old version of a file using a simple GET link.
     

@@ -4,7 +4,12 @@ import os
 import stat
 import logging
 
-logger = logging.getLogger(__name__)
+try:
+    from .log.logger_factory import get_logger
+except ImportError:
+    from log.logger_factory import get_logger
+
+logger = get_logger(__name__)
 
 class SFTPConnection:
     def __init__(self, host, username, password, port=22):
@@ -24,6 +29,7 @@ class SFTPConnection:
 
                 # Étape 2 : Créer le transport avec le socket
                 self.transport = paramiko.Transport(sock)
+                # Suppress verbose paramiko logging
                 logging.getLogger("paramiko").setLevel(logging.WARNING)
 
                 # Étape 3 : Connexion

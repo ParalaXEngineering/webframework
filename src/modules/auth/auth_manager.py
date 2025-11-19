@@ -6,14 +6,19 @@ import json
 from pathlib import Path
 from typing import Optional, List, Dict, Set
 from datetime import datetime
-from flask import session
-import logging
+from functools import wraps
+from flask import session, redirect, url_for, flash, render_template
 
 from .auth_models import User, ModulePermission
 from .auth_utils import hash_password, verify_password, get_default_user_prefs
 from .security_utils import FailedLoginManager
 
-logger = logging.getLogger(__name__)
+try:
+    from ..log.logger_factory import get_logger
+except ImportError:
+    from log.logger_factory import get_logger
+
+logger = get_logger("auth.auth_manager")
 
 
 class AuthManager:
@@ -790,6 +795,161 @@ class AuthManager:
         self._save_permissions()
         
         return True
+    
+    # ==================== Decorators ====================
+    
+    def _render_access_denied(self, title: str, message: str, current_user: str, required_permission: Optional[str] = None) -> str:
+        """
+        Render standardized access denied page.
+        
+        Args:
+            title: Page title
+            message: Error message to display
+            current_user: Current username
+            required_permission: Optional permission string to display
+            
+        Returns:
+            Rendered HTML page
+        """
+        try:
+            from ..displayer import Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, DisplayerItemButton, BSstyle
+            from ..utilities import get_home_endpoint
+        except ImportError:
+            from modules.displayer import Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, DisplayerItemButton, BSstyle
+            from modules.utilities import get_home_endpoint
+        
+        disp = Displayer()
+        disp.add_generic(title)
+        disp.set_title(title)
+        disp.add_breadcrumb("Home", get_home_endpoint(), [])
+        
+        disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
+        
+        # Build message HTML
+        permission_info = f"<p><strong>Required Permission:</strong> {required_permission}</p>" if required_permission else ""
+        alert_html = f"""
+        <h4><i class='bi bi-shield-lock'></i> {title}</h4>
+        <p>{message}</p>
+        <p><strong>Current User:</strong> {current_user}</p>
+        {permission_info}
+        <hr>
+        <p>If you need access, please contact your system administrator.</p>
+        """
+        
+        disp.add_display_item(DisplayerItemAlert(alert_html, BSstyle.WARNING), column=0)
+        
+        disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
+        disp.add_display_item(DisplayerItemButton(
+            "btn_back",
+            "Return to Home",
+            icon="home",
+            link=url_for(get_home_endpoint()),
+            color=BSstyle.PRIMARY
+        ), column=0)
+        
+        return render_template("base_content.j2", content=disp.display())
+    
+    def require_permission(self, module: str, action: str = "view"):
+        """
+        Decorator to require specific module permission.
+        
+        Args:
+            module: Module name (e.g., "FileManager")
+            action: Action name (e.g., "view", "edit", "delete")
+            
+        Returns:
+            Decorator function
+            
+        Example:
+            ::
+            
+                @auth_manager.require_permission("FileManager", "view")
+                def file_manager_page():
+                    return "File Manager Page"
+        """
+        def decorator(f):
+            @wraps(f)
+            def decorated_function(*args, **kwargs):
+                current_user = self.get_current_user()
+                
+                if not current_user:
+                    flash("Please log in to access this page.", "warning")
+                    return redirect(url_for('common.login'))
+                
+                if not self.has_permission(current_user, module, action):
+                    return self._render_access_denied(
+                        title="Access Denied",
+                        message="You do not have permission to access this module.",
+                        current_user=current_user,
+                        required_permission=f"{module}.{action}"
+                    )
+                
+                return f(*args, **kwargs)
+            return decorated_function
+        return decorator
+    
+    def require_admin(self):
+        """
+        Decorator to require admin group membership.
+        
+        Returns:
+            Decorator function
+            
+        Example:
+            ::
+            
+                @auth_manager.require_admin()
+                def admin_page():
+                    return "Admin Page"
+        """
+        def decorator(f):
+            @wraps(f)
+            def decorated_function(*args, **kwargs):
+                current_user = self.get_current_user()
+                
+                if not current_user:
+                    flash("Please log in to access this page.", "warning")
+                    return redirect(url_for('common.login'))
+                
+                user = self.get_user(current_user)
+                if not user or 'admin' not in user.groups:
+                    user_groups = ', '.join(user.groups) if user else 'None'
+                    return self._render_access_denied(
+                        title="Admin Access Required",
+                        message=f"This page is restricted to administrators only. Your groups: {user_groups}",
+                        current_user=current_user
+                    )
+                
+                return f(*args, **kwargs)
+            return decorated_function
+        return decorator
+    
+    def require_login(self):
+        """
+        Decorator to require any authenticated user.
+        
+        Returns:
+            Decorator function
+            
+        Example:
+            ::
+            
+                @auth_manager.require_login()
+                def protected_page():
+                    return "Protected Page"
+        """
+        def decorator(f):
+            @wraps(f)
+            def decorated_function(*args, **kwargs):
+                current_user = self.get_current_user()
+                
+                if not current_user:
+                    flash("Please log in to access this page.", "warning")
+                    return redirect(url_for('common.login'))
+                
+                return f(*args, **kwargs)
+            return decorated_function
+        return decorator
 
 
 # Global singleton instance (created by setup_app)

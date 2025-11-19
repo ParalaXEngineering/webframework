@@ -4,8 +4,7 @@ Manage users, groups, and module permissions.
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from functools import wraps
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..modules.auth.auth_manager import AuthManager
@@ -22,6 +21,7 @@ try:
     from ..modules import utilities
     from ..modules.utilities import get_home_endpoint
     from ..modules.log.logger_factory import get_logger
+    from ..modules.auth.auth_manager import auth_manager
 except ImportError:
     from modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
@@ -34,6 +34,7 @@ except ImportError:
     from modules import utilities
     from modules.utilities import get_home_endpoint
     from modules.log.logger_factory import get_logger
+    from modules.auth.auth_manager import auth_manager
 
 logger = get_logger("admin_auth")
 admin_auth_bp = Blueprint('admin_auth', __name__, url_prefix='/admin')
@@ -42,64 +43,10 @@ admin_auth_bp = Blueprint('admin_auth', __name__, url_prefix='/admin')
 bp = admin_auth_bp
 
 
-def _get_auth_manager() -> "AuthManager":
-    """Get the auth_manager instance. Import at runtime to avoid circular imports."""
-    try:
-        from ..modules.auth.auth_manager import auth_manager
-    except ImportError:
-        from modules.auth.auth_manager import auth_manager
-    return cast("AuthManager", auth_manager)
-
-
-def require_admin(f):
-    """Decorator to require admin group."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        auth_manager = _get_auth_manager()
-        current_user = auth_manager.get_current_user()
-        if not current_user:
-            flash("Please log in.", "warning")
-            return redirect(url_for('common.login'))
-        
-        user = auth_manager.get_user(current_user)
-        if not user or 'admin' not in user.groups:
-            # Instead of redirecting, show access denied page
-            disp = Displayer()
-            disp.add_generic("Access Denied")
-            disp.set_title("Access Denied")
-            disp.add_breadcrumb("Home", get_home_endpoint(), [])
-            
-            disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-            disp.add_display_item(DisplayerItemAlert(
-                "<h4><i class='bi bi-shield-lock'></i> Admin Access Required</h4>"
-                "<p>You do not have permission to access this page. Administrative functions require the 'admin' group membership.</p>"
-                f"<p><strong>Current User:</strong> {current_user}</p>"
-                f"<p><strong>Your Groups:</strong> {', '.join(user.groups) if user else 'None'}</p>"
-                "<hr>"
-                "<p>If you believe you should have access, please contact your system administrator.</p>",
-                BSstyle.WARNING
-            ), column=0)
-            
-            disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-            disp.add_display_item(DisplayerItemButton(
-                "btn_back",
-                "Return to Home",
-                icon="home",
-                link=url_for(get_home_endpoint()),
-                color=BSstyle.PRIMARY
-            ), column=0)
-            
-            return render_template("base_content.j2", content=disp.display())
-        
-        return f(*args, **kwargs)
-    return decorated_function
-
-
 @admin_auth_bp.route('/users', methods=['GET', 'POST'])
-@require_admin
+@auth_manager.require_admin()
 def manage_users():
     """User management page - CRUD operations."""
-    auth_manager = _get_auth_manager()
     
     # Create displayer
     disp = Displayer()
@@ -301,10 +248,9 @@ def manage_users():
 
 
 @admin_auth_bp.route('/permissions', methods=['GET', 'POST'])
-@require_admin
+@auth_manager.require_admin()
 def manage_permissions():
     """Module permissions matrix management."""
-    auth_manager = _get_auth_manager()
     
     # Create displayer
     disp = Displayer()
@@ -429,10 +375,9 @@ def manage_permissions():
 
 
 @admin_auth_bp.route('/groups', methods=['GET', 'POST'])
-@require_admin
+@auth_manager.require_admin()
 def manage_groups():
     """Group management page."""
-    auth_manager = _get_auth_manager()
     
     # Create displayer
     disp = Displayer()

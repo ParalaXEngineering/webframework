@@ -10,10 +10,14 @@ from hashfs import HashFS
 from pathlib import Path
 from typing import Dict, BinaryIO
 import hashlib
-import logging
 from io import BytesIO
 
-logger = logging.getLogger(__name__)
+try:
+    from ..log.logger_factory import get_logger
+except ImportError:
+    from log.logger_factory import get_logger
+
+logger = get_logger("file_manager.storage")
 
 
 class ContentAddressableStorage:

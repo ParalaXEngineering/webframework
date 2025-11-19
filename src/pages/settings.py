@@ -34,10 +34,10 @@ Config structure:
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from ..modules import displayer
 from ..modules.utilities import util_post_to_json, util_post_unmap, get_home_endpoint
+from ..modules.log.logger_factory import get_logger
 from .common import require_admin
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 bp = Blueprint("settings", __name__, url_prefix="/settings")
 

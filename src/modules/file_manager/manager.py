@@ -17,7 +17,6 @@ from typing import Optional, Dict, List, Tuple, Any
 from datetime import datetime
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
-import logging
 import os
 import re
 import mimetypes
@@ -43,7 +42,12 @@ try:
 except ImportError:
     PYMUPDF_AVAILABLE = False
 
-logger = logging.getLogger(__name__)
+try:
+    from ..log.logger_factory import get_logger
+except ImportError:
+    from log.logger_factory import get_logger
+
+logger = get_logger("file_manager.manager")
 
 
 class FileManager:

@@ -6,9 +6,13 @@ except ImportError:
     import scheduler
 
 import os
-import logging
 
-logger = logging.getLogger(__name__)
+try:
+    from .log.logger_factory import get_logger
+except ImportError:
+    from log.logger_factory import get_logger
+
+logger = get_logger("site_conf")
 
 site_conf_obj = None
 site_conf_app_path = None

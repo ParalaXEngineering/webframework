@@ -6,9 +6,9 @@ assets, login, and help pages.
 """
 
 from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash, session
-from functools import wraps
 from typing import Dict, Any, cast
 from ..modules.utilities import get_home_endpoint
+from ..modules.auth.auth_manager import auth_manager
 
 from ..modules import utilities
 from ..modules import displayer
@@ -19,65 +19,11 @@ import os
 import sys
 import markdown
 import bcrypt
-import logging
+from ..modules.log.logger_factory import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 bp = Blueprint("common", __name__, url_prefix="/common")
-
-
-def _get_auth_manager():
-    """Get auth_manager dynamically to avoid initialization issues."""
-    from ..modules.auth.auth_manager import auth_manager
-    return auth_manager
-
-
-def require_admin(f):
-    """Decorator to require admin group for accessing a page."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        auth_manager = _get_auth_manager()
-        if not auth_manager:
-            # If no auth manager, allow access (backwards compatibility)
-            return f(*args, **kwargs)
-        
-        current_user = session.get('username')
-        if not current_user:
-            flash("Please log in to access this page.", "warning")
-            return redirect(url_for('common.login'))
-        
-        user = auth_manager.get_user(current_user)
-        if not user or 'admin' not in user.groups:
-            # Show access denied page
-            disp = displayer.Displayer()
-            disp.add_generic("Access Denied")
-            disp.set_title("Access Denied - Admin Only")
-            disp.add_breadcrumb("Home", get_home_endpoint(), [])
-            
-            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            disp.add_display_item(displayer.DisplayerItemAlert(
-                "<h4><i class='bi bi-shield-lock'></i> Administrator Access Required</h4>"
-                "<p>This page is restricted to administrators only.</p>"
-                f"<p><strong>Current User:</strong> {current_user}</p>"
-                f"<p><strong>Your Groups:</strong> {', '.join(user.groups) if user else 'None'}</p>"
-                "<hr>"
-                "<p>If you need access to this page, please contact your system administrator.</p>",
-                displayer.BSstyle.WARNING
-            ), column=0)
-            
-            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            disp.add_display_item(displayer.DisplayerItemButton(
-                "btn_back",
-                "Return to Home",
-                icon="home",
-                link=url_for(get_home_endpoint()),
-                color=displayer.BSstyle.PRIMARY
-            ), column=0)
-            
-            return render_template("base_content.j2", content=disp.display())
-        
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 @bp.route("/download", methods=["GET"])
@@ -140,7 +86,6 @@ def assets(asset_type):
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     """Login page with user authentication."""
-    auth_manager = _get_auth_manager()
     if not auth_manager:
         return "Authentication system not initialized", 500
         

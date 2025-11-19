@@ -15,12 +15,12 @@ import zipfile
 import glob
 import re
 import base64
-import logging
 from datetime import datetime
 from bs4 import BeautifulSoup
 import textile
+from ..modules.log.logger_factory import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 bp = Blueprint("bug", __name__, url_prefix="/bug")
 

@@ -5,9 +5,9 @@ This module provides HTTP endpoints for secure file management operations.
 """
 
 from flask import Blueprint, request, send_file, jsonify, session, abort
-import logging
+from ..modules.log.logger_factory import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 bp = Blueprint("file_handler", __name__, url_prefix="/files")
 
