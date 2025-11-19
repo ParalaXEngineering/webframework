@@ -7,7 +7,7 @@ assets, login, and help pages.
 
 from flask import Blueprint, render_template, request, send_file, redirect, session
 from typing import Dict, Any, cast
-from ..modules.auth.auth_manager import auth_manager
+from ..modules import auth
 
 from ..modules import utilities
 from ..modules import displayer
@@ -84,17 +84,17 @@ def assets(asset_type):
 @bp.route("/login", methods=["GET", "POST"])
 def login():
     """Login page with user authentication."""
-    if not auth_manager:
+    if not auth.auth_manager:
         return "Authentication system not initialized", 500
         
     # Logout current user
-    auth_manager.logout_current_user()
+    auth.auth_manager.logout_current_user()
     session.pop('username', None)  # Clear legacy session key too
     
     error_message = None
     
     # Get all users
-    users = [u.username for u in auth_manager.get_all_users()]
+    users = [u.username for u in auth.auth_manager.get_all_users()]
     users.sort()
     
     if request.method == "POST":
@@ -103,11 +103,11 @@ def login():
         password = data_in.get("password", "")
         
         # Use check_login_attempt for security features (lockout, attempt tracking)
-        success, error_message = auth_manager.check_login_attempt(username, password)
+        success, error_message = auth.auth_manager.check_login_attempt(username, password)
         
         if success:
             # Set session with both keys for compatibility
-            auth_manager.set_current_user(username)
+            auth.auth_manager.set_current_user(username)
             session['username'] = username
             return redirect("/")
         # else: error_message is already set by check_login_attempt
