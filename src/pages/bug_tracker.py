@@ -63,9 +63,9 @@ def edit_issue(issue_id):
             issue = redmine.issue.get(issue_id)
             
         except redminelib.exceptions.ResourceNotFoundError:
-            return render_template("error.j2", message=f"Issue #{issue_id} was not found in Redmine.")
+            return render_template("error.j2", error=f"Issue #{issue_id} was not found in Redmine.")
         except Exception as e:
-            return render_template("error.j2", message=f"Error connecting to Redmine: {e}")
+            return render_template("error.j2", error=f"Error connecting to Redmine: {e}")
 
         if request.method == "POST":
             data_in = utilities.util_post_to_json(request.form.to_dict())
@@ -75,14 +75,14 @@ def edit_issue(issue_id):
                 # Fallback: try to find any key with "Edit Issue"
                 form_key = next((k for k in data_in.keys() if "Edit Issue" in k), None)
                 if not form_key:
-                    return render_template("error.j2", message="Invalid form submission")
+                    return render_template("error.j2", error="Invalid form submission")
             
             form_data = data_in[form_key]
             
             if len(form_data.get("description", "")) < 5:
-                return render_template("error.j2", message="Please provide a meaningful description")
+                return render_template("error.j2", error="Please provide a meaningful description")
             if len(form_data.get("subject", "")) < 5:
-                return render_template("error.j2", message="Please provide a meaningful subject")
+                return render_template("error.j2", error="Please provide a meaningful subject")
 
             # Convert HTML description to Redmine textile format
             description_html = form_data.get("description", "")
@@ -135,7 +135,7 @@ def edit_issue(issue_id):
                             os.remove(temp_img_path)
                         except Exception:
                             pass
-                return render_template("error.j2", message=f"Issue update failed: {e}")
+                return render_template("error.j2", error=f"Issue update failed: {e}")
 
         # Display edit form
         disp.add_master_layout(
@@ -428,7 +428,8 @@ def bugtracker():
         configs, error = get_config_or_error(settings_mgr, 
                                              "redmine.address.value",
                                              "redmine.user.value",
-                                             "redmine.password.value")
+                                             "redmine.password.value",
+                                             "redmine.project_id.value")
         if error:
             return error
 
@@ -440,39 +441,37 @@ def bugtracker():
                 requests={"verify": False}
             )
         except Exception as e:
-            return render_template("error.j2", message=f"Redmine connection failed with the following message: {e}")
+            return render_template("error.j2", error=f"Redmine connection failed with the following message: {e}")
         
+        # Get project_id from settings
+        project_id = configs["redmine.project_id.value"]
+        if not project_id:
+            return render_template("error.j2", error="Redmine project ID is not configured. Please set it in Settings > Redmine Configuration > Project ID.")
+        
+        # Get version name from site_conf if available
+        version_name = ""
         if site_conf.site_conf_obj:
-            project_id = site_conf.site_conf_obj.m_app["name"].lower().replace('_', '-').replace(' ', '-')
             version_name = site_conf.site_conf_obj.m_app["version"].lower().replace('_', '-').replace(' ', '-')
-            
-            # Verify project exists and fetch data
-            try:
-                # Test if project exists by fetching it
-                project = redmine.project.get(project_id)
-                issues = redmine.issue.filter(project_id=project_id)
-                issues_closed = redmine.issue.filter(project_id=project_id, status_id=5)
-                issues_rejected = redmine.issue.filter(project_id=project_id, status_id=6)
-                versions = redmine.version.filter(project_id=project_id)
-            except redminelib.exceptions.ResourceNotFoundError:
-                return render_template("error.j2", message=f"Project '{project_id}' was not found in Redmine. Please check your configuration.")
-            except Exception as e:
-                return render_template("error.j2", message=f"Error fetching project data from Redmine: {e}")
-        else:
-            # Not on target, variables remain uninitialized
-            project_id = None
-            issues = []
-            issues_closed = []
-            issues_rejected = []
-            versions = []
-            version_name = ""
+        
+        # Verify project exists and fetch data
+        try:
+            # Test if project exists by fetching it
+            project = redmine.project.get(project_id)
+            issues = redmine.issue.filter(project_id=project_id)
+            issues_closed = redmine.issue.filter(project_id=project_id, status_id=5)
+            issues_rejected = redmine.issue.filter(project_id=project_id, status_id=6)
+            versions = redmine.version.filter(project_id=project_id)
+        except redminelib.exceptions.ResourceNotFoundError:
+            return render_template("error.j2", error=f"Project '{project_id}' was not found in Redmine. Please check the Project ID in Settings > Redmine Configuration.")
+        except Exception as e:
+            return render_template("error.j2", error=f"Error fetching project data from Redmine: {e}")
 
         if request.method == "POST":
             data_in = utilities.util_post_to_json(request.form.to_dict())["Bug Tracker"]
             if len(data_in.get("description", "")) < 5:
-                return render_template("error.j2", message="Please provide a meaningful description of the issue")
+                return render_template("error.j2", error="Please provide a meaningful description of the issue")
             if len(data_in.get("subject", "")) < 5:
-                return render_template("error.j2", message="Please provide a meaningful subject of the issue")
+                return render_template("error.j2", error="Please provide a meaningful subject of the issue")
 
             # Convert HTML description to Redmine textile format
             description_html = data_in.get("description", "")
@@ -498,7 +497,7 @@ def bugtracker():
                     # Refresh versions list
                     versions = redmine.version.filter(project_id=project_id)
                 except Exception as e:
-                    return render_template("error.j2", message=f"Failed to create version '{version_name}' in Redmine: {e}")
+                    return render_template("error.j2", error=f"Failed to create version '{version_name}' in Redmine: {e}")
 
             log_archive_path = None
             try:
@@ -578,7 +577,7 @@ def bugtracker():
                         except Exception:
                             pass
                 
-                return render_template("error.j2", message=f"Issue creation failed with the following message: {e}")
+                return render_template("error.j2", error=f"Issue creation failed with the following message: {e}")
 
         # Check for pre-filled data from report_error
         from flask import session
@@ -701,3 +700,4 @@ def bugtracker():
             )
 
     return render_template("base_content.j2", content=disp.display(), target="bug.bugtracker")
+

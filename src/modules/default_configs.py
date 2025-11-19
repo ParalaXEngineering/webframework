@@ -56,7 +56,7 @@ FRAMEWORK_UI_CONFIG = {
 # Default configuration for Redmine integration
 REDMINE_CONFIG = {
     "redmine": {
-        "friendly": "Redmine credentials",
+        "friendly": "Redmine Configuration",
         "user": {
             "type": "string",
             "friendly": "User",
@@ -71,8 +71,14 @@ REDMINE_CONFIG = {
         },
         "address": {
             "type": "string",
-            "friendly": "Address",
+            "friendly": "Server Address",
             "value": "https://redmine.example.com/",
+            "persistent": True
+        },
+        "project_id": {
+            "type": "string",
+            "friendly": "Project ID",
+            "value": "",
             "persistent": True
         }
     }
