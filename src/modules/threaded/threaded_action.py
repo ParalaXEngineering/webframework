@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from ..scheduler.scheduler import Scheduler
 import traceback
 from collections import deque
-from typing import Optional, List, Dict, Any
+from typing import List, Dict, Any
 
 
 try:
@@ -622,7 +622,6 @@ class Threaded_action:
         # Capture user context for thread isolation in multi-user environments
         try:
             from flask import session
-            import flask
             self.username = session.get('user', 'anonymous')
             # Try to get session ID - Flask generates this automatically
             # The session ID is stored in the cookie, not directly accessible

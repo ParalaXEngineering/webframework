@@ -56,6 +56,8 @@ def get_manager():
 def index():
     """Settings dashboard - main entry point."""
     manager = get_manager()
+    if not manager:
+        return "Settings manager not initialized", 500
     
     disp = displayer.Displayer()
     disp.add_generic("Settings", display=False)
@@ -260,6 +262,8 @@ def _render_setting_row(disp, layout_id, line, category, key, setting, user_mode
 def _view_settings(user_mode=False):
     """Internal function to view and edit settings with optional user filtering."""
     manager = get_manager()
+    if not manager:
+        return "Settings manager not initialized", 500
     category_filter = request.args.get("category")
     
     # If POST and no category in args, try to get it from referrer
@@ -276,6 +280,9 @@ def _view_settings(user_mode=False):
             # Save to user overrides
             try:
                 from ..modules.auth.auth_manager import auth_manager
+                if not auth_manager:
+                    flash("Authentication not initialized", "danger")
+                    return redirect(url_for('common.login'))
                 current_user = auth_manager.get_current_user()
                 if not current_user:
                     flash("Not logged in", "danger")
@@ -307,7 +314,7 @@ def _view_settings(user_mode=False):
                 
                 for cat in categories_to_check:
                     cat_data = manager.get_category(cat)
-                    for key, setting in cat_data.items():
+                    for key, setting in cat_data.items():  # type: ignore
                         if key == "friendly" or not isinstance(setting, dict):
                             continue
                         if "type" in setting:
@@ -391,14 +398,16 @@ def _view_settings(user_mode=False):
                                     # For dicts (key_value_pairs, dropdown_mapping), already parsed correctly
                                     
                                     # Save to user override
-                                    auth_manager.set_user_framework_override(current_user, full_key, value)
-                        except Exception as e:
+                                    if auth_manager:
+                                        auth_manager.set_user_framework_override(current_user, full_key, value)
+                        except Exception:
                             logger.exception("Error setting user framework override")
                 
                 # Handle unchecked checkboxes - set to False
                 for bool_key in all_bool_settings:
                     if bool_key not in processed_settings:
-                        auth_manager.set_user_framework_override(current_user, bool_key, False)
+                        if auth_manager:
+                            auth_manager.set_user_framework_override(current_user, bool_key, False)
                 
                 flash("Settings saved successfully!", "success")
                 # Stay on the same page - rebuild URL with category if present
@@ -446,7 +455,7 @@ def _view_settings(user_mode=False):
                 
                 for cat in categories_to_check:
                     cat_data = manager.get_category(cat)
-                    for key, setting in cat_data.items():
+                    for key, setting in cat_data.items():  # type: ignore
                         if key == "friendly" or not isinstance(setting, dict):
                             continue
                         if "type" in setting:
@@ -550,9 +559,9 @@ def _view_settings(user_mode=False):
                 
                 # Handle unchecked overridable checkboxes (set to False)
                 all_settings = manager.get_all_settings()
-                for category in all_settings:
+                for category in all_settings:  # type: ignore
                     category_data = all_settings[category]
-                    for key in category_data:
+                    for key in category_data:  # type: ignore
                         if key == "friendly" or not isinstance(category_data[key], dict):
                             continue
                         full_key = f"{category}.{key}"
@@ -597,10 +606,11 @@ def _view_settings(user_mode=False):
     if user_mode:
         try:
             from ..modules.auth.auth_manager import auth_manager
-            current_user = auth_manager.get_current_user()
-            if current_user:
-                user_prefs = auth_manager.get_user_prefs(current_user)
-                user_overrides = user_prefs.get("framework_overrides", {})
+            if auth_manager:
+                current_user = auth_manager.get_current_user()
+                if current_user:
+                    user_prefs = auth_manager.get_user_prefs(current_user)
+                    user_overrides = user_prefs.get("framework_overrides", {})
         except Exception:
             pass
     
@@ -616,7 +626,7 @@ def _view_settings(user_mode=False):
         if user_mode:
             has_overridable_in_category = any(
                 setting.get("overridable_by_user", False)
-                for key, setting in category_data.items()
+                for key, setting in category_data.items()  # type: ignore
                 if key != "friendly" and isinstance(setting, dict)
             )
             if not has_overridable_in_category:
@@ -641,7 +651,7 @@ def _view_settings(user_mode=False):
         subcategories = {}
         direct_settings = {}
         
-        for key, setting in category_data.items():
+        for key, setting in category_data.items():  # type: ignore
             if key in ["friendly", "_category_description"] or not isinstance(setting, dict):
                 continue
             

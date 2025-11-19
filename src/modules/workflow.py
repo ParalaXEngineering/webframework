@@ -10,7 +10,6 @@ This module provides a flexible workflow system with:
 - Visual progress tracking
 """
 
-import traceback
 import json
 from typing import Optional, Callable, Any, Dict, List
 from enum import Enum

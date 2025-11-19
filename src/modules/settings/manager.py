@@ -5,7 +5,7 @@ Simple wrapper around SettingsStorage with convenience methods.
 """
 
 from typing import Any, Dict, List, Optional
-from .storage import SettingsStorage, SettingNotFoundError
+from .storage import SettingsStorage
 
 
 class SettingsManager:

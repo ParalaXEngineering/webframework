@@ -24,7 +24,6 @@ from .core import (
     ResourceRegistry,
     DisplayerCategory,
     Layouts,
-    TableMode,
     DisplayerItems,
     BSstyle,
     BSalign,
@@ -87,7 +86,6 @@ from .items import (
     DisplayerItemConsole,
     DisplayerItemCode,
     DisplayerItemProgressBar,
-    DisplayerItemGridEditor,
 )
 
 # File manager items

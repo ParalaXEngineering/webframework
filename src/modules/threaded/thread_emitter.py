@@ -17,7 +17,7 @@ try:
     from ..socketio_manager import socketio_manager
     from ..displayer import (
         Displayer, DisplayerLayout, Layouts, BSstyle, BSalign,
-        DisplayerItemText, DisplayerItemSeparator, DisplayerItemAlert,
+        DisplayerItemText, DisplayerItemAlert,
         DisplayerItemActionButtons, DisplayerItemConsole, DisplayerItemBadge,
         DisplayerItemIconText
     )
@@ -27,7 +27,7 @@ except ImportError:
     from socketio_manager import socketio_manager
     from displayer import (
         Displayer, DisplayerLayout, Layouts, BSstyle, BSalign,
-        DisplayerItemText, DisplayerItemSeparator, DisplayerItemAlert,
+        DisplayerItemText, DisplayerItemAlert,
         DisplayerItemActionButtons, DisplayerItemConsole, DisplayerItemBadge,
         DisplayerItemIconText
     )

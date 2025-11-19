@@ -665,8 +665,8 @@ class Site_conf:
             if username:
                 try:
                     from .auth import auth_manager as auth_mgr_module
-                    if hasattr(auth_mgr_module, 'auth_manager') and auth_mgr_module.auth_manager:
-                        override = auth_mgr_module.auth_manager.get_user_framework_override(
+                    if hasattr(auth_mgr_module, 'auth_manager') and auth_mgr_module.auth_manager:  # type: ignore[attr-defined]
+                        override = auth_mgr_module.auth_manager.get_user_framework_override(  # type: ignore[attr-defined]
                             username, f"framework_ui.{key}"
                         )
                         if override is not None:

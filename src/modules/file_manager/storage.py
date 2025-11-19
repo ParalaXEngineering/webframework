@@ -8,7 +8,7 @@ identical files are only stored once regardless of how many times they're upload
 
 from hashfs import HashFS
 from pathlib import Path
-from typing import Dict, BinaryIO
+from typing import Dict, BinaryIO, Optional, Any
 import hashlib
 from io import BytesIO
 
@@ -51,7 +51,7 @@ class ContentAddressableStorage:
         
         logger.info(f"Initialized content-addressable storage at {storage_path}")
     
-    def store(self, file_stream: BinaryIO, original_filename: str = None) -> Dict[str, str]:
+    def store(self, file_stream: BinaryIO, original_filename: Optional[str] = None) -> Dict[str, Any]:
         """Store file content and return storage metadata.
         
         Files are stored by their content hash. If the same content already exists,
@@ -93,6 +93,8 @@ class ContentAddressableStorage:
             address = self.fs.put(BytesIO(content))
             logger.debug(f"Stored new file: {checksum[:16]}...")
         
+        if address is None:
+            raise IOError("Failed to store file")
         return {
             'checksum': checksum,
             'storage_path': address.relpath,
@@ -134,6 +136,8 @@ class ContentAddressableStorage:
             IOError: File not found
         """
         address = self.fs.get(checksum)
+        if address is None:
+            raise IOError(f"File with checksum {checksum} not found")
         return Path(address.abspath)
     
     def exists(self, checksum: str) -> bool:

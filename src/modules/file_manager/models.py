@@ -5,7 +5,7 @@ This module defines the database schema for file versioning, grouping, and taggi
 Uses manual version tracking instead of SQLAlchemy-Continuum for better control.
 """
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table, Index, UniqueConstraint, CheckConstraint
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table, Index, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -114,8 +114,8 @@ class FileVersion(Base):
         """
         from pathlib import Path
         # Thumbnail path format: .thumbs/150x150/df/60/d42de39f...._thumb.jpg
-        if self.storage_path:
-            path = Path(self.storage_path)
+        if self.storage_path:  # type: ignore[truthy-bool]
+            path = Path(self.storage_path)  # type: ignore[arg-type]
             # Get the hash directories (e.g., df/60)
             hash_dirs = path.parent
             # Get the filename without extension
@@ -132,8 +132,8 @@ class FileVersion(Base):
             str or None: Relative path to thumbnail file
         """
         from pathlib import Path
-        if self.storage_path:
-            path = Path(self.storage_path)
+        if self.storage_path:  # type: ignore[truthy-bool]
+            path = Path(self.storage_path)  # type: ignore[arg-type]
             hash_dirs = path.parent
             hash_name = path.stem
             thumb_path = f".thumbs/300x300/{hash_dirs}/{hash_name}_thumb.jpg"

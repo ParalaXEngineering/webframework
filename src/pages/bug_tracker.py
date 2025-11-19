@@ -58,6 +58,9 @@ def edit_issue(issue_id):
                                              "redmine.password.value")
         if error:
             return error
+        
+        # Type guard: configs is dict when error is None
+        assert isinstance(configs, dict), "Config should be dict when no error"
 
         try:
             redmine = Redmine(
@@ -98,6 +101,7 @@ def edit_issue(issue_id):
 
             try:
                 current_user = "GUEST"
+                auth_manager = _get_auth_manager()
                 if auth_manager:
                     current_user = auth_manager.get_current_user() or "GUEST"
                 
@@ -440,6 +444,9 @@ def bugtracker():
                                              "redmine.project_id.value")
         if error:
             return error
+        
+        # Type guard: configs is dict when error is None
+        assert isinstance(configs, dict), "Config should be dict when no error"
 
         try:
             redmine = Redmine(

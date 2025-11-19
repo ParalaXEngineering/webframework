@@ -79,6 +79,9 @@ class SETUP_Updater(Threaded_action):
                 self.m_logger.error("Failed to get SFTP config from settings")
             return
         
+        # Type guard: configs is dict when error is None
+        assert isinstance(configs, dict), "Config should be dict when no error"
+        
         sftp_conn = SFTPConnection.SFTPConnection(
             configs["updates.address.value"],
             configs["updates.user.value"],
@@ -90,7 +93,12 @@ class SETUP_Updater(Threaded_action):
         if self.m_action in ("update", "load_update_file"):
             if self.m_scheduler:
                 self.m_scheduler.emit_status(self.get_name(), "Applying update", 103)
-            current_param = get_settings_manager().get_all_settings()
+            settings_manager_inst = get_settings_manager()
+            if not settings_manager_inst:
+                if self.m_logger:
+                    self.m_logger.error("Settings manager not initialized")
+                return
+            current_param = settings_manager_inst.get_all_settings()
 
             # --- Unzip / Untar ---
             if platform.system().lower() == "windows":
@@ -114,11 +122,21 @@ class SETUP_Updater(Threaded_action):
             # Recharger le nouveau config.json (qui vient d'être écrasé par l'archive)
             # Force reload from disk
             settings_mgr = get_settings_manager()
+            if not settings_mgr:
+                if self.m_logger:
+                    self.m_logger.error("Settings manager not initialized after reload")
+                return
             settings_mgr.load()
             new_param = settings_mgr.get_all_settings()
+            
+            # Type guard: ensure new_param is dict
+            if not isinstance(new_param, dict):
+                if self.m_logger:
+                    self.m_logger.error("Invalid settings format after reload")
+                return
 
             # --- MERGE new_param -> current_param ---
-            for topic, topic_data in new_param.items():
+            for topic, topic_data in new_param.items():  # type: ignore
                 # Nouveau topic ? Copie complète (deepcopy)
                 if topic not in current_param or not isinstance(topic_data, dict):
                     current_param[topic] = copy.deepcopy(topic_data)
@@ -165,7 +183,8 @@ class SETUP_Updater(Threaded_action):
                     current_param.pop(topic)
 
             # Save merged parameters
-            settings_mgr.storage.save(current_param)
+            if settings_mgr:
+                settings_mgr.storage.save(current_param)
 
             # Configuration pour le lancement du bootloader
             if site_conf_obj and platform.system().lower() == "windows":
@@ -250,7 +269,7 @@ class SETUP_Updater(Threaded_action):
                         )
                     return
                 
-                if site_conf_obj:
+                if site_conf_obj and isinstance(folder_value, str):
                     shutil.copyfile(
                         os.path.join(
                             folder_value,
@@ -277,17 +296,18 @@ class SETUP_Updater(Threaded_action):
                             return
                         
                         # Définition des chemins
-                        remote_file_path = os.path.join(
-                            path_value,
-                            "updates",
-                            site_conf_obj.m_app["name"],
-                            self.m_file
-                        ).replace("\\", "/")  # Assure la compatibilité Windows/Linux
+                        if isinstance(path_value, str):
+                            remote_file_path = os.path.join(
+                                path_value,
+                                "updates",
+                                site_conf_obj.m_app["name"],
+                                self.m_file
+                            ).replace("\\", "/")  # Assure la compatibilité Windows/Linux
 
-                        local_file_path = os.path.join("updates", self.m_file)
+                            local_file_path = os.path.join("updates", self.m_file)
 
-                        # Téléchargement du fichier
-                        sftp_conn.download_file(remote_file_path, local_file_path)
+                            # Téléchargement du fichier
+                            sftp_conn.download_file(remote_file_path, local_file_path)
 
                 except Exception as e:
                     if self.m_logger:
@@ -420,6 +440,9 @@ class SETUP_Updater(Threaded_action):
                 if self.m_scheduler:
                     self.m_scheduler.emit_status(self.get_name(), "Configuration error", 101)
                 return
+            
+            # Type guard: configs is dict when error is None
+            assert isinstance(configs, dict), "Config should be dict when no error"
 
             # Folder mode
             if configs["updates.source.value"] == "Folder":
@@ -548,6 +571,9 @@ def update():
                                          "updates.password.value")
     if error:
         return error
+    
+    # Type guard: configs is dict[str, Any] when error is None
+    assert isinstance(configs, dict), "Config should be dict when no error"
 
     # Check if user is admin
     current_user_name = None

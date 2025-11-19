@@ -6,13 +6,13 @@ of modules, layouts, and items for rendering web pages.
 """
 
 from typing import Optional, Dict, List, Any
+from .core import ResourceRegistry, Layouts
+from .layout import DisplayerLayout
 
 try:
     from ..log.logger_factory import get_logger
 except ImportError:
     from log.logger_factory import get_logger
-
-logger = get_logger("displayer")
 
 try:
     # Import the module, not the object, so we get the updated value
@@ -26,8 +26,7 @@ except ImportError:
     # For testing without Flask
     session = None
 
-from .core import ResourceRegistry, Layouts
-from .layout import DisplayerLayout
+logger = get_logger("displayer")
 
 
 class Displayer:
@@ -119,7 +118,8 @@ class Displayer:
             logger.info(f"[Displayer] No explicit permission, defaulting to module name: {required_permission}")
         
         if auth_manager is not None and session is not None:
-            logger.info(f"[Displayer] Auth system is available, checking permissions...")
+            # Auth system is available, check permissions
+            logger.info("[Displayer] Auth system is available, checking permissions...")
             current_username = session.get('username')
             logger.info(f"[Displayer] Checking permissions for user: {current_username}, module: {required_permission}, action: {required_action}")
             

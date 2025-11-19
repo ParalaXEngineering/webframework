@@ -5,9 +5,8 @@ This module contains HTTP route handlers for shared functionality like downloads
 assets, login, and help pages.
 """
 
-from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, send_file, redirect, session
 from typing import Dict, Any, cast
-from ..modules.utilities import get_home_endpoint
 from ..modules.auth.auth_manager import auth_manager
 
 from ..modules import utilities
@@ -18,7 +17,6 @@ from ..modules import User_defined_module
 import os
 import sys
 import markdown
-import bcrypt
 from ..modules.log.logger_factory import get_logger
 
 logger = get_logger(__name__)

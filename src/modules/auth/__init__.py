@@ -58,7 +58,7 @@ def require_permission(module: str, action: str = "view"):
             if not current_user:
                 return redirect(url_for('common.login'))
             
-            if not auth_manager.has_permission(current_user, module, action):
+            if not auth_manager.has_permission(current_user, module, action):  # type: ignore[attr-defined]
                 # User is logged in but lacks permission - show access denied
                 from src.modules import displayer
                 disp = displayer.Displayer()
@@ -115,7 +115,7 @@ def require_admin():
                 return redirect(url_for('common.login'))
             
             # Check if user is in admin group
-            user_obj = auth_manager.get_user(current_user)
+            user_obj = auth_manager.get_user(current_user)  # type: ignore[attr-defined]
             if not user_obj or 'admin' not in user_obj.groups:
                 # User is logged in but not admin - show access denied
                 from src.modules import displayer

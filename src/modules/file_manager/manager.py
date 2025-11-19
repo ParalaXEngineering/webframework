@@ -14,7 +14,6 @@ This module provides secure file management capabilities with support for:
 
 from pathlib import Path
 from typing import Optional, Dict, List, Tuple, Any
-from datetime import datetime
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 import os
@@ -244,6 +243,8 @@ class FileManager:
         
         # Sanitize filename
         original_filename = file_obj.filename
+        if not original_filename:
+            raise ValueError("Filename is required")
         safe_filename = self._sanitize_filename(original_filename)
         
         if not safe_filename:
@@ -303,7 +304,7 @@ class FileManager:
             
             # Mark all existing versions as not current
             for existing in existing_versions:
-                existing.is_current = False
+                existing.is_current = False  # type: ignore[assignment]
         else:
             # Files without a group are standalone (no versioning)
             existing_versions = []
@@ -311,7 +312,7 @@ class FileManager:
         
         # Store file content in HashFS
         try:
-            storage_metadata = self.storage.store(file_obj.stream, safe_filename)
+            storage_metadata = self.storage.store(file_obj.stream, safe_filename)  # type: ignore[arg-type]
             storage_path = storage_metadata['storage_path']
             checksum = storage_metadata['checksum']
             file_size = storage_metadata['size']
@@ -456,11 +457,11 @@ class FileManager:
         
         try:
             # Open image
-            with Image.open(file_path) as img:
+            with Image.open(file_path) as img:  # type: ignore[possibly-unbound]
                 # Convert RGBA to RGB if needed (for JPEG)
                 if img.mode == 'RGBA':
                     # Create white background
-                    background = Image.new('RGB', img.size, (255, 255, 255))
+                    background = Image.new('RGB', img.size, (255, 255, 255))  # type: ignore[possibly-unbound]
                     background.paste(img, mask=img.split()[3])  # Use alpha channel as mask
                     img = background
                 elif img.mode not in ('RGB', 'L'):
@@ -470,7 +471,7 @@ class FileManager:
                 if self.strip_exif:
                     # Create new image without EXIF
                     data = list(img.getdata())
-                    image_without_exif = Image.new(img.mode, img.size)
+                    image_without_exif = Image.new(img.mode, img.size)  # type: ignore[possibly-unbound]
                     image_without_exif.putdata(data)
                     img = image_without_exif
                 
@@ -492,7 +493,7 @@ class FileManager:
                         
                         # Create thumbnail
                         img_copy = img.copy()
-                        img_copy.thumbnail((width, height), Image.Resampling.LANCZOS)
+                        img_copy.thumbnail((width, height), Image.Resampling.LANCZOS)  # type: ignore[possibly-unbound]
                         img_copy.save(thumb_path, 'JPEG', quality=self.image_quality, optimize=True)
                         
                         thumbnails[thumb_name] = thumb_relative.replace('\\', '/')
@@ -523,7 +524,7 @@ class FileManager:
         
         try:
             # Open PDF
-            doc = fitz.open(file_path)
+            doc = fitz.open(file_path)  # type: ignore[possibly-unbound]
             
             # Only process first page for thumbnail
             if len(doc) == 0:
@@ -554,8 +555,8 @@ class FileManager:
                     zoom = min(zoom_x, zoom_y)
                     
                     # Render page to pixmap
-                    mat = fitz.Matrix(zoom, zoom)
-                    pix = page.get_pixmap(matrix=mat, alpha=False)
+                    mat = fitz.Matrix(zoom, zoom)  # type: ignore[possibly-unbound]
+                    pix = page.get_pixmap(matrix=mat, alpha=False)  # type: ignore
                     
                     # Save as JPEG
                     pix.save(thumb_path, "jpeg", jpg_quality=self.image_quality)
@@ -920,7 +921,7 @@ class FileManager:
                 thumb_key = f"thumb_{width}x{height}"
                 
                 # Construct thumbnail path
-                storage_path_obj = Path(file_version.storage_path)
+                storage_path_obj = Path(file_version.storage_path)  # type: ignore[arg-type]
                 thumb_path = thumb_base / size_str / storage_path_obj.parent / f"{storage_path_obj.stem}_thumb.jpg"
                 
                 if thumb_path.exists():
@@ -985,11 +986,11 @@ class FileManager:
                 results[file_id] = (False, "Not found")
                 continue
             
-            file_version = version_map[file_id]
+            file_version = version_map[file_id]  # type: ignore[index]
             
             try:
                 # Get physical file path
-                file_path = self.storage.get(file_version.storage_path)
+                file_path = self.storage.get(file_version.storage_path)  # type: ignore[arg-type]
                 
                 if not file_path.exists():
                     results[file_id] = (False, "Missing")

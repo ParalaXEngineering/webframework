@@ -15,9 +15,8 @@ try:
     from ..modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
-        DisplayerItemInputSelect, DisplayerItemInputCheckbox, DisplayerItemInputNumeric,
-        DisplayerItemInputStringIcon, DisplayerItemImage, DisplayerItemInputFile,
-        DisplayerItemAlert, DisplayerItemSeparator, BSstyle
+        DisplayerItemInputSelect, DisplayerItemImage, DisplayerItemInputFile,
+        DisplayerItemAlert, BSstyle
     )
     from ..modules.auth.auth_utils import verify_password, validate_password_strength
     from ..modules import utilities
@@ -27,9 +26,8 @@ except ImportError:
     from modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
-        DisplayerItemInputSelect, DisplayerItemInputCheckbox, DisplayerItemInputNumeric,
-        DisplayerItemInputStringIcon, DisplayerItemImage, DisplayerItemInputFile,
-        DisplayerItemAlert, DisplayerItemSeparator, BSstyle
+        DisplayerItemInputSelect, DisplayerItemImage, DisplayerItemInputFile,
+        DisplayerItemAlert, BSstyle
     )
     from modules.auth.auth_utils import verify_password, validate_password_strength
     from modules import utilities

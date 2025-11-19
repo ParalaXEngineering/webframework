@@ -12,7 +12,7 @@ Usage:
 """
 
 from flask import session
-from flask_socketio import join_room, leave_room, emit
+from flask_socketio import join_room, leave_room
 from typing import Dict, Set, Optional, Any
 
 try:
@@ -245,7 +245,6 @@ class SocketIOManager:
         """
         # Note: In production with Redis, this becomes less important as
         # Redis handles room cleanup automatically
-        initial_count = len(self._room_to_user)
         
         # Clean up empty user sets
         users_to_remove = [u for u, rooms in self._user_rooms.items() if not rooms]

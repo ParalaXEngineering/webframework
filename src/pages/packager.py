@@ -47,6 +47,9 @@ class SETUP_Packager(Threaded_action):
                 self.m_logger.error("Failed to get SFTP config from settings")
             return
         
+        # Type guard: configs is dict when error is None
+        assert isinstance(configs, dict), "Config should be dict when no error"
+        
         sftp_conn = SFTPConnection.SFTPConnection(
             configs["updates.address.value"],
             configs["updates.user.value"],
@@ -156,6 +159,9 @@ class SETUP_Packager(Threaded_action):
                 if self.m_scheduler:
                     self.m_scheduler.emit_status(self.get_name(), "Configuration error", 101)
                 return
+            
+            # Type guard: upload_configs is dict when error is None
+            assert isinstance(upload_configs, dict), "Config should be dict when no error"
 
             # Folder mode
             if upload_configs["updates.source.value"] == "Folder":
@@ -252,6 +258,9 @@ class SETUP_Packager(Threaded_action):
                     if self.m_scheduler:
                         self.m_scheduler.emit_status(self.get_name(), "Configuration error", 101)
                     return
+                
+                # Type guard: download_configs is dict when error is None
+                assert isinstance(download_configs, dict), "Config should be dict when no error"
 
                 # Folder mode
                 if download_configs["updates.source.value"] == "Folder":
@@ -551,6 +560,9 @@ def packager():
                                          "updates.password.value")
     if error:
         return error
+    
+    # Type guard: configs is dict when error is None
+    assert isinstance(configs, dict), "Config should be dict when no error"
 
     # Folder mode
     if configs["updates.source.value"] == "Folder":

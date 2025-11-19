@@ -5,7 +5,7 @@ This module provides real-time monitoring of framework log files with a modern
 tabbed interface showing log content with automatic updates using DataTables.
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify
+from flask import Blueprint, render_template, request, jsonify
 from ..modules import displayer
 from ..modules.utilities import get_home_endpoint
 from ..modules.auth import require_admin
@@ -156,7 +156,7 @@ def logs():
     # For each log file, add a TABLE with SERVER_SIDE DataTable
     for tab_index, log_file in enumerate(log_files):
         # Add TABLE layout with SERVER_SIDE DataTable config
-        slave_layout_id = disp.add_slave_layout(
+        disp.add_slave_layout(
             displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
                 columns=["#", "Timestamp", "Level", "File", "Line", "Message"],
@@ -344,12 +344,12 @@ def get_logs(log_file: str):
                         return -1 if reverse else float('inf')
                     try:
                         return int(val)
-                    except:
+                    except (ValueError, TypeError):
                         return -1 if reverse else float('inf')
                 filtered_data.sort(key=sort_func, reverse=reverse)
             else:
                 filtered_data.sort(key=lambda x: str(x[sort_key]).lower(), reverse=reverse)
-        except:
+        except Exception:
             pass  # If sorting fails, keep original order
         
         # Apply pagination (handle -1 for "all")

@@ -25,6 +25,6 @@ from . import auth  # New auth package
 
 __all__ = [
     'config_manager', 'log_parser', 'displayer',
-    'action', 'scheduler', 'scheduler_classes',
+    'action', 'scheduler',
     'threaded', 'workflow', 'utilities', 'site_conf', 'auth'
 ]

@@ -1,11 +1,8 @@
-import json
 import os
 import sys
 import glob
-import math
 import zlib
 import tarfile
-import time
 import re
 from typing import TYPE_CHECKING, Optional, Callable
 
@@ -337,7 +334,7 @@ def util_post_to_json(data: dict) -> dict:
                     # Regular expression pattern to match strings like "xxxxlistnn" where "xxxx" is any characters and "nn" is a number.
                     
                     if list_pattern.match(item_split[1]):
-                        if not item_split[0] in current:
+                        if item_split[0] not in current:
                             current[item_split[0]] = []
                         # Create only the list, the "final element" par will add the next items
                         # else:
@@ -850,11 +847,12 @@ def util_format_file_size(bytes_size: int) -> str:
         >>> util_format_file_size(1073741824)
         '1.00 GB'
     """
+    size_float = float(bytes_size)
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if bytes_size < 1024.0:
-            return f"{bytes_size:.2f} {unit}"
-        bytes_size /= 1024.0
-    return f"{bytes_size:.2f} PB"
+        if size_float < 1024.0:
+            return f"{size_float:.2f} {unit}"
+        size_float /= 1024.0
+    return f"{size_float:.2f} PB"
 
 
 def util_format_date(iso_date: str) -> str:

@@ -3,17 +3,17 @@ Admin authentication and authorization management blueprint.
 Manage users, groups, and module permissions.
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, flash
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..modules.auth.auth_manager import AuthManager
+    pass
 
 try:
     from ..modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton,
-        DisplayerItemInputSelect, DisplayerItemAlert, DisplayerItemInputString,
+        DisplayerItemInputSelect, DisplayerItemInputString,
         DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
     )
     from ..modules.auth.auth_utils import validate_username, validate_password_strength
@@ -26,7 +26,7 @@ except ImportError:
     from modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton,
-        DisplayerItemInputSelect, DisplayerItemAlert, DisplayerItemInputString,
+        DisplayerItemInputSelect, DisplayerItemInputString,
         DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
     )
     from modules.auth.auth_utils import validate_username, validate_password_strength
@@ -47,6 +47,10 @@ bp = admin_auth_bp
 @require_admin()
 def manage_users():
     """User management page - CRUD operations."""
+    
+    # Auth manager is required for this page
+    if not auth_manager:
+        return "Authentication system not initialized", 500
     
     # Create displayer
     disp = Displayer()
@@ -135,7 +139,7 @@ def manage_users():
     # User List Table
     users = auth_manager.get_all_users()
     user_data = []
-    for user in users:
+    for user in users:  # type: ignore
         user_data.append({
             "Username": user.username,
             "Display Name": user.display_name,
@@ -193,7 +197,7 @@ def manage_users():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Update User Groups</h3>"), column=0)
     
-    usernames = [u.username for u in users]
+    usernames = [u.username for u in users]  # type: ignore
     # Get first user's current groups for pre-population
     first_user_groups = users[0].groups if users else []
     
@@ -234,7 +238,7 @@ def manage_users():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Delete User</h3>"), column=0)
     
-    deletable_users = [u.username for u in users if u.username not in ["admin", "GUEST"]]
+    deletable_users = [u.username for u in users if u.username not in ["admin", "GUEST"]]  # type: ignore
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6, 6]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_user_to_delete",
@@ -251,6 +255,10 @@ def manage_users():
 @require_admin()
 def manage_permissions():
     """Module permissions matrix management."""
+    
+    # Auth manager is required for this page
+    if not auth_manager:
+        return "Authentication system not initialized", 500
     
     # Create displayer
     disp = Displayer()
@@ -282,7 +290,7 @@ def manage_permissions():
                 # Build new permissions from form data
                 new_permissions = {}
                 for module_name in all_modules:
-                    new_permissions[module_name] = {group: [] for group in all_groups}
+                    new_permissions[module_name] = {group: [] for group in all_groups}  # type: ignore
                 
                 # Parse checkbox format: checkbox_{module}|{group}|{action}
                 # Using | separator to avoid conflicts with underscores in module/group/action names
@@ -313,7 +321,7 @@ def manage_permissions():
     
     # Get all modules and groups (excluding admin - they have full access)
     all_modules = permission_registry.get_all_modules()
-    all_groups = [g for g in auth_manager.get_all_groups() if g != 'admin']
+    all_groups = [g for g in auth_manager.get_all_groups() if g != 'admin']  # type: ignore
     
     if not all_modules:
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -379,6 +387,10 @@ def manage_permissions():
 def manage_groups():
     """Group management page."""
     
+    # Auth manager is required for this page
+    if not auth_manager:
+        return "Authentication system not initialized", 500
+    
     # Create displayer
     disp = Displayer()
     disp.add_generic("Group Management")
@@ -439,7 +451,7 @@ def manage_groups():
     layout_id = disp.add_master_layout(DisplayerLayout(Layouts.TABLE, ["Group Name", "# Users"]))
     users = auth_manager.get_all_users()
     for line_idx, group in enumerate(groups):
-        user_count = sum(1 for u in users if group in u.groups)
+        user_count = sum(1 for u in users if group in u.groups)  # type: ignore
         disp.add_display_item(DisplayerItemText(group), 0, line=line_idx, layout_id=layout_id)
         disp.add_display_item(DisplayerItemText(str(user_count)), 1, line=line_idx, layout_id=layout_id)
     
@@ -455,7 +467,7 @@ def manage_groups():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Rename Group</h3>"), column=0)
     
-    renameable_groups = [g for g in groups if g not in ["admin", "guest"]]
+    renameable_groups = [g for g in groups if g not in ["admin", "guest"]]  # type: ignore
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [4, 6, 2]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_group_to_rename",
@@ -473,7 +485,7 @@ def manage_groups():
         "<div class='alert alert-warning'>Deleting a group removes it from all users and permissions.</div>"
     ), column=0)
     
-    deletable_groups = [g for g in groups if g not in ["admin", "guest"]]
+    deletable_groups = [g for g in groups if g not in ["admin", "guest"]]  # type: ignore
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6, 6]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_group_to_delete",
