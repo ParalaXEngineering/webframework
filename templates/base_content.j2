@@ -68,8 +68,7 @@
           cascadePanes: true,
           columns: {{ pane_indices|list }},  // Only show panes for these column indices
           {% if is_ssp %}
-          viewTotal: true,
-          dtOpts: { paging: false, searching: false }
+          viewTotal: true
           {% endif %}
         };
 
