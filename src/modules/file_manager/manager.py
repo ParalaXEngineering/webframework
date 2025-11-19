@@ -13,15 +13,13 @@ This module provides secure file management capabilities with support for:
 """
 
 from pathlib import Path
-from typing import Optional, Dict, List, Tuple
+from typing import Optional, Dict, List, Tuple, Any
 from datetime import datetime
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
-from flask import session
 import logging
 import os
 import re
-import shutil
 import mimetypes
 import hashlib
 
@@ -98,11 +96,7 @@ class FileManager:
             categories_config = self.settings.get_setting("file_storage.categories")
             self.categories = categories_config.get("value", ["general", "documents", "images"])
             
-            # Subcategories
-            subcategories_config = self.settings.get_setting("file_storage.subcategories")
-            self.subcategories = subcategories_config.get("value", ["2024", "2025"])
-            
-            # Group IDs
+            # Group IDs (deprecated - any string accepted, kept for backward compatibility)
             group_ids_config = self.settings.get_setting("file_storage.group_ids")
             self.group_ids = group_ids_config.get("value", [])
             
@@ -125,7 +119,6 @@ class FileManager:
             self.image_quality = 85
             self.strip_exif = True
             self.categories = ["general", "documents", "images"]
-            self.subcategories = ["2024", "2025"]
             self.group_ids = []
             self.tags = ["invoice", "contract", "photo", "report"]
         
@@ -242,16 +235,18 @@ class FileManager:
                 return new_filename
             counter += 1
     
-    def upload_file(self, file_obj: FileStorage, category: str = None, subcategory: str = "", 
-                    group_id: str = None, tags: List[str] = None) -> Dict:
+    def upload_file(self, file_obj: FileStorage, category: Optional[str] = None, subcategory: str = "", 
+                    group_id: Optional[str] = None, tags: Optional[List[str]] = None, 
+                    uploaded_by: Optional[str] = None) -> Dict[str, Any]:
         """Upload file with versioning support.
         
         Args:
             file_obj: Flask FileStorage object from request.files
-            category: Category for file organization (deprecated for group_id, kept for compatibility)
-            subcategory: Subcategory (deprecated for group_id, kept for compatibility)
-            group_id: Logical group ID for versioning (empty field shown in admin)
-            tags: List of tags for file organization
+            category: Category for file organization (optional, validated against config)
+            subcategory: Deprecated, kept for backward compatibility (not validated)
+            group_id: Logical group ID for versioning (None = standalone file, no versioning)
+            tags: List of tags for file organization (optional, validated against config)
+            uploaded_by: Username of uploader (optional, defaults to 'GUEST')
             
         Returns:
             Dictionary with file metadata:
@@ -303,21 +298,13 @@ class FileManager:
                     f"Invalid category: '{category}'. Valid categories are: {valid_categories}"
                 )
         
-        # Validate subcategory (if provided)
-        if subcategory:
-            valid_subcategories = self.subcategories
-            if valid_subcategories and subcategory not in valid_subcategories:
-                raise ValueError(
-                    f"Invalid subcategory: '{subcategory}'. Valid subcategories are: {valid_subcategories}"
-                )
-        
         # Determine group_id (admin can specify, or None for files without a group)
         # Convert empty strings to None for consistent NULL handling in database
         if not group_id:
             group_id = None
         
-        # Get current user
-        current_user = session.get('user', 'GUEST')
+        # Get current user from parameter or default
+        current_user = uploaded_by if uploaded_by else 'GUEST'
         
         # Check if file group exists, create if needed (only if group_id specified)
         if group_id:
@@ -333,30 +320,26 @@ class FileManager:
                 self.db_session.commit()
         
         # Check for existing versions of this file
-        # For files with group_id: match by group_id and filename
-        # For files without group_id (NULL): match by NULL group_id and filename
+        # ONLY files with a group_id have versioning
+        # Files without group_id are standalone (no versioning)
         if group_id:
-            # Files with a specific group
+            # Files with a specific group - enable versioning
             existing_versions = self.db_session.query(FileVersion).filter(
                 and_(
                     FileVersion.group_id == group_id,
                     FileVersion.filename == safe_filename
                 )
             ).all()
+            
+            version_number = len(existing_versions) + 1
+            
+            # Mark all existing versions as not current
+            for existing in existing_versions:
+                existing.is_current = False
         else:
-            # Files without a group (group_id is NULL) - these should still version together
-            existing_versions = self.db_session.query(FileVersion).filter(
-                and_(
-                    FileVersion.group_id.is_(None),
-                    FileVersion.filename == safe_filename
-                )
-            ).all()
-        
-        version_number = len(existing_versions) + 1
-        
-        # Mark all existing versions as not current
-        for existing in existing_versions:
-            existing.is_current = False
+            # Files without a group are standalone (no versioning)
+            existing_versions = []
+            version_number = 1
         
         # Store file content in HashFS
         try:
@@ -735,14 +718,6 @@ class FileManager:
         """
         return self.categories.copy()
     
-    def get_subcategories(self) -> List[str]:
-        """Get list of configured file subcategories.
-        
-        Returns:
-            List of subcategory names
-        """
-        return self.subcategories.copy()
-    
     def get_group_ids(self) -> List[str]:
         """Get list of configured group IDs.
         
@@ -774,7 +749,7 @@ class FileManager:
             group_id=group_id,
             name=name,
             description=description,
-            created_by=session.get('user', 'GUEST')
+            created_by='SYSTEM'  # TODO: Pass user parameter
         )
         self.db_session.add(file_group)
         self.db_session.commit()
@@ -805,7 +780,7 @@ class FileManager:
             and_(
                 FileVersion.group_id == group_id,
                 FileVersion.filename == filename,
-                FileVersion.is_current == True
+                FileVersion.is_current.is_(True)
             )
         ).first()
     
@@ -890,7 +865,7 @@ class FileManager:
             file_size=target.file_size,
             mime_type=target.mime_type,
             checksum=target.checksum,
-            uploaded_by=session.get('user', 'GUEST'),
+            uploaded_by='GUEST',  # TODO: Pass user parameter
             is_current=True,
             source_version_id=target_version_id
         )
@@ -919,7 +894,7 @@ class FileManager:
             FileVersion.tags
         ).filter(
             FileTag.tag_name.in_(tags),
-            FileVersion.is_current == True
+            FileVersion.is_current.is_(True)
         )
         
         if match_all:
@@ -931,7 +906,7 @@ class FileManager:
         
         return query.distinct().all()
     
-    def list_files_from_db(self, group_id: str = None, tag: str = None, limit: int = None) -> List[Dict]:
+    def list_files_from_db(self, group_id: Optional[str] = None, tag: Optional[str] = None, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """List files from database (replaces filesystem-based list_files).
         
         Args:
@@ -942,7 +917,7 @@ class FileManager:
         Returns:
             List of file metadata dictionaries
         """
-        query = self.db_session.query(FileVersion).filter(FileVersion.is_current == True)
+        query = self.db_session.query(FileVersion).filter(FileVersion.is_current.is_(True))
         
         if group_id:
             query = query.filter(FileVersion.group_id == group_id)
@@ -1016,6 +991,55 @@ class FileManager:
         
         logger.info(f"Updated group_id for file {file_id}: {new_group_id}")
         return True
+    
+    def verify_files_bulk(self, file_ids: List[int]) -> Dict[int, Tuple[bool, str]]:
+        """Verify integrity of multiple files in bulk (more efficient than individual checks).
+        
+        Args:
+            file_ids: List of database IDs to verify
+            
+        Returns:
+            Dictionary mapping file_id to (is_valid, status_message) tuples
+        """
+        results: Dict[int, Tuple[bool, str]] = {}
+        
+        # Fetch all file versions in one query
+        file_versions = self.db_session.query(FileVersion).filter(
+            FileVersion.id.in_(file_ids)
+        ).all()
+        
+        # Create lookup map
+        version_map = {fv.id: fv for fv in file_versions}
+        
+        # Check each file
+        for file_id in file_ids:
+            if file_id not in version_map:
+                results[file_id] = (False, "Not found")
+                continue
+            
+            file_version = version_map[file_id]
+            
+            try:
+                # Get physical file path
+                file_path = self.storage.get(file_version.storage_path)
+                
+                if not file_path.exists():
+                    results[file_id] = (False, "Missing")
+                    continue
+                
+                # Verify checksum
+                actual_checksum = self._calculate_checksum(file_path)
+                if actual_checksum != file_version.checksum:
+                    results[file_id] = (False, "Checksum mismatch")
+                else:
+                    results[file_id] = (True, "OK")
+                    
+            except IOError:
+                results[file_id] = (False, "Missing")
+            except Exception as e:
+                results[file_id] = (False, f"Error: {str(e)}")
+        
+        return results
     
     def verify_file_integrity(self, file_id: int) -> Tuple[bool, str]:
         """Verify file integrity by checking existence and checksum.

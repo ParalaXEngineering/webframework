@@ -551,14 +551,17 @@ class TestEmptyGroupID:
         assert metadata['version'] == 1  # Standalone file, no versioning
     
     def test_empty_group_id_no_versioning(self, file_manager, sample_text_file):
-        """Test files with empty group_id don't create versions."""
+        """Test files with empty group_id don't create versions (treated as independent files)."""
         meta1 = file_manager.upload_file(sample_text_file, group_id="")
         sample_text_file.stream.seek(0)
         meta2 = file_manager.upload_file(sample_text_file, group_id="")
         
-        # Both should be version 1 (no group = no versioning)
+        # Both should be version 1 (no group = no versioning, each file is standalone)
         assert meta1['version'] == 1
         assert meta2['version'] == 1
+        
+        # Both files should exist as separate entities
+        assert meta1['id'] != meta2['id']
 
 
 # ============================================================================

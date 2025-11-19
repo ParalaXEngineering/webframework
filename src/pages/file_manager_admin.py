@@ -4,18 +4,19 @@ File Manager Admin Page - Flask blueprint for file browsing and management UI.
 This module provides a web interface for browsing, searching, and managing uploaded files.
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from functools import wraps
 import logging
 from pathlib import Path
 from datetime import datetime
+from typing import Optional, Dict, List, Tuple, Any
 
 logger = logging.getLogger(__name__)
 
 bp = Blueprint("file_manager_admin", __name__, url_prefix="/file_manager")
 
 # File manager instance will be injected by main.py
-file_manager = None
+file_manager: Optional[Any] = None
 
 
 def _get_auth_manager():
@@ -136,10 +137,10 @@ def index():
         # File list table with DataTables
         if files:
             # Add table layout with Phase 3 columns including integrity status
-            # Multi-delete button
+            # Multi-delete button (uses form submission)
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
             multi_delete_button_html = """
-            <button type="button" class="btn btn-danger" onclick="confirmMultiDelete()">
+            <button type="submit" formaction="/file_manager/delete-multiple" class="btn btn-danger">
                 <i class="bi bi-trash"></i> Delete Selected
             </button>
             """
@@ -167,9 +168,9 @@ def index():
             
             # Populate table rows
             for idx, file_meta in enumerate(files):
-                # Checkbox column
+                # Checkbox column (using name="file_ids[]" for array submission)
                 file_id = file_meta.get('id', 0)
-                checkbox_html = f'<input type="checkbox" class="file-select" value="{file_id}" data-filename="{file_meta["name"]}">'
+                checkbox_html = f'<input type="checkbox" name="file_ids[]" value="{file_id}">'
                 disp.add_display_item(displayer.DisplayerItemAlert(checkbox_html, displayer.BSstyle.NONE), 
                                     column=0, line=idx, layout_id=table_layout_id)
                 
@@ -309,41 +310,8 @@ def index():
                 BSstyle.INFO
             ), column=0)
         
-        # Add multi-select form and scripts
-        multi_delete_form = """
-        <form id="multi_delete_form" method="POST" action="/file_manager/confirm-delete" style="display:none;">
-            <input type="hidden" name="file_ids_to_delete" id="file_ids_input">
-        </form>
-        <script>
-        // Inject select-all checkbox into the table header after DataTable initializes
-        $(document).ready(function() {
-            setTimeout(function() {
-                // Find the first column header and add checkbox
-                $('#file_list_table thead th:first-child').html('<input type="checkbox" id="select_all" onclick="toggleSelectAll(this)">');
-            }, 100);
-        });
-        
-        function toggleSelectAll(checkbox) {
-            const checkboxes = document.querySelectorAll('.file-select');
-            checkboxes.forEach(cb => cb.checked = checkbox.checked);
-        }
-        
-        function confirmMultiDelete() {
-            const selected = Array.from(document.querySelectorAll('.file-select:checked'));
-            if (selected.length === 0) {
-                alert('Please select at least one file to delete');
-                return;
-            }
-            
-            const fileIds = selected.map(cb => cb.value).join(',');
-            document.getElementById('file_ids_input').value = fileIds;
-            document.getElementById('multi_delete_form').submit();
-        }
-        </script>
-        """
-        
-        # Add script and form as hidden HTML item
-        disp.add_display_item(displayer.DisplayerItemText(multi_delete_form), column=0)
+        # Note: Multi-delete form wraps the table automatically via form_action parameter
+        # Checkboxes use name="file_ids[]" for array submission
         
         return render_template("base_content.j2", content=disp.display())
         
@@ -509,32 +477,15 @@ def upload_form():
                 tags=tags
             )
             
-            # Show success message
-            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+            # Flash success message and redirect
+            flash_msg = f"File '{result['name']}' uploaded successfully ({_format_file_size(result['size'])})"
+            if group_id:
+                flash_msg += f" to group '{group_id}'"
+            if tags:
+                flash_msg += f" with tags: {', '.join(tags)}"
             
-            success_html = f"""
-            <div class="alert alert-success">
-                <h5><i class="bi bi-check-circle"></i> File Uploaded Successfully!</h5>
-                <hr>
-                <p><strong>Filename:</strong> {result['name']}</p>
-                <p><strong>Size:</strong> {_format_file_size(result['size'])}</p>
-                <p><strong>Category:</strong> {category}</p>
-                {f"<p><strong>Subcategory:</strong> {subcategory}</p>" if subcategory else ""}
-                {f"<p><strong>Group ID:</strong> {group_id}</p>" if group_id else ""}
-                {f"<p><strong>Tags:</strong> {', '.join(tags)}</p>" if tags else ""}
-                <hr>
-                <p>Redirecting to file manager...</p>
-            </div>
-            <script>
-                setTimeout(function() {{
-                    window.location.href = '{url_for('file_manager_admin.index')}';
-                }}, 2000);
-            </script>
-            """
-            
-            disp.add_display_item(displayer.DisplayerItemAlert(success_html, BSstyle.SUCCESS), column=0)
-            
-            return render_template("base_content.j2", content=disp.display())
+            flash(flash_msg, "success")
+            return redirect(url_for('file_manager_admin.index'))
             
         except Exception as e:
             logger.error(f"Upload error: {e}", exc_info=True)
@@ -550,7 +501,6 @@ def upload_form():
     
     # Get available options from file manager
     categories = file_manager.get_categories() if file_manager else ["general"]
-    subcategories = file_manager.get_subcategories() if file_manager else []
     group_ids = file_manager.get_group_ids() if file_manager else []
     tags = file_manager.get_tags() if file_manager else []
     
@@ -574,16 +524,6 @@ def upload_form():
         choices=categories,
         value="general"
     ), column=0)
-    
-    # Subcategory dropdown (optional)
-    if subcategories:
-        subcategory_choices = ["(none)"] + subcategories
-        disp.add_display_item(displayer.DisplayerItemInputSelect(
-            id="subcategory",
-            text="Subcategory (Optional)",
-            choices=subcategory_choices,
-            value="(none)"
-        ), column=0)
     
     # Group ID dropdown (optional)
     if group_ids:
@@ -703,29 +643,9 @@ def edit_file(file_id):
                 file_manager.db_session.commit()
                 logger.info(f"Updated tags for file {file_id}: {current_tags} -> {new_tags}")
             
-            # Show success and redirect
-            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            
-            success_html = f"""
-            <div class="alert alert-success">
-                <h5><i class="bi bi-check-circle"></i> File Metadata Updated!</h5>
-                <hr>
-                <p><strong>Filename:</strong> {file_version.filename}</p>
-                <p><strong>Group ID:</strong> {new_group_id or '(none)'}</p>
-                <p><strong>Tags:</strong> {', '.join(new_tags) if new_tags else '(none)'}</p>
-                <hr>
-                <p>Redirecting to file manager...</p>
-            </div>
-            <script>
-                setTimeout(function() {{
-                    window.location.href = '{url_for('file_manager_admin.index')}';
-                }}, 2000);
-            </script>
-            """
-            
-            disp.add_display_item(displayer.DisplayerItemAlert(success_html, BSstyle.SUCCESS), column=0)
-            
-            return render_template("base_content.j2", content=disp.display())
+            # Flash success and redirect
+            flash(f"Metadata for '{file_version.filename}' updated successfully.", "success")
+            return redirect(url_for('file_manager_admin.index'))
             
         except Exception as e:
             logger.error(f"Edit file error: {e}", exc_info=True)
@@ -855,6 +775,27 @@ def edit_file(file_id):
     return render_template("base_content.j2", content=disp.display(), form_action=form_action)
 
 
+@bp.route('/delete-multiple', methods=['POST'])
+@require_file_manager_permission
+def delete_multiple():
+    """Handle multiple file deletion from checkboxes (redirects to confirm_delete)."""
+    if not file_manager:
+        return "File manager not initialized", 500
+    
+    # Get selected file IDs from form array
+    file_ids_list = request.form.getlist('file_ids[]')
+    
+    if not file_ids_list:
+        flash("No files selected for deletion.", "warning")
+        return redirect(url_for('file_manager_admin.index'))
+    
+    # Convert to comma-separated string for confirm_delete
+    file_ids_str = ','.join(file_ids_list)
+    
+    # Redirect to confirmation page
+    return redirect(url_for('file_manager_admin.confirm_delete') + f'?file_ids={file_ids_str}')
+
+
 @bp.route('/confirm-delete', methods=['GET', 'POST'])
 def confirm_delete():
     """Confirmation page for deleting file(s).
@@ -896,14 +837,21 @@ def confirm_delete():
     else:
         # Show confirmation page (GET or first POST)
         if request.method == 'GET':
-            # Single file deletion from GET
+            # Handle both single file (?file_id=123) and multiple (?file_ids=1,2,3)
             single_file_id = request.args.get('file_id', type=int)
+            multi_file_ids_str = request.args.get('file_ids', '')
+            
             if single_file_id:
                 file_ids = [single_file_id]
+            elif multi_file_ids_str:
+                try:
+                    file_ids = [int(fid) for fid in multi_file_ids_str.split(',') if fid.strip()]
+                except ValueError:
+                    return "Invalid file IDs", 400
             else:
                 return "No files specified", 400
         else:
-            # Multi-delete from POST
+            # First POST from inline delete form
             data = util_post_to_json(request.form.to_dict())
             multi_file_ids = data.get('file_ids_to_delete', '')
             if multi_file_ids:
