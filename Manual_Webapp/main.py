@@ -38,6 +38,7 @@ from demo_support.component_showcase import showcase_bp
 from demo_support.layout_showcase import layout_bp
 from demo_support.demo_grid_layout import grid_layout_bp
 from demo_support.demo_file_manager import demo_file_bp
+from demo_support.demo_authorization import demo_auth_bp
 
 # Initialize auth manager BEFORE creating app
 # Auth dir is now relative to Manual_Webapp
@@ -74,7 +75,8 @@ class TestSiteConf(site_conf.Site_conf):
         self.add_sidebar_submenu("Scheduler Demo", "demo.scheduler_demo", endpoint="demo")
         self.add_sidebar_submenu("Workflow Demo", "demo.workflow_demo", endpoint="demo")
         self.add_sidebar_submenu("FileManager demo", "demo_files.file_manager_demo", endpoint="demo")
-        
+        self.add_sidebar_submenu("Authorization Demo", "demo_auth.index", endpoint="demo")
+
         # Component Showcase - Auto-generated from DisplayerCategory
         self.add_sidebar_title("Displayer Showcase")
         self.add_sidebar_section("Components", "palette", "showcase_main")
@@ -105,12 +107,8 @@ class TestSiteConf(site_conf.Site_conf):
                 parameter=f"layout={layout_key}",
                 endpoint="layout_main"
             )
+
         
-        # Authorization demos
-        self.add_sidebar_section("Authorization Demos", "shield-check", "auth")
-        self.add_sidebar_submenu("Accessible Page", "demo.auth_accessible", endpoint="auth")
-        self.add_sidebar_submenu("Restricted Page", "demo.auth_restricted", endpoint="auth")
-        self.add_sidebar_submenu("Admin Only", "demo.auth_admin", endpoint="auth")
         
         # Enable all framework features - this will add sidebar items automatically
         # This includes: Authentication (User Management + Admin), Threads, Logs, 
@@ -173,6 +171,7 @@ app.register_blueprint(showcase_bp)
 app.register_blueprint(layout_bp)
 app.register_blueprint(grid_layout_bp)
 app.register_blueprint(demo_file_bp)
+app.register_blueprint(demo_auth_bp)
 logger.info("Registered demo pages, component showcase, layout showcase, grid layout, and file manager demo blueprints")
 
 # Register user profile and admin blueprints
@@ -183,7 +182,7 @@ logger.info("Registered auth management blueprints")
 # This keeps permission registration close to the code that uses them
 permission_registry.register_module("Demo_Threading", [])  # Threaded actions check their own permission
 permission_registry.register_module("Demo_Scheduler", [])  # Threaded actions check their own permission
-permission_registry.register_module("Demo_Authorization", [])
+# Demo_Auth module is registered in demo_authorization.py
 permission_registry.register_module("FileManager", ["upload", "download", "delete", "edit"])
 
 logger.info("Registered demo module permissions")
@@ -208,10 +207,8 @@ if __name__ == "__main__":
     print("  ")
     print("  Demo Features:")
     print("  - Component showcase (layouts, inputs, tables, etc.)")
-    print("  - Authorization demos in Demo Gallery:")
-    print("    • Accessible Page (anyone can view)")
-    print("    • Restricted Page (requires permission)")
-    print("    • Admin Only (requires admin role)")
+    print("  - Authorization Showcase (interactive permission demo)")
+    print("  - File Manager with upload/download/versioning")
     print("  ")
     print("  Press CTRL+C to stop the server")
     print("=" * 60)
