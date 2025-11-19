@@ -14,7 +14,7 @@ try:
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemInputString,
-        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
+        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle
     )
     from ..modules.auth.auth_utils import validate_username, validate_password_strength
     from ..modules.auth.permission_registry import permission_registry
@@ -27,7 +27,7 @@ except ImportError:
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemInputString,
-        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle, TableMode
+        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle
     )
     from modules.auth.auth_utils import validate_username, validate_password_strength
     from modules.auth.permission_registry import permission_registry

@@ -51,7 +51,10 @@ class ThreadEmitter:
         self.logger = get_logger("threaded_emitter")
         
         # Set up Jinja2 environment for template rendering (no Flask context needed)
-        self.jinja_env = Environment(loader=FileSystemLoader("templates/"))
+        # templates/ is three levels up from src/modules/threaded/
+        import os
+        template_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "templates")
+        self.jinja_env = Environment(loader=FileSystemLoader(template_dir))
         self.content_reloader_template = self.jinja_env.get_template("base_content_reloader.j2")
         
     def start(self):

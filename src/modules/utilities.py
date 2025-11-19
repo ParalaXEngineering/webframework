@@ -386,14 +386,13 @@ def util_view_reload_displayer(id: str, disp: "displayer.Displayer") -> list:
     :rtype: dict
     """
     # And update display
-    if Environment and FileSystemLoader:
-        env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
-        template = env.get_template("base_content_reloader.j2")
-        reloader = template.render(content=disp.display(True))  # Bypass authentification here
-
+    try:
+        from flask import render_template
+        reloader = render_template("base_content_reloader.j2", content=disp.display(True))
         to_render = [{"id": id, "content": reloader}]
         return to_render
-    return []
+    except Exception:
+        return []
 
 
 def util_view_reload_text(index: str, content: str) -> list:
@@ -441,116 +440,82 @@ def util_view_reload_multi_input(index: str, inputs: dict) -> list:
     :return: The rendered form to be displayed
     :rtype: dict
     """
-    if not Environment or not FileSystemLoader:
+    try:
+        from flask import render_template
+    except ImportError:
         return []
-
-    env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
+    
     to_render = []
     for processing in inputs:
         if processing["type"] == "select":
-            template = env.get_template("reload/select.j2")
-            to_render.append(
-                {
-                    "id": index + "." + processing["id"],
-                    "content": template.render(
-                        name=processing["id"] + "." + index,
-                        options=processing["data"],
-                        selected=processing["value"],
-                    ),
-                }
+            content = render_template("reload/select.j2",
+                name=processing["id"] + "." + index,
+                options=processing["data"],
+                selected=processing["value"]
             )
+            to_render.append({
+                "id": index + "." + processing["id"],
+                "content": content
+            })
 
         elif processing["type"] == "text":
-            template = env.get_template("reload/text.j2")
-            to_render.append(
-                {
-                    "id": index + "." + processing["id"],
-                    "content": template.render(
-                        name=processing["id"] + "." + index, default=processing["value"]
-                    ),
-                }
+            content = render_template("reload/text.j2",
+                name=processing["id"] + "." + index,
+                default=processing["value"]
             )
+            to_render.append({"id": index + "." + processing["id"], "content": content})
 
         elif processing["type"] == "slider":
-            template = env.get_template("reload/slider.j2")
-            to_render.append(
-                {
-                    "id": index + "." + processing["id"],
-                    "content": template.render(
-                        name=processing["id"] + "." + index,
-                        default=processing["value"],
-                        min=processing["range"][0],
-                        max=processing["range"][1],
-                    ),
-                }
+            content = render_template("reload/slider.j2",
+                name=processing["id"] + "." + index,
+                default=processing["value"],
+                min=processing["range"][0],
+                max=processing["range"][1]
             )
+            to_render.append({"id": index + "." + processing["id"], "content": content})
 
         elif processing["type"] == "int":
-            template = env.get_template("reload/int.j2")
-            to_render.append(
-                {
-                    "id": index + "." + processing["id"],
-                    "content": template.render(
-                        name=processing["id"] + "." + index, default=processing["value"]
-                    ),
-                }
+            content = render_template("reload/int.j2",
+                name=processing["id"] + "." + index,
+                default=processing["value"]
             )
+            to_render.append({"id": index + "." + processing["id"], "content": content})
 
         elif processing["type"] == "select-text":
-            template = env.get_template("reload/select-text.j2")
-            to_render.append(
-                {
-                    "id": index + "." + processing["id"] + ".div",
-                    "content": template.render(
-                        item={"id": index},
-                        current={
-                            "id": processing["id"],
-                            "value": processing["value"],
-                            "select": processing["select"],
-                        },
-                    ),
+            content = render_template("reload/select-text.j2",
+                item={"id": index},
+                current={
+                    "id": processing["id"],
+                    "value": processing["value"],
+                    "select": processing["select"]
                 }
             )
+            to_render.append({"id": index + "." + processing["id"] + ".div", "content": content})
 
         elif processing["type"] == "text-text":
-            template = env.get_template("reload/text-text.j2")
-            to_render.append(
-                {
-                    "id": index + "." + processing["id"] + ".div",
-                    "content": template.render(
-                        item={"id": index},
-                        current={"id": processing["id"], "value": processing["value"]},
-                    ),
-                }
+            content = render_template("reload/text-text.j2",
+                item={"id": index},
+                current={"id": processing["id"], "value": processing["value"]}
             )
+            to_render.append({"id": index + "." + processing["id"] + ".div", "content": content})
 
         elif processing["type"] == "list-select":
-            template = env.get_template("reload/list-select.j2")
-            to_render.append(
-                {
-                    "id": index + "." + processing["id"] + ".div",
-                    "content": template.render(
-                        item={"id": index},
-                        current={
-                            "id": processing["id"],
-                            "value": processing["value"],
-                            "select": processing["select"],
-                        },
-                    ),
+            content = render_template("reload/list-select.j2",
+                item={"id": index},
+                current={
+                    "id": processing["id"],
+                    "value": processing["value"],
+                    "select": processing["select"]
                 }
             )
+            to_render.append({"id": index + "." + processing["id"] + ".div", "content": content})
 
         elif processing["type"] == "list-text":
-            template = env.get_template("reload/list-text.j2")
-            to_render.append(
-                {
-                    "id": index + "." + processing["id"] + ".div",
-                    "content": template.render(
-                        item={"id": index},
-                        current={"id": processing["id"], "value": processing["value"]},
-                    ),
-                }
+            content = render_template("reload/list-text.j2",
+                item={"id": index},
+                current={"id": processing["id"], "value": processing["value"]}
             )
+            to_render.append({"id": index + "." + processing["id"] + ".div", "content": content})
 
     return to_render
 
@@ -584,27 +549,26 @@ def util_view_reload_input_file_manager(
     :rtype: dict
 
     """
-    if not Environment or not FileSystemLoader:
+    try:
+        from flask import render_template
+    except ImportError:
         return []
     
-    env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
-    template = env.get_template("reload/files.j2")
     to_render = []
     for i, file in enumerate(files):
-        to_render.append(
-            {
-                "id": f"{name.replace(' ', '_')}_{index}_files{i}",
-                "content": template.render(
-                    file_id=f"{index}_files{i}",
-                    name=index,
-                    files=file,
-                    title=title[i],
-                    icon=icons[i],
-                    classes=classes[i],
-                    hidden=hiddens[i],
-                ),
-            }
+        content = render_template("reload/files.j2",
+            file_id=f"{index}_files{i}",
+            name=index,
+            files=file,
+            title=title[i],
+            icon=icons[i],
+            classes=classes[i],
+            hidden=hiddens[i]
         )
+        to_render.append({
+            "id": f"{name.replace(' ', '_')}_{index}_files{i}",
+            "content": content
+        })
     return to_render
 
 
