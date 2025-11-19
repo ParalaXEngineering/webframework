@@ -35,7 +35,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from ..modules import displayer
 from ..modules.utilities import util_post_to_json, util_post_unmap, get_home_endpoint
 from ..modules.log.logger_factory import get_logger
-from .common import require_admin
+from ..modules.auth.auth_manager import auth_manager
 
 logger = get_logger(__name__)
 
@@ -52,7 +52,7 @@ def get_manager():
 
 
 @bp.route("/", methods=["GET"])
-@require_admin
+@auth_manager.require_admin()
 def index():
     """Settings dashboard - main entry point."""
     manager = get_manager()
@@ -116,7 +116,7 @@ def index():
 
 
 @bp.route("/view", methods=["GET", "POST"])
-@require_admin
+@auth_manager.require_admin()
 def view():
     """View and edit settings with inline form."""
     return _view_settings(user_mode=False)

@@ -8,7 +8,7 @@ tabbed interface showing log content with automatic updates using DataTables.
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify
 from ..modules import displayer
 from ..modules.utilities import get_home_endpoint
-from .common import require_admin
+from ..modules.auth.auth_manager import auth_manager
 import os
 import re
 
@@ -79,7 +79,7 @@ def _get_level_badge(level: str) -> str:
 
 
 @bp.route("/logs", methods=["GET"])
-@require_admin
+@auth_manager.require_admin()
 def logs():
     """Display log files in tabs with SERVER_SIDE DataTables for efficient viewing."""
     disp = displayer.Displayer()
@@ -195,7 +195,7 @@ def logs():
 
 
 @bp.route("/api/<log_file>")
-@require_admin
+@auth_manager.require_admin()
 def get_logs(log_file: str):
     """
     SERVER_SIDE DataTables AJAX endpoint.
