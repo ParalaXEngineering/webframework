@@ -150,6 +150,7 @@ Contents
 
    getting_started
    framework
+   file_manager
    tutorials
    examples
    

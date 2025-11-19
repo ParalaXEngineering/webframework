@@ -243,6 +243,55 @@ The :class:`src.access_manager.Access_manager` handles authentication and author
 
 Configuration is done through application settings, not directly accessed by site handlers.
 
+File Manager
+------------
+
+The :class:`src.modules.file_manager.FileManager` provides comprehensive file management capabilities:
+
+* **Content-Addressable Storage**: Files stored by SHA256 hash with automatic deduplication
+* **File Versioning**: Track multiple versions of files using group IDs
+* **Tag-Based Organization**: Flexible categorization and search
+* **Thumbnail Generation**: Automatic thumbnails for images and PDFs
+* **Integrity Verification**: Checksum validation for data integrity
+* **Web Interface**: Built-in file browser and management UI
+
+Key Features:
+
+* Files with the same ``group_id`` and ``filename`` are tracked as versions
+* Standalone files (no ``group_id``) exist without versioning
+* Physical files are reference-counted - only deleted when no versions remain
+* Thumbnails generated in multiple sizes (configurable)
+* RBAC integration for access control
+
+Example usage:
+
+.. code-block:: python
+
+   from src.modules.settings.settings_manager import SettingsManager
+   from src.modules.file_manager import FileManager
+   
+   # Initialize
+   settings = SettingsManager()
+   file_manager = FileManager(settings)
+   
+   # Upload with versioning
+   from flask import request
+   file_obj = request.files['file']
+   metadata = file_manager.upload_file(
+       file_obj,
+       group_id="project_alpha",
+       tags=["invoice", "2025"],
+       uploaded_by="john.doe"
+   )
+   
+   # List files with filters
+   files = file_manager.list_files_from_db(
+       group_id="project_alpha",
+       tag="invoice"
+   )
+
+For detailed documentation, see :doc:`file_manager`.
+
 Utilities
 ---------
 

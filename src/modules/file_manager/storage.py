@@ -58,14 +58,15 @@ class ContentAddressableStorage:
             original_filename: Original filename (for reference, not used in storage path)
             
         Returns:
-            Dictionary with storage metadata:
-            {
-                'checksum': SHA256 hash of content,
-                'storage_path': Relative path in hashfs (e.g., 'ab/c1/abc123...'),
-                'abspath': Absolute filesystem path,
-                'size': File size in bytes,
-                'is_duplicate': True if file already existed (deduplication occurred)
-            }
+            Dictionary with storage metadata::
+            
+                {
+                    'checksum': SHA256 hash of content,
+                    'storage_path': Relative path in hashfs (e.g., 'ab/c1/abc123...'),
+                    'abspath': Absolute filesystem path,
+                    'size': File size in bytes,
+                    'is_duplicate': True if file already existed (deduplication occurred)
+                }
         """
         # Read file content
         file_stream.seek(0)
@@ -188,11 +189,12 @@ class ContentAddressableStorage:
         """Get storage statistics.
         
         Returns:
-            Dictionary with storage stats:
-            {
-                'total_files': Number of unique files stored,
-                'total_size': Total size in bytes
-            }
+            Dictionary with storage stats::
+            
+                {
+                    'total_files': Number of unique files stored,
+                    'total_size': Total size in bytes
+                }
         """
         total_files = 0
         total_size = 0

@@ -249,21 +249,22 @@ class FileManager:
             uploaded_by: Username of uploader (optional, defaults to 'GUEST')
             
         Returns:
-            Dictionary with file metadata:
-            {
-                "id": Database ID,
-                "path": "storage/path/in/hashfs or filesystem",
-                "name": "filename.ext",
-                "size": 12345,
-                "group_id": "group identifier",
-                "version": 2,
-                "is_current": True,
-                "uploaded_at": "2025-11-17T10:30:00Z",
-                "uploaded_by": "username",
-                "checksum": "sha256hash...",
-                "tags": ["tag1", "tag2"],
-                "thumbnail_150x150": "path/to/thumb" (if generated)
-            }
+            Dictionary with file metadata::
+            
+                {
+                    "id": Database ID,
+                    "path": "storage/path/in/hashfs or filesystem",
+                    "name": "filename.ext",
+                    "size": 12345,
+                    "group_id": "group identifier",
+                    "version": 2,
+                    "is_current": True,
+                    "uploaded_at": "2025-11-17T10:30:00Z",
+                    "uploaded_by": "username",
+                    "checksum": "sha256hash...",
+                    "tags": ["tag1", "tag2"],
+                    "thumbnail_150x150": "path/to/thumb" (if generated)
+                }
             
         Raises:
             ValueError: Invalid file type, size, or name

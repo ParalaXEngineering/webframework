@@ -191,6 +191,36 @@ Logger Factory
    :show-inheritance:
    :no-index:
 
+File Manager
+------------
+
+File Manager
+^^^^^^^^^^^^
+
+.. automodule:: src.modules.file_manager.manager
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+Database Models
+^^^^^^^^^^^^^^^
+
+.. automodule:: src.modules.file_manager.models
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+Content-Addressable Storage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: src.modules.file_manager.storage
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
 Built-in Pages
 --------------
 
@@ -243,6 +273,21 @@ Logging Pages
 ^^^^^^^^^^^^^
 
 .. automodule:: src.pages.logging
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+File Manager Pages
+^^^^^^^^^^^^^^^^^^
+
+.. automodule:: src.pages.file_manager_admin
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :no-index:
+
+.. automodule:: src.pages.file_handler
    :members:
    :undoc-members:
    :show-inheritance:

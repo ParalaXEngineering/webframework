@@ -55,10 +55,10 @@ Simple Background Task
 
 The framework provides `DemoSchedulerAction` as a simple background task example with real-time progress updates:
 
-.. literalinclude:: ../../tests/demo_support/demo_scheduler_action.py
+.. literalinclude:: ../../Manual_Webapp/demo_support/demo_scheduler_action.py
    :language: python
-   :pyobject: DemoSchedulerAction
-   :caption: tests/demo_support/demo_scheduler_action.py
+   :pyobject: MySchedulerAction
+   :caption: Manual_Webapp/demo_support/demo_scheduler_action.py
 
 This task demonstrates:
 - Real-time progress updates via SocketIO
