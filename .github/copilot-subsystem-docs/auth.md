@@ -12,6 +12,19 @@ Role-based access control (RBAC) with user/group management, session handling, a
 
 ## Critical Patterns
 
+### Permission Registration (MANDATORY - Do This First!)
+```python
+# At the TOP of your module file, register custom permissions
+from modules.auth.permission_registry import permission_registry
+
+# Register module with custom actions (view is implicit for all modules)
+permission_registry.register_module("FileManager", ["upload", "download", "delete"])
+# This creates permissions: view (implicit), upload, download, delete
+
+# Module with only view permission (no registration needed, but explicit is better):
+permission_registry.register_module("Reports", [])  # Only 'view' permission
+```
+
 ### Route Protection (MANDATORY)
 ```python
 from modules.auth import auth_manager
@@ -20,6 +33,11 @@ from modules.auth import auth_manager
 @auth_manager.require_permission("FileManager", "view")
 def file_list():
     return "Files"
+
+# Custom action permission
+@auth_manager.require_permission("FileManager", "upload")
+def upload_page():
+    return "Upload form"
 
 # Admin-only
 @auth_manager.require_admin()
@@ -32,11 +50,23 @@ def dashboard():
     return "Dashboard"
 ```
 
-### Manual Permission Check
+### Manual Permission Check (for UI elements)
 ```python
-user = auth_manager.get_current_user()
-if not auth_manager.has_permission(user, "FileManager", "edit"):
-    return "Access denied"
+# Check permissions to conditionally show UI elements
+current_user = auth_manager.get_current_user()
+can_upload = auth_manager.has_permission(current_user, "FileManager", "upload")
+
+if can_upload:
+    disp.add_display_item(DisplayerItemButton("upload_btn", "Upload File"))
+else:
+    disp.add_display_item(DisplayerItemAlert(
+        "You need 'upload' permission to upload files. Contact your administrator.",
+        BSstyle.WARNING
+    ))
+
+# Or in route handlers:
+if not auth_manager.has_permission(current_user, "FileManager", "upload"):
+    return jsonify({"error": "Permission denied: You need 'upload' permission. Contact admin."}), 403
 ```
 
 ### Threaded Action Permission
@@ -113,14 +143,16 @@ class AuthManager:
 ```
 
 ## Common Pitfalls
-1. **Session key** - Use `session['user']` not `session['username']` or `session['current_user']`
-2. **Admin bypass** - 'admin' group has access to everything automatically
-3. **Empty password** - Empty `password_hash` means passwordless (auto-login)
-4. **Module names** - Must match Threaded_action class name for auto-checks
-5. **Action names** - Standard: "view", "edit", "delete", "execute" (lowercase)
-6. **Decorator order** - Auth decorators must be AFTER @blueprint.route()
-7. **Failed login** - Default: 5 attempts, 5-minute lockout (configurable in FailedLoginManager)
-8. **Permissions file** - Has both "modules" and "pages" sections (pages for legacy)
+1. **Register permissions first** - Call `permission_registry.register_module()` at module file top BEFORE using permissions
+2. **Session key** - Use `session['user']` not `session['username']` or `session['current_user']`
+3. **Admin bypass** - 'admin' group has access to everything automatically
+4. **Empty password** - Empty `password_hash` means passwordless (auto-login)
+5. **Module names** - Must match Threaded_action class name for auto-checks
+6. **Action names** - Use lowercase: "view", "upload", "execute", "configure" (consistent naming)
+7. **View is implicit** - Every module automatically has "view" permission, don't register it
+8. **Decorator order** - Auth decorators must be AFTER @blueprint.route()
+9. **Failed login** - Default: 5 attempts, 5-minute lockout (configurable in FailedLoginManager)
+10. **Module responsibility** - Each module checks its own permissions and returns appropriate errors
 
 ## Integration Points
 - **Displayer**: Auto-renders access denied pages with `_render_access_denied()`

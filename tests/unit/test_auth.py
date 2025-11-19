@@ -261,11 +261,11 @@ class TestPermissionRegistry:
         permission_registry.register_module("TestModule", ["execute", "configure"])
         
         actions = permission_registry.get_module_actions("TestModule")
-        assert "read" in actions  # Standard CRUD
-        assert "write" in actions
-        assert "delete" in actions
+        assert "view" in actions  # Implicit base permission
         assert "execute" in actions  # Custom
         assert "configure" in actions  # Custom
+        assert "read" not in actions  # No auto CRUD anymore
+        assert "write" not in actions
     
     def test_get_all_modules(self):
         """Test retrieving all registered modules."""
@@ -284,8 +284,9 @@ class TestPermissionRegistry:
         
         permission_registry.register_module("TestModule", ["execute"])
         
-        assert permission_registry.is_action_valid("TestModule", "read")
-        assert permission_registry.is_action_valid("TestModule", "execute")
+        assert permission_registry.is_action_valid("TestModule", "view")  # Implicit
+        assert permission_registry.is_action_valid("TestModule", "execute")  # Custom
+        assert not permission_registry.is_action_valid("TestModule", "read")  # Not registered
         assert not permission_registry.is_action_valid("TestModule", "nonexistent")
 
 

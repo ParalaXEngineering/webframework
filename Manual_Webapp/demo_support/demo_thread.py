@@ -38,17 +38,3 @@ class DemoBackgroundThread(Threaded_action):
         self.m_running_state = 100
         self.console_write("=== Demo Thread Completed ===", "INFO")
         self.log_write("Background worker finished", "INFO")
-
-
-# ============================================================================
-# TO ADD TO demo.py:
-# ============================================================================
-"""
-# Near the end of demo.py, before app.run(), add:
-
-# Start a demo thread for testing the threads UI
-print("Starting demo background thread...")
-demo_thread = DemoBackgroundThread()
-demo_thread.start()
-print("✓ Demo thread started - visit /threads/ to monitor")
-"""

@@ -9,7 +9,11 @@ from pathlib import Path
 from typing import Optional, Any
 from ..modules.utilities import util_format_file_size, util_format_date, util_get_file_icon, util_generate_preview_html
 from ..modules.log.logger_factory import get_logger
-from ..modules.auth.auth_manager import auth_manager
+from ..modules.auth import require_permission
+from ..modules.auth.permission_registry import permission_registry
+
+# Register module permissions (view is implicit)
+permission_registry.register_module("FileManager", ["upload", "download", "delete", "edit"])
 
 logger = get_logger(__name__)
 
@@ -33,7 +37,7 @@ def _get_displayer_modules():
 
 
 @bp.route("/", methods=["GET"])
-@auth_manager.require_permission("FileManager", "view")
+@require_permission("FileManager", "view")
 def index():
     """File manager main page - browse files, view statistics."""
     if not file_manager:
@@ -46,6 +50,12 @@ def index():
     disp.set_title("File Manager - Browse Files")
     disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
+    
+    # Check user permissions
+    current_user = session.get('user', 'GUEST')
+    can_upload = auth_manager.has_permission(current_user, "FileManager", "upload")
+    can_delete = auth_manager.has_permission(current_user, "FileManager", "delete")
+    can_edit = auth_manager.has_permission(current_user, "FileManager", "edit")
     
     try:
         # Get file list from database (Phase 3 - includes versions, tags, group_id)
@@ -168,14 +178,15 @@ def index():
                     "tooltip": "Download"
                 })
                 
-                # Edit
-                actions.append({
-                    "type": "custom",
-                    "url": url_for('file_manager_admin.edit_file', file_id=file_meta.get('id', 0)),
-                    "icon": "bi bi-pencil",
-                    "style": "warning",
-                    "tooltip": "Edit Metadata"
-                })
+                # Edit (only if user has edit permission)
+                if can_edit:
+                    actions.append({
+                        "type": "custom",
+                        "url": url_for('file_manager_admin.edit_file', file_id=file_meta.get('id', 0)),
+                        "icon": "bi bi-pencil",
+                        "style": "warning",
+                        "tooltip": "Edit Metadata"
+                    })
                 
                 # History (show for all files that might have versions)
                 # Extract version info from the version_display we calculated earlier
@@ -195,14 +206,15 @@ def index():
                 except Exception:
                     pass  # Skip history button if we can't get versions
                 
-                # Delete
-                actions.append({
-                    "type": "custom",
-                    "url": url_for('file_manager_admin.confirm_delete', file_id=file_meta.get('id', 0)),
-                    "icon": "bi bi-trash",
-                    "style": "danger",
-                    "tooltip": "Delete"
-                })
+                # Delete (only if user has delete permission)
+                if can_delete:
+                    actions.append({
+                        "type": "custom",
+                        "url": url_for('file_manager_admin.confirm_delete', file_id=file_meta.get('id', 0)),
+                        "icon": "bi bi-trash",
+                        "style": "danger",
+                        "tooltip": "Delete"
+                    })
                 
                 disp.add_display_item(
                     displayer.DisplayerItemActionButtons(
@@ -214,23 +226,38 @@ def index():
                 )
 
             # Add table layout with Phase 3 columns including integrity status
-            # Multi-delete button (submit button for form)
+            # Multi-delete button (submit button for form) - only show if user has delete permission
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            disp.add_display_item(
-                displayer.DisplayerItemButton(
-                    id="delete_selected_btn",
-                    text="Delete Selected",
-                    icon="trash",
-                    color=BSstyle.ERROR
-                ),
-                column=0
-            )
+            if can_delete:
+                disp.add_display_item(
+                    displayer.DisplayerItemButton(
+                        id="delete_selected_btn",
+                        text="Delete Selected",
+                        icon="trash",
+                        color=BSstyle.ERROR
+                    ),
+                    column=0
+                )
+            else:
+                disp.add_display_item(
+                    displayer.DisplayerItemAlert(
+                        "<i class='bi bi-info-circle'></i> You need 'delete' permission to remove files. Contact your administrator.",
+                        BSstyle.INFO
+                    ),
+                    column=0
+                )
         else:
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            disp.add_display_item(displayer.DisplayerItemAlert(
-                "<p class='text-center mb-0'>No files found. Upload files to get started!</p>",
-                BSstyle.INFO
-            ), column=0)
+            if can_upload:
+                disp.add_display_item(displayer.DisplayerItemAlert(
+                    "<p class='text-center mb-0'>No files found. Upload files to get started!</p>",
+                    BSstyle.INFO
+                ), column=0)
+            else:
+                disp.add_display_item(displayer.DisplayerItemAlert(
+                    "<p class='text-center mb-0'>No files found. You need 'upload' permission to add files. Contact your administrator.</p>",
+                    BSstyle.WARNING
+                ), column=0)
         
         # Multi-delete form wraps the table automatically via form_action parameter
         # Checkboxes use name="file_ids[]" for array submission
@@ -288,7 +315,7 @@ def _generate_preview_html(file_meta: dict, size: str = "60px") -> str:
 
 
 @bp.route("/edit/<int:file_id>", methods=["GET", "POST"])
-@auth_manager.require_permission("FileManager", "view")
+@require_permission("FileManager", "edit")
 def edit_file(file_id):
     """Edit file metadata (group_id, tags).
     
@@ -497,7 +524,7 @@ def edit_file(file_id):
 
 
 @bp.route('/delete-multiple', methods=['POST'])
-@auth_manager.require_permission("FileManager", "delete")
+@require_permission("FileManager", "delete")
 def delete_multiple():
     """Handle multiple file deletion from checkboxes (redirects to confirm_delete)."""
     if not file_manager:
@@ -518,7 +545,7 @@ def delete_multiple():
 
 
 @bp.route('/confirm-delete', methods=['GET', 'POST'])
-@auth_manager.require_permission("FileManager", "delete")
+@require_permission("FileManager", "delete")
 def confirm_delete():
     """Confirmation page for deleting file(s).
     
@@ -733,7 +760,7 @@ def confirm_delete():
 
 
 @bp.route('/version-history/<group_id>/<filename>', methods=['GET'])
-@auth_manager.require_permission("FileManager", "view")
+@require_permission("FileManager", "view")
 def version_history(group_id, filename):
     """Display version history page for a file.
     
@@ -914,7 +941,7 @@ def version_history(group_id, filename):
 
 
 @bp.route('/restore-version/<int:target_version_id>/<group_id>/<filename>', methods=['GET'])
-@auth_manager.require_permission("FileManager", "edit")
+@require_permission("FileManager", "edit")
 def restore_version(target_version_id, group_id, filename):
     """Restore an old version of a file using a simple GET link.
     

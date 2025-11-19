@@ -6,22 +6,16 @@ routes for them organized by category. When a new displayer item is added,
 it will automatically appear in the sidebar.
 """
 
-from flask import Blueprint, render_template, redirect, url_for, session
-from functools import wraps
+from flask import Blueprint, render_template, url_for
 from src.modules import displayer
+from src.modules.auth.permission_registry import permission_registry
+from src.modules.auth import require_permission
+
+# Register module permissions (view is implicit)
+permission_registry.register_module("Demo_Components", [])
 
 # Create blueprint for component showcase
 showcase_bp = Blueprint('showcase', __name__, url_prefix='/components')
-
-
-def require_login(f):
-    """Decorator to require login for showcase pages."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'username' not in session:
-            return redirect(url_for('common.login'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 def get_category_icon(category: str) -> str:
@@ -51,7 +45,7 @@ def get_category_friendly_name(category: str) -> str:
 
 
 @showcase_bp.route('/')
-@require_login
+@require_permission("Demo_Components", "view")
 def index():
     """Component showcase index - shows all categories."""
     disp = displayer.Displayer()
@@ -125,7 +119,7 @@ def index():
 
 @showcase_bp.route('/category/<category>')
 @showcase_bp.route('/category')  # Also accept query parameter for sidebar compatibility
-@require_login
+@require_permission("Demo_Components", "view")
 def category(category: str = ""):
     """Show all components in a category."""
     # Handle both path parameter and query parameter
@@ -200,7 +194,7 @@ def category(category: str = ""):
 
 @showcase_bp.route('/category/<category>/<component>')
 @showcase_bp.route('/component')  # Also accept query parameters for sidebar compatibility
-@require_login
+@require_permission("Demo_Components", "view")
 def component(category: str = "", component: str = ""):
     """Display a single component demo."""
     import inspect

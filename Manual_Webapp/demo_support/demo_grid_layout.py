@@ -68,25 +68,19 @@ def index():
     # Get saved layout from form submission or use None
     saved_layout_json = None
     if request.method == 'POST':
-        print(f"[DEBUG] POST received. Form data keys: {list(request.form.keys())}")
         
         # Use util_post_to_json to parse the hierarchical form data
         form_data = util_post_to_json(dict(request.form))
-        print(f"[DEBUG] Parsed form data: {form_data}")
         
         # The layout_config will be nested under the module name
         # Navigate the structure to find it
         if 'Grid Layout Editor' in form_data and 'layout_config' in form_data['Grid Layout Editor']:
             saved_layout_json = form_data['Grid Layout Editor']['layout_config']
-            print(f"[DEBUG] Layout config extracted: {saved_layout_json[:100] if saved_layout_json else 'None'}...")
             # Store in session for persistence across refreshes
             session['grid_layout_demo'] = saved_layout_json
-        else:
-            print("[DEBUG] No layout_config found in parsed form data")
     elif 'grid_layout_demo' in session:
         # Load from session
         saved_layout_json = session['grid_layout_demo']
-        print(f"[DEBUG] Loaded from session: {saved_layout_json[:100] if saved_layout_json else 'None'}...")
     
     # Add the grid editor
     disp.add_display_item(displayer.DisplayerItemGridEditor(
@@ -118,10 +112,8 @@ def index():
     
     # If we have a saved layout, render it
     if saved_layout_json:
-        print(f"[DEBUG] Rendering layout with JSON: {saved_layout_json[:200]}...")
         try:
             layout_config = json.loads(saved_layout_json)
-            print(f"[DEBUG] Parsed config: {layout_config}")
             
             # Create GRID layout with the saved configuration
             preview_layout = displayer.DisplayerLayout(
@@ -129,7 +121,6 @@ def index():
                 grid_config=layout_config
             )
             disp.add_master_layout(preview_layout)
-            print(f"[DEBUG] Added GRID layout with {len(layout_config.get('items', []))} items")
             
             # Add placeholder cards for each field in the layout
             for item_config in layout_config.get('items', []):

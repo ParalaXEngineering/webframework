@@ -110,10 +110,27 @@ python framework_manager.py vendors|docs|example  # Utilities
 - Thread emitters→owner's room only
 - GUEST=shared, logged-in=isolated
 
-## Auth
-- Decorator: `@auth_manager.require_permission('Module', 'action')`
-- Class attr: `m_required_permission = "Module_Name"`
-- Inline: `auth_manager.check_permission(user, module, action)`
+## Auth (FRAMEWORK-PROVIDED)
+**NEVER** implement your own `require_permission` decorator. Use the framework's:
+
+```python
+from src.modules.auth import require_permission
+
+@bp.route('/my-page')
+@require_permission("Module_Name", "view")
+def my_page():
+    return "Protected page"
+```
+
+- **Route-level**: `@require_permission('Module', 'action')` (framework decorator, auto-handles auth disabled)
+- **Class-level**: `m_required_permission = "Module_Name"` (for Threaded_action subclasses)
+- **Inline checks**: `auth_manager.has_permission(user, module, action)` (business logic within routes)
+
+The framework's `require_permission` decorator automatically:
+- Works when auth is disabled (allows access)
+- Works when auth is enabled (checks permissions)
+- Shows proper access denied pages
+- Handles redirects to login
 
 ## Resources
 - Auto-registered by Displayer items via `ResourceRegistry`

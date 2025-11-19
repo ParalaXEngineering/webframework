@@ -4,11 +4,11 @@ File Manager Demo Page
 Demonstrates the file upload and display components with FilePond integration.
 """
 
-from flask import Blueprint, render_template, session, redirect, url_for, request
-from functools import wraps
+from flask import Blueprint, render_template, session, request
 from src.modules import displayer
 from src.modules.file_manager import FileManager
 from src.modules import settings
+from src.modules.auth import auth_manager as auth_module, require_permission
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,16 +17,6 @@ demo_file_bp = Blueprint('demo_files', __name__)
 
 # File manager instance (injected by main.py)
 file_manager = None
-
-
-def require_login(f):
-    """Decorator to require login for demo pages."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'username' not in session:
-            return redirect(url_for('common.login'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 def get_latest_uploaded_file():
@@ -38,26 +28,22 @@ def get_latest_uploaded_file():
     try:
         global file_manager
         if file_manager is None:
-            print("DEBUG: file_manager is None in get_latest_uploaded_file")
             logger.warning("file_manager is None in get_latest_uploaded_file")
             return None
         
         files = file_manager.list_files_from_db(limit=1)
-        print(f"DEBUG: get_latest_uploaded_file: found {len(files)} files")
         logger.info(f"get_latest_uploaded_file: found {len(files)} files")
         if files:
             file_id = files[0].get('id') if isinstance(files[0], dict) else files[0].id
-            print(f"DEBUG: get_latest_uploaded_file: returning file_id={file_id}")
             logger.info(f"get_latest_uploaded_file: returning file_id={file_id}")
             return file_id
     except Exception as e:
-        print(f"DEBUG: Failed to get latest file: {e}")
         logger.error(f"Failed to get latest file: {e}", exc_info=True)
     return None
 
 
 @demo_file_bp.route('/file-manager-demo', methods=['GET', 'POST'])
-@require_login
+@require_permission("FileManager", "view")
 def file_manager_demo():
     """File Manager Demo - Upload and display components."""
     
@@ -72,9 +58,21 @@ def file_manager_demo():
     if file_manager is None:
         file_manager = FileManager(settings.settings_manager)
     
-    # Handle file upload POST
+    # Handle file upload POST - check upload permission
     upload_result = None
     if request.method == 'POST':
+        # Check if user has upload permission
+        auth_manager = auth_module.auth_manager
+        if auth_manager:
+            current_user = session.get('user')
+            if not auth_manager.has_permission(current_user, "FileManager", "upload"):
+                upload_result = {
+                    'success': False,
+                    'error': "You don't have permission to upload files. Contact an administrator."
+                }
+                logger.warning(f"User {current_user} attempted to upload without permission")
+                # Continue to render page with error, don't process upload
+                request.method = 'GET'  # Prevent upload processing below
         logger.info(f"POST request received. Form keys: {list(request.form.keys())}")
         logger.info(f"Files keys: {list(request.files.keys())}")
         
@@ -158,6 +156,13 @@ def file_manager_demo():
         else:
             logger.warning("POST request but no file to upload")
     
+    # Check if user has upload permission for UI display
+    has_upload_permission = True
+    auth_manager = auth_module.auth_manager
+    if auth_manager:
+        current_user = session.get('user')
+        has_upload_permission = auth_manager.has_permission(current_user, "FileManager", "upload")
+    
     # Get available options
     categories = file_manager.get_categories()
     group_ids = file_manager.get_group_ids()
@@ -194,53 +199,63 @@ def file_manager_demo():
             subtitle="1. Full Upload - User Selects Category, Group ID, and Tags"
         )
     )
-    disp.add_display_item(
-        displayer.DisplayerItemAlert(
-            "<p>All fields visible - user has full control over metadata.</p>",
-            displayer.BSstyle.NONE
-        ),
-        column=0
-    )
     
-    # Simple file input
-    disp.add_display_item(displayer.DisplayerItemInputFile(
-        id="file",
-        text="Select File"
-    ), column=0)
-    
-    # Category dropdown
-    disp.add_display_item(displayer.DisplayerItemInputSelect(
-        id="category",
-        text="Category",
-        choices=categories,
-        value="general"
-    ), column=0)
-    
-    # Group ID dropdown
-    if group_ids:
-        group_id_choices = ["(none)"] + group_ids
-        disp.add_display_item(displayer.DisplayerItemInputSelect(
-            id="group_id",
-            text="Group ID (Optional)",
-            choices=group_id_choices,
-            value="(none)"
+    if not has_upload_permission:
+        disp.add_display_item(
+            displayer.DisplayerItemAlert(
+                "<p><i class='bi bi-lock'></i> You don't have permission to upload files. Contact an administrator to request upload access.</p>",
+                displayer.BSstyle.WARNING
+            ),
+            column=0
+        )
+    else:
+        disp.add_display_item(
+            displayer.DisplayerItemAlert(
+                "<p>All fields visible - user has full control over metadata.</p>",
+                displayer.BSstyle.NONE
+            ),
+            column=0
+        )
+        
+        # Simple file input
+        disp.add_display_item(displayer.DisplayerItemInputFile(
+            id="file",
+            text="Select File"
         ), column=0)
     
-    # Tags multi-select
-    disp.add_display_item(displayer.DisplayerItemInputMultiSelect(
-        id="tags",
-        text="Tags (Optional)",
-        choices=tags,
-        value=[]
-    ), column=0)
-    
-    # Upload button (framework handles form submission via target parameter in render_template)
-    disp.add_display_item(displayer.DisplayerItemButton(
-        id="upload_btn",
-        text="Upload File",
-        icon="upload",
-        color=displayer.BSstyle.PRIMARY
-    ), column=0)
+        # Category dropdown
+        disp.add_display_item(displayer.DisplayerItemInputSelect(
+            id="category",
+            text="Category",
+            choices=categories,
+            value="general"
+        ), column=0)
+        
+        # Group ID dropdown
+        if group_ids:
+            group_id_choices = ["(none)"] + group_ids
+            disp.add_display_item(displayer.DisplayerItemInputSelect(
+                id="group_id",
+                text="Group ID (Optional)",
+                choices=group_id_choices,
+                value="(none)"
+            ), column=0)
+        
+        # Tags multi-select
+        disp.add_display_item(displayer.DisplayerItemInputMultiSelect(
+            id="tags",
+            text="Tags (Optional)",
+            choices=tags,
+            value=[]
+        ), column=0)
+        
+        # Upload button (framework handles form submission via target parameter in render_template)
+        disp.add_display_item(displayer.DisplayerItemButton(
+            id="upload_btn",
+            text="Upload File",
+            icon="upload",
+            color=displayer.BSstyle.PRIMARY
+        ), column=0)
     
     # Section 2: Simple Upload (category and tags pre-filled)
     disp.add_master_layout(
@@ -250,36 +265,46 @@ def file_manager_demo():
             subtitle="2. Simple Upload - Pre-filled Category and Tags"
         )
     )
-    disp.add_display_item(
-        displayer.DisplayerItemAlert(
-            "<p>Category set to 'documents' and tags set to 'demo, example'. User only selects the file.</p>",
-            displayer.BSstyle.NONE
-        ),
-        column=0
-    )
     
-    # File input only
-    disp.add_display_item(displayer.DisplayerItemInputFile(
-        id="simple_file",
-        text="Select File"
-    ), column=0)
-    
-    # Show pre-filled values
-    disp.add_display_item(
-        displayer.DisplayerItemAlert(
-            "<p class='text-muted'><i class='bi bi-info-circle'></i> Category: <strong>documents</strong>, Tags: <strong>demo, example</strong></p>",
-            displayer.BSstyle.NONE
-        ),
-        column=0
-    )
-    
-    # Upload button
-    disp.add_display_item(displayer.DisplayerItemButton(
-        id="simple_upload_btn",
-        text="Upload File",
-        icon="upload",
-        color=displayer.BSstyle.SUCCESS
-    ), column=0)
+    if not has_upload_permission:
+        disp.add_display_item(
+            displayer.DisplayerItemAlert(
+                "<p><i class='bi bi-lock'></i> You don't have permission to upload files. Contact an administrator to request upload access.</p>",
+                displayer.BSstyle.WARNING
+            ),
+            column=0
+        )
+    else:
+        disp.add_display_item(
+            displayer.DisplayerItemAlert(
+                "<p>Category set to 'documents' and tags set to 'demo, example'. User only selects the file.</p>",
+                displayer.BSstyle.NONE
+            ),
+            column=0
+        )
+        
+        # File input only
+        disp.add_display_item(displayer.DisplayerItemInputFile(
+            id="simple_file",
+            text="Select File"
+        ), column=0)
+        
+        # Show pre-filled values
+        disp.add_display_item(
+            displayer.DisplayerItemAlert(
+                "<p class='text-muted'><i class='bi bi-info-circle'></i> Category: <strong>documents</strong>, Tags: <strong>demo, example</strong></p>",
+                displayer.BSstyle.NONE
+            ),
+            column=0
+        )
+        
+        # Upload button
+        disp.add_display_item(displayer.DisplayerItemButton(
+            id="simple_upload_btn",
+            text="Upload File",
+            icon="upload",
+            color=displayer.BSstyle.SUCCESS
+        ), column=0)
     
     # Get latest file for display examples
     latest_file_id = get_latest_uploaded_file()
@@ -295,7 +320,6 @@ def file_manager_demo():
     )
     
     if latest_file_id:
-        print(f"DEBUG: Adding DisplayerItemFileDisplay with file_id={latest_file_id}")
         disp.add_display_item(
             displayer.DisplayerItemAlert(
                 "<p>Full card view with preview, metadata, and action buttons.</p>",

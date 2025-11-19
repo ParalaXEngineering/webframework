@@ -4,22 +4,16 @@ Layout Showcase - Auto-generated layout type demonstrations
 This module showcases all DisplayerLayout types with examples.
 """
 
-from flask import Blueprint, render_template, redirect, url_for, session, request
-from functools import wraps
+from flask import Blueprint, render_template, request
 from src.modules import displayer
+from src.modules.auth.permission_registry import permission_registry
+from src.modules.auth import require_permission
+
+# Register module permissions (view is implicit)
+permission_registry.register_module("Demo_Layouts", [])
 
 # Create blueprint for layout showcase
 layout_bp = Blueprint('layouts', __name__, url_prefix='/layouts')
-
-
-def require_login(f):
-    """Decorator to require login for layout showcase pages."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'username' not in session:
-            return redirect(url_for('common.login'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 
 def get_all_layouts():
@@ -41,7 +35,7 @@ def get_all_layouts():
 
 
 @layout_bp.route('/')
-@require_login
+@require_permission("Demo_Layouts", "view")
 def index():
     """Layout showcase index - shows all layout types."""
     disp = displayer.Displayer()
@@ -109,7 +103,7 @@ def index():
 
 @layout_bp.route('/layout/<layout>')
 @layout_bp.route('/layout')  # Also accept query parameter for sidebar compatibility
-@require_login
+@require_permission("Demo_Layouts", "view")
 def layout_detail(layout: str = ""):
     """Display examples and documentation for a specific layout type."""
     # Handle both path parameter and query parameter

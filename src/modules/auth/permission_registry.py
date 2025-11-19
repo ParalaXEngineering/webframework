@@ -29,16 +29,23 @@ class PermissionRegistry:
         """
         Register a module with its available actions.
         
+        By default, all modules have 'view' permission (implicit).
+        Use this method to register additional custom actions beyond 'view'.
+        
         Args:
-            module_name: Name of the module (e.g., "DEV_example")
-            actions: List of action names (e.g., ["read", "write", "execute"])
+            module_name: Name of the module (e.g., "FileManager")
+            actions: Additional action names beyond 'view' (e.g., ["upload", "download", "delete"])
+            
+        Example:
+            # At the top of your module file:
+            permission_registry.register_module("FileManager", ["upload", "download", "delete"])
+            # This creates: view (implicit), upload, download, delete
         """
         if module_name not in self._modules:
             self._modules[module_name] = set()
         
-        # Always include standard CRUD actions
-        standard_actions = {"read", "write", "delete"}
-        self._modules[module_name].update(standard_actions)
+        # Always include 'view' as the base permission
+        self._modules[module_name].add("view")
         
         # Add custom actions
         self._modules[module_name].update(actions)

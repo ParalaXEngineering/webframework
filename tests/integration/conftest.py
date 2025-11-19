@@ -97,9 +97,10 @@ def test_app():
     
     # Register test module permissions
     permission_registry.clear()
-    permission_registry.register_module("TestModule", ["execute", "configure", "view", "edit", "delete"])
-    permission_registry.register_module("Demo_Threading", ["view", "execute"])
-    permission_registry.register_module("Demo_Scheduler", ["view"])
+    # Register test modules with custom permissions (view is implicit)
+    permission_registry.register_module("TestModule", ["execute", "configure", "edit", "delete"])
+    permission_registry.register_module("Demo_Threading", ["execute"])
+    permission_registry.register_module("Demo_Scheduler", [])  # Only view
     
     # Register blueprints
     from src.pages.common import bp as common_bp

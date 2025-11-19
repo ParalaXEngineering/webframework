@@ -30,15 +30,14 @@ from src.main import app, setup_app, FLASK_AVAILABLE
 from src.modules.log.logger_factory import get_logger
 from src.modules import site_conf
 from src.modules.auth.auth_manager import AuthManager
+from src.modules.auth.permission_registry import permission_registry
+import src.modules.auth as auth_module
 
-import src.modules.auth.auth_manager as auth_module
 from demo_support.demo_pages import demo_bp
 from demo_support.component_showcase import showcase_bp
 from demo_support.layout_showcase import layout_bp
 from demo_support.demo_grid_layout import grid_layout_bp
 from demo_support.demo_file_manager import demo_file_bp
-
-from src.modules.auth.permission_registry import permission_registry
 
 # Initialize auth manager BEFORE creating app
 # Auth dir is now relative to Manual_Webapp
@@ -179,15 +178,22 @@ logger.info("Registered demo pages, component showcase, layout showcase, grid la
 # Register user profile and admin blueprints
 logger.info("Registered auth management blueprints")
 
-# Register real demo modules with appropriate permissions
-permission_registry.register_module("Demo_Layouts", ["view", "edit"])
-permission_registry.register_module("Demo_Components", ["view", "edit"])
-permission_registry.register_module("Demo_Threading", ["view", "execute"])
-permission_registry.register_module("Demo_Scheduler", ["view", "execute", "configure"])
-permission_registry.register_module("Demo_Authorization", ["view"])
-permission_registry.register_module("FileManager", ["view", "upload", "download", "delete", "list"])
+# Register demo modules with custom permissions (view is implicit)
+# NOTE: Demo_Layouts and Demo_Components are registered in their respective blueprint files
+# This keeps permission registration close to the code that uses them
+permission_registry.register_module("Demo_Threading", [])  # Threaded actions check their own permission
+permission_registry.register_module("Demo_Scheduler", [])  # Threaded actions check their own permission
+permission_registry.register_module("Demo_Authorization", [])
+permission_registry.register_module("FileManager", ["upload", "download", "delete", "edit"])
 
 logger.info("Registered demo module permissions")
+
+# Validate permission configuration at startup
+try:
+    from src.modules.auth.permission_validator import validate_and_log
+    validate_and_log()
+except Exception as e:
+    logger.warning(f"Permission validation failed: {e}")
 
 if __name__ == "__main__":
     print("=" * 60)

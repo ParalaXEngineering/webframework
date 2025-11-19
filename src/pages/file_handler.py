@@ -36,14 +36,20 @@ def _require_permission(permission_module: str, permission_action: str = "upload
     """
     auth_manager = _get_auth_manager()
     if not auth_manager:
-        # No auth system = allow access
+        # No auth system = allow access (for development/testing)
+        logger.warning(f"Permission check for {permission_module}.{permission_action} - auth system not available, allowing access")
         return True
     
     current_user = session.get('user')
     if not current_user:
+        logger.warning(f"Permission check for {permission_module}.{permission_action} - no user in session")
         return False
     
-    return auth_manager.has_permission(current_user, permission_module, permission_action)
+    has_perm = auth_manager.has_permission(current_user, permission_module, permission_action)
+    if not has_perm:
+        logger.info(f"Permission denied: user '{current_user}' lacks '{permission_action}' permission for '{permission_module}'")
+    
+    return has_perm
 
 
 @bp.route("/upload", methods=["POST"])
@@ -64,7 +70,9 @@ def upload():
     
     # Check permission
     if not _require_permission("FileManager", "upload"):
-        return jsonify({"error": "Permission denied"}), 403
+        return jsonify({
+            "error": "Permission denied: You need 'upload' permission for FileManager. Contact your administrator."
+        }), 403
     
     # Get file from request
     if 'file' not in request.files:
@@ -131,7 +139,7 @@ def download(filepath):
     
     # Check permission
     if not _require_permission("FileManager", "download"):
-        abort(403, "Permission denied")
+        abort(403, "Permission denied: You need 'download' permission for FileManager. Contact your administrator.")
     
     try:
         # Check if this is a thumbnail request
@@ -189,7 +197,9 @@ def delete(file_id):
     
     # Check permission (higher permission level for delete)
     if not _require_permission("FileManager", "delete"):
-        return jsonify({"error": "Permission denied"}), 403
+        return jsonify({
+            "error": "Permission denied: You need 'delete' permission for FileManager. Contact your administrator."
+        }), 403
     
     try:
         # Delete file (reference-counted in HashFS)
@@ -224,9 +234,11 @@ def list_files():
     if not file_manager:
         return jsonify({"error": "File manager not initialized"}), 500
     
-    # Check permission
-    if not _require_permission("FileManager", "list"):
-        return jsonify({"error": "Permission denied"}), 403
+    # Check permission (list is covered by view)
+    if not _require_permission("FileManager", "view"):
+        return jsonify({
+            "error": "Permission denied: You need 'view' permission for FileManager. Contact your administrator."
+        }), 403
     
     try:
         # Get query parameters
@@ -262,7 +274,7 @@ def download_by_id(file_id):
     
     # Check permission
     if not _require_permission("FileManager", "download"):
-        abort(403, "Permission denied")
+        abort(403, "Permission denied: You need 'download' permission for FileManager. Contact your administrator.")
     
     # Get file from database
     file_version = file_manager.get_file_by_id(file_id)

@@ -27,17 +27,18 @@ import traceback
 try:
     from .modules import scheduler
     from .modules.threaded import threaded_manager
-    from .modules.auth.auth_manager import auth_manager
     from .modules import site_conf
     from .modules.log.logger_factory import get_logger, format_exception_html
     from .modules.socketio_manager import initialize_socketio_manager
 except ImportError:
     from modules import scheduler
     from modules.threaded import threaded_manager
-    from modules.auth.auth_manager import auth_manager
     from modules import site_conf
     from modules.log.logger_factory import get_logger, format_exception_html
     from modules.socketio_manager import initialize_socketio_manager
+
+# Module-level auth_manager variable (initialized in setup_app)
+auth_manager = None
 
 # Create Flask app only if Flask is available
 if FLASK_AVAILABLE:
@@ -179,13 +180,12 @@ def setup_app(app):
             logger.warning(f"Failed to register blueprint for {page_name}: {e}")
 
     # Initialize auth manager conditionally based on feature flag
-    # The auth_manager variable is imported at the top of this file
-    # We need to update the module-level singleton
+    # Import the auth module (not the auth_manager variable)
     try:
-        from .modules.auth import auth_manager as auth_manager_module
+        from .modules import auth as auth_manager_module
         from .modules.auth.auth_manager import AuthManager
     except ImportError:
-        from modules.auth import auth_manager as auth_manager_module
+        from modules import auth as auth_manager_module
         from modules.auth.auth_manager import AuthManager
     
     if site_config.m_enable_authentication:

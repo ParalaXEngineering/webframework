@@ -21,7 +21,7 @@ try:
     from ..modules import utilities
     from ..modules.utilities import get_home_endpoint
     from ..modules.log.logger_factory import get_logger
-    from ..modules.auth.auth_manager import auth_manager
+    from ..modules.auth import require_admin, auth_manager
 except ImportError:
     from modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
@@ -34,7 +34,7 @@ except ImportError:
     from modules import utilities
     from modules.utilities import get_home_endpoint
     from modules.log.logger_factory import get_logger
-    from modules.auth.auth_manager import auth_manager
+    from modules.auth import require_admin, auth_manager
 
 logger = get_logger("admin_auth")
 admin_auth_bp = Blueprint('admin_auth', __name__, url_prefix='/admin')
@@ -44,7 +44,7 @@ bp = admin_auth_bp
 
 
 @admin_auth_bp.route('/users', methods=['GET', 'POST'])
-@auth_manager.require_admin()
+@require_admin()
 def manage_users():
     """User management page - CRUD operations."""
     
@@ -248,7 +248,7 @@ def manage_users():
 
 
 @admin_auth_bp.route('/permissions', methods=['GET', 'POST'])
-@auth_manager.require_admin()
+@require_admin()
 def manage_permissions():
     """Module permissions matrix management."""
     
@@ -375,7 +375,7 @@ def manage_permissions():
 
 
 @admin_auth_bp.route('/groups', methods=['GET', 'POST'])
-@auth_manager.require_admin()
+@require_admin()
 def manage_groups():
     """Group management page."""
     
