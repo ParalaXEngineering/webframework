@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {% if header %}
                 {# Two-part: dark header + light content #}
                 <div class="alert-box mb-3" {% if id %}id="{{id}}"{% endif %}>
-                    <div class="alert alert-{{style}} p-2 border border-bottom-0 rounded-top mb-0 d-flex align-items-center">
+                    <div class="alert alert-{{style}} p-2 border border-bottom-0 mb-0 d-flex align-items-center" style="border-top-left-radius: var(--bs-alert-border-radius); border-top-right-radius: var(--bs-alert-border-radius); border-bottom-left-radius: 0; border-bottom-right-radius: 0;">
                         {% if icon %}
                         <i class="mdi mdi-{{icon}} me-2"></i>
                         {% endif %}
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close" onclick="document.getElementById('{{id}}').parentElement.remove()"></button>
                         {% endif %}
                     </div>
-                    <div class="alert alert-light-{{style}} border border-top-0 rounded-bottom mb-0">
+                    <div class="alert alert-light-{{style}} border border-top-0 mb-0" style="border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-left-radius: var(--bs-alert-border-radius); border-bottom-right-radius: var(--bs-alert-border-radius);">
                         {{text | safe}}
                     </div>
                 </div>

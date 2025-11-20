@@ -125,11 +125,12 @@ def require_admin():
                 disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
                 disp.add_display_item(
                     displayer.DisplayerItemAlert(
-                        f"<h4><i class='bi bi-shield-x'></i> Admin Access Required</h4>"
-                        f"<p>This page requires administrator privileges.</p>"
+                        f"<p>This page require admin privilege.</p>"
                         f"<p>Current user: <strong>{current_user}</strong></p>"
-                        f"<p>Please contact an administrator if you need access.</p>",
-                        displayer.BSstyle.ERROR
+                        f"<p>Please contact an administrator to request access.</p>",
+                        displayer.BSstyle.ERROR,
+                        title = "Admin access required",
+                        icon = "shield-alert"
                     ),
                     column=0
                 )
