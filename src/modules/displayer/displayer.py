@@ -141,8 +141,9 @@ class Displayer:
                     # Get all user permissions for this module
                     user_permissions = auth_manager.get_user_permissions(current_username, required_permission)
         else:
-            logger.warning(f"[Displayer] Auth system NOT available! auth_manager={auth_manager is not None}, session={session is not None}")
-            logger.warning(f"[Displayer] Module '{default_name}' will be displayed WITHOUT permission checks!")
+            # Auth is disabled - this is normal and expected behavior
+            logger.debug(f"[Displayer] Auth system disabled (auth_manager={auth_manager}, session={'available' if session else 'unavailable'})")
+            logger.debug(f"[Displayer] Module '{default_name}' will be displayed without permission checks (auth disabled)")
         
         # Inject user context into the module instance
         if hasattr(module, '_current_user'):

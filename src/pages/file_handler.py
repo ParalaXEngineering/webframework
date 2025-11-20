@@ -310,6 +310,32 @@ def download_by_id(file_id):
         abort(500, "Internal server error")
 
 
+@bp.route("/versions/<group_id>/<filename>", methods=["GET"])
+def get_versions(group_id: str, filename: str):
+    """Get all versions of a file.
+    
+    Args:
+        group_id: Group identifier
+        filename: Filename
+        
+    Returns:
+        JSON list of file versions
+    """
+    if not file_manager:
+        abort(500, "File manager not initialized")
+    
+    # Check permission
+    if not _require_permission("FileManager", "view"):
+        abort(403, "Permission denied")
+    
+    try:
+        versions = file_manager.get_file_versions(group_id, filename)
+        return jsonify(versions), 200
+    except Exception as e:
+        logger.error(f"Error getting file versions: {e}")
+        abort(500, "Internal server error")
+
+
 @bp.route("/restore", methods=["POST"])
 def handle_file_too_large(e):
     """Handle file size exceeded error."""
