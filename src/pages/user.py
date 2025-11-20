@@ -44,9 +44,9 @@ bp = user_profile_bp
 def _get_auth_manager() -> "AuthManager":
     """Get the auth_manager instance. Import at runtime to avoid circular imports."""
     try:
-        from ..modules.auth.auth_manager import auth_manager
+        from ..modules.auth import auth_manager
     except ImportError:
-        from modules.auth.auth_manager import auth_manager
+        from modules.auth import auth_manager
     return cast("AuthManager", auth_manager)
 
 
@@ -67,6 +67,10 @@ def resize_image(image_path: str, max_size: tuple = (1024, 1024)):
 def profile():
     """User profile page - password, avatar, display name, email."""
     auth_manager = _get_auth_manager()
+    
+    # Check if auth is enabled
+    if not auth_manager:
+        return "Authentication system not initialized", 500
     
     # Get current user
     current_user = auth_manager.get_current_user()
@@ -277,6 +281,10 @@ def profile():
 def preferences():
     """User preferences page - theme, notifications, module settings."""
     auth_manager = _get_auth_manager()
+    
+    # Check if auth is enabled
+    if not auth_manager:
+        return "Authentication system not initialized", 500
     
     # Get current user
     current_user = auth_manager.get_current_user()

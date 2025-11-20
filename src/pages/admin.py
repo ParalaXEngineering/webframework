@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 try:
     from ..modules.displayer import (
-        Displayer, DisplayerLayout, Layouts,
+        Displayer, DisplayerLayout, Layouts, TableMode,
         DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemInputString,
         DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle
@@ -24,7 +24,7 @@ try:
     from ..modules.auth import require_admin, auth_manager
 except ImportError:
     from modules.displayer import (
-        Displayer, DisplayerLayout, Layouts,
+        Displayer, DisplayerLayout, Layouts, TableMode,
         DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemInputString,
         DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle
