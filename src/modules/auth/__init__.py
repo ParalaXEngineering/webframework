@@ -15,7 +15,7 @@ from .auth_manager import AuthManager
 from .permission_registry import PermissionRegistry
 from .auth_models import User
 
-__all__ = ['AuthManager', 'PermissionRegistry', 'User', 'auth_manager', 'require_permission', 'require_admin']
+__all__ = ['AuthManager', 'PermissionRegistry', 'User', 'auth_manager', 'require_permission', 'require_admin', 'require_login']
 
 # Global auth_manager instance (initialized by main.py when auth is enabled)
 auth_manager = None
@@ -137,6 +137,44 @@ def require_admin():
                 return render_template("base_content.j2", content=disp.display())
             
             # Admin access granted
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+def require_login():
+    """
+    Decorator that requires any authenticated user (any group).
+    
+    This is a convenience decorator that checks if a user is logged in,
+    regardless of their permissions or group membership.
+    
+    Returns:
+        Decorator function
+    
+    Example:
+        ::
+        
+            from src.modules.auth import require_login
+            
+            @bp.route('/profile')
+            @require_login()
+            def user_profile():
+                return "User Profile Page"
+    """
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # If auth is disabled, allow access
+            if auth_manager is None:
+                return f(*args, **kwargs)
+            
+            # Auth is enabled - check if user is logged in
+            current_user = session.get('user')
+            if not current_user:
+                return redirect(url_for('common.login'))
+            
+            # User is logged in - allow access
             return f(*args, **kwargs)
         return decorated_function
     return decorator

@@ -379,8 +379,35 @@ def setup_app(app):
                 if thread_item and thread_pos_override in ["left", "center", "right"]:
                     topbar_items[thread_pos_override].append(thread_item)
         
+        # Filter sidebar items for guest users
+        sidebar_items = site_conf.site_conf_obj.m_sidebar.copy()  # type: ignore
+        is_guest = user and user.upper() == 'GUEST'
+        
+        if is_guest and auth_manager is not None:
+            # Remove User Management title, Account and Admin sections for guest users
+            filtered_sidebar = []
+            skip_until_next_title = False
+            
+            for item in sidebar_items:
+                # Check if this is a title
+                if item.get('isTitle'):
+                    # Skip "User Management" title for guests
+                    if item.get('name') == 'User Management':
+                        skip_until_next_title = True
+                        continue
+                    skip_until_next_title = False
+                    filtered_sidebar.append(item)
+                # Check if this is the Account or Admin section
+                elif item.get('name') in ['Account', 'Admin']:
+                    # Skip this section and all its submenus until next title/section
+                    skip_until_next_title = True
+                elif not skip_until_next_title:
+                    filtered_sidebar.append(item)
+            
+            sidebar_items = filtered_sidebar
+        
         base_context = dict(
-            sidebarItems=site_conf.site_conf_obj.m_sidebar,  # type: ignore
+            sidebarItems=sidebar_items,
             topbarItems=topbar_items,
             app=site_conf.site_conf_obj.m_app,  # type: ignore
             javascript=site_conf.site_conf_obj.m_javascripts,  # type: ignore

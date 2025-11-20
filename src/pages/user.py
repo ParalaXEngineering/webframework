@@ -77,6 +77,29 @@ def profile():
     if not current_user:
         return redirect(url_for('common.login'))
     
+    # Check if user is guest - redirect with message
+    if current_user.upper() == 'GUEST':
+        disp = Displayer()
+        disp.add_generic("Access Restricted")
+        disp.set_title("Guest Access")
+        disp.add_breadcrumb("Home", get_home_endpoint(), [])
+        disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
+        disp.add_display_item(DisplayerItemAlert(
+            "<h4><i class='mdi mdi-account-alert'></i> Profile Not Available for Guest Users</h4>"
+            "<p>Guest users cannot access or modify profile settings.</p>"
+            "<p>Please log in with a registered account to access your profile.</p>",
+            BSstyle.WARNING,
+            icon="account-alert"
+        ), column=0)
+        disp.add_display_item(DisplayerItemButton(
+            "btn_home",
+            "Return to Home",
+            icon="home",
+            link=url_for(get_home_endpoint()),
+            color=BSstyle.PRIMARY
+        ), column=0)
+        return render_template("base_content.j2", content=disp.display())
+    
     user = auth_manager.get_user(current_user)
     if not user:
         return redirect(url_for('common.login'))
