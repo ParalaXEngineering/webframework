@@ -372,7 +372,7 @@ def file_manager_demo():
         disp.add_display_item(
             displayer.DisplayerItemFileDisplay(
                 file_id=latest_file_id,
-                actions=["download"],
+                actions=["download", "edit", "history"],
                 compact=True
             ),
             column=0
