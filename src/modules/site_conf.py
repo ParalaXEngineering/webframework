@@ -782,6 +782,9 @@ class Site_conf:
         
         Should be overwritten to provide custom static directories (e.g., for images).
         
+        Note: The returned paths should exist. For user avatars, ensure a 'users/' 
+        subdirectory exists under the images path with at least a default.jpg file.
+        
         Args:
             app_path: Base path of the application
             

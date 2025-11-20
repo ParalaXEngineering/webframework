@@ -135,25 +135,36 @@ def profile():
                     if not file or not file.filename:
                         flash("No file selected.", "danger")
                     else:
-                        # Validate file type
-                        allowed_extensions = {'jpg', 'jpeg', 'png'}
+                        # Validate file type - support SVG, PNG, and JPEG
+                        allowed_extensions = {'jpg', 'jpeg', 'png', 'svg'}
                         file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
                         
                         if file_ext not in allowed_extensions:
-                            flash("Only JPEG and PNG images are allowed.", "danger")
+                            flash("Only JPEG, PNG, and SVG images are allowed.", "danger")
                         else:
-                            # Save with username as filename
-                            filename = f"{current_user}.jpg"
+                            # Determine file extension to use (preserve SVG, convert others to JPG)
+                            if file_ext == 'svg':
+                                filename = f"{current_user}.svg"
+                            else:
+                                filename = f"{current_user}.jpg"
                             
-                            # Use standard framework path: tests/website/assets/images/users/
-                            avatar_dir = 'tests/website/assets/images/users'
+                            # Get proper path using site_conf
+                            try:
+                                from ..modules import site_conf
+                            except ImportError:
+                                from modules import site_conf
+                            
+                            app_path = site_conf.site_conf_app_path or os.getcwd()
+                            avatar_dir = os.path.join(app_path, 'website', 'assets', 'images', 'users')
                             os.makedirs(avatar_dir, exist_ok=True)
                             filepath = os.path.join(avatar_dir, filename)
                             
-                            # Save and resize
+                            # Save and optionally resize
                             try:
                                 file.save(filepath)
-                                resize_image(filepath, max_size=(1024, 1024))
+                                # Only resize raster images (not SVG)
+                                if file_ext != 'svg':
+                                    resize_image(filepath, max_size=(1024, 1024))
                                 auth_manager.update_user_avatar(current_user, filename)
                                 flash("Avatar updated successfully!", "success")
                             except Exception as e:
@@ -202,12 +213,15 @@ def profile():
     avatar_url = f'/common/assets/images/?filename=users/{user.avatar}&t={timestamp}'
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [4, 8]))
-    disp.add_display_item(DisplayerItemImage(
-        height="200px",
-        width="200px",
-        link=avatar_url,
-        css_class="rounded-circle"
-    ), column=0)
+    # Create avatar display with default.svg fallback
+    default_avatar_url = '/common/assets/images/?filename=users/default.svg'
+    avatar_html = f'''
+    <img id="profile-avatar" src="{avatar_url}" 
+         class="rounded-circle" 
+         style="width: 200px; height: 200px; object-fit: cover;"
+         onerror="this.onerror=null; this.src='{default_avatar_url}';">
+    '''
+    disp.add_display_item(DisplayerItemText(avatar_html), column=0)
     
     disp.add_display_item(DisplayerItemInputFile(
         "file_avatar",
@@ -219,7 +233,7 @@ def profile():
         color=BSstyle.PRIMARY
     ), column=1)
     disp.add_display_item(DisplayerItemText(
-        "<small class='text-muted'>Allowed: JPEG, PNG. Max size: 1024x1024 (auto-resized)</small>"
+        "<small class='text-muted'>Allowed: JPEG, PNG, SVG. Max size: 1024x1024 (auto-resized for raster images)</small>"
     ), column=1)
     
     # Password Change Section (only if user has password)

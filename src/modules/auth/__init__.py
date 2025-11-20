@@ -66,11 +66,12 @@ def require_permission(module: str, action: str = "view"):
                 disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
                 disp.add_display_item(
                     displayer.DisplayerItemAlert(
-                        f"<h4><i class='bi bi-shield-x'></i> Access Denied</h4>"
                         f"<p>You don't have permission to access <strong>{module}</strong> with action <strong>{action}</strong>.</p>"
                         f"<p>Current user: <strong>{current_user}</strong></p>"
                         f"<p>Please contact an administrator to request access.</p>",
-                        displayer.BSstyle.ERROR
+                        displayer.BSstyle.ERROR,
+                        title = "Access Denied",
+                        icon = "shield-alert"
                     ),
                     column=0
                 )

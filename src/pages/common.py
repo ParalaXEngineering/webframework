@@ -75,10 +75,32 @@ def assets(asset_type):
     logger.debug(f"Serving file: {file_path}")
 
     if not os.path.exists(file_path):
-        return "", 200  # Return a blank page with status 200
+        # For user avatars, try alternative extensions (SVG if JPG requested, or vice versa)
+        if file_name.startswith("users/"):
+            # Try alternative file extensions for user avatars
+            base_name = file_name.rsplit('.', 1)[0] if '.' in file_name else file_name
+            alternative_extensions = ['.svg', '.jpg', '.jpeg', '.png']
+            
+            for ext in alternative_extensions:
+                alt_path = os.path.join(folder_path, base_name + ext)
+                if os.path.exists(alt_path):
+                    logger.debug(f"Serving alternative avatar format: {alt_path}")
+                    # Determine MIME type based on extension
+                    mimetype = None
+                    if ext == '.svg':
+                        mimetype = 'image/svg+xml'
+                    return send_file(alt_path, as_attachment=False, mimetype=mimetype)
+        
+        logger.warning(f"File not found: {file_path}")
+        return "", 200  # Return empty response to avoid broken image icons
 
     # Serve images inline for display, not as attachment downloads
-    return send_file(file_path, as_attachment=False)
+    # Set proper MIME type for SVG files
+    mimetype = None
+    if file_path.lower().endswith('.svg'):
+        mimetype = 'image/svg+xml'
+    
+    return send_file(file_path, as_attachment=False, mimetype=mimetype)
 
 
 @bp.route("/login", methods=["GET", "POST"])

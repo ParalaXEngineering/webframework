@@ -274,11 +274,12 @@
                                                 <img src="{{ url_for('common.assets',
                                                                     asset_type='images',
                                                                     filename='users/' + user + suffix + '.jpg') }}"
+                                                    onerror="this.onerror=null; this.src='{{ url_for('common.assets', asset_type='images', filename='users/default.svg') }}';"
                                                     width="48px">
                                                 {% else %}
                                                 <img src="{{ url_for('common.assets',
                                                                     asset_type='images',
-                                                                    filename='users/GUEST.jpg') }}"
+                                                                    filename='users/default.svg') }}"
                                                     width="48px">
                                                 {% endif %}
                                             </div>
