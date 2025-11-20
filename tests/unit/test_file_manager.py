@@ -41,23 +41,17 @@ class MockSettingsManager:
     def get_setting(self, key):
         """Return mock settings (handles dot notation keys)."""
         settings_map = {
-            "file_storage.max_file_size_mb": {"value": 10},
-            "file_storage.allowed_extensions": {
-                "value": [".pdf", ".jpg", ".jpeg", ".png", ".txt", ".zip"]
-            },
-            "file_storage.generate_thumbnails": {"value": True},
-            "file_storage.thumbnail_sizes": {"value": ["150x150", "300x300"]},
-            "file_storage.image_quality": {"value": 85},
-            "file_storage.strip_exif": {"value": True},
-            "file_storage.categories": {
-                "value": ["general", "documents", "images", "test", "docs", "uploads", "temp", "workflow_test", "mixed"]
-            },
-            "file_storage.tags": {
-                "value": ["test", "demo", "invoice", "important", "2025", "contract", "draft"]
-            },
-            "file_storage.hashfs_path": {"value": str(Path(self.base_path_value) / "hashfs_storage")}
+            "file_storage.max_file_size_mb": 10,
+            "file_storage.allowed_extensions": [".pdf", ".jpg", ".jpeg", ".png", ".txt", ".zip"],
+            "file_storage.generate_thumbnails": True,
+            "file_storage.thumbnail_sizes": ["150x150", "300x300"],
+            "file_storage.image_quality": 85,
+            "file_storage.strip_exif": True,
+            "file_storage.categories": ["general", "documents", "images", "test", "docs", "uploads", "temp", "workflow_test", "mixed"],
+            "file_storage.tags": ["test", "demo", "invoice", "important", "2025", "contract", "draft"],
+            "file_storage.hashfs_path": str(Path(self.base_path_value) / "hashfs_storage")
         }
-        return settings_map.get(key, {"value": None})
+        return settings_map.get(key, None)
 
 
 @pytest.fixture

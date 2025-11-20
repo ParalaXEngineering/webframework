@@ -32,19 +32,17 @@ class MockSettingsManager:
     def get_setting(self, key):
         """Return mock settings."""
         settings_map = {
-            "file_storage.max_file_size_mb": {"value": 10},
-            "file_storage.allowed_extensions": {
-                "value": [".pdf", ".jpg", ".jpeg", ".png", ".txt", ".zip"]
-            },
-            "file_storage.generate_thumbnails": {"value": True},  # Enable for preview tests
-            "file_storage.thumbnail_sizes": {"value": ["150x150"]},
-            "file_storage.image_quality": {"value": 85},
-            "file_storage.strip_exif": {"value": True},
-            "file_storage.categories": {"value": ["general", "documents", "images", "demo"]},
-            "file_storage.tags": {"value": ["test", "demo", "invoice", "important", "contract"]},
-            "file_storage.hashfs_path": {"value": str(Path(self.base_path_value) / "hashfs_storage")}
+            "file_storage.max_file_size_mb": 10,
+            "file_storage.allowed_extensions": [".pdf", ".jpg", ".jpeg", ".png", ".txt", ".zip"],
+            "file_storage.generate_thumbnails": True,  # Enable for preview tests
+            "file_storage.thumbnail_sizes": ["150x150"],
+            "file_storage.image_quality": 85,
+            "file_storage.strip_exif": True,
+            "file_storage.categories": ["general", "documents", "images", "demo"],
+            "file_storage.tags": ["test", "demo", "invoice", "important", "contract"],
+            "file_storage.hashfs_path": str(Path(self.base_path_value) / "hashfs_storage")
         }
-        return settings_map.get(key, {"value": None})
+        return settings_map.get(key, None)
 
 
 @pytest.fixture
@@ -96,7 +94,7 @@ class TestAdminUIImprovements:
         pdf_preview = _generate_preview_html(pdf_meta, size="100px")
         
         # Should either have object tag or PDF icon
-        assert ('object' in pdf_preview and 'application/pdf' in pdf_preview) or 'bi-file-earmark-pdf' in pdf_preview
+        assert ('object' in pdf_preview and 'application/pdf' in pdf_preview) or 'bi-file-pdf' in pdf_preview
         
         # Test image with thumbnail
         img_meta = {
@@ -109,7 +107,7 @@ class TestAdminUIImprovements:
         img_preview = _generate_preview_html(img_meta, size="100px")
         
         # In test environment, url_for might fail, so accept either image or fallback icon
-        assert ('img' in img_preview and 'thumb_150x150' in img_preview) or 'bi-file-earmark-image' in img_preview
+        assert ('img' in img_preview and 'thumb_150x150' in img_preview) or 'bi-file-image' in img_preview
         assert 'max-width: 100px' in img_preview or 'font-size: 2rem' in img_preview
         
         # Test file without thumbnail (should show icon)
@@ -120,19 +118,19 @@ class TestAdminUIImprovements:
         }
         doc_preview = _generate_preview_html(doc_meta)
         
-        assert 'bi-file-earmark-word' in doc_preview or 'bi-file-earmark' in doc_preview
+        assert 'bi-file-word' in doc_preview or 'bi-file-earmark' in doc_preview
     
     def test_file_icon_mapping(self, file_manager):
         """Test that file icon mapping works correctly."""
-        from src.pages.file_manager_admin import _get_file_icon
+        from src.modules.utilities import util_get_file_icon
         
         # Test various file types
-        assert 'pdf' in _get_file_icon('.pdf')
-        assert 'word' in _get_file_icon('.docx')
-        assert 'excel' in _get_file_icon('.xlsx')
-        assert 'image' in _get_file_icon('.jpg')
-        assert 'zip' in _get_file_icon('.zip')
-        assert 'bi-file-earmark' in _get_file_icon('.unknown')
+        assert 'pdf' in util_get_file_icon('test.pdf')
+        assert 'word' in util_get_file_icon('test.docx')
+        assert 'excel' in util_get_file_icon('test.xlsx')
+        assert 'image' in util_get_file_icon('test.jpg')
+        assert 'zip' in util_get_file_icon('test.zip')
+        assert 'bi-file-earmark' in util_get_file_icon('test.unknown')
     
     def test_tags_and_categories_validation(self, file_manager):
         """Test that file manager returns valid tags and categories for dropdowns."""
