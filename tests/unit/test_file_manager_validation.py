@@ -11,12 +11,10 @@ Tests Task 2: Tag/Category Validation
 import pytest
 from io import BytesIO
 from werkzeug.datastructures import FileStorage
-from pathlib import Path
-import tempfile
-import shutil
 
 
-class MockSettingsManager:
+# Using shared fixtures from tests.unit.fixtures.file_manager_fixtures
+# MockSettingsManager, temp_storage_dir, file_manager, sample files
     """Mock settings manager for validation testing."""
     
     def __init__(self, base_path=None, db_path=None):

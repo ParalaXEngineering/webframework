@@ -14,107 +14,11 @@ Tests cover:
 """
 
 import pytest
-import tempfile
-import shutil
-from pathlib import Path
 from io import BytesIO
 from werkzeug.datastructures import FileStorage
 from PIL import Image
 import os
 import sqlite3
-
-
-class MockSettingsManager:
-    """Mock settings manager for testing."""
-    
-    def __init__(self, base_path=None, db_path=None):
-        self.base_path_value = base_path or "test_uploads"
-        self.db_path = db_path or Path(tempfile.mkdtemp()) / ".file_metadata.db"
-        
-        # Create a mock storage object with config_path
-        class MockStorage:
-            def __init__(self, db_path):
-                self.config_path = str(db_path.parent / "config.json")
-        
-        self.storage = MockStorage(self.db_path)
-        
-    def get_setting(self, key):
-        """Return mock settings (handles dot notation keys)."""
-        settings_map = {
-            "file_storage.max_file_size_mb": 10,
-            "file_storage.allowed_extensions": [".pdf", ".jpg", ".jpeg", ".png", ".txt", ".zip"],
-            "file_storage.generate_thumbnails": True,
-            "file_storage.thumbnail_sizes": ["150x150", "300x300"],
-            "file_storage.image_quality": 85,
-            "file_storage.strip_exif": True,
-            "file_storage.categories": ["general", "documents", "images", "test", "docs", "uploads", "temp", "workflow_test", "mixed"],
-            "file_storage.tags": ["test", "demo", "invoice", "important", "2025", "contract", "draft"],
-            "file_storage.hashfs_path": str(Path(self.base_path_value) / "hashfs_storage")
-        }
-        return settings_map.get(key, None)
-
-
-@pytest.fixture
-def temp_storage_dir():
-    """Create temporary directory for file storage tests."""
-    temp_dir = tempfile.mkdtemp()
-    yield Path(temp_dir)
-    # Cleanup
-    shutil.rmtree(temp_dir, ignore_errors=True)
-
-
-@pytest.fixture
-def file_manager(temp_storage_dir):
-    """Create FileManager with test settings and mock Flask session."""
-    from src.modules.file_manager import FileManager
-    from flask import Flask
-    
-    # Create Flask app context for session
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'test_secret_key'
-    
-    with app.test_request_context():
-        # Mock session user
-        from flask import session
-        session['user'] = 'test_user'
-        
-        settings_mgr = MockSettingsManager(
-            base_path=str(temp_storage_dir),
-            db_path=temp_storage_dir / ".file_metadata.db"
-        )
-        fm = FileManager(settings_mgr)
-        yield fm
-        
-        # Cleanup: close database session
-        if hasattr(fm, 'db_session'):
-            fm.db_session.close()
-
-
-@pytest.fixture
-def sample_text_file():
-    """Create a sample text file for testing."""
-    content = b"This is a test file content.\nLine 2\nLine 3"
-    return FileStorage(
-        stream=BytesIO(content),
-        filename="test_document.txt",
-        content_type="text/plain"
-    )
-
-
-@pytest.fixture
-def sample_image_file():
-    """Create a sample image file for testing."""
-    # Create a simple 100x100 red image
-    img = Image.new('RGB', (100, 100), color='red')
-    img_bytes = BytesIO()
-    img.save(img_bytes, 'JPEG')
-    img_bytes.seek(0)
-    
-    return FileStorage(
-        stream=img_bytes,
-        filename="test_image.jpg",
-        content_type="image/jpeg"
-    )
 
 
 @pytest.fixture

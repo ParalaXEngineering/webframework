@@ -17,77 +17,8 @@ import time
 from sqlalchemy import inspect
 
 
-class MockSettingsManager:
-    """Mock settings manager for constraint testing."""
-    
-    def __init__(self, base_path=None, db_path=None):
-        self.base_path_value = base_path or "test_uploads"
-        self.db_path = db_path or Path(tempfile.mkdtemp()) / ".file_metadata.db"
-        
-        class MockStorage:
-            def __init__(self, db_path):
-                self.config_path = str(db_path.parent / "config.json")
-        
-        self.storage = MockStorage(self.db_path)
-        
-    def get_setting(self, key):
-        """Return mock settings."""
-        settings_map = {
-            "file_storage.max_file_size_mb": 10,
-            "file_storage.allowed_extensions": [".pdf", ".jpg", ".jpeg", ".png", ".txt", ".zip"],
-            "file_storage.generate_thumbnails": False,
-            "file_storage.thumbnail_sizes": ["150x150"],
-            "file_storage.image_quality": 85,
-            "file_storage.strip_exif": True,
-            "file_storage.categories": ["general", "documents", "images"],
-            "file_storage.tags": ["test", "demo", "invoice"],
-            "file_storage.hashfs_path": str(Path(self.base_path_value) / "hashfs_storage")
-        }
-        return settings_map.get(key, None)
 
-
-@pytest.fixture
-def temp_storage_dir():
-    """Create temporary directory for file storage tests."""
-    temp_dir = tempfile.mkdtemp()
-    yield Path(temp_dir)
-    shutil.rmtree(temp_dir, ignore_errors=True)
-
-
-@pytest.fixture
-def file_manager(temp_storage_dir):
-    """Create FileManager with test settings."""
-    from src.modules.file_manager import FileManager
-    from flask import Flask
-    
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'test_secret_key'
-    
-    with app.test_request_context():
-        from flask import session
-        session['user'] = 'test_user'
-        
-        settings_mgr = MockSettingsManager(
-            base_path=str(temp_storage_dir),
-            db_path=temp_storage_dir / ".file_metadata.db"
-        )
-        fm = FileManager(settings_mgr)
-        yield fm
-        
-        if hasattr(fm, 'db_session'):
-            fm.db_session.close()
-
-
-@pytest.fixture
-def sample_file():
-    """Create a simple text file for testing."""
-    content = b"Test file content for constraint testing"
-    file_obj = FileStorage(
-        stream=BytesIO(content),
-        filename="constraint_test.txt",
-        content_type="text/plain"
-    )
-    return file_obj
+# Using shared fixtures from tests.unit.fixtures.file_manager_fixtures
 
 
 class TestDatabaseConstraints:
@@ -132,19 +63,19 @@ class TestDatabaseConstraints:
         
         assert found_constraint, "Unique constraint on (group_id, filename, uploaded_at) should exist"
     
-    def test_versioning_with_different_timestamps(self, file_manager, sample_file):
+    def test_versioning_with_different_timestamps(self, file_manager, sample_text_file):
         """Should allow multiple versions with same filename in same group (different timestamps)."""
         # Upload first version
-        result1 = file_manager.upload_file(sample_file, group_id="test_group")
+        result1 = file_manager.upload_file(sample_text_file, group_id="test_group")
         
         # Wait a tiny bit to ensure different timestamp
         time.sleep(0.01)
         
-        # Upload second version (same filename, same group)
+        # Upload second version (same filename, same group, different content)
         content2 = b"Different content for version 2"
         file_obj2 = FileStorage(
             stream=BytesIO(content2),
-            filename="constraint_test.txt",
+            filename="test_document.txt",  # Same filename as sample_text_file
             content_type="text/plain"
         )
         result2 = file_manager.upload_file(file_obj2, group_id="test_group")

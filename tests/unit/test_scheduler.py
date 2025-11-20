@@ -22,6 +22,11 @@ Coverage:
 - Scheduler emit_* methods (status, popup, result, button, modal, reload)
 - Scheduler button enable/disable
 - Scheduler user hooks (user_before, user_after)
+
+TODO: Consider splitting into:
+  - test_scheduler_message_queue.py (MessageQueue tests)
+  - test_scheduler_message_emitter.py (MessageEmitter tests)
+  - test_scheduler_core.py (Scheduler integration tests)
 """
 
 import pytest
