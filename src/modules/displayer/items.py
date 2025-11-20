@@ -720,8 +720,8 @@ class DisplayerItemDownload(DisplayerItem):
         Returns:
             Instance of the class with test data.
         """
-        # Use a simple example - in real usage, provide a proper Flask endpoint
-        return cls(id="test_download", text="Download File", link="#")
+        # Use framework_index as a safe test endpoint (always available)
+        return cls(id="test_download", text="Download Sample File", link="framework_index")
 
 
 @DisplayerCategory.MEDIA
@@ -806,7 +806,8 @@ class DisplayerItemFile(DisplayerItem):
         Returns:
             Instance of the class with test data.
         """
-        return cls(link="test_document.pdf", endpoint="common", path="/files",
+        # Use a plain filename - in real usage, provide proper endpoint and path
+        return cls(link="test_document.pdf", 
                    text="Sample Document", creation_date="2024-01-15")
 
 @DisplayerCategory.INPUT

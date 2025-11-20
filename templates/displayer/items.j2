@@ -397,7 +397,12 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endmacro %}
 
 {% macro download(id, text, link) %}
-    <a class="btn btn-primary" href="{{url_for(link)}}"}>{{text}}</a>
+    {# Handle both Flask endpoints and plain URLs #}
+    {% if link.startswith('http://') or link.startswith('https://') or link.startswith('/') or link == '#' %}
+        <a class="btn btn-primary" href="{{link}}" download>{{text}}</a>
+    {% else %}
+        <a class="btn btn-primary" href="{{url_for(link)}}" download>{{text}}</a>
+    {% endif %}
 {% endmacro %}
 
 {% macro iconlink(id, text, link, icon, style, parameters) %}
