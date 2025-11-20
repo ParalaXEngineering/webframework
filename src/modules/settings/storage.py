@@ -17,6 +17,7 @@ Handles reading/writing configuration with original structure:
 """
 
 import json
+import os
 from typing import Any, Dict, Optional
 
 
@@ -34,10 +35,25 @@ class SettingsStorage:
         self._settings: Optional[Dict[str, Any]] = None
     
     def load(self) -> Dict[str, Any]:
-        """Load settings from JSON file."""
+        """Load settings from JSON file. Creates default config if file doesn't exist."""
+        # Create config file with empty structure if it doesn't exist
+        if not os.path.exists(self.config_path):
+            self._create_default_config()
+        
         with open(self.config_path, 'r', encoding='utf-8') as f:
             self._settings = json.load(f)
         return self._settings if self._settings else {}
+    
+    def _create_default_config(self) -> None:
+        """Create a default config.json file with empty structure."""
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+        
+        # Create minimal default config (features will be merged by manager)
+        default_config = {}
+        
+        with open(self.config_path, 'w', encoding='utf-8') as f:
+            json.dump(default_config, f, indent=2, ensure_ascii=False)
     
     def save(self, settings: Dict[str, Any]) -> None:
         """Save settings to JSON file."""
