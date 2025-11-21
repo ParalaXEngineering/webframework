@@ -86,18 +86,40 @@ def upload():
     tags_str = request.form.get('tags', '')
     
     # Parse tags (comma-separated)
-    tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else None
+    tag_names = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else []
     
     try:
         # Get current user
         current_user = session.get('user', 'GUEST')
         
-        # Upload file with new parameters
+        # PRE-RESOLVE GROUP: Query/create group BEFORE upload transaction
+        # This prevents SQLAlchemy UNIQUE constraint failures when multiple files upload simultaneously
+        group_obj = None
+        if group_id:
+            try:
+                group_obj = file_manager.get_or_create_group(group_id, current_user)
+            except Exception as e:
+                logger.warning(f"Failed to resolve group '{group_id}': {e}")
+                # Continue without group (will use string fallback)
+        
+        # PRE-RESOLVE TAGS: Query/create tags BEFORE upload transaction
+        # This prevents SQLAlchemy session state conflicts when uploading multiple files
+        tag_objects = []
+        if tag_names:
+            for tag_name in tag_names:
+                try:
+                    tag_obj = file_manager.get_or_create_tag(tag_name)
+                    tag_objects.append(tag_obj)
+                except Exception as e:
+                    logger.warning(f"Failed to resolve tag '{tag_name}': {e}")
+                    # Continue with other tags
+        
+        # Upload file with pre-resolved objects
         metadata = file_manager.upload_file(
             file, 
             category=category, 
-            group_id=group_id,
-            tags=tags,
+            group_id=group_obj or group_id,  # Use object if available, fallback to string
+            tags=tag_objects,  # Pass tag objects, not strings
             uploaded_by=current_user
         )
         
