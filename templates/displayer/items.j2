@@ -128,7 +128,7 @@
     {% elif item["type"] == "GRIDEDITOR" %}
         {{grideditor(item["id"], item["data"], item["value"], item["text"])}}
     {% elif item["type"] == "FILEUPLOAD" %}
-        {{fileupload(item["id"], item["text"], item["category"], item["subcategory"], item["group_id"], item["tags"], item["accept_types"], item["multiple"], item["file_manager"], item["existing_groups"])}}
+        {{fileupload(item["id"], item["text"], item["category"], item["subcategory"], item["group_id"], item["tags"], item["accept_types"], item["multiple"], item["file_manager"], item["existing_groups"], item["existing_values"])}}
     {% elif item["type"] == "FILEDISPLAY" %}
         {{filedisplay(item["file_id"], item["file_metadata"], item["actions"], item["compact"], item["file_manager"], item.get("version"))}}
     {% endif %}
@@ -1581,8 +1581,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 {# File manager macros - wrappers for imported templates #}
-{% macro fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups) %}
-    {{ file_upload.fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups) }}
+{% macro fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups, existing_values) %}
+    {{ file_upload.fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups, existing_values) }}
 {% endmacro %}
 
 {% macro filedisplay(file_id, file_metadata, actions, compact, file_manager, version=None) %}

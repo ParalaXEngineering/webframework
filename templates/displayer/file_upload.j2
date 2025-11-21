@@ -16,9 +16,10 @@
         accept_types: Accepted file types
         multiple: Allow multiple files
         file_manager: FileManager instance (for dropdowns)
+        existing_values: List of existing file dicts to pre-populate hidden field
 #}
 
-{% macro fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups) %}
+{% macro fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups, existing_values) %}
 <div class="file-upload-widget mb-3" id="{{ id }}_widget">
     {% if text %}
     <label class="form-label">{{ text }}</label>
@@ -88,9 +89,12 @@
     </div>
     
     {# Hidden field to store uploaded file ID - ONLY field submitted with form #}
-    {# Pre-fill with existing files for arrays (as JSON objects joined with #) #}
+    {# Pre-fill with existing files for arrays (as JSON strings joined with #) #}
+    {# existing_values are already JSON strings from Python, just join them #}
+    {# Use |e to HTML-escape the quotes in JSON strings for attribute value #}
     {% if existing_values %}
-    <input type="hidden" id="{{ id }}" name="{{ id }}" value="{{ existing_values | map('tojson') | join('#') }}" data-initial-value="{{ existing_values | map('tojson') | join('#') }}">
+    {% set initial_value = existing_values|join('#')|e %}
+    <input type="hidden" id="{{ id }}" name="{{ id }}" value="{{ initial_value }}" data-initial-value="{{ initial_value }}">
     {% else %}
     <input type="hidden" id="{{ id }}" name="{{ id }}" value="">
     {% endif %}
@@ -104,6 +108,17 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('[FileUpload {{ id }}] ========== INITIALIZATION START ==========');
+    console.log('[FileUpload {{ id }}] Template received existing_values:', {{ existing_values|tojson if existing_values else 'null' }});
+    
+    const hiddenField = document.getElementById('{{ id }}');
+    if (hiddenField) {
+        console.log('[FileUpload {{ id }}] Hidden field found. Current value:', hiddenField.value);
+        console.log('[FileUpload {{ id }}] Hidden field data-initial-value:', hiddenField.getAttribute('data-initial-value'));
+    } else {
+        console.error('[FileUpload {{ id }}] ✗ Hidden field NOT FOUND!');
+    }
+    
     const inputElement = document.getElementById('{{ id }}_filepond');
     
     if (inputElement && typeof FilePond !== 'undefined') {
@@ -263,14 +278,27 @@ document.addEventListener('DOMContentLoaded', function() {
         if (form) {
             const hiddenField = document.getElementById('{{ id }}');
             
+            console.log('[FileUpload {{ id }}] Attached form submit handler to preserve hidden field');
+            
             form.addEventListener('submit', function(e) {
-                const initialValue = hiddenField.getAttribute('data-initial-value') || '';
+                console.log('[FileUpload {{ id }}] ========== FORM SUBMIT ==========');
+                console.log('[FileUpload {{ id }}] Hidden field current value:', hiddenField ? hiddenField.value : 'FIELD NOT FOUND');
+                
+                const initialValue = hiddenField ? hiddenField.getAttribute('data-initial-value') : null;
+                console.log('[FileUpload {{ id }}] Initial value from data attribute:', initialValue);
+                
                 // If hidden field is empty but had initial value, restore it
                 if (hiddenField && !hiddenField.value && initialValue) {
-                    console.log('[FileUpload {{ id }}] Restoring hidden field value on submit:', initialValue);
+                    console.log('[FileUpload {{ id }}] ✓ Restoring hidden field value on submit:', initialValue);
                     hiddenField.value = initialValue;
+                } else if (hiddenField && hiddenField.value) {
+                    console.log('[FileUpload {{ id }}] ✓ Hidden field has value, will be submitted as-is:', hiddenField.value);
+                } else if (hiddenField && !hiddenField.value && !initialValue) {
+                    console.log('[FileUpload {{ id }}] ⚠ Hidden field is empty and no initial value to restore!');
                 }
             }, true);  // Use capture phase to run BEFORE other handlers
+        } else {
+            console.warn('[FileUpload {{ id }}] ⚠ No form found - cannot attach submit handler');
         }
     }
 });
