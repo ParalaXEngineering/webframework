@@ -49,6 +49,18 @@
         {{intextjs(item["id"], item["value"], item["text"], item["data"], item["focus"])}}
     {% elif item["type"] == "INMULTITEXT" %}
         {{inmultitext(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INMULTIINT" %}
+        {{inmultiint(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INMULTIFLOAT" %}
+        {{inmultifloat(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INMULTICHECK" %}
+        {{inmulticheck(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INMULTIDATE" %}
+        {{inmultidate(item["id"], item["value"], item["text"])}}
+    {% elif item["type"] == "INCHOICE" %}
+        {{inchoice(item["id"], item["value"], item["text"], item["data"])}}
+    {% elif item["type"] == "INMULTICHOICE" %}
+        {{inmultichoice(item["id"], item["value"], item["text"], item["data"])}}
     {% elif item["type"] == "INHIDDEN" %}
         {{inhidden(item["id"], item["value"])}}
     {% elif item["type"] == "INFILE" %}
@@ -118,7 +130,7 @@
     {% elif item["type"] == "FILEUPLOAD" %}
         {{fileupload(item["id"], item["text"], item["category"], item["subcategory"], item["group_id"], item["tags"], item["accept_types"], item["multiple"], item["file_manager"], item["existing_groups"])}}
     {% elif item["type"] == "FILEDISPLAY" %}
-        {{filedisplay(item["file_id"], item["file_metadata"], item["actions"], item["compact"], item["file_manager"])}}
+        {{filedisplay(item["file_id"], item["file_metadata"], item["actions"], item["compact"], item["file_manager"], item.get("version"))}}
     {% endif %}
 
     {% if "itemId" in item %}
@@ -1007,6 +1019,173 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% endmacro %}
 
+{% macro inmultiint(id, value, text) %}
+    <div class="row">
+        {% if text %}
+            {{ text }}
+        {% endif %}
+
+        <div id="{{id}}.div" class="col-sm-10" onchange="settings_list_format('{{id}}')">
+        {% if value and value | length > 0 %}
+            {% for list_item in value %}
+            {{ common_input.number(id + ".list" + loop.index0 | string, list_item, 1)}}
+            {% endfor %}
+        {% else %}
+            {{ common_input.number(id + ".list0", "", 1)}}
+        {% endif %}
+        {{ common_input.hidden(id, value | join('#') if value else '') }}
+        </div>
+        <div class="col-sm-2">
+        <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+        </div>
+    </div>
+
+{% endmacro %}
+
+{% macro inmultifloat(id, value, text) %}
+    <div class="row">
+        {% if text %}
+            {{ text }}
+        {% endif %}
+
+        <div id="{{id}}.div" class="col-sm-10" onchange="settings_list_format('{{id}}')">
+        {% if value and value | length > 0 %}
+            {% for list_item in value %}
+            {{ common_input.number(id + ".list" + loop.index0 | string, list_item, 0.01)}}
+            {% endfor %}
+        {% else %}
+            {{ common_input.number(id + ".list0", "", 0.01)}}
+        {% endif %}
+        {{ common_input.hidden(id, value | join('#') if value else '') }}
+        </div>
+        <div class="col-sm-2">
+        <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+        </div>
+    </div>
+
+{% endmacro %}
+
+{% macro inmulticheck(id, value, text) %}
+    <div class="row">
+        {% if text %}
+            {{ text }}
+        {% endif %}
+
+        <div id="{{id}}.div" class="col-sm-10" onchange="settings_list_format('{{id}}')">
+        {% if value and value | length > 0 %}
+            {% for list_item in value %}
+            <div class="form-check">
+                <label for="{{id}}.list{{loop.index0}}" class="form-check-label">Item {{loop.index}}</label>
+                {{ common_input.check(id + ".list" + loop.index0 | string, list_item)}}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="form-check">
+                <label for="{{id}}.list0" class="form-check-label">Item 1</label>
+                {{ common_input.check(id + ".list0", false)}}
+            </div>
+        {% endif %}
+        {{ common_input.hidden(id, value | join('#') if value else '') }}
+        </div>
+        <div class="col-sm-2">
+        <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+        </div>
+    </div>
+
+{% endmacro %}
+
+{% macro inmultidate(id, value, text) %}
+    <div class="row">
+        {% if text %}
+            {{ text }}
+        {% endif %}
+
+        <div id="{{id}}.div" class="col-sm-10" onchange="settings_list_format('{{id}}')">
+        {% if value and value | length > 0 %}
+            {% for list_item in value %}
+            {{ common_input.date(id + ".list" + loop.index0 | string, list_item)}}
+            {% endfor %}
+        {% else %}
+            {{ common_input.date(id + ".list0", "")}}
+        {% endif %}
+        {{ common_input.hidden(id, value | join('#') if value else '') }}
+        </div>
+        <div class="col-sm-2">
+        <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+        </div>
+    </div>
+
+{% endmacro %}
+
+{% macro inchoice(id, value, text, choices) %}
+    <div class="form-group">
+        {% if text %}
+            <label>{{ text }}</label>
+        {% endif %}
+        {% if choices and choices | length > 0 %}
+            {% for choice in choices %}
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="{{id}}" id="{{id}}_{{loop.index0}}" value="{{choice}}" {% if value == choice %}checked{% endif %}>
+                <label class="form-check-label" for="{{id}}_{{loop.index0}}">
+                    {{choice}}
+                </label>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+{% endmacro %}
+
+{% macro inmultichoice(id, value, text, choices) %}
+    <div class="row">
+        {% if text %}
+            {{ text }}
+        {% endif %}
+
+        <div id="{{id}}.div" class="col-sm-10">
+        {% if value and value | length > 0 %}
+            {% for list_item in value %}
+            <div class="mb-2">
+                {% if choices and choices | length > 0 %}
+                    {% for choice in choices %}
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="{{id}}.list{{loop.index0}}" id="{{id}}_{{loop.index0}}_{{loop.index}}" value="{{choice}}" {% if list_item == choice %}checked{% endif %} onchange="settings_list_format('{{id}}')">
+                        <label class="form-check-label" for="{{id}}_{{loop.index0}}_{{loop.index}}">
+                            {{choice}}
+                        </label>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="mb-2">
+                {% if choices and choices | length > 0 %}
+                    {% for choice in choices %}
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="{{id}}.list0" id="{{id}}_0_{{loop.index}}" value="{{choice}}" onchange="settings_list_format('{{id}}')">
+                        <label class="form-check-label" for="{{id}}_0_{{loop.index}}">
+                            {{choice}}
+                        </label>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        {% endif %}
+        {{ common_input.hidden(id, value | join('#') if value else '') }}
+        </div>
+        <div class="col-sm-2">
+        <a  onclick="setting_add_list('{{id}}')"><i class="mdi mdi-plus-circle text-primary" style="padding:5px"></i></a>
+        <a  onclick="setting_rm_list('{{id}}')"><i class="mdi mdi-minus-circle text-primary" style="padding:5px"></i></a>
+        </div>
+    </div>
+
+{% endmacro %}
+
 {% macro inhidden(id, value) %}
     {{ common_input.hidden(id, value)}}
 {% endmacro %}
@@ -1406,7 +1585,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {{ file_upload.fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups) }}
 {% endmacro %}
 
-{% macro filedisplay(file_id, file_metadata, actions, compact, file_manager) %}
-    {{ file_display.filedisplay(file_id, file_metadata, actions, compact, file_manager) }}
+{% macro filedisplay(file_id, file_metadata, actions, compact, file_manager, version=None) %}
+    {{ file_display.filedisplay(file_id, file_metadata, actions, compact, file_manager, version) }}
 {% endmacro %}
 

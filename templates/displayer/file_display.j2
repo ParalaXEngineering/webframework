@@ -10,33 +10,49 @@
         actions: List of action buttons ("download", "edit", "history", "delete")
         compact: Boolean - full card (false) or compact line (true)
         file_manager: FileManager instance
+        version: Optional specific version number to display
 #}
 
-{% macro filedisplay(file_id, file_metadata, actions, compact, file_manager) %}
+{% macro filedisplay(file_id, file_metadata, actions, compact, file_manager, version=None) %}
 {% if file_metadata %}
     {% set file = file_metadata %}
 {% elif file_id and file_manager %}
-    {% set file = file_manager.get_file_by_id(file_id) %}
+    {% if version %}
+        {# Get specific version #}
+        {% set file = file_manager.get_file_version(file_id, version) %}
+    {% else %}
+        {# Get by ID (could be base file or version-specific ID) #}
+        {% set file = file_manager.get_file_by_id(file_id) %}
+    {% endif %}
 {% else %}
     {% set file = none %}
 {% endif %}
 
 {% if file %}
     {% if compact %}
-        {# Compact mode - single line with icon + filename + actions #}
+        {# Compact mode - single line with icon + filename + version + actions #}
         <div class="file-display-compact d-flex align-items-center gap-2 p-2 border rounded">
             {# Preview icon/thumbnail #}
             <div class="file-preview-icon">
                 {{ _render_preview(file, "40px", file_manager) }}
             </div>
             
-            {# Filename #}
+            {# Filename + Version #}
             <div class="file-name flex-grow-1">
                 {% if file.filename is defined %}
                     <strong>{{ file.filename }}</strong>
                 {% else %}
                     <strong>{{ file.get('name', '') if file.get else file['name'] }}</strong>
                 {% endif %}
+                <br>
+                <small class="text-muted">
+                    <i class="bi bi-clock-history"></i> {{ _get_version_info(file, file_manager, version) }}
+                    {% if file.file_size is defined %}
+                        · {{ _format_size(file.file_size) }}
+                    {% elif file.get %}
+                        · {{ _format_size(file.get('size', 0)) }}
+                    {% endif %}
+                </small>
             </div>
             
             {# Action buttons #}
@@ -95,7 +111,7 @@
                                 {% endif %}
                                 <p class="mb-1"><strong>Group ID:</strong> {{ group_id if group_id else '(none)' }}</p>
                                 
-                                {% set version_info = _get_version_info(file, file_manager) %}
+                                {% set version_info = _get_version_info(file, file_manager, version) %}
                                 <p class="mb-1"><strong>Version:</strong> {{ version_info }}</p>
                                 
                                 {% if file.tags is defined %}
@@ -298,7 +314,7 @@
 
 
 {# Helper macro: Get version info #}
-{% macro _get_version_info(file, file_manager) %}
+{% macro _get_version_info(file, file_manager, version_override=None) %}
     {% if file.group_id is defined %}
         {% set group_id = file.group_id %}
     {% elif file.get %}
@@ -325,13 +341,19 @@
     
     {% if group_id %}
         {% set versions = file_manager.get_file_versions(group_id, filename) %}
-        {% set current_idx = 0 %}
-        {% for ver in versions | reverse %}
-            {% if ver['id'] == file_id %}
-                {% set current_idx = loop.index %}
-            {% endif %}
-        {% endfor %}
-        v{{ current_idx }}/{{ versions | length }}
+        {# If version_override is provided, use it directly #}
+        {% if version_override %}
+            v{{ version_override }}/{{ versions | length }}
+        {% else %}
+            {# Calculate version by finding file_id position in versions list #}
+            {% set current_idx = 0 %}
+            {% for ver in versions | reverse %}
+                {% if ver['id'] == file_id %}
+                    {% set current_idx = loop.index %}
+                {% endif %}
+            {% endfor %}
+            v{{ current_idx }}/{{ versions | length }}
+        {% endif %}
     {% else %}
         v1/1
     {% endif %}

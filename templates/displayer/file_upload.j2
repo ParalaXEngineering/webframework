@@ -24,38 +24,32 @@
     <label class="form-label">{{ text }}</label>
     {% endif %}
     
-    {# Category selector (shown only if category is None) #}
+    {# Category selector (shown only if category is None) - NOT submitted with form #}
     {% if category is none and file_manager %}
     <div class="mb-2">
-        <label for="{{ id }}_category" class="form-label">Category</label>
-        <select class="form-select" id="{{ id }}_category" name="{{ id }}_category">
+        <label for="{{ id }}_upload_category" class="form-label">Category</label>
+        <select class="form-select" id="{{ id }}_upload_category" data-upload-metadata>
             {% for cat in file_manager.get_categories() %}
             <option value="{{ cat }}">{{ cat|title }}</option>
             {% endfor %}
         </select>
     </div>
-    {% else %}
-        {# Hidden field for fixed category #}
-        {{ common_input.hidden(id + "_category", category) }}
     {% endif %}
     
-    {# Subcategory input (shown only if subcategory is None) #}
+    {# Subcategory input (shown only if subcategory is None) - NOT submitted with form #}
     {% if subcategory is none %}
     <div class="mb-2">
-        <label for="{{ id }}_subcategory" class="form-label">Subcategory (Optional)</label>
-        <input type="text" class="form-control" id="{{ id }}_subcategory" name="{{ id }}_subcategory" 
+        <label for="{{ id }}_upload_subcategory" class="form-label">Subcategory (Optional)</label>
+        <input type="text" class="form-control" id="{{ id }}_upload_subcategory" data-upload-metadata
                placeholder="e.g., 2025, project_name">
     </div>
-    {% else %}
-        {# Hidden field for fixed subcategory #}
-        {{ common_input.hidden(id + "_subcategory", subcategory if subcategory else "") }}
     {% endif %}
     
-    {# Group ID selector (shown only if group_id is None) #}
+    {# Group ID selector (shown only if group_id is None) - NOT submitted with form #}
     {% if group_id is none and file_manager %}
     <div class="mb-2">
-        <label for="{{ id }}_group_id" class="form-label">Group ID (Optional - for versioning)</label>
-        <input type="text" class="form-control" id="{{ id }}_group_id" name="{{ id }}_group_id" 
+        <label for="{{ id }}_upload_group_id" class="form-label">Group ID (Optional - for versioning)</label>
+        <input type="text" class="form-control" id="{{ id }}_upload_group_id" data-upload-metadata
                placeholder="Enter group ID or leave empty" list="{{ id }}_group_list">
         <datalist id="{{ id }}_group_list">
             {% for group_name in existing_groups %}
@@ -64,35 +58,27 @@
         </datalist>
         <div class="form-text">Files with the same group_id and filename are versioned</div>
     </div>
-    {% else %}
-        {# Hidden field for fixed group_id #}
-        {{ common_input.hidden(id + "_group_id", group_id if group_id else "") }}
     {% endif %}
     
-    {# Tags multi-select (shown only if tags is None) #}
+    {# Tags multi-select (shown only if tags is None) - NOT submitted with form #}
     {% if tags is none and file_manager %}
     <div class="mb-2">
-        <label for="{{ id }}_tags" class="form-label">Tags (Optional)</label>
-        <select class="form-select" id="{{ id }}_tags" name="{{ id }}_tags" multiple>
+        <label for="{{ id }}_upload_tags" class="form-label">Tags (Optional)</label>
+        <select class="form-select" id="{{ id }}_upload_tags" data-upload-metadata multiple>
             {% for tag in file_manager.get_tags() %}
             <option value="{{ tag }}">{{ tag }}</option>
             {% endfor %}
         </select>
         <div class="form-text">Hold Ctrl/Cmd to select multiple tags</div>
     </div>
-    {% elif tags %}
-        {# Hidden fields for fixed tags #}
-        {% for tag in tags %}
-        <input type="hidden" name="{{ id }}_tags" value="{{ tag }}">
-        {% endfor %}
     {% endif %}
     
-    {# FilePond file input #}
+    {# FilePond file input - NOT submitted with form (FilePond handles upload) #}
     <div class="mb-2">
         <input type="file" 
                class="filepond-upload" 
-               id="{{ id }}_file" 
-               name="{{ id }}_file"
+               id="{{ id }}_filepond" 
+               data-upload-metadata
                {% if accept_types %}
                data-accept-types="{{ accept_types|join(',') }}"
                {% endif %}
@@ -101,18 +87,32 @@
                {% endif %}>
     </div>
     
+    {# Hidden field to store uploaded file ID - ONLY field submitted with form #}
+    {# Pre-fill with existing files for arrays (as JSON objects joined with #) #}
+    {% if existing_values %}
+    <input type="hidden" id="{{ id }}" name="{{ id }}" value="{{ existing_values | map('tojson') | join('#') }}" data-initial-value="{{ existing_values | map('tojson') | join('#') }}">
+    {% else %}
+    <input type="hidden" id="{{ id }}" name="{{ id }}" value="">
+    {% endif %}
+    
     {# Upload result message area #}
     <div id="{{ id }}_result" class="mt-2"></div>
+    
+    {# Debug info #}
+    <div class="form-text text-muted">Field ID: {{ id }} (only this field with file ID will be submitted)</div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const inputElement = document.getElementById('{{ id }}_file');
+    const inputElement = document.getElementById('{{ id }}_filepond');
     
     if (inputElement && typeof FilePond !== 'undefined') {
+        console.log('[FileUpload {{ id }}] Initializing FilePond');
+        
         // Create FilePond instance
         const pond = FilePond.create(inputElement, {
             allowMultiple: {{ 'true' if multiple else 'false' }},
+            maxParallelUploads: 1,  // Upload files sequentially to prevent DB conflicts
             {% if accept_types %}
             acceptedFileTypes: {{ accept_types|tojson }},
             {% endif %}
@@ -122,20 +122,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     onload: (response) => {
                         const data = JSON.parse(response);
-                        if (data.success) {
-                            showUploadSuccess(data.file);
-                        }
+                        console.log('[FileUpload {{ id }}] Upload response:', data);
                         return data.file.id;
                     },
                     onerror: (response) => {
                         const data = JSON.parse(response);
-                        showUploadError(data.error || 'Upload failed');
+                        console.error('[FileUpload {{ id }}] Upload error:', data);
                     }
                 }
             },
             onprocessfile: (error, file) => {
                 if (!error) {
-                    console.log('File uploaded:', file.filename);
+                    console.log('[FileUpload {{ id }}] File uploaded:', file.filename);
                 }
             }
         });
@@ -147,34 +145,44 @@ document.addEventListener('DOMContentLoaded', function() {
                     const formData = new FormData();
                     formData.append('file', file, file.name);
                     
-                    // Add category
-                    const category = document.getElementById('{{ id }}_category');
+                    console.log('[FileUpload {{ id }}] Preparing upload for:', file.name);
+                    
+                    // Add category (from visible field or pre-filled value)
+                    const categoryField = document.getElementById('{{ id }}_upload_category');
+                    const category = categoryField ? categoryField.value : '{{ category if category else "" }}';
                     if (category) {
-                        formData.append('category', category.value || '');
+                        formData.append('category', category);
+                        console.log('[FileUpload {{ id }}] Category:', category);
                     }
                     
-                    // Add subcategory
-                    const subcategory = document.getElementById('{{ id }}_subcategory');
+                    // Add subcategory (from visible field or pre-filled value)
+                    const subcategoryField = document.getElementById('{{ id }}_upload_subcategory');
+                    const subcategory = subcategoryField ? subcategoryField.value : '{{ subcategory if subcategory else "" }}';
                     if (subcategory) {
-                        formData.append('subcategory', subcategory.value || '');
+                        formData.append('subcategory', subcategory);
+                        console.log('[FileUpload {{ id }}] Subcategory:', subcategory);
                     }
                     
-                    // Add group_id
-                    const group_id = document.getElementById('{{ id }}_group_id');
+                    // Add group_id (from visible field or pre-filled value)
+                    const groupIdField = document.getElementById('{{ id }}_upload_group_id');
+                    const group_id = groupIdField ? groupIdField.value : '{{ group_id if group_id else "" }}';
                     if (group_id) {
-                        formData.append('group_id', group_id.value || '');
+                        formData.append('group_id', group_id);
+                        console.log('[FileUpload {{ id }}] Group ID:', group_id);
                     }
                     
-                    // Add tags
-                    const tagsSelect = document.getElementById('{{ id }}_tags');
-                    if (tagsSelect) {
-                        const selectedTags = Array.from(tagsSelect.selectedOptions).map(opt => opt.value);
-                        formData.append('tags', selectedTags.join(','));
+                    // Add tags (from visible field or pre-filled value)
+                    const tagsField = document.getElementById('{{ id }}_upload_tags');
+                    let tags = [];
+                    if (tagsField) {
+                        tags = Array.from(tagsField.selectedOptions).map(opt => opt.value);
                     } else {
-                        // Fixed tags from hidden inputs
-                        const tagInputs = document.querySelectorAll('input[name="{{ id }}_tags"]');
-                        const tags = Array.from(tagInputs).map(input => input.value);
+                        // Pre-filled tags
+                        tags = {{ tags|tojson if tags else '[]' }};
+                    }
+                    if (tags.length > 0) {
                         formData.append('tags', tags.join(','));
+                        console.log('[FileUpload {{ id }}] Tags:', tags);
                     }
                     
                     // Upload with fetch
@@ -188,26 +196,52 @@ document.addEventListener('DOMContentLoaded', function() {
                     request.onload = function() {
                         if (request.status >= 200 && request.status < 300) {
                             const data = JSON.parse(request.responseText);
+                            console.log('[FileUpload {{ id }}] Upload response:', data);
                             if (data.success) {
-                                showUploadSuccess(data.file);
+                                // Store versioned file reference as JSON string for form submission
+                                const hiddenField = document.getElementById('{{ id }}');
+                                if (hiddenField) {
+                                    const versionedRef = JSON.stringify({
+                                        file_id: data.file.id,
+                                        version: data.file.version || 1
+                                    });
+                                    
+                                    {% if multiple %}
+                                    // Array mode: append with # separator
+                                    if (hiddenField.value) {
+                                        hiddenField.value += '#' + versionedRef;
+                                        console.log('[FileUpload {{ id }}] ✓ Appended file to array:', versionedRef);
+                                    } else {
+                                        hiddenField.value = versionedRef;
+                                        console.log('[FileUpload {{ id }}] ✓ First file in array:', versionedRef);
+                                    }
+                                    console.log('[FileUpload {{ id }}] Array value:', hiddenField.value);
+                                    {% else %}
+                                    // Single mode: replace value
+                                    hiddenField.value = versionedRef;
+                                    console.log('[FileUpload {{ id }}] ✓ Stored versioned file reference in hidden field "{{ id }}":', versionedRef);
+                                    console.log('[FileUpload {{ id }}] Hidden field will be submitted as: {{ id }}=' + versionedRef);
+                                    {% endif %}
+                                } else {
+                                    console.error('[FileUpload {{ id }}] ✗ Hidden field "{{ id }}" not found!');
+                                }
                                 load(data.file.id);
                             } else {
-                                showUploadError(data.error || 'Upload failed');
+                                console.error('[FileUpload {{ id }}] Upload failed:', data);
                                 error('Upload failed');
                             }
                         } else {
                             try {
                                 const data = JSON.parse(request.responseText);
-                                showUploadError(data.error || 'Upload failed');
+                                console.error('[FileUpload {{ id }}] Upload error response:', data);
                             } catch(e) {
-                                showUploadError('Upload failed');
+                                console.error('[FileUpload {{ id }}] Upload error (no JSON):', request.responseText);
                             }
                             error('Upload failed');
                         }
                     };
                     
                     request.onerror = function() {
-                        showUploadError('Network error');
                         error('Network error');
                     };
                     
@@ -223,26 +257,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        function showUploadSuccess(fileData) {
-            const resultDiv = document.getElementById('{{ id }}_result');
-            resultDiv.innerHTML = `
-                <div class="alert alert-success alert-dismissible fade show">
-                    <i class="bi bi-check-circle"></i> 
-                    <strong>Success!</strong> ${fileData.name} uploaded successfully.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-        }
-        
-        function showUploadError(errorMsg) {
-            const resultDiv = document.getElementById('{{ id }}_result');
-            resultDiv.innerHTML = `
-                <div class="alert alert-danger alert-dismissible fade show">
-                    <i class="bi bi-x-circle"></i> 
-                    <strong>Error:</strong> ${errorMsg}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
+        // PROTECT HIDDEN FIELD: Prevent form submission from clearing pre-filled values
+        // This ensures existing files are preserved when saving without uploading new files
+        const form = inputElement.closest('form');
+        if (form) {
+            const hiddenField = document.getElementById('{{ id }}');
+            
+            form.addEventListener('submit', function(e) {
+                const initialValue = hiddenField.getAttribute('data-initial-value') || '';
+                // If hidden field is empty but had initial value, restore it
+                if (hiddenField && !hiddenField.value && initialValue) {
+                    console.log('[FileUpload {{ id }}] Restoring hidden field value on submit:', initialValue);
+                    hiddenField.value = initialValue;
+                }
+            }, true);  // Use capture phase to run BEFORE other handlers
         }
     }
 });
