@@ -253,7 +253,9 @@ class FileManager:
         # Validate tags (if provided)
         if tags:
             valid_tags = self.tags
-            invalid_tags = [t for t in tags if t not in valid_tags]
+            # Extract tag names from FileTag objects or use strings directly
+            tag_names = [t.tag_name if isinstance(t, FileTag) else t for t in tags]
+            invalid_tags = [t for t in tag_names if t not in valid_tags]
             if invalid_tags:
                 raise ValueError(
                     f"Invalid tags: {invalid_tags}. Valid tags are: {valid_tags}"
@@ -275,18 +277,25 @@ class FileManager:
         # Get current user from parameter or default
         current_user = uploaded_by if uploaded_by else 'GUEST'
         
-        # Check if file group exists, create if needed (only if group_id specified)
+        # Handle group_id: accept both string and FileGroup object
         if group_id:
-            file_group = self.db_session.query(FileGroup).filter_by(group_id=group_id).first()
-            if not file_group:
-                file_group = FileGroup(
-                    group_id=group_id,
-                    name=group_id,
-                    description=f"Auto-created group for {group_id}",
-                    created_by=current_user
-                )
-                self.db_session.add(file_group)
-                self.db_session.commit()
+            if isinstance(group_id, FileGroup):
+                # Already a FileGroup object, use its group_id
+                file_group = group_id
+                group_id = file_group.group_id
+            else:
+                # String group_id - query for existing (should already exist if pre-resolved)
+                file_group = self.db_session.query(FileGroup).filter_by(group_id=group_id).first()
+                if not file_group:
+                    # Fallback: create if not found (backward compatibility)
+                    file_group = FileGroup(
+                        group_id=group_id,
+                        name=group_id,
+                        description=f"Auto-created group for {group_id}",
+                        created_by=current_user
+                    )
+                    self.db_session.add(file_group)
+                    self.db_session.flush()
         
         # Check for existing versions of this file
         # ONLY files with a group_id have versioning
@@ -328,6 +337,24 @@ class FileManager:
         
         # Create database record
         # Note: group_id can be None (NULL in database) for files without a group
+        # Prepare tag list BEFORE creating FileVersion
+        tag_list = []
+        if tags:
+            for tag in tags:
+                # Tag can be either a FileTag object or a string (backward compatibility)
+                if isinstance(tag, str):
+                    # Legacy mode: query tag (may cause session issues)
+                    tag_obj = self.db_session.query(FileTag).filter_by(tag_name=tag).first()
+                    if not tag_obj:
+                        tag_obj = FileTag(tag_name=tag)
+                        self.db_session.add(tag_obj)
+                        self.db_session.flush()  # Flush to get ID
+                    tag_list.append(tag_obj)
+                else:
+                    # New mode: pre-resolved tag object
+                    tag_list.append(tag)
+        
+        # Create FileVersion with tags already assigned
         file_version = FileVersion(
             group_id=group_id,
             filename=safe_filename,
@@ -336,17 +363,9 @@ class FileManager:
             mime_type=mime_type,
             checksum=checksum,
             uploaded_by=current_user,
-            is_current=True
+            is_current=True,
+            tags=tag_list  # Assign tags during construction
         )
-        
-        # Add tags if provided
-        if tags:
-            for tag_name in tags:
-                tag = self.db_session.query(FileTag).filter_by(tag_name=tag_name).first()
-                if not tag:
-                    tag = FileTag(tag_name=tag_name)
-                    self.db_session.add(tag)
-                file_version.tags.append(tag)
         
         self.db_session.add(file_version)
         self.db_session.commit()
@@ -382,6 +401,59 @@ class FileManager:
         
         logger.info(f"File uploaded: {safe_filename} (group: {group_id or 'none'}, version: {version_number}, size: {file_size} bytes)")
         return metadata
+
+    def get_or_create_group(self, group_id: str, created_by: str = 'GUEST') -> 'FileGroup':
+        """
+        Get existing file group or create new one.
+        Uses flush() instead of commit() to resolve IDs without closing transaction.
+        
+        Args:
+            group_id: The group identifier
+            created_by: Username creating the group (default: 'GUEST')
+            
+        Returns:
+            FileGroup object (either existing or newly created)
+        """
+        # Query for existing group
+        file_group = self.db_session.query(FileGroup).filter_by(group_id=group_id).first()
+        
+        if not file_group:
+            # Create new group
+            file_group = FileGroup(
+                group_id=group_id,
+                name=group_id,
+                description=f"Auto-created group for {group_id}",
+                created_by=created_by
+            )
+            self.db_session.add(file_group)
+            # Flush to assign ID without committing
+            self.db_session.flush()
+        
+        return file_group
+
+    def get_or_create_tag(self, tag_name: str) -> 'FileTag':
+        """Get existing tag or create new one.
+        
+        This method should be called BEFORE upload_file to pre-resolve tags
+        and avoid session state conflicts during upload.
+        
+        Args:
+            tag_name: Name of the tag
+            
+        Returns:
+            FileTag object (may be unsaved if new)
+        """
+        # Try to find existing tag
+        tag = self.db_session.query(FileTag).filter_by(tag_name=tag_name).first()
+        
+        if not tag:
+            # Create new tag (but don't commit yet)
+            tag = FileTag(tag_name=tag_name)
+            self.db_session.add(tag)
+            # Flush to get the ID but don't commit the transaction
+            self.db_session.flush()
+        
+        return tag
     
     def _calculate_checksum(self, file_path: Path) -> str:
         """Calculate SHA256 checksum for a file.
@@ -797,6 +869,31 @@ class FileManager:
             })
         
         return versions
+    
+    def get_file_version(self, file_id: int, version_number: int) -> Optional[FileVersion]:
+        """Get a specific version of a file by file_id and version number.
+        
+        Args:
+            file_id: Database ID of the file (any version of it)
+            version_number: Version number (1-indexed)
+            
+        Returns:
+            FileVersion object for that specific version, or None if not found
+        """
+        # Get the file to find its group_id and filename
+        base_file = self.db_session.query(FileVersion).get(file_id)
+        if not base_file:
+            return None
+        
+        # Get all versions of this file
+        versions = self.get_file_versions(base_file.group_id or "", base_file.filename)
+        
+        # Find the requested version number
+        for v in versions:
+            if v['version_number'] == version_number:
+                return self.db_session.query(FileVersion).get(v['id'])
+        
+        return None
     
     def restore_version(self, file_id: int, target_version_id: int) -> FileVersion:
         """Restore an old version by creating a new version as a copy.

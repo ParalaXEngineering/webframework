@@ -317,7 +317,7 @@ def setup_app(app):
         try:
             room = socketio_manager_obj.join_user_room()
             username = session.get('user', 'anonymous')  # type: ignore
-            logger.info(f"Client connected: {username} in room {room}")
+            logger.debug(f"Client connected: {username} in room {room}")
         except Exception as e:
             logger.error(f"Error in handle_connect: {e}")
     
@@ -327,7 +327,7 @@ def setup_app(app):
         try:
             username = session.get('user', 'anonymous')  # type: ignore
             socketio_manager_obj.leave_user_room()
-            logger.info(f"Client disconnected: {username}")
+            logger.debug(f"Client disconnected: {username}")
         except Exception as e:
             logger.error(f"Error in handle_disconnect: {e}")
 
