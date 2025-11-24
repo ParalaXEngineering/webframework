@@ -183,7 +183,7 @@ def file_manager_demo():
         if upload_result['success']:
             disp.add_display_item(
                 displayer.DisplayerItemAlert(
-                    f"<strong><i class='bi bi-check-circle'></i> Upload Successful!</strong><br>"
+                    f"<strong><i class='mdi mdi-check-circle'></i> Upload Successful!</strong><br>"
                     f"File: {upload_result['filename']}<br>"
                     f"Size: {upload_result['size'] / 1024:.1f} KB",
                     displayer.BSstyle.SUCCESS
@@ -193,7 +193,7 @@ def file_manager_demo():
         else:
             disp.add_display_item(
                 displayer.DisplayerItemAlert(
-                    f"<strong><i class='bi bi-x-circle'></i> Upload Failed</strong><br>{upload_result['error']}",
+                    f"<strong><i class='mdi mdi-close-circle'></i> Upload Failed</strong><br>{upload_result['error']}",
                     displayer.BSstyle.WARNING
                 ),
                 column=0
@@ -212,7 +212,7 @@ def file_manager_demo():
     if not has_upload_permission:
         disp.add_display_item(
             displayer.DisplayerItemAlert(
-                "<p><i class='bi bi-lock'></i> You don't have permission to upload files. Contact an administrator to request upload access.</p>",
+                "<p><i class='mdi mdi-lock'></i> You don't have permission to upload files. Contact an administrator to request upload access.</p>",
                 displayer.BSstyle.WARNING
             ),
             column=0
@@ -278,7 +278,7 @@ def file_manager_demo():
     if not has_upload_permission:
         disp.add_display_item(
             displayer.DisplayerItemAlert(
-                "<p><i class='bi bi-lock'></i> You don't have permission to upload files. Contact an administrator to request upload access.</p>",
+                "<p><i class='mdi mdi-lock'></i> You don't have permission to upload files. Contact an administrator to request upload access.</p>",
                 displayer.BSstyle.WARNING
             ),
             column=0
@@ -301,7 +301,7 @@ def file_manager_demo():
         # Show pre-filled values
         disp.add_display_item(
             displayer.DisplayerItemAlert(
-                "<p class='text-muted'><i class='bi bi-info-circle'></i> Category: <strong>documents</strong>, Tags: <strong>demo, example</strong></p>",
+                "<p class='text-muted'><i class='mdi mdi-information'></i> Category: <strong>documents</strong>, Tags: <strong>demo, example</strong></p>",
                 displayer.BSstyle.NONE
             ),
             column=0
@@ -346,7 +346,7 @@ def file_manager_demo():
     else:
         disp.add_display_item(
             displayer.DisplayerItemAlert(
-                "<p><i class='bi bi-info-circle'></i> No files uploaded yet. Upload a file in the sections above to see this example.</p>",
+                "<p><i class='mdi mdi-information'></i> No files uploaded yet. Upload a file in the sections above to see this example.</p>",
                 displayer.BSstyle.WARNING
             ),
             column=0
@@ -380,7 +380,7 @@ def file_manager_demo():
     else:
         disp.add_display_item(
             displayer.DisplayerItemAlert(
-                "<p><i class='bi bi-info-circle'></i> No files uploaded yet. Upload a file in the sections above to see this example.</p>",
+                "<p><i class='mdi mdi-information'></i> No files uploaded yet. Upload a file in the sections above to see this example.</p>",
                 displayer.BSstyle.WARNING
             ),
             column=0

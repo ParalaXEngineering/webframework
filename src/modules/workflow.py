@@ -92,7 +92,7 @@ class WorkflowStep:
         self.condition_func = condition_func
         self.action_type = action_type
         self.description = description
-        self.icon = icon or "bi-circle"
+        self.icon = icon or "mdi-circle"
         self.allow_redo = allow_redo
         
     def is_visible(self, workflow_data: Dict) -> bool:

@@ -46,7 +46,7 @@
                 {% endif %}
                 <br>
                 <small class="text-muted">
-                    <i class="bi bi-clock-history"></i> {{ _get_version_info(file, file_manager, version) }}
+                    <i class="mdi mdi-history"></i> {{ _get_version_info(file, file_manager, version) }}
                     {% if file.file_size is defined %}
                         · {{ _format_size(file.file_size) }}
                     {% elif file.get %}
@@ -73,7 +73,7 @@
                     {# Metadata column #}
                     <div class="col-md-7">
                         <h5 class="card-title">
-                            <i class="bi bi-file-earmark"></i> 
+                            <i class="mdi mdi-file-document-outline"></i> 
                             {% if file.filename is defined %}
                                 {{ file.filename }}
                             {% else %}
@@ -147,7 +147,7 @@
     {% endif %}
 {% else %}
     <div class="alert alert-warning">
-        <i class="bi bi-exclamation-triangle"></i> File not found (ID: {{ file_id }})
+        <i class="mdi mdi-alert"></i> File not found (ID: {{ file_id }})
     </div>
 {% endif %}
 {% endmacro %}
@@ -181,7 +181,7 @@
     {% else %}
         {# Show icon based on file extension #}
         {% set icon_class = _get_file_icon(filename) %}
-        <i class="bi {{ icon_class }}" style="font-size: 2.5rem;"></i>
+        <i class="mdi {{ icon_class }}" style="font-size: 2.5rem;"></i>
     {% endif %}
 {% endmacro %}
 
@@ -203,14 +203,14 @@
             <a href="{{ url_for('file_handler.download_by_id', file_id=file_id) }}" 
                class="btn btn-{{ size }} btn-primary" 
                title="Download">
-                <i class="bi bi-download"></i> 
+                <i class="mdi mdi-download"></i> 
                 {% if size != "sm" %}Download{% endif %}
             </a>
         {% elif action == "edit" %}
             <a href="{{ url_for('file_manager_admin.edit_file', file_id=file_id) }}" 
                class="btn btn-{{ size }} btn-warning" 
                title="Edit Metadata">
-                <i class="bi bi-pencil"></i> 
+                <i class="mdi mdi-pencil"></i> 
                 {% if size != "sm" %}Edit{% endif %}
             </a>
         {% elif action == "history" %}
@@ -219,14 +219,14 @@
             <a href="{{ url_for('file_manager_admin.version_history', group_id=group_param, filename=filename) }}" 
                class="btn btn-{{ size }} btn-info" 
                title="View History">
-                <i class="bi bi-clock-history"></i> 
+                <i class="mdi mdi-history"></i> 
                 {% if size != "sm" %}History{% endif %}
             </a>
         {% elif action == "delete" %}
             <button onclick="deleteFile{{ file_id }}()" 
                     class="btn btn-{{ size }} btn-danger" 
                     title="Delete">
-                <i class="bi bi-trash"></i> 
+                <i class="mdi mdi-delete"></i> 
                 {% if size != "sm" %}Delete{% endif %}
             </button>
             <script>
@@ -256,21 +256,21 @@
 {% macro _get_file_icon(filename) %}
     {% set ext = filename.split('.')[-1].lower() if '.' in filename else '' %}
     {% if ext in ['pdf'] %}
-        bi-file-earmark-pdf-fill text-danger
+        mdi-file-pdf-box text-danger
     {% elif ext in ['doc', 'docx'] %}
-        bi-file-earmark-word-fill text-primary
+        mdi-file-word text-primary
     {% elif ext in ['xls', 'xlsx'] %}
-        bi-file-earmark-excel-fill text-success
+        mdi-file-excel text-success
     {% elif ext in ['ppt', 'pptx'] %}
-        bi-file-earmark-ppt-fill text-warning
+        mdi-file-powerpoint text-warning
     {% elif ext in ['zip', '7z', 'rar'] %}
-        bi-file-earmark-zip-fill text-secondary
+        mdi-zip-box text-secondary
     {% elif ext in ['txt', 'csv'] %}
-        bi-file-earmark-text
+        mdi-file-document
     {% elif ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'] %}
-        bi-file-earmark-image text-info
+        mdi-file-image text-info
     {% else %}
-        bi-file-earmark
+        mdi-file-document-outline
     {% endif %}
 {% endmacro %}
 

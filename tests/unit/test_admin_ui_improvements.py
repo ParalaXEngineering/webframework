@@ -37,7 +37,7 @@ class TestAdminUIImprovements:
         pdf_preview = _generate_preview_html(pdf_meta, size="100px")
         
         # Should either have object tag or PDF icon
-        assert ('object' in pdf_preview and 'application/pdf' in pdf_preview) or 'bi-file-pdf' in pdf_preview
+        assert ('object' in pdf_preview and 'application/pdf' in pdf_preview) or 'mdi-file-pdf-box' in pdf_preview
         
         # Test image with thumbnail
         img_meta = {
@@ -50,7 +50,7 @@ class TestAdminUIImprovements:
         img_preview = _generate_preview_html(img_meta, size="100px")
         
         # In test environment, url_for might fail, so accept either image or fallback icon
-        assert ('img' in img_preview and 'thumb_150x150' in img_preview) or 'bi-file-image' in img_preview
+        assert ('img' in img_preview and 'thumb_150x150' in img_preview) or 'mdi-file-image' in img_preview
         assert 'max-width: 100px' in img_preview or 'font-size: 2rem' in img_preview
         
         # Test file without thumbnail (should show icon)
@@ -61,7 +61,7 @@ class TestAdminUIImprovements:
         }
         doc_preview = _generate_preview_html(doc_meta)
         
-        assert 'bi-file-word' in doc_preview or 'bi-file-earmark' in doc_preview
+        assert 'mdi-file-word' in doc_preview or 'mdi-file-document-outline' in doc_preview
     
     def test_file_icon_mapping(self, file_manager):
         """Test that file icon mapping works correctly."""
@@ -73,7 +73,7 @@ class TestAdminUIImprovements:
         assert 'excel' in util_get_file_icon('test.xlsx')
         assert 'image' in util_get_file_icon('test.jpg')
         assert 'zip' in util_get_file_icon('test.zip')
-        assert 'bi-file-earmark' in util_get_file_icon('test.unknown')
+        assert 'mdi-file-document-outline' in util_get_file_icon('test.unknown')
     
     def test_tags_and_categories_validation(self, file_manager):
         """Test that file manager returns valid tags and categories for dropdowns."""

@@ -107,7 +107,7 @@
         
         return `
             <button class="remove-item btn btn-sm btn-danger" onclick="removeGridItem(this)" title="Remove">
-                <i class="bi bi-x"></i>
+                <i class="mdi mdi-close"></i>
             </button>
             <div class="field-selector-wrapper mb-2">
                 <label class="form-label mb-1">Field ID:</label>
@@ -117,8 +117,8 @@
                 </select>
             </div>
             <div class="field-info text-muted small">
-                <i class="bi bi-arrows-move"></i> Drag • 
-                <i class="bi bi-arrows-angle-expand"></i> Resize
+                <i class="mdi mdi-cursor-move"></i> Drag • 
+                <i class="mdi mdi-arrow-expand-all"></i> Resize
             </div>
             <span class="span-indicator badge bg-primary">Span: 6</span>
         `;

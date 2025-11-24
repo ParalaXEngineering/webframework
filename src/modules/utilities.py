@@ -860,46 +860,46 @@ def util_get_file_icon(filename: str) -> str:
         filename: Name of the file (with or without path)
         
     Returns:
-        Bootstrap icon class name (e.g., "bi-file-pdf")
+        MDI icon class name (e.g., "mdi-file-pdf-box")
         
     Examples:
         >>> util_get_file_icon('document.pdf')
-        'bi-file-pdf'
+        'mdi-file-pdf-box'
         >>> util_get_file_icon('image.jpg')
-        'bi-file-image'
+        'mdi-file-image'
         >>> util_get_file_icon('archive.zip')
-        'bi-file-zip'
+        'mdi-zip-box'
         >>> util_get_file_icon('script.py')
-        'bi-file-code'
+        'mdi-file-code'
         >>> util_get_file_icon('unknown.xyz')
-        'bi-file-earmark'
+        'mdi-file-document-outline'
     """
     import os
     ext = os.path.splitext(filename)[1].lower()
     
     icon_map = {
-        '.pdf': 'bi-file-pdf',
-        '.doc': 'bi-file-word', '.docx': 'bi-file-word',
-        '.xls': 'bi-file-excel', '.xlsx': 'bi-file-excel',
-        '.ppt': 'bi-file-ppt', '.pptx': 'bi-file-ppt',
-        '.jpg': 'bi-file-image', '.jpeg': 'bi-file-image', '.png': 'bi-file-image',
-        '.gif': 'bi-file-image', '.bmp': 'bi-file-image', '.svg': 'bi-file-image',
-        '.mp4': 'bi-file-play', '.avi': 'bi-file-play', '.mov': 'bi-file-play',
-        '.mp3': 'bi-file-music', '.wav': 'bi-file-music', '.flac': 'bi-file-music',
-        '.zip': 'bi-file-zip', '.rar': 'bi-file-zip', '.7z': 'bi-file-zip',
-        '.tar': 'bi-file-zip', '.gz': 'bi-file-zip',
-        '.txt': 'bi-file-text', '.md': 'bi-file-text', '.log': 'bi-file-text',
-        '.py': 'bi-file-code', '.js': 'bi-file-code', '.html': 'bi-file-code',
-        '.css': 'bi-file-code', '.json': 'bi-file-code', '.xml': 'bi-file-code',
+        '.pdf': 'mdi-file-pdf-box',
+        '.doc': 'mdi-file-word', '.docx': 'mdi-file-word',
+        '.xls': 'mdi-file-excel', '.xlsx': 'mdi-file-excel',
+        '.ppt': 'mdi-file-powerpoint', '.pptx': 'mdi-file-powerpoint',
+        '.jpg': 'mdi-file-image', '.jpeg': 'mdi-file-image', '.png': 'mdi-file-image',
+        '.gif': 'mdi-file-image', '.bmp': 'mdi-file-image', '.svg': 'mdi-file-image',
+        '.mp4': 'mdi-file-video', '.avi': 'mdi-file-video', '.mov': 'mdi-file-video',
+        '.mp3': 'mdi-file-music', '.wav': 'mdi-file-music', '.flac': 'mdi-file-music',
+        '.zip': 'mdi-zip-box', '.rar': 'mdi-zip-box', '.7z': 'mdi-zip-box',
+        '.tar': 'mdi-zip-box', '.gz': 'mdi-zip-box',
+        '.txt': 'mdi-file-document', '.md': 'mdi-file-document', '.log': 'mdi-file-document',
+        '.py': 'mdi-file-code', '.js': 'mdi-file-code', '.html': 'mdi-file-code',
+        '.css': 'mdi-file-code', '.json': 'mdi-file-code', '.xml': 'mdi-file-code',
     }
     
-    return icon_map.get(ext, 'bi-file-earmark')
+    return icon_map.get(ext, 'mdi-file-document-outline')
 
 
 def util_generate_preview_html(file_meta: dict, size: str = "60px") -> str:
     """Generate preview HTML for a file (thumbnail or icon).
     
-    Creates an HTML img tag for files with thumbnails, or a Bootstrap icon
+    Creates an HTML img tag for files with thumbnails, or an MDI icon
     for files without thumbnails. Gracefully falls back to icon if thumbnail
     URL generation fails.
     
@@ -917,7 +917,7 @@ def util_generate_preview_html(file_meta: dict, size: str = "60px") -> str:
         '<img src="/files/download/..." class="img-thumbnail" ...>'
         
         >>> util_generate_preview_html({'name': 'document.pdf'})
-        '<i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size: 2rem;"></i>'
+        '<i class="mdi mdi-file-pdf-box text-danger" style="font-size: 2rem;"></i>'
     """
     # Check if thumbnail exists
     if 'thumb_150x150' in file_meta:
@@ -932,4 +932,4 @@ def util_generate_preview_html(file_meta: dict, size: str = "60px") -> str:
     
     # No thumbnail - show file type icon
     icon_class = util_get_file_icon(file_meta['name'])
-    return f'<i class="bi {icon_class}" style="font-size: 2rem;"></i>'
+    return f'<i class="mdi {icon_class}" style="font-size: 2rem;"></i>'
