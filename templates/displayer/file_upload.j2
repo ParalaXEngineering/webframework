@@ -174,6 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const pond = FilePond.create(inputElement, {
             allowMultiple: {{ 'true' if multiple else 'false' }},
             maxParallelUploads: 1,  // Upload files sequentially to prevent DB conflicts
+            instantUpload: true,  // Enable instant upload (required for remove to work)
             {% if accept_types %}
             acceptedFileTypes: {{ accept_types|tojson }},
             {% endif %}
@@ -187,6 +188,89 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error('[FileUpload {{ id }}] Process file error:', error);
                 } else {
                     console.log('[FileUpload {{ id }}] File uploaded:', file.filename);
+                }
+            },
+            onremovefile: (error, file) => {
+                console.log('[FileUpload {{ id }}] ========== REMOVE FILE EVENT ==========');
+                console.log('[FileUpload {{ id }}] Error:', error);
+                console.log('[FileUpload {{ id }}] File object:', file);
+                console.log('[FileUpload {{ id }}] File.id:', file ? file.id : 'N/A');
+                console.log('[FileUpload {{ id }}] File.serverId:', file ? file.serverId : 'N/A');
+                console.log('[FileUpload {{ id }}] File.filename:', file ? file.filename : 'N/A');
+                console.log('[FileUpload {{ id }}] File status:', file ? file.status : 'N/A');
+                
+                // Extract file ID from hidden field as fallback
+                const hiddenField = document.getElementById('{{ id }}');
+                let fileIdToDelete = file ? file.serverId : null;
+                
+                // If serverId is null, try to extract from hidden field
+                if (!fileIdToDelete && hiddenField && hiddenField.value) {
+                    console.log('[FileUpload {{ id }}] ServerId is null, checking hidden field:', hiddenField.value);
+                    
+                    {% if multiple %}
+                    // For arrays, find the most recent entry (last one)
+                    const entries = hiddenField.value.split('#').filter(v => v);
+                    if (entries.length > 0) {
+                        const lastEntry = entries[entries.length - 1];
+                        try {
+                            const parsed = JSON.parse(lastEntry);
+                            fileIdToDelete = parsed.file_id;
+                            console.log('[FileUpload {{ id }}] Extracted file_id from hidden field:', fileIdToDelete);
+                        } catch(e) {
+                            console.error('[FileUpload {{ id }}] Failed to parse hidden field entry:', lastEntry);
+                        }
+                    }
+                    {% else %}
+                    // For single file, parse the value
+                    try {
+                        const parsed = JSON.parse(hiddenField.value);
+                        fileIdToDelete = parsed.file_id;
+                        console.log('[FileUpload {{ id }}] Extracted file_id from hidden field:', fileIdToDelete);
+                    } catch(e) {
+                        console.error('[FileUpload {{ id }}] Failed to parse hidden field:', hiddenField.value);
+                    }
+                    {% endif %}
+                }
+                
+                // When user removes file from FilePond, delete it from server
+                if (!error && fileIdToDelete) {
+                    console.log('[FileUpload {{ id }}] User removed file, deleting from server:', fileIdToDelete);
+                    
+                    // Use the extracted file ID
+                    const fileId = fileIdToDelete;
+                    
+                    // Call delete endpoint
+                    fetch(`/files/delete/${fileId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('[FileUpload {{ id }}] ✓ File deleted from server:', fileId);
+                        } else {
+                            console.error('[FileUpload {{ id }}] ✗ Failed to delete file:', data.error);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('[FileUpload {{ id }}] ✗ Error deleting file:', err);
+                    });
+                    
+                    // Also remove from hidden field
+                    if (hiddenField) {
+                        {% if multiple %}
+                        // Array mode: remove the last entry (most recently uploaded)
+                        const entries = hiddenField.value.split('#').filter(v => v);
+                        entries.pop();  // Remove last entry
+                        hiddenField.value = entries.join('#');
+                        console.log('[FileUpload {{ id }}] Removed last entry from array, new value:', hiddenField.value);
+                        {% else %}
+                        // Single mode: clear value
+                        hiddenField.value = '';
+                        console.log('[FileUpload {{ id }}] Cleared hidden field');
+                        {% endif %}
+                    }
+                } else {
+                    console.log('[FileUpload {{ id }}] ⚠ Cannot delete - no file ID found or error occurred');
                 }
             },
             server: {
@@ -278,7 +362,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 } else {
                                     console.error('[FileUpload {{ id }}] ✗ Hidden field "{{ id }}" not found!');
                                 }
-                                load(data.file.id);
+                                
+                                // Return file_id as string to FilePond (becomes serverId)
+                                // This allows FilePond to track the file and call onremovefile with serverId
+                                console.log('[FileUpload {{ id }}] Returning serverId to FilePond:', data.file.id);
+                                load(String(data.file.id));
                             } else {
                                 // Upload failed but returned 200 - extract error message
                                 const errorMsg = data.error || data.message || 'Upload failed';
