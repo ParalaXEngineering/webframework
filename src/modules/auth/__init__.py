@@ -60,7 +60,7 @@ def require_permission(module: str, action: str = "view"):
             
             if not auth_manager.has_permission(current_user, module, action):  # type: ignore[attr-defined]
                 # User is logged in but lacks permission - show access denied
-                from src.modules import displayer
+                from submodules.framework.src.modules import displayer
                 disp = displayer.Displayer()
                 disp.add_generic("Access Denied")
                 disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
@@ -119,7 +119,7 @@ def require_admin():
             user_obj = auth_manager.get_user(current_user)  # type: ignore[attr-defined]
             if not user_obj or 'admin' not in user_obj.groups:
                 # User is logged in but not admin - show access denied
-                from src.modules import displayer
+                from submodules.framework.src.modules import displayer
                 disp = displayer.Displayer()
                 disp.add_generic("Access Denied")
                 disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))

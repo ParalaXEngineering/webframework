@@ -12,6 +12,8 @@ from ..modules.log.logger_factory import get_logger
 from ..modules.auth import require_permission
 from ..modules.auth.permission_registry import permission_registry
 from ..modules import utilities
+from ..modules import displayer
+from ..modules.displayer import BSstyle
 
 # Register module permissions (view is implicit)
 permission_registry.register_module("FileManager", ["upload", "download", "delete", "edit"])
@@ -33,25 +35,12 @@ def _get_auth_manager():
         return None
 
 
-def _get_displayer_modules():
-    """Get displayer modules dynamically."""
-    try:
-        from ..modules import displayer
-        from ..modules.displayer import BSstyle
-    except ImportError:
-        from modules import displayer
-        from modules.displayer import BSstyle
-    return displayer, BSstyle
-
-
 @bp.route("/", methods=["GET"])
 @require_permission("FileManager", "view")
 def index():
     """File manager main page - browse files, view statistics."""
     if not file_manager:
         return "File manager not initialized", 500
-    
-    displayer, BSstyle = _get_displayer_modules()
     
     disp = displayer.Displayer()
     disp.add_generic("File Manager", display=False)
@@ -335,8 +324,6 @@ def edit_file(file_id):
     if not file_manager:
         return "File manager not initialized", 500
     
-    displayer, BSstyle = _get_displayer_modules()
-    
     disp = displayer.Displayer()
     disp.add_generic("Edit File Metadata")
     disp.set_title("Edit File Metadata")
@@ -564,9 +551,6 @@ def confirm_delete():
     if not file_manager:
         return "File manager not initialized", 500
     
-    # Get modules
-    displayer, BSstyle = _get_displayer_modules()
-    
     disp = displayer.Displayer()
     
     # Check if this is a confirmation (second POST) or deletion request
@@ -753,8 +737,6 @@ def version_history(group_id, filename):
     if not file_manager:
         return "File manager not initialized", 500
     
-    displayer, BSstyle = _get_displayer_modules()
-    
     try:
         # Convert '(none)' placeholder back to None for files without a group
         actual_group_id = None if group_id == '(none)' else group_id
@@ -762,27 +744,11 @@ def version_history(group_id, filename):
         
         # Build version history page
         disp = displayer.Displayer()
-        disp.add_generic(f"Version History - {filename}")
+        disp.add_generic(f"Version History - {filename}", display=False)
         disp.set_title(f"Version History: {filename}")
         disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
         disp.add_breadcrumb("Version History", "file_manager_admin.version_history", [group_id, filename])
-        
-        # Header with file info
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-        group_display = actual_group_id if actual_group_id else "(none)"
-        header_body = f"""
-        <p class="mb-1"><strong>Filename:</strong> {filename}</p>
-        <p class="mb-0"><strong>Group ID:</strong> {group_display}</p>
-        <p class="mb-0"><strong>Total Versions:</strong> {len(versions)}</p>
-        """
-        disp.add_display_item(displayer.DisplayerItemCard(
-            id="version_history_header",
-            title="Version History",
-            icon="history",
-            header_color=BSstyle.INFO,
-            body=header_body
-        ), column=0)
-        
+                
         # Version table
         if versions:
             disp.add_master_layout(displayer.DisplayerLayout(
