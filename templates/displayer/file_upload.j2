@@ -119,42 +119,76 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('[FileUpload {{ id }}] ✗ Hidden field NOT FOUND!');
     }
     
+    // Initialize global upload tracker if not exists
+    if (typeof window.filePondActiveUploads === 'undefined') {
+        window.filePondActiveUploads = 0;
+        console.log('[FileUpload] Global upload tracker initialized');
+        
+        // Inject CSS for disabled buttons
+        const style = document.createElement('style');
+        style.id = 'filepond-button-disable-css';
+        style.textContent = `
+            button.btn-disabled-by-upload,
+            input[type="submit"].btn-disabled-by-upload,
+            a.btn.btn-disabled-by-upload {
+                opacity: 0.5 !important;
+                cursor: not-allowed !important;
+                filter: grayscale(50%);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Function to update button states based on active uploads
+    window.updateFilePondButtonStates = function() {
+        const buttons = document.querySelectorAll('button, input[type="submit"], a.btn');
+        const isUploading = window.filePondActiveUploads > 0;
+        
+        buttons.forEach(btn => {
+            if (isUploading) {
+                btn.disabled = true;
+                if (!btn.classList.contains('btn-disabled-by-upload')) {
+                    btn.classList.add('btn-disabled-by-upload');
+                }
+                btn.style.pointerEvents = 'none';
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('btn-disabled-by-upload');
+                btn.style.pointerEvents = '';
+            }
+        });
+        
+        if (isUploading) {
+            console.log(`[FilePond] Uploads in progress: ${window.filePondActiveUploads} - Buttons disabled`);
+        } else {
+            console.log('[FilePond] All uploads complete - Buttons enabled');
+        }
+    };
+    
     const inputElement = document.getElementById('{{ id }}_filepond');
     
     if (inputElement && typeof FilePond !== 'undefined') {
         console.log('[FileUpload {{ id }}] Initializing FilePond');
         
-        // Create FilePond instance
+        // Create FilePond instance with custom server configuration
         const pond = FilePond.create(inputElement, {
             allowMultiple: {{ 'true' if multiple else 'false' }},
             maxParallelUploads: 1,  // Upload files sequentially to prevent DB conflicts
             {% if accept_types %}
             acceptedFileTypes: {{ accept_types|tojson }},
             {% endif %}
-            server: {
-                process: {
-                    url: '/files/upload',
-                    method: 'POST',
-                    onload: (response) => {
-                        const data = JSON.parse(response);
-                        console.log('[FileUpload {{ id }}] Upload response:', data);
-                        return data.file.id;
-                    },
-                    onerror: (response) => {
-                        const data = JSON.parse(response);
-                        console.error('[FileUpload {{ id }}] Upload error:', data);
-                    }
-                }
+            // Custom labels for better error display
+            labelFileProcessingError: (error) => {
+                console.log('[FileUpload {{ id }}] labelFileProcessingError called with:', error);
+                return error.body || 'Upload failed';
             },
             onprocessfile: (error, file) => {
-                if (!error) {
+                if (error) {
+                    console.error('[FileUpload {{ id }}] Process file error:', error);
+                } else {
                     console.log('[FileUpload {{ id }}] File uploaded:', file.filename);
                 }
-            }
-        });
-        
-        // Before upload, add metadata to form data
-        pond.setOptions({
+            },
             server: {
                 process: (fieldName, file, metadata, load, error, progress, abort) => {
                     const formData = new FormData();
@@ -209,6 +243,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                     
                     request.onload = function() {
+                        // Decrement counter and update buttons
+                        window.filePondActiveUploads--;
+                        window.updateFilePondButtonStates();
+                        
                         if (request.status >= 200 && request.status < 300) {
                             const data = JSON.parse(request.responseText);
                             console.log('[FileUpload {{ id }}] Upload response:', data);
@@ -242,28 +280,60 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                                 load(data.file.id);
                             } else {
-                                console.error('[FileUpload {{ id }}] Upload failed:', data);
-                                error('Upload failed');
+                                // Upload failed but returned 200 - extract error message
+                                const errorMsg = data.error || data.message || 'Upload failed';
+                                console.error('[FileUpload {{ id }}] Upload failed:', errorMsg, data);
+                                return error(errorMsg);
                             }
                         } else {
+                            // HTTP error status - try to extract meaningful message
+                            let errorMsg = `Upload failed (${request.status})`;
                             try {
                                 const data = JSON.parse(request.responseText);
                                 console.error('[FileUpload {{ id }}] Upload error response:', data);
+                                // Extract error message from server response
+                                if (data.error) {
+                                    errorMsg = data.error;
+                                    console.log('[FileUpload {{ id }}] Extracted error message:', errorMsg);
+                                } else if (data.message) {
+                                    errorMsg = data.message;
+                                    console.log('[FileUpload {{ id }}] Extracted message:', errorMsg);
+                                }
                             } catch(e) {
                                 console.error('[FileUpload {{ id }}] Upload error (no JSON):', request.responseText);
+                                // Use status text or raw response if available
+                                if (request.statusText) {
+                                    errorMsg = `${errorMsg}: ${request.statusText}`;
+                                } else if (request.responseText && request.responseText.length < 100) {
+                                    errorMsg = `${errorMsg}: ${request.responseText}`;
+                                }
                             }
-                            error('Upload failed');
+                            console.log('[FileUpload {{ id }}] Returning error message to FilePond:', errorMsg);
+                            return error(errorMsg);
                         }
                     };
                     
                     request.onerror = function() {
-                        error('Network error');
+                        // Decrement counter and update buttons on error
+                        window.filePondActiveUploads--;
+                        window.updateFilePondButtonStates();
+                        const errorMsg = 'Network error: Unable to reach server. Check your connection.';
+                        console.error('[FileUpload {{ id }}]', errorMsg);
+                        return error(errorMsg);
                     };
+                    
+                    // Increment counter and disable buttons before sending
+                    window.filePondActiveUploads++;
+                    window.updateFilePondButtonStates();
+                    console.log('[FileUpload {{ id }}] Starting upload, active count:', window.filePondActiveUploads);
                     
                     request.send(formData);
                     
                     return {
                         abort: () => {
+                            // Decrement counter if aborted
+                            window.filePondActiveUploads--;
+                            window.updateFilePondButtonStates();
                             request.abort();
                             abort();
                         }
