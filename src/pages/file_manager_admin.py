@@ -11,6 +11,7 @@ from ..modules.utilities import util_format_file_size, util_format_date, util_ge
 from ..modules.log.logger_factory import get_logger
 from ..modules.auth import require_permission
 from ..modules.auth.permission_registry import permission_registry
+from ..modules import utilities
 
 # Register module permissions (view is implicit)
 permission_registry.register_module("FileManager", ["upload", "download", "delete", "edit"])
@@ -37,12 +38,10 @@ def _get_displayer_modules():
     try:
         from ..modules import displayer
         from ..modules.displayer import BSstyle
-        from ..modules.utilities import get_home_endpoint
     except ImportError:
         from modules import displayer
         from modules.displayer import BSstyle
-        from modules.utilities import get_home_endpoint
-    return displayer, BSstyle, get_home_endpoint
+    return displayer, BSstyle
 
 
 @bp.route("/", methods=["GET"])
@@ -52,12 +51,11 @@ def index():
     if not file_manager:
         return "File manager not initialized", 500
     
-    displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
+    displayer, BSstyle = _get_displayer_modules()
     
     disp = displayer.Displayer()
     disp.add_generic("File Manager", display=False)
     disp.set_title("File Manager - Browse Files")
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
     
     # Check user permissions
@@ -163,18 +161,20 @@ def index():
                 is_valid, status = integrity_results.get(file_id, (False, "Unknown"))
                 
                 if is_valid:
-                    integrity_html = '<span class="badge bg-success" title="File intact"><i class="bi bi-check-circle"></i> OK</span>'
+                    disp.add_display_item(displayer.DisplayerItemBadge("OK", BSstyle.SUCCESS), 
+                                        column=8, line=idx, layout_id=table_layout_id)
                 elif status == "Missing":
-                    integrity_html = '<span class="badge bg-warning" title="Physical file not found"><i class="bi bi-exclamation-triangle"></i> Missing</span>'
+                    disp.add_display_item(displayer.DisplayerItemBadge("Missing", BSstyle.WARNING), 
+                                        column=8, line=idx, layout_id=table_layout_id)
                 elif status == "Checksum mismatch":
-                    integrity_html = '<span class="badge bg-danger" title="File corrupted"><i class="bi bi-x-circle"></i> Corrupted</span>'
+                    disp.add_display_item(displayer.DisplayerItemBadge("Corrupted", BSstyle.ERROR), 
+                                        column=8, line=idx, layout_id=table_layout_id)
                 elif status == "Not found":
-                    integrity_html = '<span class="badge bg-secondary" title="Database record missing"><i class="bi bi-question-circle"></i> Not Found</span>'
+                    disp.add_display_item(displayer.DisplayerItemBadge("Not Found", BSstyle.SECONDARY), 
+                                        column=8, line=idx, layout_id=table_layout_id)
                 else:
-                    integrity_html = f'<span class="badge bg-danger" title="{status}"><i class="bi bi-bug"></i> Error</span>'
-                
-                disp.add_display_item(displayer.DisplayerItemAlert(integrity_html, displayer.BSstyle.NONE), 
-                                    column=8, line=idx, layout_id=table_layout_id)
+                    disp.add_display_item(displayer.DisplayerItemBadge(f"Error: {status}", BSstyle.ERROR), 
+                                        column=8, line=idx, layout_id=table_layout_id)
                 
                 # Actions (download, edit, history, delete buttons)
                 actions = []
@@ -183,7 +183,7 @@ def index():
                 actions.append({
                     "type": "download",
                     "url": url_for('file_handler.download_by_id', file_id=file_meta.get('id', 0)),
-                    "icon": "bi bi-download",
+                    "icon": "mdi mdi-download",
                     "style": "primary",
                     "tooltip": "Download"
                 })
@@ -193,7 +193,7 @@ def index():
                     actions.append({
                         "type": "custom",
                         "url": url_for('file_manager_admin.edit_file', file_id=file_meta.get('id', 0)),
-                        "icon": "bi bi-pencil",
+                        "icon": "mdi mdi-pencil",
                         "style": "warning",
                         "tooltip": "Edit Metadata"
                     })
@@ -209,7 +209,7 @@ def index():
                         actions.append({
                             "type": "custom",
                             "url": url_for('file_manager_admin.version_history', group_id=group_param, filename=file_meta['name']),
-                            "icon": "bi bi-clock-history",
+                            "icon": "mdi mdi-history",
                             "style": "info",
                             "tooltip": "View History"
                         })
@@ -221,7 +221,7 @@ def index():
                     actions.append({
                         "type": "custom",
                         "url": url_for('file_manager_admin.confirm_delete', file_id=file_meta.get('id', 0)),
-                        "icon": "bi bi-trash",
+                        "icon": "mdi mdi-delete",
                         "style": "danger",
                         "tooltip": "Delete"
                     })
@@ -251,7 +251,7 @@ def index():
             else:
                 disp.add_display_item(
                     displayer.DisplayerItemAlert(
-                        "<i class='bi bi-info-circle'></i> You need 'delete' permission to remove files. Contact your administrator.",
+                        "<i class='mdi mdi-information'></i> You need 'delete' permission to remove files. Contact your administrator.",
                         BSstyle.INFO
                     ),
                     column=0
@@ -260,12 +260,12 @@ def index():
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
             if can_upload:
                 disp.add_display_item(displayer.DisplayerItemAlert(
-                    "<p class='text-center mb-0'>No files found. Upload files to get started!</p>",
+                    "No files found. Upload files to get started!",
                     BSstyle.INFO
                 ), column=0)
             else:
                 disp.add_display_item(displayer.DisplayerItemAlert(
-                    "<p class='text-center mb-0'>No files found. You need 'upload' permission to add files. Contact your administrator.</p>",
+                    "No files found. You need 'upload' permission to add files. Contact your administrator.",
                     BSstyle.WARNING
                 ), column=0)
         
@@ -307,7 +307,7 @@ def _generate_preview_html(file_meta: dict, size: str = "60px") -> str:
         '<img src="/files/download/..." class="img-thumbnail" ...>'
         
         >>> _generate_preview_html({'name': 'document.pdf'})
-        '<i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size: 2rem;"></i>'
+        '<i class="mdi mdi-file-pdf text-danger" style="font-size: 2rem;"></i>'
     """
     # Check if thumbnail exists
     if 'thumb_150x150' in file_meta:
@@ -335,13 +335,12 @@ def edit_file(file_id):
     if not file_manager:
         return "File manager not initialized", 500
     
-    displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
+    displayer, BSstyle = _get_displayer_modules()
     
     disp = displayer.Displayer()
     disp.add_generic("Edit File Metadata")
     disp.set_title("Edit File Metadata")
     
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
     disp.add_breadcrumb("Edit File", "file_manager_admin.edit_file", [f"file_id={file_id}"])
     
@@ -359,7 +358,6 @@ def edit_file(file_id):
     # Handle form submission
     if request.method == 'POST':
         try:
-            from ..modules import utilities
             data_in = utilities.util_post_to_json(request.form.to_dict())
             form_data = data_in.get("Edit File Metadata", {})
             
@@ -446,31 +444,31 @@ def edit_file(file_id):
     
     preview_html = util_generate_preview_html(file_meta, size="150px")
     
-    info_html = f"""
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title"><i class="bi bi-file-earmark"></i> {file_version.filename}</h5>
-            <hr>
-            <div class="row">
-                <div class="col-md-2 text-center">
-                    {preview_html}
-                </div>
-                <div class="col-md-5">
-                    <p><strong>Size:</strong> {util_format_file_size(file_version.file_size)}</p>
-                    <p><strong>Type:</strong> {file_version.mime_type}</p>
-                    <p><strong>Uploaded:</strong> {util_format_date(file_version.uploaded_at.isoformat())}</p>
-                </div>
-                <div class="col-md-5">
-                    <p><strong>Group ID:</strong> {file_version.group_id or '(none)'}</p>
-                    <p><strong>Version:</strong> v{version_num}</p>
-                    <p><strong>Checksum:</strong> {file_version.checksum[:16] if file_version.checksum else 'N/A'}...</p>
-                </div>
-            </div>
+    info_body = f"""
+    <div class="row">
+        <div class="col-md-2 text-center">
+            {preview_html}
+        </div>
+        <div class="col-md-5">
+            <p><strong>Size:</strong> {util_format_file_size(file_version.file_size)}</p>
+            <p><strong>Type:</strong> {file_version.mime_type}</p>
+            <p><strong>Uploaded:</strong> {util_format_date(file_version.uploaded_at.isoformat())}</p>
+        </div>
+        <div class="col-md-5">
+            <p><strong>Group ID:</strong> {file_version.group_id or '(none)'}</p>
+            <p><strong>Version:</strong> v{version_num}</p>
+            <p><strong>Checksum:</strong> {file_version.checksum[:16] if file_version.checksum else 'N/A'}...</p>
         </div>
     </div>
     """
     
-    disp.add_display_item(displayer.DisplayerItemAlert(info_html, BSstyle.NONE), column=0)
+    disp.add_display_item(displayer.DisplayerItemCard(
+        id="file_info_card",
+        title=file_version.filename,
+        icon="file",
+        header_color=BSstyle.INFO,
+        body=info_body
+    ), column=0)
     
     # Edit form
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="Edit Metadata"))
@@ -511,19 +509,19 @@ def edit_file(file_id):
     ), column=0)
     
     # Buttons
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [6, 6]))
     
     disp.add_display_item(displayer.DisplayerItemButton(
         id="save_btn",
         text="Save Changes",
-        icon="save",
+        icon="content-save",
         color=BSstyle.PRIMARY
     ), column=0)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         id="cancel_btn",
         text="Cancel",
-        icon="x-circle",
+        icon="close-circle",
         link=url_for('file_manager_admin.index'),
         color=BSstyle.SECONDARY
     ), column=1)
@@ -567,17 +565,17 @@ def confirm_delete():
         return "File manager not initialized", 500
     
     # Get modules
-    displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
+    displayer, BSstyle = _get_displayer_modules()
     
     disp = displayer.Displayer()
     
     # Check if this is a confirmation (second POST) or deletion request
-    from modules.utilities import util_post_to_json
-    is_executing = request.method == 'POST' and request.form.get('confirm_deletion') == 'true'
+    is_executing = request.method == 'POST' and request.form.get('Confirm Delete.confirm_deletion') == 'true'
     
     if is_executing:
         # Execute deletion (second POST)
-        data = util_post_to_json(request.form.to_dict())
+        data = utilities.util_post_to_json(request.form.to_dict())
+        data = data["Confirm Delete"]
         file_ids_str = data.get('file_ids_to_delete', '')
         if not file_ids_str:
             return "No files specified", 400
@@ -604,7 +602,7 @@ def confirm_delete():
                 return "No files specified", 400
         else:
             # First POST from inline delete form
-            data = util_post_to_json(request.form.to_dict())
+            data = utilities.util_post_to_json(request.form.to_dict())
             multi_file_ids = data.get('file_ids_to_delete', '')
             if multi_file_ids:
                 try:
@@ -631,11 +629,8 @@ def confirm_delete():
             return "No valid files found", 404
         
         # Build confirmation page
-        disp.add_generic("Confirm Delete")
-        disp.set_title("Confirm File Deletion")
+        disp.add_generic("Confirm Delete", display=False)
         
-        from modules.utilities import get_home_endpoint
-        disp.add_breadcrumb("Home", get_home_endpoint(), [])
         disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
         disp.add_breadcrumb("Confirm Delete", "file_manager_admin.confirm_delete", [])
         
@@ -643,25 +638,11 @@ def confirm_delete():
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         
         if len(files_to_delete) == 1:
-            warning_html = f"""
-            <div class="alert alert-danger" role="alert">
-                <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Confirm Deletion</h4>
-                <p>You are about to permanently delete the following file:</p>
-                <hr>
-                <p class="mb-0"><strong>{files_to_delete[0]['filename']}</strong></p>
-                <p class="mb-0 text-muted">This action cannot be undone.</p>
-            </div>
-            """
+            warning_html = f"You are about to permanently delete the following file: <strong>{files_to_delete[0]['filename']}</strong><br><br>This action cannot be undone."
         else:
-            warning_html = f"""
-            <div class="alert alert-danger" role="alert">
-                <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Confirm Multiple Deletion</h4>
-                <p>You are about to permanently delete <strong>{len(files_to_delete)} files</strong>:</p>
-                <p class="mb-0 text-muted">This action cannot be undone.</p>
-            </div>
-            """
+            warning_html = f"You are about to permanently delete <strong>{len(files_to_delete)} files</strong><br><br>This action cannot be undone."
         
-        disp.add_display_item(displayer.DisplayerItemAlert(warning_html, BSstyle.NONE), column=0)
+        disp.add_display_item(displayer.DisplayerItemAlert(warning_html, BSstyle.ERROR, icon="alert", title="Confirm Deletion"), column=0)
         
         # File list table
         if len(files_to_delete) > 1:
@@ -686,26 +667,23 @@ def confirm_delete():
         # Hidden fields with file IDs and confirmation flag
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         file_ids_str = ','.join(str(fid) for fid in file_ids)
-        hidden_fields_html = f"""
-        <input type="hidden" name="file_ids_to_delete" value="{file_ids_str}">
-        <input type="hidden" name="confirm_deletion" value="true">
-        """
-        disp.add_display_item(displayer.DisplayerItemAlert(hidden_fields_html, BSstyle.NONE), column=0)
+        disp.add_display_item(displayer.DisplayerItemHidden(id="file_ids_to_delete", value=file_ids_str), column=0)
+        disp.add_display_item(displayer.DisplayerItemHidden(id="confirm_deletion", value="true"), column=0)
         
         # Buttons
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [6, 6]))
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [6, 6]))
         
         disp.add_display_item(displayer.DisplayerItemButton(
             id="confirm_delete_btn",
             text="Yes, Delete",
-            icon="trash",
+            icon="delete-forever",
             color=BSstyle.ERROR
         ), column=0)
         
         disp.add_display_item(displayer.DisplayerItemButton(
             id="cancel_btn",
             text="Cancel",
-            icon="x-circle",
+            icon="close-circle",
             link=url_for('file_manager_admin.index'),
             color=BSstyle.SECONDARY
         ), column=1)
@@ -734,7 +712,6 @@ def confirm_delete():
     disp.add_generic("Deletion Complete")
     disp.set_title("Deletion Complete")
     
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
     disp.add_breadcrumb("Deletion Complete", "file_manager_admin.confirm_delete", [])
     
@@ -742,21 +719,13 @@ def confirm_delete():
     
     if failed_files:
         result_html = f"""
-        <div class="alert alert-warning" role="alert">
-            <h4 class="alert-heading"><i class="bi bi-check-circle"></i> Partially Complete</h4>
             <p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>
             <p><strong>{len(failed_files)}</strong> file(s) failed to delete.</p>
-        </div>
         """
+        disp.add_display_item(displayer.DisplayerItemAlert(result_html, BSstyle.WARNING, icon="check-circle", title="Partially Complete"), column=0)
     else:
-        result_html = f"""
-        <div class="alert alert-success" role="alert">
-            <h4 class="alert-heading"><i class="bi bi-check-circle-fill"></i> Success</h4>
-            <p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>
-        </div>
-        """
-    
-    disp.add_display_item(displayer.DisplayerItemAlert(result_html, BSstyle.NONE), column=0)
+        result_html = f"<p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>"
+        disp.add_display_item(displayer.DisplayerItemAlert(result_html, BSstyle.SUCCESS, icon="check-circle", title="Success"), column=0)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         id="return_btn",
@@ -784,7 +753,7 @@ def version_history(group_id, filename):
     if not file_manager:
         return "File manager not initialized", 500
     
-    displayer, BSstyle, get_home_endpoint = _get_displayer_modules()
+    displayer, BSstyle = _get_displayer_modules()
     
     try:
         # Convert '(none)' placeholder back to None for files without a group
@@ -795,24 +764,24 @@ def version_history(group_id, filename):
         disp = displayer.Displayer()
         disp.add_generic(f"Version History - {filename}")
         disp.set_title(f"Version History: {filename}")
-        disp.add_breadcrumb("Home", get_home_endpoint(), [])
         disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
         disp.add_breadcrumb("Version History", "file_manager_admin.version_history", [group_id, filename])
         
         # Header with file info
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         group_display = actual_group_id if actual_group_id else "(none)"
-        header_html = f"""
-        <div class="card mb-3">
-            <div class="card-body">
-                <h4><i class="bi bi-clock-history"></i> Version History</h4>
-                <p class="mb-1"><strong>Filename:</strong> {filename}</p>
-                <p class="mb-0"><strong>Group ID:</strong> {group_display}</p>
-                <p class="mb-0"><strong>Total Versions:</strong> {len(versions)}</p>
-            </div>
-        </div>
+        header_body = f"""
+        <p class="mb-1"><strong>Filename:</strong> {filename}</p>
+        <p class="mb-0"><strong>Group ID:</strong> {group_display}</p>
+        <p class="mb-0"><strong>Total Versions:</strong> {len(versions)}</p>
         """
-        disp.add_display_item(displayer.DisplayerItemAlert(header_html, BSstyle.NONE), column=0)
+        disp.add_display_item(displayer.DisplayerItemCard(
+            id="version_history_header",
+            title="Version History",
+            icon="history",
+            header_color=BSstyle.INFO,
+            body=header_body
+        ), column=0)
         
         # Version table
         if versions:
@@ -848,17 +817,16 @@ def version_history(group_id, filename):
                 
                 # Version number (count from oldest)
                 version_num = len(versions) - sorted_versions.index(version)
-                version_badge = f"<span class='badge bg-primary'>v{version_num}</span>"
-                disp.add_display_item(displayer.DisplayerItemAlert(version_badge, BSstyle.NONE), 
+                disp.add_display_item(displayer.DisplayerItemBadge(f"v{version_num}", BSstyle.PRIMARY), 
                                     column=1, line=idx)
                 
                 # Status (current or archived)
                 if version.get('is_current'):
-                    status_html = "<span class='badge bg-success'><i class='bi bi-check-circle'></i> Current</span>"
+                    disp.add_display_item(displayer.DisplayerItemBadge("Current", BSstyle.SUCCESS), 
+                                        column=2, line=idx)
                 else:
-                    status_html = "<span class='badge bg-secondary'>Archived</span>"
-                disp.add_display_item(displayer.DisplayerItemAlert(status_html, BSstyle.NONE), 
-                                    column=2, line=idx)
+                    disp.add_display_item(displayer.DisplayerItemBadge("Archived", BSstyle.SECONDARY), 
+                                        column=2, line=idx)
                 
                 # Size
                 size_str = util_format_file_size(version.get('file_size', 0))
@@ -892,7 +860,7 @@ def version_history(group_id, filename):
                 actions.append({
                     "type": "download",
                     "url": download_url,
-                    "icon": "bi bi-download",
+                    "icon": "mdi mdi-download",
                     "style": "primary",
                     "tooltip": "Download this version"
                 })
@@ -906,7 +874,7 @@ def version_history(group_id, filename):
                     actions.append({
                         "type": "custom",
                         "url": restore_url,
-                        "icon": "bi bi-arrow-clockwise",
+                        "icon": "mdi mdi-restore",
                         "style": "success",
                         "tooltip": f"Restore v{version_num} as current"
                     })
@@ -938,7 +906,6 @@ def version_history(group_id, filename):
         disp = displayer.Displayer()
         disp.add_generic("Error")
         disp.set_title("Version History Error")
-        disp.add_breadcrumb("Home", get_home_endpoint(), [])
         disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
         
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
