@@ -13,7 +13,7 @@ Example:
     >>> 
     >>> disp = Displayer()
     >>> disp.add_generic("MyPage")
-    >>> layout_id = disp.add_master_layout(DisplayerLayout(Layouts.HORIZONTAL, columns=[8, 4]))
+    >>> layout_id = disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, columns=[8, 4]))
     >>> disp.add_display_item(DisplayerItemText("Welcome!"), column=0)
     >>> disp.add_display_item(DisplayerItemButton("Click Me", "/action"), column=1)
     >>> data = disp.display()

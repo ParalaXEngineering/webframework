@@ -107,7 +107,7 @@ def test_delete():
         subtitle="Interactive Permission Tests"
     ))
     
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [4, 4, 4]))
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 4, 4]))
     
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_public", "Public (No Auth)", icon="lock-open-variant",
@@ -127,7 +127,7 @@ def test_delete():
         color=displayer.BSstyle.WARNING
     ), 2)
     
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.HORIZONTAL, [4, 4, 4]))
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 4, 4]))
     
     disp.add_display_item(displayer.DisplayerItemButton(
         "btn_delete", "Denied Permission", icon="cancel",
