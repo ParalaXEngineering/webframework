@@ -714,27 +714,29 @@ class FileManager:
                 checksums_to_check.add(version.checksum)
                 storage_paths_to_check[version.checksum] = version.storage_path
                 
-                # Delete associated thumbnails
-                self._delete_thumbnails(version.storage_path)
-                
-                # Remove database record
+                # Remove database record (thumbnails deleted later if no other refs)
                 self.db_session.delete(version)
             
             self.db_session.commit()
             
-            # Check each checksum and delete physical files if no longer referenced
+            # Check each checksum and delete physical files + thumbnails if no longer referenced
             for checksum in checksums_to_check:
                 other_refs = self.db_session.query(FileVersion).filter_by(checksum=checksum).count()
                 
                 if other_refs == 0:
+                    storage_path = storage_paths_to_check[checksum]
+                    
+                    # Delete associated thumbnails (only when no other refs)
+                    self._delete_thumbnails(storage_path)
+                    
                     # No other references, safe to delete physical file
                     try:
-                        self.storage.delete(storage_paths_to_check[checksum])
-                        logger.info(f"Deleted physical file (no other references): {storage_paths_to_check[checksum]}")
+                        self.storage.delete(storage_path)
+                        logger.info(f"Deleted physical file and thumbnails (no other references): {storage_path}")
                     except Exception as e:
-                        logger.warning(f"Failed to delete physical file {storage_paths_to_check[checksum]}: {e}")
+                        logger.warning(f"Failed to delete physical file {storage_path}: {e}")
                 else:
-                    logger.info(f"Physical file retained ({other_refs} other references): {storage_paths_to_check[checksum]}")
+                    logger.info(f"Physical file and thumbnails retained ({other_refs} other references): {storage_paths_to_check[checksum]}")
             
             # Clean up orphaned FileGroup if no files remain in the group
             if group_id_to_check:

@@ -181,7 +181,7 @@
 {% endmacro %}
 
 
-{# Helper macro: Render preview (thumbnail or icon) #}
+{# Helper macro: Render preview (thumbnail or icon) with modal support #}
 {% macro _render_preview(file, size, file_manager) %}
     {% if file.filename is defined %}
         {% set filename = file.filename %}
@@ -193,7 +193,8 @@
     
     {# Check for thumbnail #}
     {% set has_thumb = false %}
-    {% if file.thumb_150x150 is defined %}
+    {% set thumb_path = '' %}
+    {% if file.thumb_150x150 is defined and file.thumb_150x150 %}
         {% set has_thumb = true %}
         {% set thumb_path = file.thumb_150x150 %}
     {% elif file.get and file.get('thumb_150x150') %}
@@ -201,11 +202,61 @@
         {% set thumb_path = file.get('thumb_150x150') %}
     {% endif %}
     
+    {# Check for larger thumbnail (300x300) for modal #}
+    {% set has_large_thumb = false %}
+    {% set large_thumb_path = '' %}
+    {% if file.thumb_300x300 is defined and file.thumb_300x300 %}
+        {% set has_large_thumb = true %}
+        {% set large_thumb_path = file.thumb_300x300 %}
+    {% elif file.get and file.get('thumb_300x300') %}
+        {% set has_large_thumb = true %}
+        {% set large_thumb_path = file.get('thumb_300x300') %}
+    {% endif %}
+    
     {% if has_thumb %}
-        <img src="{{ url_for('file_handler.download', filepath=thumb_path, inline='true') }}" 
+        {% set thumb_url = url_for('file_handler.download', filepath=thumb_path, inline='true') %}
+        {% set modal_id = 'previewModal_' ~ file_id %}
+        
+        {# Clickable thumbnail #}
+        <img src="{{ thumb_url }}" 
              alt="Preview" 
-             class="img-thumbnail" 
-             style="max-width: {{ size }}; max-height: {{ size }};">
+             class="img-thumbnail file-preview-clickable" 
+             style="max-width: {{ size }}; max-height: {{ size }}; cursor: pointer;"
+             data-bs-toggle="modal" 
+             data-bs-target="#{{ modal_id }}"
+             title="Click to enlarge">
+        
+        {# Modal for larger preview #}
+        <div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-labelledby="{{ modal_id }}Label" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="{{ modal_id }}Label">
+                            <i class="mdi mdi-file-image"></i> {{ filename }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        {% if has_large_thumb %}
+                            {% set large_url = url_for('file_handler.download', filepath=large_thumb_path, inline='true') %}
+                        {% else %}
+                            {% set large_url = thumb_url %}
+                        {% endif %}
+                        <img src="{{ large_url }}" 
+                             alt="{{ filename }}" 
+                             class="img-fluid" 
+                             style="max-height: 70vh;">
+                    </div>
+                    <div class="modal-footer">
+                        <a href="{{ url_for('file_handler.download_by_id', file_id=file_id) }}" 
+                           class="btn btn-primary">
+                            <i class="mdi mdi-download"></i> Download Original
+                        </a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% else %}
         {# Show icon based on file extension #}
         {% set icon_class = _get_file_icon(filename) %}
