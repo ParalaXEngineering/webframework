@@ -211,6 +211,9 @@ def delete(file_id):
     Args:
         file_id: Database ID of file version
     
+    Query params:
+        all_versions: If 'true', delete all versions of the file (same group_id + filename)
+    
     Returns:
         JSON response with success/error status
     """
@@ -223,12 +226,15 @@ def delete(file_id):
             "error": "Permission denied: You need 'delete' permission for FileManager. Contact your administrator."
         }), 403
     
+    # Check for delete_all_versions parameter
+    delete_all_versions = request.args.get('all_versions', 'false').lower() == 'true'
+    
     try:
         # Delete file (reference-counted in HashFS)
-        success = file_manager.delete_file(file_id)
+        success = file_manager.delete_file(file_id, delete_all_versions=delete_all_versions)
         
         if success:
-            logger.info(f"File deleted by {session.get('user', 'GUEST')}: ID {file_id}")
+            logger.info(f"File deleted by {session.get('user', 'GUEST')}: ID {file_id} (all_versions={delete_all_versions})")
             return jsonify({
                 "success": True,
                 "message": "File deleted successfully"

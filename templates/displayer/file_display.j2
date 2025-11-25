@@ -28,8 +28,36 @@
     {% set file = none %}
 {% endif %}
 
+{# Check if physical file exists on disk #}
+{% set file_missing_on_disk = false %}
+{% if file and file_manager %}
+    {% if file.id is defined %}
+        {% set file_missing_on_disk = not file_manager.file_exists_on_disk(file.id) %}
+    {% elif file.get and file.get('id') %}
+        {% set file_missing_on_disk = not file_manager.file_exists_on_disk(file.get('id')) %}
+    {% endif %}
+{% endif %}
+
 {% if file %}
-    {% if compact %}
+    {% if file_missing_on_disk %}
+        {# File record exists but physical file is missing #}
+        <div class="alert alert-warning d-flex align-items-center gap-2">
+            <i class="mdi mdi-alert-circle text-warning" style="font-size: 1.5rem;"></i>
+            <div>
+                <strong>File Missing</strong><br>
+                <small>The file record exists but the physical file is no longer available on disk.</small>
+                <br>
+                <small class="text-muted">
+                    {% if file.filename is defined %}
+                        {{ file.filename }}
+                    {% else %}
+                        {{ file.get('name', 'Unknown') if file.get else file['name'] }}
+                    {% endif %}
+                    (ID: {{ file.id if file.id is defined else file.get('id', '?') }})
+                </small>
+            </div>
+        </div>
+    {% elif compact %}
         {# Compact mode - single line with icon + filename + version + actions #}
         <div class="file-display-compact d-flex align-items-center gap-2 p-2 border rounded">
             {# Preview icon/thumbnail #}

@@ -561,6 +561,7 @@ def confirm_delete():
         data = utilities.util_post_to_json(request.form.to_dict())
         data = data["Confirm Delete"]
         file_ids_str = data.get('file_ids_to_delete', '')
+        delete_all_versions = data.get('delete_all_versions', 'false') == 'true'
         if not file_ids_str:
             return "No files specified", 400
         
@@ -654,6 +655,21 @@ def confirm_delete():
         disp.add_display_item(displayer.DisplayerItemHidden(id="file_ids_to_delete", value=file_ids_str), column=0)
         disp.add_display_item(displayer.DisplayerItemHidden(id="confirm_deletion", value="true"), column=0)
         
+        # Check if any files have versions (group_id set)
+        has_versioned_files = any(f['group_id'] != '(none)' for f in files_to_delete)
+        
+        if has_versioned_files:
+            # Add checkbox to delete all versions
+            disp.add_display_item(displayer.DisplayerItemAlert(
+                "<small class='text-muted'>Some files have version history. Check the box below to delete all versions.</small>",
+                BSstyle.NONE
+            ), column=0)
+            disp.add_display_item(displayer.DisplayerItemInputCheckbox(
+                id="delete_all_versions",
+                text="Delete ALL versions of these files (removes entire version history)",
+                value=False
+            ), column=0)
+        
         # Buttons
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [6, 6]))
         
@@ -682,10 +698,10 @@ def confirm_delete():
     
     for fid in file_ids:
         try:
-            success = file_manager.delete_file(fid)
+            success = file_manager.delete_file(fid, delete_all_versions=delete_all_versions)
             if success:
                 deleted_count += 1
-                logger.info(f"File deleted by {session.get('user', 'GUEST')}: ID {fid}")
+                logger.info(f"File deleted by {session.get('user', 'GUEST')}: ID {fid} (all_versions={delete_all_versions})")
             else:
                 failed_files.append(fid)
         except Exception as e:

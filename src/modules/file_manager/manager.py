@@ -666,7 +666,7 @@ class FileManager:
         except IOError as e:
             raise FileNotFoundError(f"File not found: {storage_path}") from e
     
-    def delete_file(self, file_id: int) -> bool:
+    def delete_file(self, file_id: int, delete_all_versions: bool = False) -> bool:
         """Delete a file by database ID.
         
         Note: HashFS files are reference-counted. Physical deletion only occurs
@@ -674,6 +674,8 @@ class FileManager:
         
         Args:
             file_id: Database ID of file version to delete
+            delete_all_versions: If True, delete ALL versions of this file (same group_id + filename).
+                                 If False (default), only delete the specified version.
             
         Returns:
             True if successful, False otherwise
@@ -686,28 +688,53 @@ class FileManager:
                 logger.warning(f"Attempted to delete non-existent file ID: {file_id}")
                 return False
             
-            storage_path = file_version.storage_path
-            checksum = file_version.checksum
+            # Collect versions to delete
+            if delete_all_versions and file_version.group_id:
+                # Get all versions with same group_id and filename
+                versions_to_delete = self.db_session.query(FileVersion).filter(
+                    and_(
+                        FileVersion.group_id == file_version.group_id,
+                        FileVersion.filename == file_version.filename
+                    )
+                ).all()
+                logger.info(f"Deleting all {len(versions_to_delete)} versions of {file_version.filename} in group {file_version.group_id}")
+            else:
+                versions_to_delete = [file_version]
             
-            # Delete associated thumbnails first
-            self._delete_thumbnails(storage_path)
+            # Track checksums and storage paths for physical deletion
+            checksums_to_check = set()
+            storage_paths_to_check = {}  # checksum -> storage_path
+            group_id_to_check = file_version.group_id
             
-            # Remove database record
-            self.db_session.delete(file_version)
+            for version in versions_to_delete:
+                checksums_to_check.add(version.checksum)
+                storage_paths_to_check[version.checksum] = version.storage_path
+                
+                # Delete associated thumbnails
+                self._delete_thumbnails(version.storage_path)
+                
+                # Remove database record
+                self.db_session.delete(version)
+            
             self.db_session.commit()
             
-            # Check if any other file versions reference this checksum
-            other_refs = self.db_session.query(FileVersion).filter_by(checksum=checksum).count()
+            # Check each checksum and delete physical files if no longer referenced
+            for checksum in checksums_to_check:
+                other_refs = self.db_session.query(FileVersion).filter_by(checksum=checksum).count()
+                
+                if other_refs == 0:
+                    # No other references, safe to delete physical file
+                    try:
+                        self.storage.delete(storage_paths_to_check[checksum])
+                        logger.info(f"Deleted physical file (no other references): {storage_paths_to_check[checksum]}")
+                    except Exception as e:
+                        logger.warning(f"Failed to delete physical file {storage_paths_to_check[checksum]}: {e}")
+                else:
+                    logger.info(f"Physical file retained ({other_refs} other references): {storage_paths_to_check[checksum]}")
             
-            if other_refs == 0:
-                # No other references, safe to delete physical file
-                try:
-                    self.storage.delete(storage_path)
-                    logger.info(f"Deleted physical file (no other references): {storage_path}")
-                except Exception as e:
-                    logger.warning(f"Failed to delete physical file {storage_path}: {e}")
-            else:
-                logger.info(f"File {file_id} deleted from DB, physical file retained ({other_refs} other references)")
+            # Clean up orphaned FileGroup if no files remain in the group
+            if group_id_to_check:
+                self._cleanup_orphaned_group(group_id_to_check)
             
             return True
             
@@ -715,6 +742,28 @@ class FileManager:
             logger.error(f"Failed to delete file {file_id}: {e}", exc_info=True)
             self.db_session.rollback()
             return False
+    
+    def _cleanup_orphaned_group(self, group_id: str) -> bool:
+        """Remove FileGroup if it has no remaining files.
+        
+        Args:
+            group_id: Group ID to check and potentially delete
+            
+        Returns:
+            True if group was deleted, False otherwise
+        """
+        try:
+            remaining_files = self.db_session.query(FileVersion).filter_by(group_id=group_id).count()
+            if remaining_files == 0:
+                group = self.db_session.query(FileGroup).get(group_id)
+                if group:
+                    self.db_session.delete(group)
+                    self.db_session.commit()
+                    logger.info(f"Deleted orphaned FileGroup: {group_id}")
+                    return True
+        except Exception as e:
+            logger.warning(f"Failed to cleanup orphaned group {group_id}: {e}")
+        return False
     
     def _delete_thumbnails(self, storage_path: str):
         """Delete all thumbnails associated with a file.
@@ -806,6 +855,28 @@ class FileManager:
             FileVersion object or None
         """
         return self.db_session.query(FileVersion).filter_by(id=file_id).first()
+    
+    def file_exists_on_disk(self, file_id: int) -> bool:
+        """Check if the physical file exists on disk for a given file ID.
+        
+        Useful for detecting orphaned database records where the physical file
+        has been deleted but the DB record remains.
+        
+        Args:
+            file_id: Database ID of the file version
+            
+        Returns:
+            True if both DB record and physical file exist, False otherwise
+        """
+        file_version = self.get_file_by_id(file_id)
+        if not file_version:
+            return False
+        
+        try:
+            file_path = self.storage.get(file_version.storage_path)
+            return file_path.exists()
+        except (IOError, FileNotFoundError):
+            return False
     
     def get_current_file(self, group_id: str, filename: str) -> Optional[FileVersion]:
         """Get current version of a file in a group.
