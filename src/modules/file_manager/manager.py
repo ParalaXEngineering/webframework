@@ -36,10 +36,14 @@ except ImportError:
 
 # Document thumbnail generation
 try:
-    import fitz  # PyMuPDF
+    import pymupdf as fitz  # PyMuPDF (new import style for version 1.24+)
     PYMUPDF_AVAILABLE = True
 except ImportError:
-    PYMUPDF_AVAILABLE = False
+    try:
+        import fitz  # PyMuPDF (legacy import style)
+        PYMUPDF_AVAILABLE = True
+    except ImportError:
+        PYMUPDF_AVAILABLE = False
 
 try:
     from ..log.logger_factory import get_logger

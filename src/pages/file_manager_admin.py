@@ -561,7 +561,8 @@ def confirm_delete():
         data = utilities.util_post_to_json(request.form.to_dict())
         data = data["Confirm Delete"]
         file_ids_str = data.get('file_ids_to_delete', '')
-        delete_all_versions = data.get('delete_all_versions', 'false') == 'true'
+        # Always delete all versions (full deletion)
+        delete_all_versions = True
         if not file_ids_str:
             return "No files specified", 400
         
@@ -659,15 +660,10 @@ def confirm_delete():
         has_versioned_files = any(f['group_id'] != '(none)' for f in files_to_delete)
         
         if has_versioned_files:
-            # Add checkbox to delete all versions
+            # Inform user that all versions will be deleted
             disp.add_display_item(displayer.DisplayerItemAlert(
-                "<small class='text-muted'>Some files have version history. Check the box below to delete all versions.</small>",
-                BSstyle.NONE
-            ), column=0)
-            disp.add_display_item(displayer.DisplayerItemInputCheckbox(
-                id="delete_all_versions",
-                text="Delete ALL versions of these files (removes entire version history)",
-                value=False
+                "<i class='mdi mdi-information-outline'></i> Files with version history will have <strong>all versions</strong> deleted.",
+                BSstyle.INFO
             ), column=0)
         
         # Buttons
@@ -861,6 +857,21 @@ def version_history(group_id, filename):
                         "tooltip": f"Restore v{version_num} as current"
                     })
                 
+                # Delete single version button (only if more than one version exists)
+                if len(versions) > 1:
+                    delete_version_url = url_for('file_manager_admin.delete_single_version',
+                                                file_id=file_id,
+                                                group_id=group_id,
+                                                filename=filename)
+                    actions.append({
+                        "type": "custom",
+                        "url": delete_version_url,
+                        "icon": "mdi mdi-delete",
+                        "style": "danger",
+                        "tooltip": f"Delete v{version_num} only",
+                        "confirm": f"Delete version {version_num} of {filename}?"
+                    })
+                
                 disp.add_display_item(
                     displayer.DisplayerItemActionButtons(
                         id=f"version_actions_{idx}",
@@ -950,3 +961,47 @@ def restore_version(target_version_id, group_id, filename):
     
     # Redirect back to version history page
     return redirect(url_for('file_manager_admin.version_history', group_id=group_id, filename=filename))
+
+
+@bp.route('/delete-single-version/<int:file_id>/<group_id>/<filename>', methods=['GET'])
+@require_permission("FileManager", "delete")
+def delete_single_version(file_id, group_id, filename):
+    """Delete a single version of a file (not all versions).
+    
+    Args:
+        file_id: Database ID of the specific version to delete
+        group_id: Group identifier for redirect
+        filename: Filename for redirect
+    
+    Returns:
+        Redirect to version history with flash message
+    """
+    if not file_manager:
+        flash("File manager not initialized", "error")
+        return redirect(url_for('file_manager_admin.index'))
+    
+    try:
+        # Delete only this specific version (delete_all_versions=False)
+        success = file_manager.delete_file(file_id, delete_all_versions=False)
+        
+        if success:
+            logger.info(f"Single version deleted by {session.get('user', 'GUEST')}: ID {file_id}")
+            flash("Version deleted successfully.", "success")
+        else:
+            flash("Failed to delete version.", "error")
+        
+    except Exception as e:
+        logger.error(f"Failed to delete single version {file_id}: {e}", exc_info=True)
+        flash(f"Failed to delete version: {str(e)}", "error")
+    
+    # Check if there are remaining versions
+    actual_group_id = None if group_id == '(none)' else group_id
+    remaining_versions = file_manager.get_file_versions(actual_group_id, filename)
+    
+    if remaining_versions:
+        # Redirect back to version history page
+        return redirect(url_for('file_manager_admin.version_history', group_id=group_id, filename=filename))
+    else:
+        # No more versions, redirect to main file manager
+        flash("All versions deleted. File no longer exists.", "info")
+        return redirect(url_for('file_manager_admin.index'))
