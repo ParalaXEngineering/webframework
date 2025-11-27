@@ -92,9 +92,9 @@ def edit_issue(issue_id):
             description_textile, embedded_images = html_to_redmine_textile(description_html)
 
             try:
-                current_user = \"GUEST\"
+                current_user = "GUEST"
                 if auth_manager:
-                    current_user = auth_manager.get_current_user() or \"GUEST\"
+                    current_user = auth_manager.get_current_user() or "GUEST"
                 
                 # Prepare update data
                 update_data = {
