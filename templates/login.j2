@@ -42,13 +42,13 @@
                                     {% endfor %}
                                 </select>
                             <div class="form-control-icon">
-                                <i class="bi bi-person"></i>
+                                <i class="mdi mdi-account"></i>
                             </div>
                         </div>
                         <div class="form-group position-relative has-icon-left mb-4">
                             <input type="password" class="form-control form-control-xl" placeholder="Password" name="password">
                             <div class="form-control-icon">
-                                <i class="bi bi-shield-lock"></i>
+                                <i class="mdi mdi-shield-lock"></i>
                             </div>
                         
                         {% if message %}
@@ -72,7 +72,9 @@
                                         filename='users/' + users[0] + suffix + '.jpg') }}"
                         width="512px"
                         height="512px"
-                        style="object-fit: cover;">
+                        style="object-fit: cover;"
+                        onerror="this.onerror=null; this.src='{{ url_for('common.assets', asset_type='images', filename='users/default.svg') }}';"
+                        >
                 </div>
             </div>
 
@@ -97,15 +99,32 @@
             avatarElement.classList.add("fade-out");
 
             setTimeout(function() {
-                avatarElement.src = "/common/assets/images/?filename=users/" + selectedUser + suffix + ".jpg";
-
-                // fallback automatique si l'image n'existe pas
+                // Try SVG first, then JPG with suffix, then JPG without suffix, then default.svg
+                var imageUrls = [
+                    "/common/assets/images/?filename=users/" + selectedUser + suffix + ".svg",
+                    "/common/assets/images/?filename=users/" + selectedUser + suffix + ".jpg",
+                    "/common/assets/images/?filename=users/" + selectedUser + ".svg",
+                    "/common/assets/images/?filename=users/" + selectedUser + ".jpg",
+                    "/common/assets/images/?filename=users/default.svg"
+                ];
+                
+                var currentIndex = 0;
+                
                 avatarElement.onerror = function() {
-                    this.onerror = null; // éviter boucle infinie
-                    this.src = "/common/assets/images/?filename=users/" + selectedUser + ".jpg";
+                    currentIndex++;
+                    if (currentIndex < imageUrls.length) {
+                        this.src = imageUrls[currentIndex];
+                    } else {
+                        // All failed, stay on last (default.svg)
+                        this.onerror = null;
+                    }
                 };
-
-                avatarElement.classList.remove("fade-out");
+                
+                avatarElement.onload = function() {
+                    this.classList.remove("fade-out");
+                };
+                
+                avatarElement.src = imageUrls[0];
             }, 500);
         }
 

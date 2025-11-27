@@ -16,88 +16,17 @@ import tempfile
 import shutil
 
 
-class MockSettingsManager:
-    """Mock settings manager for integrity testing."""
-    
-    def __init__(self, base_path=None, db_path=None):
-        self.base_path_value = base_path or "test_uploads"
-        self.db_path = db_path or Path(tempfile.mkdtemp()) / ".file_metadata.db"
-        
-        class MockStorage:
-            def __init__(self, db_path):
-                self.config_path = str(db_path.parent / "config.json")
-        
-        self.storage = MockStorage(self.db_path)
-        
-    def get_setting(self, key):
-        """Return mock settings."""
-        settings_map = {
-            "file_storage.max_file_size_mb": {"value": 10},
-            "file_storage.allowed_extensions": {
-                "value": [".pdf", ".jpg", ".jpeg", ".png", ".txt", ".zip"]
-            },
-            "file_storage.generate_thumbnails": {"value": False},
-            "file_storage.thumbnail_sizes": {"value": ["150x150"]},
-            "file_storage.image_quality": {"value": 85},
-            "file_storage.strip_exif": {"value": True},
-            "file_storage.categories": {"value": ["general", "documents", "images"]},
-            "file_storage.tags": {"value": ["test", "demo", "invoice"]},
-            "file_storage.hashfs_path": {"value": str(Path(self.base_path_value) / "hashfs_storage")}
-        }
-        return settings_map.get(key, {"value": None})
 
-
-@pytest.fixture
-def temp_storage_dir():
-    """Create temporary directory for file storage tests."""
-    temp_dir = tempfile.mkdtemp()
-    yield Path(temp_dir)
-    shutil.rmtree(temp_dir, ignore_errors=True)
-
-
-@pytest.fixture
-def file_manager(temp_storage_dir):
-    """Create FileManager with test settings."""
-    from src.modules.file_manager import FileManager
-    from flask import Flask
-    
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'test_secret_key'
-    
-    with app.test_request_context():
-        from flask import session
-        session['user'] = 'test_user'
-        
-        settings_mgr = MockSettingsManager(
-            base_path=str(temp_storage_dir),
-            db_path=temp_storage_dir / ".file_metadata.db"
-        )
-        fm = FileManager(settings_mgr)
-        yield fm
-        
-        if hasattr(fm, 'db_session'):
-            fm.db_session.close()
-
-
-@pytest.fixture
-def sample_file():
-    """Create a simple text file for testing."""
-    content = b"Test file content for integrity verification"
-    file_obj = FileStorage(
-        stream=BytesIO(content),
-        filename="integrity_test.txt",
-        content_type="text/plain"
-    )
-    return file_obj
+# Using shared fixtures from tests.unit.fixtures.file_manager_fixtures
 
 
 class TestFileIntegrityVerification:
     """Test file integrity checking."""
     
-    def test_verify_intact_file(self, file_manager, sample_file):
+    def test_verify_intact_file(self, file_manager, sample_text_file):
         """Valid file should pass integrity check."""
         # Upload file
-        result = file_manager.upload_file(sample_file)
+        result = file_manager.upload_file(sample_text_file)
         file_id = result["id"]
         
         # Verify integrity
@@ -106,10 +35,10 @@ class TestFileIntegrityVerification:
         assert is_valid is True
         assert status == "OK"
     
-    def test_verify_missing_file(self, file_manager, sample_file):
+    def test_verify_missing_file(self, file_manager, sample_text_file):
         """Missing physical file should be detected."""
         # Upload file
-        result = file_manager.upload_file(sample_file)
+        result = file_manager.upload_file(sample_text_file)
         file_id = result["id"]
         
         # Get file path and delete physical file
@@ -123,10 +52,10 @@ class TestFileIntegrityVerification:
         assert is_valid is False
         assert status == "Missing"
     
-    def test_verify_corrupted_file(self, file_manager, sample_file):
+    def test_verify_corrupted_file(self, file_manager, sample_text_file):
         """File with corrupted content (wrong checksum) should be detected."""
         # Upload file
-        result = file_manager.upload_file(sample_file)
+        result = file_manager.upload_file(sample_text_file)
         file_id = result["id"]
         
         # Get file path and corrupt content
@@ -190,10 +119,10 @@ class TestFileIntegrityVerification:
         assert is_valid is False
         assert status == "Checksum mismatch"
     
-    def test_checksum_calculation_matches_upload(self, file_manager, sample_file):
+    def test_checksum_calculation_matches_upload(self, file_manager, sample_text_file):
         """Checksum calculated during verification should match upload."""
         # Upload file
-        result = file_manager.upload_file(sample_file)
+        result = file_manager.upload_file(sample_text_file)
         file_id = result["id"]
         original_checksum = result["checksum"]
         
@@ -213,10 +142,10 @@ class TestFileIntegrityVerification:
 class TestOrphanedRecordDetection:
     """Test detection of orphaned database records."""
     
-    def test_detect_orphaned_after_manual_deletion(self, file_manager, sample_file):
+    def test_detect_orphaned_after_manual_deletion(self, file_manager, sample_text_file):
         """Should detect orphaned record if physical file manually deleted."""
         # Upload file
-        result = file_manager.upload_file(sample_file)
+        result = file_manager.upload_file(sample_text_file)
         file_id = result["id"]
         
         # Manually delete physical file (simulate external deletion)

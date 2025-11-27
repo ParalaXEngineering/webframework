@@ -16,46 +16,41 @@
         accept_types: Accepted file types
         multiple: Allow multiple files
         file_manager: FileManager instance (for dropdowns)
+        existing_values: List of existing file dicts to pre-populate hidden field
 #}
 
-{% macro fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups) %}
+{% macro fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups, existing_values) %}
 <div class="file-upload-widget mb-3" id="{{ id }}_widget">
     {% if text %}
     <label class="form-label">{{ text }}</label>
     {% endif %}
     
-    {# Category selector (shown only if category is None) #}
+    {# Category selector (shown only if category is None) - NOT submitted with form #}
     {% if category is none and file_manager %}
     <div class="mb-2">
-        <label for="{{ id }}_category" class="form-label">Category</label>
-        <select class="form-select" id="{{ id }}_category" name="{{ id }}_category">
+        <label for="{{ id }}_upload_category" class="form-label">Category</label>
+        <select class="form-select" id="{{ id }}_upload_category" data-upload-metadata>
             {% for cat in file_manager.get_categories() %}
             <option value="{{ cat }}">{{ cat|title }}</option>
             {% endfor %}
         </select>
     </div>
-    {% else %}
-        {# Hidden field for fixed category #}
-        {{ common_input.hidden(id + "_category", category) }}
     {% endif %}
     
-    {# Subcategory input (shown only if subcategory is None) #}
+    {# Subcategory input (shown only if subcategory is None) - NOT submitted with form #}
     {% if subcategory is none %}
     <div class="mb-2">
-        <label for="{{ id }}_subcategory" class="form-label">Subcategory (Optional)</label>
-        <input type="text" class="form-control" id="{{ id }}_subcategory" name="{{ id }}_subcategory" 
+        <label for="{{ id }}_upload_subcategory" class="form-label">Subcategory (Optional)</label>
+        <input type="text" class="form-control" id="{{ id }}_upload_subcategory" data-upload-metadata
                placeholder="e.g., 2025, project_name">
     </div>
-    {% else %}
-        {# Hidden field for fixed subcategory #}
-        {{ common_input.hidden(id + "_subcategory", subcategory if subcategory else "") }}
     {% endif %}
     
-    {# Group ID selector (shown only if group_id is None) #}
+    {# Group ID selector (shown only if group_id is None) - NOT submitted with form #}
     {% if group_id is none and file_manager %}
     <div class="mb-2">
-        <label for="{{ id }}_group_id" class="form-label">Group ID (Optional - for versioning)</label>
-        <input type="text" class="form-control" id="{{ id }}_group_id" name="{{ id }}_group_id" 
+        <label for="{{ id }}_upload_group_id" class="form-label">Group ID (Optional - for versioning)</label>
+        <input type="text" class="form-control" id="{{ id }}_upload_group_id" data-upload-metadata
                placeholder="Enter group ID or leave empty" list="{{ id }}_group_list">
         <datalist id="{{ id }}_group_list">
             {% for group_name in existing_groups %}
@@ -64,35 +59,27 @@
         </datalist>
         <div class="form-text">Files with the same group_id and filename are versioned</div>
     </div>
-    {% else %}
-        {# Hidden field for fixed group_id #}
-        {{ common_input.hidden(id + "_group_id", group_id if group_id else "") }}
     {% endif %}
     
-    {# Tags multi-select (shown only if tags is None) #}
+    {# Tags multi-select (shown only if tags is None) - NOT submitted with form #}
     {% if tags is none and file_manager %}
     <div class="mb-2">
-        <label for="{{ id }}_tags" class="form-label">Tags (Optional)</label>
-        <select class="form-select" id="{{ id }}_tags" name="{{ id }}_tags" multiple>
+        <label for="{{ id }}_upload_tags" class="form-label">Tags (Optional)</label>
+        <select class="form-select" id="{{ id }}_upload_tags" data-upload-metadata multiple>
             {% for tag in file_manager.get_tags() %}
             <option value="{{ tag }}">{{ tag }}</option>
             {% endfor %}
         </select>
         <div class="form-text">Hold Ctrl/Cmd to select multiple tags</div>
     </div>
-    {% elif tags %}
-        {# Hidden fields for fixed tags #}
-        {% for tag in tags %}
-        <input type="hidden" name="{{ id }}_tags" value="{{ tag }}">
-        {% endfor %}
     {% endif %}
     
-    {# FilePond file input #}
+    {# FilePond file input - NOT submitted with form (FilePond handles upload) #}
     <div class="mb-2">
         <input type="file" 
                class="filepond-upload" 
-               id="{{ id }}_file" 
-               name="{{ id }}_file"
+               id="{{ id }}_filepond" 
+               data-upload-metadata
                {% if accept_types %}
                data-accept-types="{{ accept_types|join(',') }}"
                {% endif %}
@@ -101,80 +88,234 @@
                {% endif %}>
     </div>
     
+    {# Hidden field to store uploaded file ID - ONLY field submitted with form #}
+    {# Pre-fill with existing files for arrays (as JSON strings joined with #) #}
+    {# existing_values are already JSON strings from Python, just join them #}
+    {# Use |e to HTML-escape the quotes in JSON strings for attribute value #}
+    {% if existing_values %}
+    {% set initial_value = existing_values|join('#')|e %}
+    <input type="hidden" id="{{ id }}" name="{{ id }}" value="{{ initial_value }}" data-initial-value="{{ initial_value }}">
+    {% else %}
+    <input type="hidden" id="{{ id }}" name="{{ id }}" value="">
+    {% endif %}
+    
     {# Upload result message area #}
     <div id="{{ id }}_result" class="mt-2"></div>
+    
+    {# Debug info #}
+    <div class="form-text text-muted">Field ID: {{ id }} (only this field with file ID will be submitted)</div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const inputElement = document.getElementById('{{ id }}_file');
+    console.log('[FileUpload {{ id }}] ========== INITIALIZATION START ==========');
+    console.log('[FileUpload {{ id }}] Template received existing_values:', {{ existing_values|tojson if existing_values else 'null' }});
     
-    if (inputElement && typeof FilePond !== 'undefined') {
-        // Create FilePond instance
-        const pond = FilePond.create(inputElement, {
-            allowMultiple: {{ 'true' if multiple else 'false' }},
-            {% if accept_types %}
-            acceptedFileTypes: {{ accept_types|tojson }},
-            {% endif %}
-            server: {
-                process: {
-                    url: '/files/upload',
-                    method: 'POST',
-                    onload: (response) => {
-                        const data = JSON.parse(response);
-                        if (data.success) {
-                            showUploadSuccess(data.file);
-                        }
-                        return data.file.id;
-                    },
-                    onerror: (response) => {
-                        const data = JSON.parse(response);
-                        showUploadError(data.error || 'Upload failed');
-                    }
+    const hiddenField = document.getElementById('{{ id }}');
+    if (hiddenField) {
+        console.log('[FileUpload {{ id }}] Hidden field found. Current value:', hiddenField.value);
+        console.log('[FileUpload {{ id }}] Hidden field data-initial-value:', hiddenField.getAttribute('data-initial-value'));
+    } else {
+        console.error('[FileUpload {{ id }}] ✗ Hidden field NOT FOUND!');
+    }
+    
+    // Initialize global upload tracker if not exists
+    if (typeof window.filePondActiveUploads === 'undefined') {
+        window.filePondActiveUploads = 0;
+        console.log('[FileUpload] Global upload tracker initialized');
+        
+        // Inject CSS for disabled buttons
+        const style = document.createElement('style');
+        style.id = 'filepond-button-disable-css';
+        style.textContent = `
+            button.btn-disabled-by-upload,
+            input[type="submit"].btn-disabled-by-upload,
+            a.btn.btn-disabled-by-upload {
+                opacity: 0.5 !important;
+                cursor: not-allowed !important;
+                filter: grayscale(50%);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Function to update button states based on active uploads
+    window.updateFilePondButtonStates = function() {
+        const buttons = document.querySelectorAll('button, input[type="submit"], a.btn');
+        const isUploading = window.filePondActiveUploads > 0;
+        
+        buttons.forEach(btn => {
+            if (isUploading) {
+                btn.disabled = true;
+                if (!btn.classList.contains('btn-disabled-by-upload')) {
+                    btn.classList.add('btn-disabled-by-upload');
                 }
-            },
-            onprocessfile: (error, file) => {
-                if (!error) {
-                    console.log('File uploaded:', file.filename);
-                }
+                btn.style.pointerEvents = 'none';
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('btn-disabled-by-upload');
+                btn.style.pointerEvents = '';
             }
         });
         
-        // Before upload, add metadata to form data
-        pond.setOptions({
+        if (isUploading) {
+            console.log(`[FilePond] Uploads in progress: ${window.filePondActiveUploads} - Buttons disabled`);
+        } else {
+            console.log('[FilePond] All uploads complete - Buttons enabled');
+        }
+    };
+    
+    const inputElement = document.getElementById('{{ id }}_filepond');
+    
+    if (inputElement && typeof FilePond !== 'undefined') {
+        console.log('[FileUpload {{ id }}] Initializing FilePond');
+        
+        // Create FilePond instance with custom server configuration
+        const pond = FilePond.create(inputElement, {
+            allowMultiple: {{ 'true' if multiple else 'false' }},
+            maxParallelUploads: 1,  // Upload files sequentially to prevent DB conflicts
+            instantUpload: true,  // Enable instant upload (required for remove to work)
+            {% if accept_types %}
+            acceptedFileTypes: {{ accept_types|tojson }},
+            {% endif %}
+            // Custom labels for better error display
+            labelFileProcessingError: (error) => {
+                console.log('[FileUpload {{ id }}] labelFileProcessingError called with:', error);
+                return error.body || 'Upload failed';
+            },
+            onprocessfile: (error, file) => {
+                if (error) {
+                    console.error('[FileUpload {{ id }}] Process file error:', error);
+                } else {
+                    console.log('[FileUpload {{ id }}] File uploaded:', file.filename);
+                }
+            },
+            onremovefile: (error, file) => {
+                console.log('[FileUpload {{ id }}] ========== REMOVE FILE EVENT ==========');
+                console.log('[FileUpload {{ id }}] Error:', error);
+                console.log('[FileUpload {{ id }}] File object:', file);
+                console.log('[FileUpload {{ id }}] File.id:', file ? file.id : 'N/A');
+                console.log('[FileUpload {{ id }}] File.serverId:', file ? file.serverId : 'N/A');
+                console.log('[FileUpload {{ id }}] File.filename:', file ? file.filename : 'N/A');
+                console.log('[FileUpload {{ id }}] File status:', file ? file.status : 'N/A');
+                
+                // Extract file ID from hidden field as fallback
+                const hiddenField = document.getElementById('{{ id }}');
+                let fileIdToDelete = file ? file.serverId : null;
+                
+                // If serverId is null, try to extract from hidden field
+                if (!fileIdToDelete && hiddenField && hiddenField.value) {
+                    console.log('[FileUpload {{ id }}] ServerId is null, checking hidden field:', hiddenField.value);
+                    
+                    {% if multiple %}
+                    // For arrays, find the most recent entry (last one)
+                    const entries = hiddenField.value.split('#').filter(v => v);
+                    if (entries.length > 0) {
+                        const lastEntry = entries[entries.length - 1];
+                        try {
+                            const parsed = JSON.parse(lastEntry);
+                            fileIdToDelete = parsed.file_id;
+                            console.log('[FileUpload {{ id }}] Extracted file_id from hidden field:', fileIdToDelete);
+                        } catch(e) {
+                            console.error('[FileUpload {{ id }}] Failed to parse hidden field entry:', lastEntry);
+                        }
+                    }
+                    {% else %}
+                    // For single file, parse the value
+                    try {
+                        const parsed = JSON.parse(hiddenField.value);
+                        fileIdToDelete = parsed.file_id;
+                        console.log('[FileUpload {{ id }}] Extracted file_id from hidden field:', fileIdToDelete);
+                    } catch(e) {
+                        console.error('[FileUpload {{ id }}] Failed to parse hidden field:', hiddenField.value);
+                    }
+                    {% endif %}
+                }
+                
+                // When user removes file from FilePond, delete it from server
+                if (!error && fileIdToDelete) {
+                    console.log('[FileUpload {{ id }}] User removed file, deleting from server:', fileIdToDelete);
+                    
+                    // Use the extracted file ID
+                    const fileId = fileIdToDelete;
+                    
+                    // Call delete endpoint
+                    fetch(`/files/delete/${fileId}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('[FileUpload {{ id }}] ✓ File deleted from server:', fileId);
+                        } else {
+                            console.error('[FileUpload {{ id }}] ✗ Failed to delete file:', data.error);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('[FileUpload {{ id }}] ✗ Error deleting file:', err);
+                    });
+                    
+                    // Also remove from hidden field
+                    if (hiddenField) {
+                        {% if multiple %}
+                        // Array mode: remove the last entry (most recently uploaded)
+                        const entries = hiddenField.value.split('#').filter(v => v);
+                        entries.pop();  // Remove last entry
+                        hiddenField.value = entries.join('#');
+                        console.log('[FileUpload {{ id }}] Removed last entry from array, new value:', hiddenField.value);
+                        {% else %}
+                        // Single mode: clear value
+                        hiddenField.value = '';
+                        console.log('[FileUpload {{ id }}] Cleared hidden field');
+                        {% endif %}
+                    }
+                } else {
+                    console.log('[FileUpload {{ id }}] ⚠ Cannot delete - no file ID found or error occurred');
+                }
+            },
             server: {
                 process: (fieldName, file, metadata, load, error, progress, abort) => {
                     const formData = new FormData();
                     formData.append('file', file, file.name);
                     
-                    // Add category
-                    const category = document.getElementById('{{ id }}_category');
+                    console.log('[FileUpload {{ id }}] Preparing upload for:', file.name);
+                    
+                    // Add category (from visible field or pre-filled value)
+                    const categoryField = document.getElementById('{{ id }}_upload_category');
+                    const category = categoryField ? categoryField.value : '{{ category if category else "" }}';
                     if (category) {
-                        formData.append('category', category.value || '');
+                        formData.append('category', category);
+                        console.log('[FileUpload {{ id }}] Category:', category);
                     }
                     
-                    // Add subcategory
-                    const subcategory = document.getElementById('{{ id }}_subcategory');
+                    // Add subcategory (from visible field or pre-filled value)
+                    const subcategoryField = document.getElementById('{{ id }}_upload_subcategory');
+                    const subcategory = subcategoryField ? subcategoryField.value : '{{ subcategory if subcategory else "" }}';
                     if (subcategory) {
-                        formData.append('subcategory', subcategory.value || '');
+                        formData.append('subcategory', subcategory);
+                        console.log('[FileUpload {{ id }}] Subcategory:', subcategory);
                     }
                     
-                    // Add group_id
-                    const group_id = document.getElementById('{{ id }}_group_id');
+                    // Add group_id (from visible field or pre-filled value)
+                    const groupIdField = document.getElementById('{{ id }}_upload_group_id');
+                    const group_id = groupIdField ? groupIdField.value : '{{ group_id if group_id else "" }}';
                     if (group_id) {
-                        formData.append('group_id', group_id.value || '');
+                        formData.append('group_id', group_id);
+                        console.log('[FileUpload {{ id }}] Group ID:', group_id);
                     }
                     
-                    // Add tags
-                    const tagsSelect = document.getElementById('{{ id }}_tags');
-                    if (tagsSelect) {
-                        const selectedTags = Array.from(tagsSelect.selectedOptions).map(opt => opt.value);
-                        formData.append('tags', selectedTags.join(','));
+                    // Add tags (from visible field or pre-filled value)
+                    const tagsField = document.getElementById('{{ id }}_upload_tags');
+                    let tags = [];
+                    if (tagsField) {
+                        tags = Array.from(tagsField.selectedOptions).map(opt => opt.value);
                     } else {
-                        // Fixed tags from hidden inputs
-                        const tagInputs = document.querySelectorAll('input[name="{{ id }}_tags"]');
-                        const tags = Array.from(tagInputs).map(input => input.value);
+                        // Pre-filled tags
+                        tags = {{ tags|tojson if tags else '[]' }};
+                    }
+                    if (tags.length > 0) {
                         formData.append('tags', tags.join(','));
+                        console.log('[FileUpload {{ id }}] Tags:', tags);
                     }
                     
                     // Upload with fetch
@@ -186,35 +327,101 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                     
                     request.onload = function() {
+                        // Decrement counter and update buttons
+                        window.filePondActiveUploads--;
+                        window.updateFilePondButtonStates();
+                        
                         if (request.status >= 200 && request.status < 300) {
                             const data = JSON.parse(request.responseText);
+                            console.log('[FileUpload {{ id }}] Upload response:', data);
                             if (data.success) {
-                                showUploadSuccess(data.file);
-                                load(data.file.id);
+                                // Store versioned file reference as JSON string for form submission
+                                const hiddenField = document.getElementById('{{ id }}');
+                                if (hiddenField) {
+                                    const versionedRef = JSON.stringify({
+                                        file_id: data.file.id,
+                                        version: data.file.version || 1
+                                    });
+                                    
+                                    {% if multiple %}
+                                    // Array mode: append with # separator
+                                    if (hiddenField.value) {
+                                        hiddenField.value += '#' + versionedRef;
+                                        console.log('[FileUpload {{ id }}] ✓ Appended file to array:', versionedRef);
+                                    } else {
+                                        hiddenField.value = versionedRef;
+                                        console.log('[FileUpload {{ id }}] ✓ First file in array:', versionedRef);
+                                    }
+                                    console.log('[FileUpload {{ id }}] Array value:', hiddenField.value);
+                                    {% else %}
+                                    // Single mode: replace value
+                                    hiddenField.value = versionedRef;
+                                    console.log('[FileUpload {{ id }}] ✓ Stored versioned file reference in hidden field "{{ id }}":', versionedRef);
+                                    console.log('[FileUpload {{ id }}] Hidden field will be submitted as: {{ id }}=' + versionedRef);
+                                    {% endif %}
+                                } else {
+                                    console.error('[FileUpload {{ id }}] ✗ Hidden field "{{ id }}" not found!');
+                                }
+                                
+                                // Return file_id as string to FilePond (becomes serverId)
+                                // This allows FilePond to track the file and call onremovefile with serverId
+                                console.log('[FileUpload {{ id }}] Returning serverId to FilePond:', data.file.id);
+                                load(String(data.file.id));
                             } else {
-                                showUploadError(data.error || 'Upload failed');
-                                error('Upload failed');
+                                // Upload failed but returned 200 - extract error message
+                                const errorMsg = data.error || data.message || 'Upload failed';
+                                console.error('[FileUpload {{ id }}] Upload failed:', errorMsg, data);
+                                return error(errorMsg);
                             }
                         } else {
+                            // HTTP error status - try to extract meaningful message
+                            let errorMsg = `Upload failed (${request.status})`;
                             try {
                                 const data = JSON.parse(request.responseText);
-                                showUploadError(data.error || 'Upload failed');
+                                console.error('[FileUpload {{ id }}] Upload error response:', data);
+                                // Extract error message from server response
+                                if (data.error) {
+                                    errorMsg = data.error;
+                                    console.log('[FileUpload {{ id }}] Extracted error message:', errorMsg);
+                                } else if (data.message) {
+                                    errorMsg = data.message;
+                                    console.log('[FileUpload {{ id }}] Extracted message:', errorMsg);
+                                }
                             } catch(e) {
-                                showUploadError('Upload failed');
+                                console.error('[FileUpload {{ id }}] Upload error (no JSON):', request.responseText);
+                                // Use status text or raw response if available
+                                if (request.statusText) {
+                                    errorMsg = `${errorMsg}: ${request.statusText}`;
+                                } else if (request.responseText && request.responseText.length < 100) {
+                                    errorMsg = `${errorMsg}: ${request.responseText}`;
+                                }
                             }
-                            error('Upload failed');
+                            console.log('[FileUpload {{ id }}] Returning error message to FilePond:', errorMsg);
+                            return error(errorMsg);
                         }
                     };
                     
                     request.onerror = function() {
-                        showUploadError('Network error');
-                        error('Network error');
+                        // Decrement counter and update buttons on error
+                        window.filePondActiveUploads--;
+                        window.updateFilePondButtonStates();
+                        const errorMsg = 'Network error: Unable to reach server. Check your connection.';
+                        console.error('[FileUpload {{ id }}]', errorMsg);
+                        return error(errorMsg);
                     };
+                    
+                    // Increment counter and disable buttons before sending
+                    window.filePondActiveUploads++;
+                    window.updateFilePondButtonStates();
+                    console.log('[FileUpload {{ id }}] Starting upload, active count:', window.filePondActiveUploads);
                     
                     request.send(formData);
                     
                     return {
                         abort: () => {
+                            // Decrement counter if aborted
+                            window.filePondActiveUploads--;
+                            window.updateFilePondButtonStates();
                             request.abort();
                             abort();
                         }
@@ -223,26 +430,33 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        function showUploadSuccess(fileData) {
-            const resultDiv = document.getElementById('{{ id }}_result');
-            resultDiv.innerHTML = `
-                <div class="alert alert-success alert-dismissible fade show">
-                    <i class="bi bi-check-circle"></i> 
-                    <strong>Success!</strong> ${fileData.name} uploaded successfully.
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-        }
-        
-        function showUploadError(errorMsg) {
-            const resultDiv = document.getElementById('{{ id }}_result');
-            resultDiv.innerHTML = `
-                <div class="alert alert-danger alert-dismissible fade show">
-                    <i class="bi bi-x-circle"></i> 
-                    <strong>Error:</strong> ${errorMsg}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
+        // PROTECT HIDDEN FIELD: Prevent form submission from clearing pre-filled values
+        // This ensures existing files are preserved when saving without uploading new files
+        const form = inputElement.closest('form');
+        if (form) {
+            const hiddenField = document.getElementById('{{ id }}');
+            
+            console.log('[FileUpload {{ id }}] Attached form submit handler to preserve hidden field');
+            
+            form.addEventListener('submit', function(e) {
+                console.log('[FileUpload {{ id }}] ========== FORM SUBMIT ==========');
+                console.log('[FileUpload {{ id }}] Hidden field current value:', hiddenField ? hiddenField.value : 'FIELD NOT FOUND');
+                
+                const initialValue = hiddenField ? hiddenField.getAttribute('data-initial-value') : null;
+                console.log('[FileUpload {{ id }}] Initial value from data attribute:', initialValue);
+                
+                // If hidden field is empty but had initial value, restore it
+                if (hiddenField && !hiddenField.value && initialValue) {
+                    console.log('[FileUpload {{ id }}] ✓ Restoring hidden field value on submit:', initialValue);
+                    hiddenField.value = initialValue;
+                } else if (hiddenField && hiddenField.value) {
+                    console.log('[FileUpload {{ id }}] ✓ Hidden field has value, will be submitted as-is:', hiddenField.value);
+                } else if (hiddenField && !hiddenField.value && !initialValue) {
+                    console.log('[FileUpload {{ id }}] ⚠ Hidden field is empty and no initial value to restore!');
+                }
+            }, true);  // Use capture phase to run BEFORE other handlers
+        } else {
+            console.warn('[FileUpload {{ id }}] ⚠ No form found - cannot attach submit handler');
         }
     }
 });

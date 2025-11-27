@@ -76,7 +76,7 @@
                             <h6>v{{app["version"]}}</h6>
                         </div>
                         <div class="sidebar-toggler  x">
-                            <a href="#" class="sidebar-hide d-xl-none d-block"><i class="bi bi-x bi-middle"></i></a>
+                            <a href="#" class="sidebar-hide d-xl-none d-block"><i class="mdi mdi-close"></i></a>
                         </div>
                     </div>
                 </div>
@@ -142,7 +142,7 @@
                 <nav class="navbar navbar-expand navbar-light navbar-top">
                     <div class="container-fluid">
                         <a href="#" class="burger-btn d-block mx-1">
-                            <i class="bi bi-justify fs-3"></i>
+                            <i class="mdi mdi-menu fs-3"></i>
                         </a>
 
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -274,11 +274,12 @@
                                                 <img src="{{ url_for('common.assets',
                                                                     asset_type='images',
                                                                     filename='users/' + user + suffix + '.jpg') }}"
+                                                    onerror="this.onerror=null; this.src='{{ url_for('common.assets', asset_type='images', filename='users/default.svg') }}';"
                                                     width="48px">
                                                 {% else %}
                                                 <img src="{{ url_for('common.assets',
                                                                     asset_type='images',
-                                                                    filename='users/GUEST.jpg') }}"
+                                                                    filename='users/default.svg') }}"
                                                     width="48px">
                                                 {% endif %}
                                             </div>

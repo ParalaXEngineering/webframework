@@ -99,7 +99,7 @@ class SocketIOManager:
         self._user_rooms[username].add(room)
         self._room_to_user[room] = username
         
-        self.logger.info(f"User '{username}' joined room '{room}'")
+        self.logger.debug(f"User '{username}' joined room '{room}'")
         return room
     
     def leave_user_room(self, username: Optional[str] = None, sid: Optional[str] = None):

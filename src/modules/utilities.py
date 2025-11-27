@@ -860,64 +860,68 @@ def util_get_file_icon(filename: str) -> str:
         filename: Name of the file (with or without path)
         
     Returns:
-        Bootstrap icon class name (e.g., "bi-file-pdf")
+        MDI icon class name (e.g., "mdi-file-pdf-box")
         
     Examples:
         >>> util_get_file_icon('document.pdf')
-        'bi-file-pdf'
+        'mdi-file-pdf-box'
         >>> util_get_file_icon('image.jpg')
-        'bi-file-image'
+        'mdi-file-image'
         >>> util_get_file_icon('archive.zip')
-        'bi-file-zip'
+        'mdi-zip-box'
         >>> util_get_file_icon('script.py')
-        'bi-file-code'
+        'mdi-file-code'
         >>> util_get_file_icon('unknown.xyz')
-        'bi-file-earmark'
+        'mdi-file-document-outline'
     """
     import os
     ext = os.path.splitext(filename)[1].lower()
     
     icon_map = {
-        '.pdf': 'bi-file-pdf',
-        '.doc': 'bi-file-word', '.docx': 'bi-file-word',
-        '.xls': 'bi-file-excel', '.xlsx': 'bi-file-excel',
-        '.ppt': 'bi-file-ppt', '.pptx': 'bi-file-ppt',
-        '.jpg': 'bi-file-image', '.jpeg': 'bi-file-image', '.png': 'bi-file-image',
-        '.gif': 'bi-file-image', '.bmp': 'bi-file-image', '.svg': 'bi-file-image',
-        '.mp4': 'bi-file-play', '.avi': 'bi-file-play', '.mov': 'bi-file-play',
-        '.mp3': 'bi-file-music', '.wav': 'bi-file-music', '.flac': 'bi-file-music',
-        '.zip': 'bi-file-zip', '.rar': 'bi-file-zip', '.7z': 'bi-file-zip',
-        '.tar': 'bi-file-zip', '.gz': 'bi-file-zip',
-        '.txt': 'bi-file-text', '.md': 'bi-file-text', '.log': 'bi-file-text',
-        '.py': 'bi-file-code', '.js': 'bi-file-code', '.html': 'bi-file-code',
-        '.css': 'bi-file-code', '.json': 'bi-file-code', '.xml': 'bi-file-code',
+        '.pdf': 'mdi-file-pdf-box',
+        '.doc': 'mdi-file-word', '.docx': 'mdi-file-word',
+        '.xls': 'mdi-file-excel', '.xlsx': 'mdi-file-excel',
+        '.ppt': 'mdi-file-powerpoint', '.pptx': 'mdi-file-powerpoint',
+        '.jpg': 'mdi-file-image', '.jpeg': 'mdi-file-image', '.png': 'mdi-file-image',
+        '.gif': 'mdi-file-image', '.bmp': 'mdi-file-image', '.svg': 'mdi-file-image',
+        '.mp4': 'mdi-file-video', '.avi': 'mdi-file-video', '.mov': 'mdi-file-video',
+        '.mp3': 'mdi-file-music', '.wav': 'mdi-file-music', '.flac': 'mdi-file-music',
+        '.zip': 'mdi-zip-box', '.rar': 'mdi-zip-box', '.7z': 'mdi-zip-box',
+        '.tar': 'mdi-zip-box', '.gz': 'mdi-zip-box',
+        '.txt': 'mdi-file-document', '.md': 'mdi-file-document', '.log': 'mdi-file-document',
+        '.py': 'mdi-file-code', '.js': 'mdi-file-code', '.html': 'mdi-file-code',
+        '.css': 'mdi-file-code', '.json': 'mdi-file-code', '.xml': 'mdi-file-code',
     }
     
-    return icon_map.get(ext, 'bi-file-earmark')
+    return icon_map.get(ext, 'mdi-file-document-outline')
 
 
-def util_generate_preview_html(file_meta: dict, size: str = "60px") -> str:
-    """Generate preview HTML for a file (thumbnail or icon).
+def util_generate_preview_html(file_meta: dict, size: str = "60px", with_modal: bool = True) -> str:
+    """Generate preview HTML for a file (thumbnail or icon) with optional modal.
     
-    Creates an HTML img tag for files with thumbnails, or a Bootstrap icon
+    Creates an HTML img tag for files with thumbnails, or an MDI icon
     for files without thumbnails. Gracefully falls back to icon if thumbnail
-    URL generation fails.
+    URL generation fails. When with_modal=True, clicking the thumbnail opens
+    a Bootstrap modal with a larger preview.
     
     Args:
         file_meta: File metadata dictionary containing:
+            - 'id': File ID (required for modal)
             - 'name': Filename for extension detection
             - 'thumb_150x150' (optional): Relative path to 150x150 thumbnail
+            - 'thumb_300x300' (optional): Relative path to 300x300 thumbnail (for modal)
         size: CSS size value for preview (default "60px")
+        with_modal: If True, add click-to-enlarge modal (default True)
         
     Returns:
-        HTML string containing either <img> tag or <i> icon tag
+        HTML string containing either <img> tag or <i> icon tag, plus modal HTML if applicable
         
     Examples:
-        >>> util_generate_preview_html({'name': 'photo.jpg', 'thumb_150x150': '.thumbs/...'})
-        '<img src="/files/download/..." class="img-thumbnail" ...>'
+        >>> util_generate_preview_html({'id': 1, 'name': 'photo.jpg', 'thumb_150x150': '.thumbs/...'})
+        '<img src="/files/download/..." class="img-thumbnail" ...> + modal HTML'
         
         >>> util_generate_preview_html({'name': 'document.pdf'})
-        '<i class="bi bi-file-earmark-pdf-fill text-danger" style="font-size: 2rem;"></i>'
+        '<i class="mdi mdi-file-pdf-box text-danger" style="font-size: 2rem;"></i>'
     """
     # Check if thumbnail exists
     if 'thumb_150x150' in file_meta:
@@ -925,11 +929,48 @@ def util_generate_preview_html(file_meta: dict, size: str = "60px") -> str:
         try:
             from flask import url_for
             thumb_url = url_for('file_handler.download', filepath=thumb_path, inline='true')
-            return f'<img src="{thumb_url}" alt="Preview" class="img-thumbnail" style="max-width: {size}; max-height: {size};">'
+            
+            file_id = file_meta.get('id', 0)
+            filename = file_meta.get('name', 'file')
+            
+            if with_modal and file_id:
+                modal_id = f'previewModal_{file_id}'
+                
+                # Check for larger thumbnail
+                large_thumb_path = file_meta.get('thumb_300x300', thumb_path)
+                large_url = url_for('file_handler.download', filepath=large_thumb_path, inline='true')
+                download_url = url_for('file_handler.download_by_id', file_id=file_id)
+                
+                # Clickable thumbnail + modal
+                html = f'''<img src="{thumb_url}" alt="Preview" class="img-thumbnail" 
+                     style="max-width: {size}; max-height: {size}; cursor: pointer;"
+                     data-bs-toggle="modal" data-bs-target="#{modal_id}" title="Click to enlarge">
+                <div class="modal fade" id="{modal_id}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title"><i class="mdi mdi-file-image"></i> {filename}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="{large_url}" alt="{filename}" class="img-fluid" style="max-height: 70vh;">
+                            </div>
+                            <div class="modal-footer">
+                                <a href="{download_url}" class="btn btn-primary">
+                                    <i class="mdi mdi-download"></i> Download Original
+                                </a>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>'''
+                return html
+            else:
+                return f'<img src="{thumb_url}" alt="Preview" class="img-thumbnail" style="max-width: {size}; max-height: {size};">'
         except Exception:
             # Fall back to icon if url_for fails
             pass
     
     # No thumbnail - show file type icon
     icon_class = util_get_file_icon(file_meta['name'])
-    return f'<i class="bi {icon_class}" style="font-size: 2rem;"></i>'
+    return f'<i class="mdi {icon_class}" style="font-size: 2rem;"></i>'

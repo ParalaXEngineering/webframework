@@ -12,67 +12,8 @@ import tempfile
 import shutil
 
 
-class MockSettingsManager:
-    """Mock settings manager for admin testing."""
-    
-    def __init__(self, base_path=None, db_path=None):
-        self.base_path_value = base_path or "test_uploads"
-        self.db_path = db_path or Path(tempfile.mkdtemp()) / ".file_metadata.db"
-        
-        class MockStorage:
-            def __init__(self, db_path):
-                self.config_path = str(db_path.parent / "config.json")
-        
-        self.storage = MockStorage(self.db_path)
-        
-    def get_setting(self, key):
-        """Return mock settings."""
-        settings_map = {
-            "file_storage.max_file_size_mb": {"value": 10},
-            "file_storage.allowed_extensions": {
-                "value": [".pdf", ".jpg", ".jpeg", ".png", ".txt", ".zip"]
-            },
-            "file_storage.generate_thumbnails": {"value": False},
-            "file_storage.thumbnail_sizes": {"value": ["150x150"]},
-            "file_storage.image_quality": {"value": 85},
-            "file_storage.strip_exif": {"value": True},
-            "file_storage.categories": {"value": ["general", "documents", "images"]},
-            "file_storage.tags": {"value": ["test", "demo", "invoice"]},
-            "file_storage.hashfs_path": {"value": str(Path(self.base_path_value) / "hashfs_storage")}
-        }
-        return settings_map.get(key, {"value": None})
 
-
-@pytest.fixture
-def temp_storage_dir():
-    """Create temporary directory for file storage tests."""
-    temp_dir = tempfile.mkdtemp()
-    yield Path(temp_dir)
-    shutil.rmtree(temp_dir, ignore_errors=True)
-
-
-@pytest.fixture
-def file_manager(temp_storage_dir):
-    """Create FileManager with test settings."""
-    from src.modules.file_manager import FileManager
-    from flask import Flask
-    
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'test_secret_key'
-    
-    with app.test_request_context():
-        from flask import session
-        session['user'] = 'test_user'
-        
-        settings_mgr = MockSettingsManager(
-            base_path=str(temp_storage_dir),
-            db_path=temp_storage_dir / ".file_metadata.db"
-        )
-        fm = FileManager(settings_mgr)
-        yield fm
-        
-        if hasattr(fm, 'db_session'):
-            fm.db_session.close()
+# Using shared fixtures from tests.unit.fixtures.file_manager_fixtures
 
 
 class TestAdminIntegrityDisplay:

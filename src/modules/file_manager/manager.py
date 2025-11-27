@@ -36,10 +36,14 @@ except ImportError:
 
 # Document thumbnail generation
 try:
-    import fitz  # PyMuPDF
+    import pymupdf as fitz  # PyMuPDF (new import style for version 1.24+)
     PYMUPDF_AVAILABLE = True
 except ImportError:
-    PYMUPDF_AVAILABLE = False
+    try:
+        import fitz  # PyMuPDF (legacy import style)
+        PYMUPDF_AVAILABLE = True
+    except ImportError:
+        PYMUPDF_AVAILABLE = False
 
 try:
     from ..log.logger_factory import get_logger
@@ -253,7 +257,9 @@ class FileManager:
         # Validate tags (if provided)
         if tags:
             valid_tags = self.tags
-            invalid_tags = [t for t in tags if t not in valid_tags]
+            # Extract tag names from FileTag objects or use strings directly
+            tag_names = [t.tag_name if isinstance(t, FileTag) else t for t in tags]
+            invalid_tags = [t for t in tag_names if t not in valid_tags]
             if invalid_tags:
                 raise ValueError(
                     f"Invalid tags: {invalid_tags}. Valid tags are: {valid_tags}"
@@ -275,18 +281,25 @@ class FileManager:
         # Get current user from parameter or default
         current_user = uploaded_by if uploaded_by else 'GUEST'
         
-        # Check if file group exists, create if needed (only if group_id specified)
+        # Handle group_id: accept both string and FileGroup object
         if group_id:
-            file_group = self.db_session.query(FileGroup).filter_by(group_id=group_id).first()
-            if not file_group:
-                file_group = FileGroup(
-                    group_id=group_id,
-                    name=group_id,
-                    description=f"Auto-created group for {group_id}",
-                    created_by=current_user
-                )
-                self.db_session.add(file_group)
-                self.db_session.commit()
+            if isinstance(group_id, FileGroup):
+                # Already a FileGroup object, use its group_id
+                file_group = group_id
+                group_id = file_group.group_id
+            else:
+                # String group_id - query for existing (should already exist if pre-resolved)
+                file_group = self.db_session.query(FileGroup).filter_by(group_id=group_id).first()
+                if not file_group:
+                    # Fallback: create if not found (backward compatibility)
+                    file_group = FileGroup(
+                        group_id=group_id,
+                        name=group_id,
+                        description=f"Auto-created group for {group_id}",
+                        created_by=current_user
+                    )
+                    self.db_session.add(file_group)
+                    self.db_session.flush()
         
         # Check for existing versions of this file
         # ONLY files with a group_id have versioning
@@ -328,6 +341,24 @@ class FileManager:
         
         # Create database record
         # Note: group_id can be None (NULL in database) for files without a group
+        # Prepare tag list BEFORE creating FileVersion
+        tag_list = []
+        if tags:
+            for tag in tags:
+                # Tag can be either a FileTag object or a string (backward compatibility)
+                if isinstance(tag, str):
+                    # Legacy mode: query tag (may cause session issues)
+                    tag_obj = self.db_session.query(FileTag).filter_by(tag_name=tag).first()
+                    if not tag_obj:
+                        tag_obj = FileTag(tag_name=tag)
+                        self.db_session.add(tag_obj)
+                        self.db_session.flush()  # Flush to get ID
+                    tag_list.append(tag_obj)
+                else:
+                    # New mode: pre-resolved tag object
+                    tag_list.append(tag)
+        
+        # Create FileVersion with tags already assigned
         file_version = FileVersion(
             group_id=group_id,
             filename=safe_filename,
@@ -336,17 +367,9 @@ class FileManager:
             mime_type=mime_type,
             checksum=checksum,
             uploaded_by=current_user,
-            is_current=True
+            is_current=True,
+            tags=tag_list  # Assign tags during construction
         )
-        
-        # Add tags if provided
-        if tags:
-            for tag_name in tags:
-                tag = self.db_session.query(FileTag).filter_by(tag_name=tag_name).first()
-                if not tag:
-                    tag = FileTag(tag_name=tag_name)
-                    self.db_session.add(tag)
-                file_version.tags.append(tag)
         
         self.db_session.add(file_version)
         self.db_session.commit()
@@ -382,6 +405,59 @@ class FileManager:
         
         logger.info(f"File uploaded: {safe_filename} (group: {group_id or 'none'}, version: {version_number}, size: {file_size} bytes)")
         return metadata
+
+    def get_or_create_group(self, group_id: str, created_by: str = 'GUEST') -> 'FileGroup':
+        """
+        Get existing file group or create new one.
+        Uses flush() instead of commit() to resolve IDs without closing transaction.
+        
+        Args:
+            group_id: The group identifier
+            created_by: Username creating the group (default: 'GUEST')
+            
+        Returns:
+            FileGroup object (either existing or newly created)
+        """
+        # Query for existing group
+        file_group = self.db_session.query(FileGroup).filter_by(group_id=group_id).first()
+        
+        if not file_group:
+            # Create new group
+            file_group = FileGroup(
+                group_id=group_id,
+                name=group_id,
+                description=f"Auto-created group for {group_id}",
+                created_by=created_by
+            )
+            self.db_session.add(file_group)
+            # Flush to assign ID without committing
+            self.db_session.flush()
+        
+        return file_group
+
+    def get_or_create_tag(self, tag_name: str) -> 'FileTag':
+        """Get existing tag or create new one.
+        
+        This method should be called BEFORE upload_file to pre-resolve tags
+        and avoid session state conflicts during upload.
+        
+        Args:
+            tag_name: Name of the tag
+            
+        Returns:
+            FileTag object (may be unsaved if new)
+        """
+        # Try to find existing tag
+        tag = self.db_session.query(FileTag).filter_by(tag_name=tag_name).first()
+        
+        if not tag:
+            # Create new tag (but don't commit yet)
+            tag = FileTag(tag_name=tag_name)
+            self.db_session.add(tag)
+            # Flush to get the ID but don't commit the transaction
+            self.db_session.flush()
+        
+        return tag
     
     def _calculate_checksum(self, file_path: Path) -> str:
         """Calculate SHA256 checksum for a file.
@@ -594,7 +670,7 @@ class FileManager:
         except IOError as e:
             raise FileNotFoundError(f"File not found: {storage_path}") from e
     
-    def delete_file(self, file_id: int) -> bool:
+    def delete_file(self, file_id: int, delete_all_versions: bool = False) -> bool:
         """Delete a file by database ID.
         
         Note: HashFS files are reference-counted. Physical deletion only occurs
@@ -602,6 +678,8 @@ class FileManager:
         
         Args:
             file_id: Database ID of file version to delete
+            delete_all_versions: If True, delete ALL versions of this file (same group_id + filename).
+                                 If False (default), only delete the specified version.
             
         Returns:
             True if successful, False otherwise
@@ -614,28 +692,55 @@ class FileManager:
                 logger.warning(f"Attempted to delete non-existent file ID: {file_id}")
                 return False
             
-            storage_path = file_version.storage_path
-            checksum = file_version.checksum
+            # Collect versions to delete
+            if delete_all_versions and file_version.group_id:
+                # Get all versions with same group_id and filename
+                versions_to_delete = self.db_session.query(FileVersion).filter(
+                    and_(
+                        FileVersion.group_id == file_version.group_id,
+                        FileVersion.filename == file_version.filename
+                    )
+                ).all()
+                logger.info(f"Deleting all {len(versions_to_delete)} versions of {file_version.filename} in group {file_version.group_id}")
+            else:
+                versions_to_delete = [file_version]
             
-            # Delete associated thumbnails first
-            self._delete_thumbnails(storage_path)
+            # Track checksums and storage paths for physical deletion
+            checksums_to_check = set()
+            storage_paths_to_check = {}  # checksum -> storage_path
+            group_id_to_check = file_version.group_id
             
-            # Remove database record
-            self.db_session.delete(file_version)
+            for version in versions_to_delete:
+                checksums_to_check.add(version.checksum)
+                storage_paths_to_check[version.checksum] = version.storage_path
+                
+                # Remove database record (thumbnails deleted later if no other refs)
+                self.db_session.delete(version)
+            
             self.db_session.commit()
             
-            # Check if any other file versions reference this checksum
-            other_refs = self.db_session.query(FileVersion).filter_by(checksum=checksum).count()
+            # Check each checksum and delete physical files + thumbnails if no longer referenced
+            for checksum in checksums_to_check:
+                other_refs = self.db_session.query(FileVersion).filter_by(checksum=checksum).count()
+                
+                if other_refs == 0:
+                    storage_path = storage_paths_to_check[checksum]
+                    
+                    # Delete associated thumbnails (only when no other refs)
+                    self._delete_thumbnails(storage_path)
+                    
+                    # No other references, safe to delete physical file
+                    try:
+                        self.storage.delete(storage_path)
+                        logger.info(f"Deleted physical file and thumbnails (no other references): {storage_path}")
+                    except Exception as e:
+                        logger.warning(f"Failed to delete physical file {storage_path}: {e}")
+                else:
+                    logger.info(f"Physical file and thumbnails retained ({other_refs} other references): {storage_paths_to_check[checksum]}")
             
-            if other_refs == 0:
-                # No other references, safe to delete physical file
-                try:
-                    self.storage.delete(storage_path)
-                    logger.info(f"Deleted physical file (no other references): {storage_path}")
-                except Exception as e:
-                    logger.warning(f"Failed to delete physical file {storage_path}: {e}")
-            else:
-                logger.info(f"File {file_id} deleted from DB, physical file retained ({other_refs} other references)")
+            # Clean up orphaned FileGroup if no files remain in the group
+            if group_id_to_check:
+                self._cleanup_orphaned_group(group_id_to_check)
             
             return True
             
@@ -643,6 +748,28 @@ class FileManager:
             logger.error(f"Failed to delete file {file_id}: {e}", exc_info=True)
             self.db_session.rollback()
             return False
+    
+    def _cleanup_orphaned_group(self, group_id: str) -> bool:
+        """Remove FileGroup if it has no remaining files.
+        
+        Args:
+            group_id: Group ID to check and potentially delete
+            
+        Returns:
+            True if group was deleted, False otherwise
+        """
+        try:
+            remaining_files = self.db_session.query(FileVersion).filter_by(group_id=group_id).count()
+            if remaining_files == 0:
+                group = self.db_session.query(FileGroup).get(group_id)
+                if group:
+                    self.db_session.delete(group)
+                    self.db_session.commit()
+                    logger.info(f"Deleted orphaned FileGroup: {group_id}")
+                    return True
+        except Exception as e:
+            logger.warning(f"Failed to cleanup orphaned group {group_id}: {e}")
+        return False
     
     def _delete_thumbnails(self, storage_path: str):
         """Delete all thumbnails associated with a file.
@@ -735,6 +862,28 @@ class FileManager:
         """
         return self.db_session.query(FileVersion).filter_by(id=file_id).first()
     
+    def file_exists_on_disk(self, file_id: int) -> bool:
+        """Check if the physical file exists on disk for a given file ID.
+        
+        Useful for detecting orphaned database records where the physical file
+        has been deleted but the DB record remains.
+        
+        Args:
+            file_id: Database ID of the file version
+            
+        Returns:
+            True if both DB record and physical file exist, False otherwise
+        """
+        file_version = self.get_file_by_id(file_id)
+        if not file_version:
+            return False
+        
+        try:
+            file_path = self.storage.get(file_version.storage_path)
+            return file_path.exists()
+        except (IOError, FileNotFoundError):
+            return False
+    
     def get_current_file(self, group_id: str, filename: str) -> Optional[FileVersion]:
         """Get current version of a file in a group.
         
@@ -797,6 +946,31 @@ class FileManager:
             })
         
         return versions
+    
+    def get_file_version(self, file_id: int, version_number: int) -> Optional[FileVersion]:
+        """Get a specific version of a file by file_id and version number.
+        
+        Args:
+            file_id: Database ID of the file (any version of it)
+            version_number: Version number (1-indexed)
+            
+        Returns:
+            FileVersion object for that specific version, or None if not found
+        """
+        # Get the file to find its group_id and filename
+        base_file = self.db_session.query(FileVersion).get(file_id)
+        if not base_file:
+            return None
+        
+        # Get all versions of this file
+        versions = self.get_file_versions(base_file.group_id or "", base_file.filename)
+        
+        # Find the requested version number
+        for v in versions:
+            if v['version_number'] == version_number:
+                return self.db_session.query(FileVersion).get(v['id'])
+        
+        return None
     
     def restore_version(self, file_id: int, target_version_id: int) -> FileVersion:
         """Restore an old version by creating a new version as a copy.

@@ -19,7 +19,7 @@ _logger_lock = threading.Lock()
 
 def get_logger(
     name: str,
-    level: int = logging.DEBUG,
+    level: int = logging.INFO,
     max_bytes: int = 1_000_000,
     backup_count: int = 5
 ) -> logging.Logger:

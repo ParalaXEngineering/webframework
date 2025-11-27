@@ -5,12 +5,14 @@ This is the main configuration file that sets up test execution order and
 provides common configuration. Specific fixtures are defined in:
 - tests/unit/conftest.py - for unit tests (no Flask)
 - tests/integration/conftest.py - for integration tests (with Flask)
+- tests/unit/fixtures/ - shared fixtures (file_manager, etc.)
 
 Test Organization:
 tests/
 ├── conftest.py (this file - main configuration)
 ├── unit/ (pure logic tests, no Flask required)
 │   ├── conftest.py
+│   ├── fixtures/ (shared test fixtures)
 │   ├── test_settings.py
 │   ├── test_scheduler.py
 │   ├── test_threading.py
@@ -29,6 +31,10 @@ Test Execution Order:
 - test_resource_loading.py runs second to verify resources in generated HTML
 - All other tests run in default order
 """
+
+# Import shared fixtures from fixtures package
+pytest_plugins = ['tests.unit.fixtures.file_manager_fixtures']
+
 from pathlib import Path
 import sys
 import os

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 try:
     from ..modules.displayer import (
-        Displayer, DisplayerLayout, Layouts,
+        Displayer, DisplayerLayout, Layouts, TableMode,
         DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemInputString,
         DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle,
@@ -25,7 +25,7 @@ try:
     from ..modules.auth import require_admin, auth_manager
 except ImportError:
     from modules.displayer import (
-        Displayer, DisplayerLayout, Layouts,
+        Displayer, DisplayerLayout, Layouts, TableMode,
         DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemInputString,
         DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle,
@@ -337,7 +337,7 @@ def manage_permissions():
     disp.add_display_item(DisplayerItemText("<h3>Module Permission Matrix</h3>"), column=0)
     disp.add_display_item(DisplayerItemText(
         "<p>Check boxes to grant permissions to groups for each module action.</p>"
-        "<div class='alert alert-info'><i class='bi bi-info-circle'></i> "
+        "<div class='alert alert-info'><i class='mdi mdi-information'></i> "
         "The <strong>admin</strong> group has full access to all modules and is not shown here.</div>"
     ), column=0)
     

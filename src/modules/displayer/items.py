@@ -720,8 +720,8 @@ class DisplayerItemDownload(DisplayerItem):
         Returns:
             Instance of the class with test data.
         """
-        # Use a simple example - in real usage, provide a proper Flask endpoint
-        return cls(id="test_download", text="Download File", link="#")
+        # Use framework_index as a safe test endpoint (always available)
+        return cls(id="test_download", text="Download Sample File", link="framework_index")
 
 
 @DisplayerCategory.MEDIA
@@ -806,7 +806,8 @@ class DisplayerItemFile(DisplayerItem):
         Returns:
             Instance of the class with test data.
         """
-        return cls(link="test_document.pdf", endpoint="common", path="/files",
+        # Use a plain filename - in real usage, provide proper endpoint and path
+        return cls(link="test_document.pdf", 
                    text="Sample Document", creation_date="2024-01-15")
 
 @DisplayerCategory.INPUT
@@ -1793,6 +1794,192 @@ class DisplayerItemInputMultiText(DisplayerItem):
         """
         return cls(id="test_multitext", text="Enter multiple lines",
                    value=["Line 1", "Line 2", "Line 3"])
+
+
+@DisplayerCategory.INPUT
+class DisplayerItemInputMultiInt(DisplayerItem):
+    """Multi-line integer input with +/- buttons."""
+
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None) -> None:
+        """
+        Initialize a multi-integer input.
+
+        Args:
+            id: Unique identifier for the input element
+            text: Optional label text (default: None)
+            value: Initial value as list of integers (default: None)
+
+        Example:
+            >>> multiint = DisplayerItemInputMultiInt(
+            ...     id="quantities",
+            ...     text="Quantities",
+            ...     value=[10, 20, 30]
+            ... )
+        """
+        super().__init__(DisplayerItems.INMULTIINT)
+        self.m_text = text
+        self.m_value = value if value is not None else []
+        self.m_id = id
+
+    @classmethod
+    def instantiate_test(cls):
+        return cls(id="test_multiint", text="Enter integers", value=[1, 2, 3])
+
+
+@DisplayerCategory.INPUT
+class DisplayerItemInputMultiFloat(DisplayerItem):
+    """Multi-line float input with +/- buttons."""
+
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None) -> None:
+        """
+        Initialize a multi-float input.
+
+        Args:
+            id: Unique identifier for the input element
+            text: Optional label text (default: None)
+            value: Initial value as list of floats (default: None)
+
+        Example:
+            >>> multifloat = DisplayerItemInputMultiFloat(
+            ...     id="measurements",
+            ...     text="Measurements",
+            ...     value=[1.5, 2.75, 3.14]
+            ... )
+        """
+        super().__init__(DisplayerItems.INMULTIFLOAT)
+        self.m_text = text
+        self.m_value = value if value is not None else []
+        self.m_id = id
+
+    @classmethod
+    def instantiate_test(cls):
+        return cls(id="test_multifloat", text="Enter floats", value=[1.5, 2.5, 3.5])
+
+
+@DisplayerCategory.INPUT
+class DisplayerItemInputMultiCheck(DisplayerItem):
+    """Multi-line checkbox input with +/- buttons for boolean arrays."""
+
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None) -> None:
+        """
+        Initialize a multi-checkbox input.
+
+        Args:
+            id: Unique identifier for the input element
+            text: Optional label text (default: None)
+            value: Initial value as list of booleans (default: None)
+
+        Example:
+            >>> multicheck = DisplayerItemInputMultiCheck(
+            ...     id="flags",
+            ...     text="Flags",
+            ...     value=[True, False, True]
+            ... )
+        """
+        super().__init__(DisplayerItems.INMULTICHECK)
+        self.m_text = text
+        self.m_value = value if value is not None else []
+        self.m_id = id
+
+    @classmethod
+    def instantiate_test(cls):
+        return cls(id="test_multicheck", text="Select options", value=[True, False, True])
+
+
+@DisplayerCategory.INPUT
+class DisplayerItemInputMultiDate(DisplayerItem):
+    """Multi-line date input with +/- buttons."""
+
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None) -> None:
+        """
+        Initialize a multi-date input.
+
+        Args:
+            id: Unique identifier for the input element
+            text: Optional label text (default: None)
+            value: Initial value as list of date strings (default: None)
+
+        Example:
+            >>> multidate = DisplayerItemInputMultiDate(
+            ...     id="milestones",
+            ...     text="Milestone Dates",
+            ...     value=["2025-01-01", "2025-06-01", "2025-12-31"]
+            ... )
+        """
+        super().__init__(DisplayerItems.INMULTIDATE)
+        self.m_text = text
+        self.m_value = value if value is not None else []
+        self.m_id = id
+
+    @classmethod
+    def instantiate_test(cls):
+        return cls(id="test_multidate", text="Enter dates", value=["2025-01-01", "2025-06-01"])
+
+
+@DisplayerCategory.INPUT
+class DisplayerItemInputChoice(DisplayerItem):
+    """Radio button input for single choice."""
+
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None, choices: list = []) -> None:
+        """
+        Initialize a radio button choice input.
+
+        Args:
+            id: Unique identifier for the input element
+            text: Optional label text (default: None)
+            value: Currently selected value (default: None)
+            choices: List of available options (default: [])
+
+        Example:
+            >>> choice = DisplayerItemInputChoice(
+            ...     id="size",
+            ...     text="Select Size",
+            ...     value="medium",
+            ...     choices=["small", "medium", "large"]
+            ... )
+        """
+        super().__init__(DisplayerItems.INCHOICE)
+        self.m_text = text
+        self.m_value = value
+        self.m_id = id
+        self.m_data = choices
+
+    @classmethod
+    def instantiate_test(cls):
+        return cls(id="test_choice", text="Choose one", value="option2", choices=["option1", "option2", "option3"])
+
+
+@DisplayerCategory.INPUT
+class DisplayerItemInputMultiChoice(DisplayerItem):
+    """Multi-line radio button input with +/- buttons for choice arrays."""
+
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[list] = None, choices: list = []) -> None:
+        """
+        Initialize a multi-choice input.
+
+        Args:
+            id: Unique identifier for the input element
+            text: Optional label text (default: None)
+            value: Initial values as list of selected options (default: None)
+            choices: List of available options for each line (default: [])
+
+        Example:
+            >>> multichoice = DisplayerItemInputMultiChoice(
+            ...     id="preferences",
+            ...     text="Preferences",
+            ...     value=["option1", "option3"],
+            ...     choices=["option1", "option2", "option3"]
+            ... )
+        """
+        super().__init__(DisplayerItems.INMULTICHOICE)
+        self.m_text = text
+        self.m_value = value if value is not None else []
+        self.m_id = id
+        self.m_data = choices
+
+    @classmethod
+    def instantiate_test(cls):
+        return cls(id="test_multichoice", text="Choose multiple", value=["opt1", "opt3"], choices=["opt1", "opt2", "opt3"])
 
 
 @DisplayerCategory.INPUT

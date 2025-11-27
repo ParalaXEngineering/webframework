@@ -10,33 +10,77 @@
         actions: List of action buttons ("download", "edit", "history", "delete")
         compact: Boolean - full card (false) or compact line (true)
         file_manager: FileManager instance
+        version: Optional specific version number to display
 #}
 
-{% macro filedisplay(file_id, file_metadata, actions, compact, file_manager) %}
+{% macro filedisplay(file_id, file_metadata, actions, compact, file_manager, version=None) %}
 {% if file_metadata %}
     {% set file = file_metadata %}
 {% elif file_id and file_manager %}
-    {% set file = file_manager.get_file_by_id(file_id) %}
+    {% if version %}
+        {# Get specific version #}
+        {% set file = file_manager.get_file_version(file_id, version) %}
+    {% else %}
+        {# Get by ID (could be base file or version-specific ID) #}
+        {% set file = file_manager.get_file_by_id(file_id) %}
+    {% endif %}
 {% else %}
     {% set file = none %}
 {% endif %}
 
+{# Check if physical file exists on disk #}
+{% set file_missing_on_disk = false %}
+{% if file and file_manager %}
+    {% if file.id is defined %}
+        {% set file_missing_on_disk = not file_manager.file_exists_on_disk(file.id) %}
+    {% elif file.get and file.get('id') %}
+        {% set file_missing_on_disk = not file_manager.file_exists_on_disk(file.get('id')) %}
+    {% endif %}
+{% endif %}
+
 {% if file %}
-    {% if compact %}
-        {# Compact mode - single line with icon + filename + actions #}
+    {% if file_missing_on_disk %}
+        {# File record exists but physical file is missing #}
+        <div class="alert alert-warning d-flex align-items-center gap-2">
+            <i class="mdi mdi-alert-circle text-warning" style="font-size: 1.5rem;"></i>
+            <div>
+                <strong>File Missing</strong><br>
+                <small>The file record exists but the physical file is no longer available on disk.</small>
+                <br>
+                <small class="text-muted">
+                    {% if file.filename is defined %}
+                        {{ file.filename }}
+                    {% else %}
+                        {{ file.get('name', 'Unknown') if file.get else file['name'] }}
+                    {% endif %}
+                    (ID: {{ file.id if file.id is defined else file.get('id', '?') }})
+                </small>
+            </div>
+        </div>
+    {% elif compact %}
+        {# Compact mode - single line with icon + filename + version + actions #}
         <div class="file-display-compact d-flex align-items-center gap-2 p-2 border rounded">
             {# Preview icon/thumbnail #}
             <div class="file-preview-icon">
                 {{ _render_preview(file, "40px", file_manager) }}
             </div>
             
-            {# Filename #}
+            {# Filename + Version #}
             <div class="file-name flex-grow-1">
                 {% if file.filename is defined %}
                     <strong>{{ file.filename }}</strong>
                 {% else %}
                     <strong>{{ file.get('name', '') if file.get else file['name'] }}</strong>
                 {% endif %}
+                <br>
+                <small class="text-muted">
+                    <i class="mdi mdi-history"></i> {{ _get_version_info(file, file_manager, version) }}
+                    {% if file.file_size is defined %}
+                        · {{ _format_size(file.file_size) }}
+                    {% elif file.get %}
+                        · {{ _format_size(file.get('size', 0)) }}
+                    {% endif %}
+                </small>
             </div>
             
             {# Action buttons #}
@@ -57,7 +101,7 @@
                     {# Metadata column #}
                     <div class="col-md-7">
                         <h5 class="card-title">
-                            <i class="bi bi-file-earmark"></i> 
+                            <i class="mdi mdi-file-document-outline"></i> 
                             {% if file.filename is defined %}
                                 {{ file.filename }}
                             {% else %}
@@ -95,7 +139,7 @@
                                 {% endif %}
                                 <p class="mb-1"><strong>Group ID:</strong> {{ group_id if group_id else '(none)' }}</p>
                                 
-                                {% set version_info = _get_version_info(file, file_manager) %}
+                                {% set version_info = _get_version_info(file, file_manager, version) %}
                                 <p class="mb-1"><strong>Version:</strong> {{ version_info }}</p>
                                 
                                 {% if file.tags is defined %}
@@ -131,13 +175,13 @@
     {% endif %}
 {% else %}
     <div class="alert alert-warning">
-        <i class="bi bi-exclamation-triangle"></i> File not found (ID: {{ file_id }})
+        <i class="mdi mdi-alert"></i> File not found (ID: {{ file_id }})
     </div>
 {% endif %}
 {% endmacro %}
 
 
-{# Helper macro: Render preview (thumbnail or icon) #}
+{# Helper macro: Render preview (thumbnail or icon) with modal support #}
 {% macro _render_preview(file, size, file_manager) %}
     {% if file.filename is defined %}
         {% set filename = file.filename %}
@@ -149,7 +193,8 @@
     
     {# Check for thumbnail #}
     {% set has_thumb = false %}
-    {% if file.thumb_150x150 is defined %}
+    {% set thumb_path = '' %}
+    {% if file.thumb_150x150 is defined and file.thumb_150x150 %}
         {% set has_thumb = true %}
         {% set thumb_path = file.thumb_150x150 %}
     {% elif file.get and file.get('thumb_150x150') %}
@@ -157,15 +202,65 @@
         {% set thumb_path = file.get('thumb_150x150') %}
     {% endif %}
     
+    {# Check for larger thumbnail (300x300) for modal #}
+    {% set has_large_thumb = false %}
+    {% set large_thumb_path = '' %}
+    {% if file.thumb_300x300 is defined and file.thumb_300x300 %}
+        {% set has_large_thumb = true %}
+        {% set large_thumb_path = file.thumb_300x300 %}
+    {% elif file.get and file.get('thumb_300x300') %}
+        {% set has_large_thumb = true %}
+        {% set large_thumb_path = file.get('thumb_300x300') %}
+    {% endif %}
+    
     {% if has_thumb %}
-        <img src="{{ url_for('file_handler.download', filepath=thumb_path, inline='true') }}" 
+        {% set thumb_url = url_for('file_handler.download', filepath=thumb_path, inline='true') %}
+        {% set modal_id = 'previewModal_' ~ file_id %}
+        
+        {# Clickable thumbnail #}
+        <img src="{{ thumb_url }}" 
              alt="Preview" 
-             class="img-thumbnail" 
-             style="max-width: {{ size }}; max-height: {{ size }};">
+             class="img-thumbnail file-preview-clickable" 
+             style="max-width: {{ size }}; max-height: {{ size }}; cursor: pointer;"
+             data-bs-toggle="modal" 
+             data-bs-target="#{{ modal_id }}"
+             title="Click to enlarge">
+        
+        {# Modal for larger preview #}
+        <div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-labelledby="{{ modal_id }}Label" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="{{ modal_id }}Label">
+                            <i class="mdi mdi-file-image"></i> {{ filename }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        {% if has_large_thumb %}
+                            {% set large_url = url_for('file_handler.download', filepath=large_thumb_path, inline='true') %}
+                        {% else %}
+                            {% set large_url = thumb_url %}
+                        {% endif %}
+                        <img src="{{ large_url }}" 
+                             alt="{{ filename }}" 
+                             class="img-fluid" 
+                             style="max-height: 70vh;">
+                    </div>
+                    <div class="modal-footer">
+                        <a href="{{ url_for('file_handler.download_by_id', file_id=file_id) }}" 
+                           class="btn btn-primary">
+                            <i class="mdi mdi-download"></i> Download Original
+                        </a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% else %}
         {# Show icon based on file extension #}
         {% set icon_class = _get_file_icon(filename) %}
-        <i class="bi {{ icon_class }}" style="font-size: 2.5rem;"></i>
+        <i class="mdi {{ icon_class }}" style="font-size: 2.5rem;"></i>
     {% endif %}
 {% endmacro %}
 
@@ -187,28 +282,30 @@
             <a href="{{ url_for('file_handler.download_by_id', file_id=file_id) }}" 
                class="btn btn-{{ size }} btn-primary" 
                title="Download">
-                <i class="bi bi-download"></i> 
+                <i class="mdi mdi-download"></i> 
                 {% if size != "sm" %}Download{% endif %}
             </a>
         {% elif action == "edit" %}
             <a href="{{ url_for('file_manager_admin.edit_file', file_id=file_id) }}" 
                class="btn btn-{{ size }} btn-warning" 
                title="Edit Metadata">
-                <i class="bi bi-pencil"></i> 
+                <i class="mdi mdi-pencil"></i> 
                 {% if size != "sm" %}Edit{% endif %}
             </a>
-        {% elif action == "history" and group_id %}
-            <a href="{{ url_for('file_handler.get_versions', group_id=group_id, filename=filename) }}" 
+        {% elif action == "history" %}
+            {# Use '(none)' as URL placeholder for files without a group #}
+            {% set group_param = group_id if group_id else '(none)' %}
+            <a href="{{ url_for('file_manager_admin.version_history', group_id=group_param, filename=filename) }}" 
                class="btn btn-{{ size }} btn-info" 
                title="View History">
-                <i class="bi bi-clock-history"></i> 
+                <i class="mdi mdi-history"></i> 
                 {% if size != "sm" %}History{% endif %}
             </a>
         {% elif action == "delete" %}
             <button onclick="deleteFile{{ file_id }}()" 
                     class="btn btn-{{ size }} btn-danger" 
                     title="Delete">
-                <i class="bi bi-trash"></i> 
+                <i class="mdi mdi-delete"></i> 
                 {% if size != "sm" %}Delete{% endif %}
             </button>
             <script>
@@ -238,21 +335,21 @@
 {% macro _get_file_icon(filename) %}
     {% set ext = filename.split('.')[-1].lower() if '.' in filename else '' %}
     {% if ext in ['pdf'] %}
-        bi-file-earmark-pdf-fill text-danger
+        mdi-file-pdf-box text-danger
     {% elif ext in ['doc', 'docx'] %}
-        bi-file-earmark-word-fill text-primary
+        mdi-file-word text-primary
     {% elif ext in ['xls', 'xlsx'] %}
-        bi-file-earmark-excel-fill text-success
+        mdi-file-excel text-success
     {% elif ext in ['ppt', 'pptx'] %}
-        bi-file-earmark-ppt-fill text-warning
+        mdi-file-powerpoint text-warning
     {% elif ext in ['zip', '7z', 'rar'] %}
-        bi-file-earmark-zip-fill text-secondary
+        mdi-zip-box text-secondary
     {% elif ext in ['txt', 'csv'] %}
-        bi-file-earmark-text
+        mdi-file-document
     {% elif ext in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'] %}
-        bi-file-earmark-image text-info
+        mdi-file-image text-info
     {% else %}
-        bi-file-earmark
+        mdi-file-document-outline
     {% endif %}
 {% endmacro %}
 
@@ -296,7 +393,7 @@
 
 
 {# Helper macro: Get version info #}
-{% macro _get_version_info(file, file_manager) %}
+{% macro _get_version_info(file, file_manager, version_override=None) %}
     {% if file.group_id is defined %}
         {% set group_id = file.group_id %}
     {% elif file.get %}
@@ -323,13 +420,19 @@
     
     {% if group_id %}
         {% set versions = file_manager.get_file_versions(group_id, filename) %}
-        {% set current_idx = 0 %}
-        {% for ver in versions | reverse %}
-            {% if ver['id'] == file_id %}
-                {% set current_idx = loop.index %}
-            {% endif %}
-        {% endfor %}
-        v{{ current_idx }}/{{ versions | length }}
+        {# If version_override is provided, use it directly #}
+        {% if version_override %}
+            v{{ version_override }}/{{ versions | length }}
+        {% else %}
+            {# Calculate version by finding file_id position in versions list #}
+            {% set current_idx = 0 %}
+            {% for ver in versions | reverse %}
+                {% if ver['id'] == file_id %}
+                    {% set current_idx = loop.index %}
+                {% endif %}
+            {% endfor %}
+            v{{ current_idx }}/{{ versions | length }}
+        {% endif %}
     {% else %}
         v1/1
     {% endif %}

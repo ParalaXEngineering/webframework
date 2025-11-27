@@ -28,7 +28,8 @@ class DisplayerItemFileUpload(DisplayerItem):
         group_id: Optional[str] = None,
         tags: Optional[List[str]] = None,
         accept_types: Optional[List[str]] = None,
-        multiple: bool = False
+        multiple: bool = False,
+        existing_values: Optional[List[dict]] = None
     ) -> None:
         """Initialize a complete file upload widget with FilePond.
         
@@ -81,6 +82,7 @@ class DisplayerItemFileUpload(DisplayerItem):
         self.m_tags = tags if tags is not None else []
         self.m_accept_types = accept_types
         self.m_multiple = multiple
+        self.m_existing_values = existing_values if existing_values is not None else []
     
     @classmethod
     def get_required_resources(cls) -> list:
@@ -130,6 +132,7 @@ class DisplayerItemFileUpload(DisplayerItem):
             "tags": self.m_tags,
             "accept_types": self.m_accept_types,
             "multiple": self.m_multiple,
+            "existing_values": self.m_existing_values,
             "file_manager": file_manager,
             "existing_groups": existing_groups
         }
@@ -163,7 +166,8 @@ class DisplayerItemFileDisplay(DisplayerItem):
         file_id: Optional[int] = None,
         file_metadata: Optional[Dict] = None,
         actions: Optional[List[str]] = None,
-        compact: bool = False
+        compact: bool = False,
+        version: Optional[int] = None
     ) -> None:
         """Initialize a file display with action buttons.
         
@@ -173,6 +177,7 @@ class DisplayerItemFileDisplay(DisplayerItem):
             actions: List of action buttons to show (default: ["download"])
                      Options: "download", "edit", "history", "delete"
             compact: Display mode - False: full card, True: compact single line
+            version: Specific version number to display (optional, for versioned files)
         
         Note:
             Either file_id OR file_metadata must be provided.
@@ -210,6 +215,7 @@ class DisplayerItemFileDisplay(DisplayerItem):
         self.m_file_metadata = file_metadata
         self.m_actions = actions if actions is not None else ["download"]
         self.m_compact = compact
+        self.m_version = version
         
         # Validate that we have either file_id or file_metadata
         if file_id is None and file_metadata is None:
@@ -238,6 +244,7 @@ class DisplayerItemFileDisplay(DisplayerItem):
             "file_metadata": self.m_file_metadata,
             "actions": self.m_actions,
             "compact": self.m_compact,
+            "version": self.m_version,
             "file_manager": file_manager
         }
         

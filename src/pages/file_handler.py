@@ -77,18 +77,40 @@ def upload():
     tags_str = request.form.get('tags', '')
     
     # Parse tags (comma-separated)
-    tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else None
+    tag_names = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else []
     
     try:
         # Get current user
         current_user = session.get('user', 'GUEST')
         
-        # Upload file with new parameters
+        # PRE-RESOLVE GROUP: Query/create group BEFORE upload transaction
+        # This prevents SQLAlchemy UNIQUE constraint failures when multiple files upload simultaneously
+        group_obj = None
+        if group_id:
+            try:
+                group_obj = file_manager.get_or_create_group(group_id, current_user)
+            except Exception as e:
+                logger.warning(f"Failed to resolve group '{group_id}': {e}")
+                # Continue without group (will use string fallback)
+        
+        # PRE-RESOLVE TAGS: Query/create tags BEFORE upload transaction
+        # This prevents SQLAlchemy session state conflicts when uploading multiple files
+        tag_objects = []
+        if tag_names:
+            for tag_name in tag_names:
+                try:
+                    tag_obj = file_manager.get_or_create_tag(tag_name)
+                    tag_objects.append(tag_obj)
+                except Exception as e:
+                    logger.warning(f"Failed to resolve tag '{tag_name}': {e}")
+                    # Continue with other tags
+        
+        # Upload file with pre-resolved objects
         metadata = file_manager.upload_file(
             file, 
             category=category, 
-            group_id=group_id,
-            tags=tags,
+            group_id=group_obj or group_id,  # Use object if available, fallback to string
+            tags=tag_objects,  # Pass tag objects, not strings
             uploaded_by=current_user
         )
         
@@ -180,6 +202,9 @@ def delete(file_id):
     Args:
         file_id: Database ID of file version
     
+    Query params:
+        all_versions: If 'true', delete all versions of the file (same group_id + filename)
+    
     Returns:
         JSON response with success/error status
     """
@@ -192,12 +217,15 @@ def delete(file_id):
             "error": "Permission denied: You need 'delete' permission for FileManager. Contact your administrator."
         }), 403
     
+    # Check for delete_all_versions parameter
+    delete_all_versions = request.args.get('all_versions', 'false').lower() == 'true'
+    
     try:
         # Delete file (reference-counted in HashFS)
-        success = file_manager.delete_file(file_id)
+        success = file_manager.delete_file(file_id, delete_all_versions=delete_all_versions)
         
         if success:
-            logger.info(f"File deleted by {session.get('user', 'GUEST')}: ID {file_id}")
+            logger.info(f"File deleted by {session.get('user', 'GUEST')}: ID {file_id} (all_versions={delete_all_versions})")
             return jsonify({
                 "success": True,
                 "message": "File deleted successfully"
@@ -298,6 +326,32 @@ def download_by_id(file_id):
         
     except Exception as e:
         logger.error(f"Download by ID error for {file_id}: {e}", exc_info=True)
+        abort(500, "Internal server error")
+
+
+@bp.route("/versions/<group_id>/<filename>", methods=["GET"])
+def get_versions(group_id: str, filename: str):
+    """Get all versions of a file.
+    
+    Args:
+        group_id: Group identifier
+        filename: Filename
+        
+    Returns:
+        JSON list of file versions
+    """
+    if not file_manager:
+        abort(500, "File manager not initialized")
+    
+    # Check permission
+    if not _require_permission("FileManager", "view"):
+        abort(403, "Permission denied")
+    
+    try:
+        versions = file_manager.get_file_versions(group_id, filename)
+        return jsonify(versions), 200
+    except Exception as e:
+        logger.error(f"Error getting file versions: {e}")
         abort(500, "Internal server error")
 
 
