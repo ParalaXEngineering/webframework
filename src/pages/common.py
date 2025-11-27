@@ -131,6 +131,7 @@ def login():
             # Set session with both keys for compatibility
             auth.auth_manager.set_current_user(username)
             session['username'] = username
+            session.modified = True  # Force session save before redirect
             return redirect("/")
         # else: error_message is already set by check_login_attempt
     
