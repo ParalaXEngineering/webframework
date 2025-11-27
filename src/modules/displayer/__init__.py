@@ -27,7 +27,8 @@ from .core import (
     DisplayerItems,
     BSstyle,
     BSalign,
-    MAZERStyles
+    MAZERStyles,
+    TableMode
 )
 
 # Layout system
@@ -103,6 +104,7 @@ __all__ = [
     'BSstyle',
     'BSalign',
     'MAZERStyles',
+    'TableMode',
     
     # Main classes
     'Displayer',

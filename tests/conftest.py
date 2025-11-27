@@ -54,6 +54,8 @@ def pytest_collection_modifyitems(config, items):
         'test_threading.py': 40,  # Threading tests
         'test_table_modes.py': 50,  # Table mode tests
         'test_security.py': 60,  # Security tests
+        'test_user_profile.py': 70,  # Frontend: User profile tests
+        'test_user_preferences.py': 71,  # Frontend: User preferences tests
     }
     
     def get_order_key(item):

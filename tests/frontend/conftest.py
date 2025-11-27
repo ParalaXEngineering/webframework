@@ -1,0 +1,392 @@
+"""
+Pytest configuration for frontend tests using Playwright.
+
+Provides fixtures for:
+- Playwright browser and page (SYNC API)
+- Login helper
+- Automatic Flask server management (start/stop)
+- Helper functions for common UI operations
+
+Set HUMAN_MODE=True to watch tests run with visible browser and slower execution.
+"""
+
+import pytest
+import subprocess
+import time
+import requests
+from pathlib import Path
+from typing import Optional
+
+from playwright.sync_api import sync_playwright, Browser, Page, Playwright
+
+
+# ============================================================================
+# TEST CONFIGURATION
+# ============================================================================
+
+# Set to True to watch tests run visually with pauses between actions
+HUMAN_MODE = True  # Set to False for headless mode
+
+# Test configuration
+BASE_URL = "http://localhost:5001"
+TEST_ADMIN_USERNAME = "admin"
+TEST_ADMIN_PASSWORD = "admin"
+
+
+# ============================================================================
+# SESSION FIXTURES - Playwright
+# ============================================================================
+
+@pytest.fixture(scope="session")
+def playwright_instance() -> Playwright:
+    """Start Playwright for the test session."""
+    with sync_playwright() as p:
+        yield p
+
+
+@pytest.fixture(scope="session")
+def browser(playwright_instance: Playwright) -> Browser:
+    """Launch browser for the test session."""
+    launch_options = {
+        'headless': not HUMAN_MODE,
+        'args': ['--no-sandbox']
+    }
+    
+    if HUMAN_MODE:
+        launch_options['slow_mo'] = 50  # 50ms delay between actions
+    
+    mode_str = "HUMAN MODE (visible, slow)" if HUMAN_MODE else "headless mode"
+    print(f"\n🌐 Launching browser in {mode_str}...")
+    
+    browser = playwright_instance.chromium.launch(**launch_options)
+    yield browser
+    browser.close()
+
+
+@pytest.fixture(scope="session")
+def flask_server():
+    """
+    Verify Flask server is running before tests.
+    
+    This fixture checks that the server is already running at BASE_URL.
+    Tests assume you have started the server manually with: python src/main.py
+    """
+    print("\n" + "="*80)
+    print("🔍 Checking if Flask server is running...")
+    print("="*80)
+    
+    # Check if server is running
+    max_attempts = 2
+    for attempt in range(max_attempts):
+        try:
+            print(f"  Attempt {attempt + 1}/{max_attempts}: Connecting to {BASE_URL}...")
+            response = requests.get(BASE_URL, timeout=10)
+            print(f"  Response: HTTP {response.status_code}")
+            if response.status_code == 200:
+                print(f"✅ Server is running at {BASE_URL}")
+                print("="*80 + "\n")
+                yield None
+                return
+        except requests.exceptions.RequestException as e:
+            print(f"  Connection failed: {type(e).__name__}: {e}")
+            if attempt < max_attempts - 1:
+                time.sleep(0.5)
+    
+    # Server not running
+    print(f"❌ Server is NOT running at {BASE_URL}")
+    print("\n⚠️  Please start the server manually before running tests:")
+    print("   1. Open a terminal")
+    print("   2. Activate venv: .venv\\Scripts\\activate")
+    print("   3. Run: python src/main.py")
+    print("   4. Wait for server to start")
+    print("   5. Run tests in another terminal")
+    print("="*80 + "\n")
+    
+    pytest.skip(f"Flask server is not running at {BASE_URL}. Please start it manually.")
+
+
+# ============================================================================
+# TEST FIXTURES
+# ============================================================================
+
+@pytest.fixture
+def page(browser: Browser, flask_server) -> Page:
+    """Create a new page for each test.
+    
+    Depends on flask_server to ensure server is running before creating page.
+    """
+    context = browser.new_context(
+        viewport={'width': 1280, 'height': 720}
+    )
+    page = context.new_page()
+    
+    # Enable console message logging
+    page.on("console", lambda msg: print(f"🖥️  Browser console [{msg.type}]: {msg.text}"))
+    
+    # Enable error logging
+    page.on("pageerror", lambda exc: print(f"❌ Page error: {exc}"))
+    
+    # Enable response logging to catch 500 errors
+    def log_response(response):
+        if response.status >= 400:
+            print(f"⚠️  HTTP {response.status}: {response.url}")
+    
+    page.on("response", log_response)
+    
+    yield page
+    page.close()
+    context.close()
+
+
+@pytest.fixture
+def logged_in_page(page: Page) -> Page:
+    """Provide a logged-in page with admin credentials."""
+    login(page, TEST_ADMIN_USERNAME, TEST_ADMIN_PASSWORD)
+    return page
+
+
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def login(
+    page: Page,
+    username: str = TEST_ADMIN_USERNAME,
+    password: str = TEST_ADMIN_PASSWORD,
+    base_url: str = BASE_URL
+):
+    """Login to the application.
+    
+    Args:
+        page: Playwright page object
+        username: Username for login
+        password: Password for login
+        base_url: Base URL of the application
+    """
+    page.goto(f"{base_url}/common/login")
+    
+    # Wait for login form to load
+    page.wait_for_selector('select[name="user"]', timeout=5000)
+    
+    # Select user from dropdown
+    page.select_option('select[name="user"]', username)
+    
+    # Fill password
+    page.fill('input[name="password"]', password)
+    
+    # Submit form
+    page.click('button.btn-primary')
+    
+    # Wait for redirect
+    page.wait_for_load_state('networkidle')
+
+
+def logout(page: Page, base_url: str = BASE_URL):
+    """Logout from the application."""
+    page.goto(f"{base_url}/common/logout")
+    page.wait_for_load_state('networkidle')
+
+
+def navigate_to(page: Page, path: str, base_url: str = BASE_URL):
+    """Navigate to a specific path and check for errors.
+    
+    Args:
+        page: Playwright page
+        path: URL path (e.g., '/user/profile')
+        base_url: Base URL of the application
+    
+    Raises:
+        AssertionError: If page contains "Internal server error" or HTTP error
+    """
+    url = f"{base_url}{path}"
+    response = page.goto(url)
+    
+    # Check for HTTP errors
+    if response and response.status >= 400:
+        page_content = page.content()[:500]
+        raise AssertionError(
+            f"❌ HTTP {response.status} error when navigating to {url}\n"
+            f"Page content preview: {page_content}"
+        )
+    
+    wait_for_page_ready(page, f"navigation to {path}")
+    
+    # Check for internal server error in page content
+    page_text = page.content().lower()
+    if "internal server error" in page_text:
+        raise AssertionError(
+            f"❌ Page contains 'Internal server error' at {url}\n"
+            f"Page title: {page.title()}"
+        )
+
+
+def wait_for_page_ready(page: Page, context: str = "page load", timeout: int = 2000):
+    """
+    Wait for page to be ready with better error handling.
+    
+    Args:
+        page: Playwright page
+        context: Description of what we're waiting for
+        timeout: Timeout in milliseconds
+    """
+    page.wait_for_timeout(200)
+
+
+def fill_form_field(page: Page, name: str, value: str):
+    """Fill a form field by name.
+    
+    Handles both simple names and framework-nested names (Module.field).
+    
+    Args:
+        page: Playwright page
+        name: Field name (e.g., 'input_display_name' or 'User Profile.input_display_name')
+        value: Value to fill
+    """
+    # Try exact match first
+    try:
+        page.fill(f'input[name="{name}"], textarea[name="{name}"]', value, timeout=200)
+        return
+    except:
+        pass
+    
+    # Try partial match (framework nesting)
+    try:
+        page.fill(f'input[name$=".{name}"], textarea[name$=".{name}"]', value, timeout=200)
+        return
+    except:
+        pass
+    
+    # Last resort: just use the name as-is
+    page.fill(f'input[name="{name}"], textarea[name="{name}"]', value, timeout=200)
+
+
+def select_form_option(page: Page, name: str, value: str, timeout: int = 2000):
+    """Select an option from a dropdown.
+    
+    Args:
+        page: Playwright page
+        name: Field name
+        value: Value to select
+        timeout: Timeout in milliseconds
+    """
+    # Pattern 1: Exact match
+    selector = f'select[name="{name}"]'
+    if page.locator(selector).count() > 0:
+        page.select_option(selector, value, timeout=timeout)
+        return
+    
+    # Pattern 2: Ends with .name (framework nesting)
+    selector = f'select[name$=".{name}"]'
+    if page.locator(selector).count() > 0:
+        page.select_option(selector, value, timeout=timeout)
+        return
+    
+    # Pattern 3: Contains the name
+    selector = f'select[name*="{name}"]'
+    if page.locator(selector).count() > 0:
+        page.select_option(selector, value, timeout=timeout)
+        return
+    
+    # If nothing found, fail with helpful error
+    all_selects = page.locator('select').all()
+    select_names = [sel.get_attribute('name') for sel in all_selects]
+    raise AssertionError(
+        f"❌ Could not find select field for '{name}'!\n"
+        f"Available select fields: {select_names}\n"
+        f"Current URL: {page.url}"
+    )
+
+
+def click_button(page: Page, button_name: str, timeout: int = 2000):
+    """Click a button by its name attribute or text content.
+    
+    Args:
+        page: Playwright page
+        button_name: Button name attribute (e.g., 'btn_update_info') or text
+        timeout: Timeout in milliseconds
+    """
+    # Try by name attribute first
+    selector = f'button[name="{button_name}"]'
+    if page.locator(selector).count() > 0:
+        page.click(selector, timeout=timeout)
+        return
+    
+    # Try by name ending with button_name (framework nesting)
+    selector = f'button[name$=".{button_name}"]'
+    if page.locator(selector).count() > 0:
+        page.click(selector, timeout=timeout)
+        return
+    
+    # Try by text content
+    selector = f'button:has-text("{button_name}")'
+    if page.locator(selector).count() > 0:
+        page.click(selector, timeout=timeout)
+        return
+    
+    # If nothing found, fail
+    all_buttons = page.locator('button').all()
+    button_info = [(btn.get_attribute('name'), btn.inner_text()) for btn in all_buttons]
+    raise AssertionError(
+        f"❌ Could not find button '{button_name}'!\n"
+        f"Available buttons (name, text): {button_info}\n"
+        f"Current URL: {page.url}"
+    )
+
+
+def check_flash_message(page: Page, message_text: Optional[str] = None, message_type: Optional[str] = None) -> bool:
+    """Check for flash messages.
+    
+    Args:
+        page: Playwright page
+        message_text: Optional text to search for in the message
+        message_type: Optional message type (success, danger, warning, info)
+    
+    Returns:
+        True if message found matching criteria, False otherwise
+    """
+    # Wait a bit for flash messages to appear
+    page.wait_for_timeout(300)
+    
+    # Look for flash messages (Bootstrap alerts)
+    selector = '.alert'
+    if message_type:
+        selector = f'.alert-{message_type}'
+    
+    alerts = page.locator(selector).all()
+    
+    if not alerts:
+        return False
+    
+    if message_text:
+        for alert in alerts:
+            if message_text.lower() in alert.inner_text().lower():
+                return True
+        return False
+    
+    return True
+
+
+def get_page_text(page: Page) -> str:
+    """Get all visible text from the page.
+    
+    Args:
+        page: Playwright page
+    
+    Returns:
+        Page text content
+    """
+    return page.locator('body').inner_text()
+
+
+def page_contains_text(page: Page, text: str) -> bool:
+    """Check if page contains specific text.
+    
+    Args:
+        page: Playwright page
+        text: Text to search for (case-insensitive)
+    
+    Returns:
+        True if text found, False otherwise
+    """
+    page_text = get_page_text(page).lower()
+    return text.lower() in page_text

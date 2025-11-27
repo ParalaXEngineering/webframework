@@ -14,7 +14,8 @@ try:
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemInputString,
-        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle
+        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle,
+        TableMode
     )
     from ..modules.auth.auth_utils import validate_username, validate_password_strength
     from ..modules.auth.permission_registry import permission_registry
@@ -27,7 +28,8 @@ except ImportError:
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemInputString,
-        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle
+        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle,
+        TableMode
     )
     from modules.auth.auth_utils import validate_username, validate_password_strength
     from modules.auth.permission_registry import permission_registry
@@ -55,7 +57,6 @@ def manage_users():
     # Create displayer
     disp = Displayer()
     disp.add_generic("User Management")
-    disp.set_title("User Management")
     disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Admin", "admin_auth.manage_users", [])
     disp.add_breadcrumb("Users", "admin_auth.manage_users", [])
