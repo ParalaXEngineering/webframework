@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional, Any
 from ..modules.utilities import util_format_file_size, util_format_date, util_get_file_icon, util_generate_preview_html
 from ..modules.log.logger_factory import get_logger
-from ..modules.auth import require_permission
+from ..modules.auth import require_permission, auth_manager
 from ..modules.auth.permission_registry import permission_registry
 
 # Register module permissions (view is implicit)
@@ -21,15 +21,6 @@ bp = Blueprint("file_manager_admin", __name__, url_prefix="/file_manager")
 
 # File manager instance will be injected by main.py
 file_manager: Optional[Any] = None
-
-
-def _get_auth_manager():
-    """Get auth_manager dynamically to avoid initialization issues."""
-    try:
-        from ..modules.auth import auth_manager
-        return auth_manager
-    except ImportError:
-        return None
 
 
 def _get_displayer_modules():
@@ -61,7 +52,6 @@ def index():
     disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
     
     # Check user permissions
-    auth_manager = _get_auth_manager()
     current_user = session.get('user', 'GUEST')
     can_upload = auth_manager.has_permission(current_user, "FileManager", "upload") if auth_manager else True
     can_delete = auth_manager.has_permission(current_user, "FileManager", "delete") if auth_manager else True

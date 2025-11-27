@@ -5,6 +5,7 @@ from ..modules import displayer
 from ..modules import site_conf
 from ..modules import User_defined_module
 from ..modules.utilities import get_config_or_error
+from ..modules.auth import auth_manager
 
 from redminelib import Redmine
 
@@ -22,15 +23,6 @@ from ..modules.log.logger_factory import get_logger
 logger = get_logger(__name__)
 
 bp = Blueprint("bug", __name__, url_prefix="/bug")
-
-
-def _get_auth_manager():
-    """Get auth_manager dynamically to avoid initialization issues."""
-    try:
-        from ..modules.auth import auth_manager
-        return auth_manager
-    except ImportError:
-        return None
 
 
 def get_settings_manager():
@@ -100,10 +92,9 @@ def edit_issue(issue_id):
             description_textile, embedded_images = html_to_redmine_textile(description_html)
 
             try:
-                current_user = "GUEST"
-                auth_manager = _get_auth_manager()
+                current_user = \"GUEST\"
                 if auth_manager:
-                    current_user = auth_manager.get_current_user() or "GUEST"
+                    current_user = auth_manager.get_current_user() or \"GUEST\"
                 
                 # Prepare update data
                 update_data = {
@@ -516,7 +507,6 @@ def bugtracker():
 
             log_archive_path = None
             try:
-                auth_manager = _get_auth_manager()
                 current_user = "GUEST"
                 if auth_manager:
                     current_user = auth_manager.get_current_user() or "GUEST"

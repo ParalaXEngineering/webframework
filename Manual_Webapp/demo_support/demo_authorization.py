@@ -6,7 +6,7 @@ Interactive demo of the framework's authorization system.
 
 from flask import Blueprint, render_template, session, url_for
 from src.modules import displayer
-from src.modules.auth import require_permission, require_admin
+from src.modules.auth import require_permission, require_admin, auth_manager
 from src.modules.auth.permission_registry import permission_registry
 from src.modules.log.logger_factory import get_logger
 
@@ -18,19 +18,9 @@ demo_auth_bp = Blueprint('demo_auth', __name__, url_prefix='/demo/authorization'
 permission_registry.register_module("Demo_Auth", ["view", "edit", "delete", "custom_action"])
 
 
-def _get_auth_manager():
-    """Get auth_manager dynamically."""
-    try:
-        from src.modules.auth import auth_manager
-        return auth_manager
-    except ImportError:
-        return None
-
-
 @demo_auth_bp.route('/')
 def index():
     """Main authorization showcase page."""
-    auth_manager = _get_auth_manager()
     current_user = session.get('user', 'GUEST')
     
     disp = displayer.Displayer()
@@ -153,11 +143,8 @@ def test_delete():
         subtitle="Inline Permission Checks"
     ))
     
-    inline_code = '''def _get_auth_manager():
-    from src.modules.auth import auth_manager
-    return auth_manager
+    inline_code = '''from src.modules.auth import auth_manager
 
-auth_manager = _get_auth_manager()
 current_user = session.get("user")
 
 # Runtime check
@@ -431,7 +418,6 @@ def test_admin():
 @demo_auth_bp.route('/inline-check-demo')
 def inline_check_demo():
     """Demonstrates inline permission checking."""
-    auth_manager = _get_auth_manager()
     current_user = session.get('user', 'GUEST')
     
     disp = displayer.Displayer()
@@ -444,7 +430,8 @@ def inline_check_demo():
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
     
-    code = '''auth_manager = _get_auth_manager()
+    code = '''from src.modules.auth import auth_manager
+
 current_user = session.get("user")
 
 has_edit = auth_manager.has_permission(current_user, "Demo_Auth", "edit")

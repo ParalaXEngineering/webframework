@@ -6,6 +6,7 @@ This module provides HTTP endpoints for secure file management operations.
 
 from flask import Blueprint, request, send_file, jsonify, session, abort
 from ..modules.log.logger_factory import get_logger
+from ..modules.auth import auth_manager
 
 logger = get_logger(__name__)
 
@@ -13,15 +14,6 @@ bp = Blueprint("file_handler", __name__, url_prefix="/files")
 
 # File manager instance will be injected by main.py
 file_manager = None
-
-
-def _get_auth_manager():
-    """Get auth_manager dynamically to avoid initialization issues."""
-    try:
-        from ..modules.auth.auth_manager import auth_manager
-        return auth_manager
-    except ImportError:
-        return None
 
 
 def _require_permission(permission_module: str, permission_action: str = "upload"):
@@ -34,7 +26,6 @@ def _require_permission(permission_module: str, permission_action: str = "upload
     Returns:
         bool: True if permitted, False otherwise
     """
-    auth_manager = _get_auth_manager()
     if not auth_manager:
         # No auth system = allow access (for development/testing)
         logger.warning(f"Permission check for {permission_module}.{permission_action} - auth system not available, allowing access")

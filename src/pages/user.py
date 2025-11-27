@@ -6,10 +6,6 @@ User self-service for password, avatar, and personal settings.
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from PIL import Image
 import os
-from typing import TYPE_CHECKING, cast
-
-if TYPE_CHECKING:
-    from ..modules.auth.auth_manager import AuthManager
 
 try:
     from ..modules.displayer import (
@@ -22,6 +18,7 @@ try:
     from ..modules import utilities
     from ..modules.log.logger_factory import get_logger
     from ..modules.utilities import get_home_endpoint
+    from ..modules.auth import auth_manager
 except ImportError:
     from modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
@@ -33,21 +30,13 @@ except ImportError:
     from modules import utilities
     from modules.log.logger_factory import get_logger
     from modules.utilities import get_home_endpoint
+    from modules.auth import auth_manager
 
 logger = get_logger("user_profile")
 user_profile_bp = Blueprint('user_profile', __name__, url_prefix='/user')
 
 # Export as 'bp' for framework auto-discovery
 bp = user_profile_bp
-
-
-def _get_auth_manager() -> "AuthManager":
-    """Get the auth_manager instance. Import at runtime to avoid circular imports."""
-    try:
-        from ..modules.auth.auth_manager import auth_manager
-    except ImportError:
-        from modules.auth.auth_manager import auth_manager
-    return cast("AuthManager", auth_manager)
 
 
 def resize_image(image_path: str, max_size: tuple = (1024, 1024)):
@@ -66,7 +55,12 @@ def resize_image(image_path: str, max_size: tuple = (1024, 1024)):
 @user_profile_bp.route('/profile', methods=['GET', 'POST'])
 def profile():
     """User profile page - password, avatar, display name, email."""
-    auth_manager = _get_auth_manager()
+    # Auth manager is required for this page
+    # NOTE: This check should never fail in normal operation since this page
+    # is only added to sidebar when authentication is enabled via site_conf
+    if not auth_manager:
+        logger.error("User profile page accessed but auth_manager is None - this should not happen")
+        return "Authentication system not initialized", 500
     
     # Get current user
     current_user = auth_manager.get_current_user()
@@ -276,7 +270,12 @@ def profile():
 @user_profile_bp.route('/preferences', methods=['GET', 'POST'])
 def preferences():
     """User preferences page - theme, notifications, module settings."""
-    auth_manager = _get_auth_manager()
+    # Auth manager is required for this page
+    # NOTE: This check should never fail in normal operation since this page
+    # is only added to sidebar when authentication is enabled via site_conf
+    if not auth_manager:
+        logger.error("User preferences page accessed but auth_manager is None - this should not happen")
+        return "Authentication system not initialized", 500
     
     # Get current user
     current_user = auth_manager.get_current_user()
