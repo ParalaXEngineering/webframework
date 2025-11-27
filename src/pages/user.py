@@ -96,7 +96,7 @@ def profile():
     
     # Create displayer
     disp = Displayer()
-    disp.add_generic("User Profile")
+    disp.add_generic("User Profile", display=False)
     disp.set_title("My Profile")
     disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Profile", "user_profile.profile", [])

@@ -33,7 +33,7 @@ class TestUserProfilePage:
         navigate_to(page, "/user/profile")
         
         # Check page title
-        assert "Profile" in page.title() or "profile" in page.title().lower(), \
+        assert page_contains_text(page, "My Profile"), \
             "Page title should contain 'Profile'"
         
         # Check for key sections
