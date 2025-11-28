@@ -120,7 +120,7 @@ class Displayer:
         if auth_manager is not None and session is not None:
             # Auth system is available, check permissions
             logger.info("[Displayer] Auth system is available, checking permissions...")
-            current_username = session.get('username')
+            current_username = session.get('user')
             logger.info(f"[Displayer] Checking permissions for user: {current_username}, module: {required_permission}, action: {required_action}")
             
             if not current_username:

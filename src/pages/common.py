@@ -111,7 +111,6 @@ def login():
         
     # Logout current user
     auth.auth_manager.logout_current_user()
-    session.pop('username', None)  # Clear legacy session key too
     
     error_message = None
     
@@ -128,10 +127,8 @@ def login():
         success, error_message = auth.auth_manager.check_login_attempt(username, password)
         
         if success:
-            # Set session with both keys for compatibility
+            # Set user in session (set_current_user handles session.permanent)
             auth.auth_manager.set_current_user(username)
-            session['username'] = username
-            session.modified = True  # Force session save before redirect
             return redirect("/")
         # else: error_message is already set by check_login_attempt
     

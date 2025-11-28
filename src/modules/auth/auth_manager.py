@@ -471,6 +471,7 @@ class AuthManager:
         Args:
             username: Username to set as current user
         """
+        session.permanent = True
         session['user'] = username
     
     def logout_current_user(self):

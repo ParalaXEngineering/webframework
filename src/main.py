@@ -65,6 +65,8 @@ def setup_app(app):
     app.config['TEMPLATES_AUTO_RELOAD'] = False  # type: ignore
     app.config["SECRET_KEY"] = "super secret key"  # type: ignore
     app.config["PROPAGATE_EXCEPTIONS"] = False  # type: ignore
+    app.config["SESSION_PERMANENT"] = True  # type: ignore
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # type: ignore
     app.config.from_object(__name__)  # type: ignore
     Session(app)  # type: ignore
 
@@ -356,7 +358,7 @@ def setup_app(app):
         custom_context = site_conf.site_conf_obj.context_processor()  # type: ignore
         
         # Get current user for applying overrides
-        user = session.get('user') or session.get('username')  # type: ignore
+        user = session.get('user')  # type: ignore
         if not user and auth_manager is not None:
             user = auth_manager.get_current_user()
         
@@ -427,7 +429,7 @@ def setup_app(app):
 
         # Get current user from session
         # Use auth_manager only if it's initialized
-        user = session.get('user') or session.get('username')  # type: ignore
+        user = session.get('user')  # type: ignore
         if not user and auth_manager is not None:
             user = auth_manager.get_current_user()
         
@@ -568,17 +570,21 @@ def setup_app(app):
         # Ensure session['user'] is always set for consistent authentication
         # This is critical for SocketIO room management and thread isolation
         if 'user' not in session:
-            # Check if login is enabled
-            if site_conf.site_conf_obj and hasattr(site_conf.site_conf_obj, 'm_topbar'):
-                if site_conf.site_conf_obj.m_topbar.get('login', False):
-                    # Login enabled: default to GUEST if not logged in
-                    session['user'] = 'GUEST'
+            # Don't set GUEST during authentication flow to avoid race condition
+            # The login route will set session['user'] properly
+            if request.endpoint not in ['common.login', 'admin_auth.api_login']:
+                session.permanent = True
+                # Check if login is enabled
+                if site_conf.site_conf_obj and hasattr(site_conf.site_conf_obj, 'm_topbar'):
+                    if site_conf.site_conf_obj.m_topbar.get('login', False):
+                        # Login enabled: default to GUEST if not logged in
+                        session['user'] = 'GUEST'
+                    else:
+                        # No login: use anonymous (all users share same session)
+                        session['user'] = 'anonymous'
                 else:
-                    # No login: use anonymous (all users share same session)
-                    session['user'] = 'anonymous'
-            else:
-                # Fallback if site_conf not available
-                session['user'] = 'GUEST'
+                    # Fallback if site_conf not available
+                    session['user'] = 'GUEST'
 
         # Note: config reading migrated to settings engine in src/modules/settings
         
