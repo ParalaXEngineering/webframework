@@ -363,23 +363,44 @@ def setup_app(app):
             user = auth_manager.get_current_user()
         
         # Apply user overrides to topbar if needed
-        topbar_items = site_conf.site_conf_obj.m_topbar.copy()  # type: ignore
+        # Deep copy topbar to avoid modifying the original
+        topbar_items = {
+            "display": site_conf.site_conf_obj.m_topbar["display"],  # type: ignore
+            "login": site_conf.site_conf_obj.m_topbar["login"],  # type: ignore
+            "left": site_conf.site_conf_obj.m_topbar["left"].copy(),  # type: ignore
+            "center": site_conf.site_conf_obj.m_topbar["center"].copy(),  # type: ignore
+            "right": site_conf.site_conf_obj.m_topbar["right"].copy()  # type: ignore
+        }
+        
+        # Only apply overrides if user is logged in with auth enabled
         if user and auth_manager is not None:
-            # Check for thread position override
+            # Check if thread status should be enabled/disabled
+            thread_enabled_override = auth_manager.get_user_framework_override(user, "framework_ui.thread_status_enabled")
+            thread_icon_override = auth_manager.get_user_framework_override(user, "framework_ui.thread_status_icon")
             thread_pos_override = auth_manager.get_user_framework_override(user, "framework_ui.thread_status_position")
-            if thread_pos_override is not None:
-                # Find and move thread item to the overridden position
+            
+            # If user has any overrides for thread status, apply them
+            if thread_enabled_override is not None or thread_icon_override is not None or thread_pos_override is not None:
+                # Find and remove all thread items first
                 thread_item = None
                 for area in ["left", "center", "right"]:
-                    topbar_items[area] = [item for item in topbar_items[area] if item.get("type") != "thread"]
-                    # Find thread item while removing
-                    for item in site_conf.site_conf_obj.m_topbar[area]:  # type: ignore
+                    for item in topbar_items[area]:
                         if item.get("type") == "thread":
-                            thread_item = item
+                            thread_item = item.copy()  # Keep a copy of the original
+                            break
+                    # Remove thread items from all positions
+                    topbar_items[area] = [item for item in topbar_items[area] if item.get("type") != "thread"]
                 
-                # Add thread item to the override position
-                if thread_item and thread_pos_override in ["left", "center", "right"]:
-                    topbar_items[thread_pos_override].append(thread_item)
+                # Re-add thread item if enabled (or if no override exists)
+                if thread_enabled_override is not False:  # True or None (no override) = show it
+                    if thread_item:
+                        # Apply icon override if present
+                        if thread_icon_override is not None:
+                            thread_item["icon"] = thread_icon_override
+                        
+                        # Determine which position to add to
+                        target_position = thread_pos_override if thread_pos_override in ["left", "center", "right"] else "right"
+                        topbar_items[target_position].append(thread_item)
         
         # Filter sidebar items for guest users
         sidebar_items = site_conf.site_conf_obj.m_sidebar.copy()  # type: ignore
