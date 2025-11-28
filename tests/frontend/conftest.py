@@ -64,12 +64,66 @@ def browser(playwright_instance: Playwright) -> Browser:
 
 
 @pytest.fixture(scope="session")
-def flask_server():
+def reset_auth_state():
+    """
+    Reset authentication state before tests start.
+    
+    This ensures admin password is 'admin' and failed login attempts are cleared.
+    Prevents test failures due to locked accounts or changed passwords from previous runs.
+    """
+    import json
+    import bcrypt
+    
+    print("\n" + "="*80)
+    print("🔄 Resetting authentication state...")
+    print("="*80)
+    
+    # Reset admin password to 'admin'
+    users_file = Path("Manual_Webapp/website/auth/users.json")
+    if users_file.exists():
+        try:
+            with open(users_file, 'r') as f:
+                users_data = json.load(f)
+            
+            # Generate hash for 'admin' password
+            password_hash = bcrypt.hashpw('admin'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            
+            if 'admin' in users_data:
+                users_data['admin']['password_hash'] = password_hash
+                with open(users_file, 'w') as f:
+                    json.dump(users_data, f, indent=2)
+                print("  ✅ Reset admin password to 'admin'")
+        except Exception as e:
+            print(f"  ⚠️  Could not reset users file: {e}")
+    
+    # Clear failed login attempts
+    failed_logins_file = Path("Manual_Webapp/website/auth/failed_logins.json")
+    if failed_logins_file.exists():
+        try:
+            with open(failed_logins_file, 'r') as f:
+                failed_data = json.load(f)
+            
+            if 'admin' in failed_data:
+                failed_data['admin'] = {'count': 0, 'locked_until': None}
+                with open(failed_logins_file, 'w') as f:
+                    json.dump(failed_data, f, indent=4)
+                print("  ✅ Cleared failed login attempts for admin")
+        except Exception as e:
+            print(f"  ⚠️  Could not reset failed logins file: {e}")
+    
+    print("="*80 + "\n")
+    yield
+
+
+@pytest.fixture(scope="session")
+def flask_server(reset_auth_state):
     """
     Verify Flask server is running before tests.
     
     This fixture checks that the server is already running at BASE_URL.
     Tests assume you have started the server manually with: python src/main.py
+    
+    Depends on reset_auth_state to ensure clean authentication state.
     """
     print("\n" + "="*80)
     print("🔍 Checking if Flask server is running...")
@@ -120,6 +174,9 @@ def page(browser: Browser, flask_server) -> Page:
     )
     page = context.new_page()
     
+    # Set default timeout to 2 seconds for faster failure detection
+    page.set_default_timeout(2000)
+    
     # Enable console message logging
     page.on("console", lambda msg: print(f"🖥️  Browser console [{msg.type}]: {msg.text}"))
     
@@ -140,7 +197,29 @@ def page(browser: Browser, flask_server) -> Page:
 
 @pytest.fixture
 def logged_in_page(page: Page) -> Page:
-    """Provide a logged-in page with admin credentials."""
+    """Provide a logged-in page with admin credentials.
+    
+    Ensures fresh login for each test to prevent session expiration issues.
+    """
+    # Reset any account lockouts before logging in
+    reset_account_lockout(TEST_ADMIN_USERNAME)
+    
+    # Perform fresh login
+    login(page, TEST_ADMIN_USERNAME, TEST_ADMIN_PASSWORD)
+    
+    # Verify we're actually logged in by checking we can access a protected page
+    try:
+        response = page.goto(f"{BASE_URL}/user/profile")
+        if response and response.status == 200:
+            page_text = page.content().lower()
+            if "profile information" in page_text:
+                print(f"  ✅ Verified logged in as {TEST_ADMIN_USERNAME}")
+                return page
+    except Exception:
+        pass
+    
+    # If verification failed, we might be GUEST - try logging in again
+    print(f"  ⚠️  Login verification failed, retrying...")
     login(page, TEST_ADMIN_USERNAME, TEST_ADMIN_PASSWORD)
     return page
 
@@ -163,7 +242,7 @@ def login(
         password: Password for login
         base_url: Base URL of the application
     """
-    page.goto(f"{base_url}/common/login")
+    page.goto(f"{base_url}/common/login", timeout=10000)
     
     # Wait for login form to load
     page.wait_for_selector('select[name="user"]', timeout=5000)
@@ -177,8 +256,8 @@ def login(
     # Submit form
     page.click('button.btn-primary')
     
-    # Wait for redirect
-    page.wait_for_load_state('networkidle')
+    # Wait for redirect (use longer timeout for networkidle due to SocketIO)
+    page.wait_for_load_state('networkidle', timeout=10000)
 
 
 def logout(page: Page, base_url: str = BASE_URL):
@@ -199,7 +278,7 @@ def navigate_to(page: Page, path: str, base_url: str = BASE_URL):
         AssertionError: If page contains "Internal server error" or HTTP error
     """
     url = f"{base_url}{path}"
-    response = page.goto(url)
+    response = page.goto(url, timeout=10000)
     
     # Check for HTTP errors
     if response and response.status >= 400:
@@ -243,21 +322,31 @@ def fill_form_field(page: Page, name: str, value: str):
         value: Value to fill
     """
     # Try exact match first
-    try:
-        page.fill(f'input[name="{name}"], textarea[name="{name}"]', value, timeout=200)
+    selector = f'input[name="{name}"], textarea[name="{name}"]'
+    if page.locator(selector).count() > 0:
+        page.fill(selector, value, timeout=2000)
         return
-    except:
-        pass
     
     # Try partial match (framework nesting)
-    try:
-        page.fill(f'input[name$=".{name}"], textarea[name$=".{name}"]', value, timeout=200)
+    selector = f'input[name$=".{name}"], textarea[name$=".{name}"]'
+    if page.locator(selector).count() > 0:
+        page.fill(selector, value, timeout=2000)
         return
-    except:
-        pass
     
-    # Last resort: just use the name as-is
-    page.fill(f'input[name="{name}"], textarea[name="{name}"]', value, timeout=200)
+    # Try contains match
+    selector = f'input[name*="{name}"], textarea[name*="{name}"]'
+    if page.locator(selector).count() > 0:
+        page.fill(selector, value, timeout=2000)
+        return
+    
+    # If nothing found, fail with helpful error
+    all_inputs = page.locator('input, textarea').all()
+    input_names = [inp.get_attribute('name') for inp in all_inputs[:10]]  # First 10
+    raise AssertionError(
+        f"❌ Could not find input field for '{name}'!\n"
+        f"Available input fields (first 10): {input_names}\n"
+        f"Current URL: {page.url}"
+    )
 
 
 def select_form_option(page: Page, name: str, value: str, timeout: int = 2000):
@@ -390,3 +479,26 @@ def page_contains_text(page: Page, text: str) -> bool:
     """
     page_text = get_page_text(page).lower()
     return text.lower() in page_text
+
+
+def reset_account_lockout(username: str):
+    """Reset failed login attempts for a user to prevent account lockout.
+    
+    Args:
+        username: Username to reset
+    """
+    from pathlib import Path
+    import json
+    
+    lockout_file = Path("website/auth/failed_logins.json")
+    if lockout_file.exists():
+        try:
+            with open(lockout_file, 'r') as f:
+                data = json.load(f)
+            
+            if username in data:
+                data[username] = {'count': 0, 'locked_until': None}
+                with open(lockout_file, 'w') as f:
+                    json.dump(data, f, indent=2)
+        except Exception:
+            pass  # Ignore errors - file might not exist or be malformed

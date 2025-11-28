@@ -256,17 +256,18 @@ def profile():
         
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [4, 4, 4]))
         # TODO: Replace with proper password input type when DisplayerItemInputPassword is available
+        # Note: Raw HTML inputs must use module-prefixed names for proper form submission
         disp.add_display_item(DisplayerItemText(
             '<div class="mb-3"><label for="input_current_password" class="form-label">Current Password</label>'
-            '<input type="password" class="form-control" id="input_current_password" name="input_current_password"></div>'
+            '<input type="password" class="form-control" id="input_current_password" name="User Profile.input_current_password"></div>'
         ), column=0)
         disp.add_display_item(DisplayerItemText(
             '<div class="mb-3"><label for="input_new_password" class="form-label">New Password</label>'
-            '<input type="password" class="form-control" id="input_new_password" name="input_new_password"></div>'
+            '<input type="password" class="form-control" id="input_new_password" name="User Profile.input_new_password"></div>'
         ), column=1)
         disp.add_display_item(DisplayerItemText(
             '<div class="mb-3"><label for="input_confirm_password" class="form-label">Confirm Password</label>'
-            '<input type="password" class="form-control" id="input_confirm_password" name="input_confirm_password"></div>'
+            '<input type="password" class="form-control" id="input_confirm_password" name="User Profile.input_confirm_password"></div>'
         ), column=2)
         
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))

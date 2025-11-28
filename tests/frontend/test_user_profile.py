@@ -241,9 +241,9 @@ class TestUserProfilePage:
             print("⚠️  Password change section not available (passwordless account)")
             pytest.skip("Password change not available for this user")
         
-        # Fill password fields
+        # Now test changing password from 'admin' to 'newpass123'
         # Note: Using raw HTML inputs since DisplayerItemInputPassword doesn't exist yet
-        page.fill('input#input_current_password', 'admin123')
+        page.fill('input#input_current_password', 'admin')
         page.fill('input#input_new_password', 'newpass123')
         page.fill('input#input_confirm_password', 'newpass123')
         
@@ -258,12 +258,18 @@ class TestUserProfilePage:
         
         print("✅ Password changed successfully")
         
-        # Change it back for other tests
+        # IMPORTANT: Change password back immediately to not break subsequent tests
+        navigate_to(page, "/user/profile")
         page.fill('input#input_current_password', 'newpass123')
-        page.fill('input#input_new_password', 'admin123')
-        page.fill('input#input_confirm_password', 'admin123')
+        page.fill('input#input_new_password', 'admin')
+        page.fill('input#input_confirm_password', 'admin')
         click_button(page, "btn_change_password")
         page.wait_for_timeout(500)
+        
+        # Verify password was restored
+        assert check_flash_message(page, "success", "success") or \
+               page_contains_text(page, "changed"), \
+            "Should show success message after restoring password"
         
         print("✅ Password reset to original")
     
@@ -307,7 +313,7 @@ class TestUserProfilePage:
             pytest.skip("Password change not available")
         
         # Try to change password with mismatched confirmation
-        page.fill('input#input_current_password', 'admin123')
+        page.fill('input#input_current_password', 'admin')
         page.fill('input#input_new_password', 'newpass123')
         page.fill('input#input_confirm_password', 'different123')
         
@@ -338,7 +344,7 @@ class TestUserProfilePage:
         weak_passwords = ["123", "abc", "12345"]
         
         for weak_pwd in weak_passwords:
-            page.fill('input#input_current_password', 'admin123')
+            page.fill('input#input_current_password', 'admin')
             page.fill('input#input_new_password', weak_pwd)
             page.fill('input#input_confirm_password', weak_pwd)
             
