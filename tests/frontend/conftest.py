@@ -207,12 +207,14 @@ def logged_in_page(page: Page) -> Page:
     # Perform fresh login
     login(page, TEST_ADMIN_USERNAME, TEST_ADMIN_PASSWORD)
     
-    # Verify we're actually logged in by checking we can access a protected page
+    # Verify we're actually logged in by checking for the topbar button with username
+    # After login, we're redirected to home page, so check the topbar
     try:
-        response = page.goto(f"{BASE_URL}/user/profile")
-        if response and response.status == 200:
-            page_text = page.content().lower()
-            if "profile information" in page_text:
+        # Look for the topbar button containing the username (admin)
+        topbar_button = page.locator('#topbar_target')
+        if topbar_button.count() > 0:
+            button_text = topbar_button.inner_text().strip().lower()
+            if TEST_ADMIN_USERNAME.lower() in button_text:
                 print(f"  ✅ Verified logged in as {TEST_ADMIN_USERNAME}")
                 return page
     except Exception:
