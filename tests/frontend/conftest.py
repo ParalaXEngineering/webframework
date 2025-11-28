@@ -244,7 +244,15 @@ def login(
         password: Password for login
         base_url: Base URL of the application
     """
-    page.goto(f"{base_url}/common/login", timeout=10000)
+    # Try navigating to login page with increased timeout
+    # Sometimes the server is slow to respond, especially on slower machines
+    try:
+        page.goto(f"{base_url}/common/login", timeout=20000)
+    except Exception as e:
+        # If goto fails, try once more after a brief wait
+        print(f"  ⚠️  First login attempt failed: {e}")
+        page.wait_for_timeout(1000)
+        page.goto(f"{base_url}/common/login", timeout=20000)
     
     # Wait for login form to load
     page.wait_for_selector('select[name="user"]', timeout=5000)
@@ -258,8 +266,12 @@ def login(
     # Submit form
     page.click('button.btn-primary')
     
-    # Wait for redirect (use longer timeout for networkidle due to SocketIO)
-    page.wait_for_load_state('networkidle', timeout=10000)
+    # Wait for redirect - use 'load' instead of 'networkidle' to avoid SocketIO timeout issues
+    # SocketIO keeps connections open, so networkidle may never trigger
+    page.wait_for_load_state('load', timeout=10000)
+    
+    # Give a brief moment for SocketIO to initialize
+    page.wait_for_timeout(500)
 
 
 def logout(page: Page, base_url: str = BASE_URL):
