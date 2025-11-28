@@ -114,7 +114,6 @@ class Site_conf:
             self.add_sidebar_title("User Management")
             self.add_sidebar_section("Account", "account-circle", "user")
             self.add_sidebar_submenu("My Profile", "user_profile.profile", endpoint="user")
-            self.add_sidebar_submenu("My Preferences", "user_profile.preferences", endpoint="user")
             self.add_sidebar_submenu("Framework Preferences", "user_profile.framework_preferences", endpoint="user")
             
             # Add Admin section

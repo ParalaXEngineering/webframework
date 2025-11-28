@@ -47,7 +47,6 @@ class TestSidebarGeneration:
                 assert "submenu" in item
                 submenu_names = [s["name"] for s in item["submenu"]]
                 assert "My Profile" in submenu_names
-                assert "My Preferences" in submenu_names
             if item.get("endpoint") == "admin":
                 has_admin_section = True
                 # Check submenu items
