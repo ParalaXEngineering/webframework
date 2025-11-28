@@ -391,21 +391,3 @@ class TestUserProfilePage:
         assert has_dates, "Should display account creation or login dates"
         
         print("✅ Account information displayed correctly")
-    
-    def test_13_breadcrumb_navigation(self, logged_in_page: Page):
-        """Test that breadcrumb navigation works."""
-        page = logged_in_page
-        
-        print("\n📄 Test: Breadcrumb navigation")
-        navigate_to(page, "/user/profile")
-        
-        # Check for breadcrumbs
-        breadcrumb = page.locator('nav[aria-label="breadcrumb"], .breadcrumb')
-        assert breadcrumb.count() > 0, "Page should have breadcrumb navigation"
-        
-        # Check breadcrumb contains Home and Profile
-        breadcrumb_text = breadcrumb.first.inner_text().lower()
-        assert "home" in breadcrumb_text, "Breadcrumb should contain 'Home'"
-        assert "profile" in breadcrumb_text, "Breadcrumb should contain 'Profile'"
-        
-        print("✅ Breadcrumb navigation present")

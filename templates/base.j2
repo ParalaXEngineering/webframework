@@ -375,6 +375,19 @@
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
+    
+    {# Inject user's theme preference before dark.js loads #}
+    <script>
+        // Set theme from server-side user preference (overrides localStorage)
+        // This ensures each user gets their saved theme when they log in
+        (function() {
+            const userTheme = '{{ user_theme }}';
+            if (userTheme) {
+                localStorage.setItem('theme', userTheme);
+            }
+        })();
+    </script>
+    
     <script src="{{ url_for('static', filename= 'js/dark.js') }}"></script>
     {% for script in javascript %}
         <script src="{{ url_for('common.assets', asset_type="js", filename= script) }}"></script>

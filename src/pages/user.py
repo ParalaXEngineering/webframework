@@ -11,7 +11,7 @@ try:
     from ..modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
-        DisplayerItemInputSelect, DisplayerItemImage, DisplayerItemInputFile,
+        DisplayerItemInputSelect, DisplayerItemInputFile,
         DisplayerItemAlert, BSstyle
     )
     from ..modules.auth.auth_utils import verify_password, validate_password_strength
@@ -296,7 +296,7 @@ def profile():
 
 @user_profile_bp.route('/preferences', methods=['GET', 'POST'])
 def preferences():
-    """User preferences page - theme, notifications, module settings."""
+    """User preferences page - theme selection."""
     # Auth manager is required for this page
     # NOTE: This check should never fail in normal operation since this page
     # is only added to sidebar when authentication is enabled via site_conf
@@ -314,7 +314,7 @@ def preferences():
     
     # Create displayer
     disp = Displayer()
-    disp.add_generic("User Preferences")
+    disp.add_generic("User Preferences", display=False)
     disp.set_title("My Preferences")
     disp.add_breadcrumb("Preferences", "user_profile.preferences", [])
     
@@ -334,40 +334,85 @@ def preferences():
             module_data = data_in["User Preferences"]
             
             if "btn_save_prefs" in module_data:
-                # Update preferences
+                # Update theme preference
                 user_prefs["theme"] = module_data.get("select_theme", "light")
-                user_prefs["dashboard_layout"] = module_data.get("select_layout", "default")
                 
                 # Save
                 auth_manager.save_user_prefs(current_user, user_prefs)
-                flash("Preferences saved successfully!", "success")
+                flash("Theme preference saved successfully!", "success")
     
-    # General Preferences
+    # Theme Preference Section
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3>General Preferences</h3>"), column=0)
+    disp.add_display_item(DisplayerItemText("<h3>Theme Preference</h3>"), column=0)
+    disp.add_display_item(DisplayerItemText(
+        "<p class='text-muted'>Select your preferred theme. This preference is synchronized with the theme toggle in the sidebar.</p>"
+    ), column=0)
     
-    disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6, 6]))
+    disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_theme",
         "Theme",
         value=user_prefs.get("theme", "light"),
         choices=["light", "dark"]
     ), column=0)
-    disp.add_display_item(DisplayerItemInputSelect(
-        "select_layout",
-        "Dashboard Layout",
-        value=user_prefs.get("dashboard_layout", "default"),
-        choices=["default", "compact", "wide"]
-    ), column=1)
     
     # Only show save button for non-guest users
     if not is_guest:
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
         disp.add_display_item(DisplayerItemButton(
             "btn_save_prefs",
-            "Save Preferences",
+            "Save Theme Preference",
             color=BSstyle.PRIMARY
         ), column=0)
+    
+    # Add JavaScript to sync with localStorage (used by sidebar toggle)
+    # Note: User preference overrides localStorage to ensure each user gets their saved theme
+    sync_script = f"""
+    <script>
+    (function() {{
+        // Get current theme from user prefs (server-side)
+        const userTheme = '{user_prefs.get("theme", "light")}';
+        
+        // ALWAYS sync user preference to localStorage on page load
+        // This ensures each user's preference is applied when they log in
+        localStorage.setItem('theme', userTheme);
+        
+        // Apply theme immediately if not already applied
+        if (document.documentElement.getAttribute('data-bs-theme') !== userTheme) {{
+            document.body.classList.remove('theme-light', 'theme-dark');
+            document.body.classList.add('theme-' + userTheme);
+            document.documentElement.setAttribute('data-bs-theme', userTheme);
+            
+            // Update sidebar toggle to match
+            const toggler = document.getElementById('toggle-dark');
+            if (toggler) {{
+                toggler.checked = (userTheme === 'dark');
+            }}
+        }}
+        
+        // When form is submitted, update localStorage
+        const form = document.querySelector('form');
+        if (form) {{
+            form.addEventListener('submit', function() {{
+                const themeSelect = document.querySelector('select[name*="select_theme"]');
+                if (themeSelect) {{
+                    localStorage.setItem('theme', themeSelect.value);
+                }}
+            }});
+        }}
+        
+        // When theme selector changes, update localStorage immediately
+        const themeSelect = document.querySelector('select[name*="select_theme"]');
+        if (themeSelect) {{
+            themeSelect.addEventListener('change', function() {{
+                localStorage.setItem('theme', this.value);
+            }});
+        }}
+    }})();
+    </script>
+    """
+    disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
+    disp.add_display_item(DisplayerItemText(sync_script), column=0)
     
     return render_template("base_content.j2", content=disp.display(), target="user_profile.preferences")
 

@@ -35,7 +35,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from ..modules import displayer
 from ..modules.utilities import util_post_to_json, util_post_unmap
 from ..modules.log.logger_factory import get_logger
-from ..modules.auth import require_admin
+from ..modules.auth import require_admin, require_login
 
 logger = get_logger(__name__)
 
@@ -124,6 +124,7 @@ def view():
 
 
 @bp.route("/user_view", methods=["GET", "POST"])
+@require_login()
 def user_view():
     """View and edit user-overridable settings with inline form (no admin required)."""
     return _view_settings(user_mode=True)
@@ -278,7 +279,7 @@ def _view_settings(user_mode=False):
         if user_mode:
             # Save to user overrides
             try:
-                from ..modules.auth.auth_manager import auth_manager
+                from ..modules.auth import auth_manager
                 if not auth_manager:
                     flash("Authentication not initialized", "danger")
                     return redirect(url_for('common.login'))
@@ -445,6 +446,26 @@ def _view_settings(user_mode=False):
                 # Track overridable checkboxes
                 overridable_keys = set()
                 
+                # Extract overridable checkboxes
+                # util_post_to_json parses checkboxes like: overridable_category.setting: on
+                # As: {"overridable_category": {"setting": "1"}}
+                # We need to reconstruct the full keys as "category.setting"
+                for key in list(settings_data.keys()):
+                    if key.startswith("overridable_"):
+                        # Extract the category name (remove "overridable_" prefix)
+                        category = key.replace("overridable_", "")
+                        
+                        if isinstance(settings_data[key], dict):
+                            # Dictionary of setting_name: "1" for checked boxes
+                            for setting_name in settings_data[key].keys():
+                                full_key = f"{category}.{setting_name}"
+                                overridable_keys.add(full_key)
+                            settings_data.pop(key)
+                        elif isinstance(settings_data[key], list):
+                            # List format (alternative parsing)
+                            overridable_keys.update(settings_data[key])
+                            settings_data.pop(key)
+                
                 # Build list of all expected bool settings for checkbox handling
                 all_bool_settings = set()
                 if category_filter:
@@ -486,11 +507,6 @@ def _view_settings(user_mode=False):
                     
                     for setting_key, value in category_data.items():
                         if setting_key in ["csrf_token", "save"]:
-                            continue
-                        
-                        # Handle overridable checkbox
-                        if setting_key.startswith("overridable_"):
-                            overridable_keys.add(setting_key.replace("overridable_", ""))
                             continue
                         
                         full_key = f"{category}.{setting_key}"
@@ -557,15 +573,30 @@ def _view_settings(user_mode=False):
                     manager.set_setting_metadata(setting_key, "overridable_by_user", True)
                 
                 # Handle unchecked overridable checkboxes (set to False)
+                # Need to check both direct settings and subcategory settings
                 all_settings = manager.get_all_settings()
                 for category in all_settings:  # type: ignore
                     category_data = all_settings[category]
                     for key in category_data:  # type: ignore
                         if key == "friendly" or not isinstance(category_data[key], dict):
                             continue
-                        full_key = f"{category}.{key}"
-                        if full_key not in overridable_keys:
-                            manager.set_setting_metadata(full_key, "overridable_by_user", False)
+                        
+                        # Check if this is a direct setting (has 'type' field)
+                        if "type" in category_data[key]:
+                            full_key = f"{category}.{key}"
+                            if full_key not in overridable_keys:
+                                manager.set_setting_metadata(full_key, "overridable_by_user", False)
+                        else:
+                            # This is a subcategory, check its nested settings
+                            subcat_data = category_data[key]
+                            if isinstance(subcat_data, dict):
+                                for subkey in subcat_data:
+                                    if subkey in ["friendly", "_description"] or not isinstance(subcat_data[subkey], dict):
+                                        continue
+                                    if "type" in subcat_data[subkey]:
+                                        full_key = f"{category}.{key}.{subkey}"
+                                        if full_key not in overridable_keys:
+                                            manager.set_setting_metadata(full_key, "overridable_by_user", False)
                 
                 manager.save()
                 flash("Settings saved successfully!", "success")
@@ -602,7 +633,7 @@ def _view_settings(user_mode=False):
     user_overrides = {}
     if user_mode:
         try:
-            from ..modules.auth.auth_manager import auth_manager
+            from ..modules.auth import auth_manager
             if auth_manager:
                 current_user = auth_manager.get_current_user()
                 if current_user:

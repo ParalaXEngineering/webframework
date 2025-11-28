@@ -455,6 +455,23 @@ def setup_app(app):
             required_js=ResourceRegistry.get_required_js(),
             required_cdn=ResourceRegistry.get_required_js_cdn()
         )
+    
+    @app.context_processor
+    def inject_user_theme():
+        """Inject user's theme preference into all templates."""
+        from .modules.auth import auth_manager
+        user_theme = "light"  # Default
+        
+        if auth_manager:
+            try:
+                current_user = auth_manager.get_current_user()
+                if current_user:
+                    user_prefs = auth_manager.get_user_prefs(current_user)
+                    user_theme = user_prefs.get("theme", "light")
+            except Exception:
+                pass  # Silently fall back to default
+        
+        return dict(user_theme=user_theme)
 
     # Custom Jinja2 filter for url_for with dict parameters
     @app.template_filter('url_for_with_params')
