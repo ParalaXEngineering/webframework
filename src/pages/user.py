@@ -277,7 +277,7 @@ def profile():
             color=BSstyle.WARNING
         ), column=0)
         disp.add_display_item(DisplayerItemText(
-            "<small class='text-muted'>Password must be at least 6 characters with letters and numbers.</small>"
+            "<small class='text-muted'>Password must be at least 5 characters with letters and numbers.</small>"
         ), column=0)
     else:
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))

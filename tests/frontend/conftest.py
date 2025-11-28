@@ -86,7 +86,7 @@ def reset_auth_state():
                 users_data = json.load(f)
             
             # Generate hash for 'admin' password
-            password_hash = bcrypt.hashpw('admin'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            password_hash = bcrypt.hashpw('admin123'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             
             if 'admin' in users_data:
                 users_data['admin']['password_hash'] = password_hash

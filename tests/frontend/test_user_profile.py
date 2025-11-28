@@ -241,9 +241,9 @@ class TestUserProfilePage:
             print("⚠️  Password change section not available (passwordless account)")
             pytest.skip("Password change not available for this user")
         
-        # Now test changing password from 'admin' to 'newpass123'
+        # Now test changing password from 'admin123' to 'newpass123'
         # Note: Using raw HTML inputs since DisplayerItemInputPassword doesn't exist yet
-        page.fill('input#input_current_password', 'admin')
+        page.fill('input#input_current_password', 'admin123')
         page.fill('input#input_new_password', 'newpass123')
         page.fill('input#input_confirm_password', 'newpass123')
         
@@ -261,8 +261,8 @@ class TestUserProfilePage:
         # IMPORTANT: Change password back immediately to not break subsequent tests
         navigate_to(page, "/user/profile")
         page.fill('input#input_current_password', 'newpass123')
-        page.fill('input#input_new_password', 'admin')
-        page.fill('input#input_confirm_password', 'admin')
+        page.fill('input#input_new_password', 'admin123')
+        page.fill('input#input_confirm_password', 'admin123')
         click_button(page, "btn_change_password")
         page.wait_for_timeout(500)
         
@@ -313,7 +313,7 @@ class TestUserProfilePage:
             pytest.skip("Password change not available")
         
         # Try to change password with mismatched confirmation
-        page.fill('input#input_current_password', 'admin')
+        page.fill('input#input_current_password', 'admin123')
         page.fill('input#input_new_password', 'newpass123')
         page.fill('input#input_confirm_password', 'different123')
         
@@ -344,7 +344,7 @@ class TestUserProfilePage:
         weak_passwords = ["123", "abc", "12345"]
         
         for weak_pwd in weak_passwords:
-            page.fill('input#input_current_password', 'admin')
+            page.fill('input#input_current_password', 'admin123')
             page.fill('input#input_new_password', weak_pwd)
             page.fill('input#input_confirm_password', weak_pwd)
             

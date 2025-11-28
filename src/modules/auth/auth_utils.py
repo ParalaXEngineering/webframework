@@ -54,7 +54,7 @@ def validate_password_strength(password: str) -> Tuple[bool, Optional[str]]:
     Validate password meets minimum requirements.
     
     Requirements:
-    - At least 6 characters
+    - At least 5 characters
     - Contains at least one letter
     - Contains at least one number
     
@@ -64,8 +64,8 @@ def validate_password_strength(password: str) -> Tuple[bool, Optional[str]]:
     Returns:
         (is_valid, error_message)
     """
-    if len(password) < 6:
-        return False, "Password must be at least 6 characters long"
+    if len(password) < 5:
+        return False, "Password must be at least 5 characters long"
     
     if not re.search(r'[a-zA-Z]', password):
         return False, "Password must contain at least one letter"
