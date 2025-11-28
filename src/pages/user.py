@@ -17,19 +17,17 @@ try:
     from ..modules.auth.auth_utils import verify_password, validate_password_strength
     from ..modules import utilities
     from ..modules.log.logger_factory import get_logger
-    from ..modules.utilities import get_home_endpoint
     from ..modules.auth import auth_manager
 except ImportError:
     from modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
-        DisplayerItemInputSelect, DisplayerItemImage, DisplayerItemInputFile,
+        DisplayerItemInputSelect, DisplayerItemInputFile,
         DisplayerItemAlert, BSstyle
     )
     from modules.auth.auth_utils import verify_password, validate_password_strength
     from modules import utilities
     from modules.log.logger_factory import get_logger
-    from modules.utilities import get_home_endpoint
     from modules.auth import auth_manager
 
 logger = get_logger("user_profile")
@@ -72,7 +70,6 @@ def profile():
         disp = Displayer()
         disp.add_generic("Access Restricted")
         disp.set_title("Guest Access")
-        disp.add_breadcrumb("Home", get_home_endpoint(), [])
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
         disp.add_display_item(DisplayerItemAlert(
             "<h4><i class='mdi mdi-account-alert'></i> Profile Not Available for Guest Users</h4>"
@@ -80,13 +77,6 @@ def profile():
             "<p>Please log in with a registered account to access your profile.</p>",
             BSstyle.WARNING,
             icon="account-alert"
-        ), column=0)
-        disp.add_display_item(DisplayerItemButton(
-            "btn_home",
-            "Return to Home",
-            icon="home",
-            link=url_for(get_home_endpoint()),
-            color=BSstyle.PRIMARY
         ), column=0)
         return render_template("base_content.j2", content=disp.display())
     
@@ -98,7 +88,6 @@ def profile():
     disp = Displayer()
     disp.add_generic("User Profile", display=False)
     disp.set_title("My Profile")
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Profile", "user_profile.profile", [])
     
     # Handle POST
@@ -327,7 +316,6 @@ def preferences():
     disp = Displayer()
     disp.add_generic("User Preferences")
     disp.set_title("My Preferences")
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Preferences", "user_profile.preferences", [])
     
     # Show info for GUEST users
@@ -380,19 +368,6 @@ def preferences():
             "Save Preferences",
             color=BSstyle.PRIMARY
         ), column=0)
-    
-    # Module Settings (display as JSON)
-    disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Module Settings</h3>"), column=0)
-    
-    import json
-    module_settings_json = json.dumps(user_prefs.get("module_settings", {}), indent=2)
-    disp.add_display_item(DisplayerItemText(
-        f"<pre style='background: #f5f5f5; padding: 1rem; border-radius: 4px;'>{module_settings_json}</pre>"
-    ), column=0)
-    disp.add_display_item(DisplayerItemText(
-        "<small class='text-muted'>Module settings are configured automatically by each module.</small>"
-    ), column=0)
     
     return render_template("base_content.j2", content=disp.display(), target="user_profile.preferences")
 

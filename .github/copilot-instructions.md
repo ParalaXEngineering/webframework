@@ -69,11 +69,6 @@ class MyAction(Threaded_action):
 ```
 
 ### Home Page Navigation (IMPORTANT)
-Framework pages use a **configurable home endpoint** instead of hardcoded `demo.index`:
-```python
-from modules.utilities import get_home_endpoint
-disp.add_breadcrumb("Home", get_home_endpoint(), [])
-```
 Override the default home endpoint in your website's `site_conf.py`:
 ```python
 class MySiteConf(Site_conf):

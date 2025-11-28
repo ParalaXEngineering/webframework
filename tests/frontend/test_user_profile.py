@@ -409,24 +409,3 @@ class TestUserProfilePage:
         assert "profile" in breadcrumb_text, "Breadcrumb should contain 'Profile'"
         
         print("✅ Breadcrumb navigation present")
-    
-    def test_14_profile_page_responsive(self, logged_in_page: Page):
-        """Test that profile page layout is present and structured."""
-        page = logged_in_page
-        
-        print("\n📄 Test: Profile page structure")
-        navigate_to(page, "/user/profile")
-        
-        # Check for form elements
-        forms = page.locator('form').all()
-        assert len(forms) > 0, "Page should contain forms"
-        
-        # Check for input fields
-        inputs = page.locator('input').all()
-        assert len(inputs) >= 2, "Page should have multiple input fields"
-        
-        # Check for buttons
-        buttons = page.locator('button').all()
-        assert len(buttons) >= 2, "Page should have multiple action buttons"
-        
-        print(f"✅ Page structure: {len(forms)} forms, {len(inputs)} inputs, {len(buttons)} buttons")

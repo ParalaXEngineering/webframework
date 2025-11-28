@@ -30,7 +30,7 @@ HUMAN_MODE = True  # Set to False for headless mode
 # Test configuration
 BASE_URL = "http://localhost:5001"
 TEST_ADMIN_USERNAME = "admin"
-TEST_ADMIN_PASSWORD = "admin"
+TEST_ADMIN_PASSWORD = "admin123"
 
 
 # ============================================================================

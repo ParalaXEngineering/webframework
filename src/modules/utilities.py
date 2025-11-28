@@ -39,24 +39,6 @@ if not TYPE_CHECKING:
 CONFIG_GLOBAL = {}
 LAST_ACCESS_CONFIG = None
 
-def get_home_endpoint():
-    """
-    Get the configured home endpoint from site_conf.
-    
-    Returns the home endpoint configured in site_conf, or 'framework_index' as default.
-    This allows websites to override the default home page by setting a custom endpoint.
-    
-    Returns:
-        str: The endpoint name for the home page (e.g., 'framework_index' or 'my_module.home')
-    """
-    try:
-        from . import site_conf
-        if site_conf.site_conf_obj:
-            return site_conf.site_conf_obj.m_home_endpoint
-    except (ImportError, AttributeError):
-        pass
-    return "framework_index"
-
 def get_breadcrumbs():
     """
     Return the breadcrumbs from session.

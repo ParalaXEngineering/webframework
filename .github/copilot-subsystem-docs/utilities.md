@@ -45,14 +45,6 @@ if error:
 address = configs["updates.address.value"]
 ```
 
-### Home Endpoint (MANDATORY for Breadcrumbs)
-```python
-from modules.utilities import get_home_endpoint
-
-# In every page
-disp.add_breadcrumb("Home", get_home_endpoint(), [])
-# Returns site_conf_obj.m_home_endpoint or "framework_index"
-```
 
 ### File Size Formatting
 ```python
@@ -103,7 +95,6 @@ def util_post_to_json(data: dict) -> dict
 def get_config_or_error(settings_manager, *config_paths) -> tuple
 
 # Navigation
-def get_home_endpoint() -> str
 def get_breadcrumbs() -> List[dict]
 def update_breadcrumbs(disp, level, title, endpoint, params=None, style=None)
 
@@ -120,17 +111,15 @@ def util_list_to_html(input_list: List) -> str
 ## Common Pitfalls
 1. **util_post_to_json MANDATORY** - Framework requires this for nested form data
 2. **get_config_or_error** - Returns tuple (value, error); MUST check error
-3. **Home endpoint** - Never hardcode "demo.index"; use get_home_endpoint()
-4. **Form structure** - HTML names like "user.name" become `{"user": {"name": "..."}}`
-5. **Multichoice** - Checkboxes with "_" separator (e.g., "options_choice1" → `{"options": ["choice1"]}`)
-6. **Error rendering** - get_config_or_error returns pre-rendered error page (Displayer dict)
-7. **File size units** - Returns human-readable (KB, MB, GB) not bytes
-8. **Date format** - Assumes ISO 8601 format input
+3. **Form structure** - HTML names like "user.name" become `{"user": {"name": "..."}}`
+4. **Multichoice** - Checkboxes with "_" separator (e.g., "options_choice1" → `{"options": ["choice1"]}`)
+5. **Error rendering** - get_config_or_error returns pre-rendered error page (Displayer dict)
+6. **File size units** - Returns human-readable (KB, MB, GB) not bytes
+7. **Date format** - Assumes ISO 8601 format input
 
 ## Integration Points
 - **Displayer**: Form data flows through util_post_to_json before route logic
 - **Settings**: get_config_or_error wraps SettingsManager for safe access
-- **Site_conf**: get_home_endpoint reads m_home_endpoint from site_conf_obj
 - **Auth**: Breadcrumbs stored in session['breadcrumbs']
 
 ## Files

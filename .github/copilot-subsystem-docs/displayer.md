@@ -18,14 +18,13 @@ from modules.displayer import (
     Displayer, DisplayerLayout, Layouts,
     DisplayerItemText, DisplayerItemButton, BSstyle
 )
-from modules.utilities import get_home_endpoint
 
 @blueprint.route("/mypage")
 def mypage():
     disp = Displayer()
     disp.add_generic("My Page Title")
     disp.set_title("My Page")  # Browser title
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
+    disp.add_breadcrumb("Home", "mymodule.home", [])
     disp.add_breadcrumb("My Page", "mymodule.mypage", [])
     
     # Add layout (columns sum to 12)
@@ -94,12 +93,10 @@ def submit():
     return "OK"
 ```
 
-### Breadcrumbs (Use get_home_endpoint)
+### Breadcrumbs
 ```python
-from modules.utilities import get_home_endpoint
-
-# First breadcrumb always home
-disp.add_breadcrumb("Home", get_home_endpoint(), [])
+# First breadcrumb typically home
+disp.add_breadcrumb("Home", "mymodule.home", [])
 
 # Additional levels
 disp.add_breadcrumb("Files", "filemanager.index", [])
@@ -150,7 +147,7 @@ class DisplayerItem:
 ## Common Pitfalls
 1. **util_post_to_json MANDATORY** - Never use `request.form.get()` directly
 2. **Column sum** - Horizontal columns must sum to 12 (Bootstrap grid)
-3. **Breadcrumb home** - Use `get_home_endpoint()` not hardcoded "demo.index"
+3. **Breadcrumb endpoints** - Use appropriate endpoint strings for navigation
 4. **Layout IDs** - Store layout_id from `add_master_layout()` if adding to multiple layouts
 5. **display() call** - Must call `disp.display()` at end to render
 6. **Item IDs** - Must be unique across page

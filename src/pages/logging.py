@@ -7,7 +7,6 @@ tabbed interface showing log content with automatic updates using DataTables.
 
 from flask import Blueprint, render_template, request, jsonify
 from ..modules import displayer
-from ..modules.utilities import get_home_endpoint
 from ..modules.auth import require_admin
 import os
 import re
@@ -86,7 +85,6 @@ def logs():
     disp.add_generic("Log Viewer")
     disp.set_title("Log Viewer")
     
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Logs", "logging.logs", [])
     
     # Get logs directory

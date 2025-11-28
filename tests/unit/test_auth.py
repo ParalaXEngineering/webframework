@@ -78,11 +78,11 @@ class TestAuthManager:
         manager = auth_manager_instance
         
         # Create users with different groups
-        manager.create_user("admin", "pass", ["admin"])
+        manager.create_user("admin", "pass", ["admin123"])
         manager.create_user("user", "pass", ["users"])
         
         # Set permissions
-        manager.set_module_permissions("Module1", "admin", ["read", "write", "delete"])
+        manager.set_module_permissions("Module1", "admin123", ["read", "write", "delete"])
         manager.set_module_permissions("Module1", "users", ["read"])
         
         # Check admin permissions

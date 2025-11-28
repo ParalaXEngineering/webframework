@@ -27,8 +27,6 @@ def index():
     disp.add_generic("Authorization Showcase")
     disp.set_title("Authorization System Demo")
     
-    from src.modules.utilities import get_home_endpoint
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Authorization Showcase", "demo_auth.index", [])
     
     # Section 1: Overview
@@ -210,8 +208,6 @@ def test_public():
     disp = displayer.Displayer()
     disp.add_generic("Public Access Test")
     
-    from src.modules.utilities import get_home_endpoint
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Authorization Showcase", "demo_auth.index", [])
     disp.add_breadcrumb("Public Test", "demo_auth.test_public", [])
     
@@ -245,8 +241,6 @@ def test_view():
     disp = displayer.Displayer()
     disp.add_generic("View Permission Test")
     
-    from src.modules.utilities import get_home_endpoint
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Authorization Showcase", "demo_auth.index", [])
     disp.add_breadcrumb("View Test", "demo_auth.test_view", [])
     
@@ -279,8 +273,6 @@ def test_edit():
     disp = displayer.Displayer()
     disp.add_generic("Edit Permission Test")
     
-    from src.modules.utilities import get_home_endpoint
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Authorization Showcase", "demo_auth.index", [])
     disp.add_breadcrumb("Edit Test", "demo_auth.test_edit", [])
     
@@ -313,8 +305,6 @@ def test_delete():
     disp = displayer.Displayer()
     disp.add_generic("Denied Permission Test")
     
-    from src.modules.utilities import get_home_endpoint
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Authorization Showcase", "demo_auth.index", [])
     disp.add_breadcrumb("Denied Test", "demo_auth.test_delete", [])
     
@@ -347,8 +337,6 @@ def test_custom():
     disp = displayer.Displayer()
     disp.add_generic("Allowed Permission Test")
     
-    from src.modules.utilities import get_home_endpoint
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Authorization Showcase", "demo_auth.index", [])
     disp.add_breadcrumb("Allowed Test", "demo_auth.test_custom", [])
     
@@ -384,8 +372,6 @@ def test_admin():
     disp = displayer.Displayer()
     disp.add_generic("Admin Test")
     
-    from src.modules.utilities import get_home_endpoint
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Authorization Showcase", "demo_auth.index", [])
     disp.add_breadcrumb("Admin Test", "demo_auth.test_admin", [])
     
@@ -423,8 +409,6 @@ def inline_check_demo():
     disp = displayer.Displayer()
     disp.add_generic("Inline Check Demo")
     
-    from src.modules.utilities import get_home_endpoint
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Authorization Showcase", "demo_auth.index", [])
     disp.add_breadcrumb("Inline Check", "demo_auth.inline_check_demo", [])
     
@@ -505,8 +489,6 @@ def module_demo():
     disp = displayer.Displayer()
     disp.add_generic("Module Authorization")
     
-    from src.modules.utilities import get_home_endpoint
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Authorization Showcase", "demo_auth.index", [])
     disp.add_breadcrumb("Module Demo", "demo_auth.module_demo", [])
     

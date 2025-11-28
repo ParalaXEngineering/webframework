@@ -20,7 +20,6 @@ try:
     from ..modules.auth.auth_utils import validate_username, validate_password_strength
     from ..modules.auth.permission_registry import permission_registry
     from ..modules import utilities
-    from ..modules.utilities import get_home_endpoint
     from ..modules.log.logger_factory import get_logger
     from ..modules.auth import require_admin, auth_manager
 except ImportError:
@@ -34,7 +33,6 @@ except ImportError:
     from modules.auth.auth_utils import validate_username, validate_password_strength
     from modules.auth.permission_registry import permission_registry
     from modules import utilities
-    from modules.utilities import get_home_endpoint
     from modules.log.logger_factory import get_logger
     from modules.auth import require_admin, auth_manager
 
@@ -57,7 +55,6 @@ def manage_users():
     # Create displayer
     disp = Displayer()
     disp.add_generic("User Management")
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Admin", "admin_auth.manage_users", [])
     disp.add_breadcrumb("Users", "admin_auth.manage_users", [])
     
@@ -265,7 +262,6 @@ def manage_permissions():
     disp = Displayer()
     disp.add_generic("Permission Management")
     disp.set_title("Module Permissions")
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Admin", "admin_auth.manage_users", [])
     disp.add_breadcrumb("Permissions", "admin_auth.manage_permissions", [])
     
@@ -396,7 +392,6 @@ def manage_groups():
     disp = Displayer()
     disp.add_generic("Group Management")
     disp.set_title("Group Management")
-    disp.add_breadcrumb("Home", get_home_endpoint(), [])
     disp.add_breadcrumb("Admin", "admin_auth.manage_users", [])
     disp.add_breadcrumb("Groups", "admin_auth.manage_groups", [])
     
