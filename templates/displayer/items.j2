@@ -63,12 +63,8 @@
         {{inmultichoice(item["id"], item["value"], item["text"], item["data"])}}
     {% elif item["type"] == "INHIDDEN" %}
         {{inhidden(item["id"], item["value"])}}
-    {% elif item["type"] == "INFILE" %}
-        {{infile(item["id"], item["text"])}}
     {% elif item["type"] == "INFOLDER" %}
         {{infolder(item["id"], item["text"])}}
-    {% elif item["type"] == "INIMAGE" %}
-        {{inimage(item["id"], item["text"])}}
     {% elif item["type"] == "SELECT" %}
         {{inselect(item["id"], item["data"], item["value"], item["text"], item["tooltips"])}}
     {% elif item["type"] == "INCASCADED" %}
@@ -1190,17 +1186,10 @@ document.addEventListener('DOMContentLoaded', function() {
     {{ common_input.hidden(id, value)}}
 {% endmacro %}
 
-{% macro infile(id, file) %}
-    {{ common_input.file(id)}}
-{% endmacro %}
-
 {% macro infolder(id, file) %}
     {{ common_input.folder(id)}}
 {% endmacro %}
 
-{% macro inimage(id, file) %}
-    {{ common_input.image(id)}}
-{% endmacro %}
 {# New item macros #}
 
 {% macro card(id, title, body, icon, header_color, footer_buttons) %}

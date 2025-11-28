@@ -11,7 +11,7 @@ try:
     from ..modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
-        DisplayerItemInputSelect, DisplayerItemInputFile,
+        DisplayerItemInputSelect, DisplayerItemFileUpload,
         DisplayerItemAlert, BSstyle
     )
     from ..modules.auth.auth_utils import verify_password, validate_password_strength
@@ -22,7 +22,7 @@ except ImportError:
     from modules.displayer import (
         Displayer, DisplayerLayout, Layouts,
         DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
-        DisplayerItemInputSelect, DisplayerItemInputFile,
+        DisplayerItemInputSelect, DisplayerItemFileUpload,
         DisplayerItemAlert, BSstyle
     )
     from modules.auth.auth_utils import verify_password, validate_password_strength
@@ -225,14 +225,12 @@ def profile():
     '''
     disp.add_display_item(DisplayerItemText(avatar_html), column=0)
     
-    disp.add_display_item(DisplayerItemInputFile(
+    disp.add_display_item(DisplayerItemFileUpload(
         "file_avatar",
-        "Upload New Avatar"
-    ), column=1)
-    disp.add_display_item(DisplayerItemButton(
-        "btn_upload_avatar",
-        "Upload Avatar",
-        color=BSstyle.PRIMARY
+        "Upload New Avatar",
+        category="avatars",
+        accept_types=["image/*"],
+        multiple=False
     ), column=1)
     disp.add_display_item(DisplayerItemText(
         "<small class='text-muted'>Allowed: JPEG, PNG, SVG. Max size: 1024x1024 (auto-resized for raster images)</small>"

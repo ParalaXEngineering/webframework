@@ -42,7 +42,7 @@ def get_latest_uploaded_file():
     return None
 
 
-@demo_file_bp.route('/file-manager-demo', methods=['GET', 'POST'])
+@demo_file_bp.route('/file-manager-demo', methods=['GET'])
 @require_permission("FileManager", "view")
 def file_manager_demo():
     """File Manager Demo - Upload and display components."""
@@ -58,137 +58,12 @@ def file_manager_demo():
     if file_manager is None:
         file_manager = FileManager(settings.settings_manager)
     
-    # Handle file upload POST - check upload permission
-    upload_result = None
-    if request.method == 'POST':
-        # Check if user has upload permission
-        if auth_manager:
-            current_user = session.get('user')
-            if not auth_manager.has_permission(current_user, "FileManager", "upload"):
-                upload_result = {
-                    'success': False,
-                    'error': "You don't have permission to upload files. Contact an administrator."
-                }
-                logger.warning(f"User {current_user} attempted to upload without permission")
-                # Continue to render page with error, don't process upload
-                request.method = 'GET'  # Prevent upload processing below
-        logger.info(f"POST request received. Form keys: {list(request.form.keys())}")
-        logger.info(f"Files keys: {list(request.files.keys())}")
-        
-        # Check which upload form was used
-        # Framework prefixes field names with page title: "File Manager Demo.file"
-        file = None
-        is_simple_upload = False
-        
-        # Check for files with or without prefix
-        for key in request.files:
-            file_storage = request.files[key]
-            if file_storage.filename:
-                # Determine which upload based on field name
-                if 'simple_file' in key:
-                    file = file_storage
-                    is_simple_upload = True
-                    logger.info(f"Simple upload - file: {file.filename}")
-                    break
-                elif 'file' in key:
-                    file = file_storage
-                    logger.info(f"Full upload - file: {file.filename}")
-                    break
-        
-        if not file:
-            logger.warning(f"No valid file found in request. Files: {request.files}")
-        
-        if file:
-            try:
-                # Get form data
-                if is_simple_upload:
-                    # Pre-filled values for simple upload
-                    category = 'documents'
-                    group_id = ''
-                    tags = ['demo', 'example']
-                else:
-                    # User-selected values for full upload
-                    # Framework may prefix form field names too
-                    category = None
-                    for key in request.form:
-                        if 'category' in key:
-                            category = request.form.get(key, 'general')
-                            break
-                    if not category:
-                        category = 'general'
-                    
-                    group_id = ''
-                    for key in request.form:
-                        if 'group_id' in key:
-                            group_id = request.form.get(key, '')
-                            break
-                    if group_id == '(none)':
-                        group_id = ''
-                    
-                    # Tags might be a multiselect
-                    tags = []
-                    for key in request.form:
-                        if 'tags' in key:
-                            tags = request.form.getlist(key)
-                            break
-                
-                logger.info(f"Uploading: category={category}, group_id={group_id}, tags={tags}")
-                
-                metadata = file_manager.upload_file(
-                    file,
-                    category=category,
-                    group_id=group_id,
-                    tags=tags if tags else []
-                )
-                upload_result = {
-                    'success': True,
-                    'filename': metadata['name'],
-                    'size': metadata['size']
-                }
-                logger.info(f"File uploaded successfully: {metadata['name']}")
-            except Exception as e:
-                upload_result = {
-                    'success': False,
-                    'error': str(e)
-                }
-                logger.error(f"Upload failed: {e}", exc_info=True)
-        else:
-            logger.warning("POST request but no file to upload")
-    
     # Check if user has upload permission for UI display
     has_upload_permission = True
     if auth_manager:
         current_user = session.get('user')
         has_upload_permission = auth_manager.has_permission(current_user, "FileManager", "upload")
     
-    # Get available options
-    categories = file_manager.get_categories()
-    group_ids = file_manager.get_group_ids()
-    tags = file_manager.get_tags()
-    
-    # Show upload result if any
-    if upload_result:
-        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-        if upload_result['success']:
-            disp.add_display_item(
-                displayer.DisplayerItemAlert(
-                    f"<strong><i class='mdi mdi-check-circle'></i> Upload Successful!</strong><br>"
-                    f"File: {upload_result['filename']}<br>"
-                    f"Size: {upload_result['size'] / 1024:.1f} KB",
-                    displayer.BSstyle.SUCCESS
-                ),
-                column=0
-            )
-        else:
-            disp.add_display_item(
-                displayer.DisplayerItemAlert(
-                    f"<strong><i class='mdi mdi-close-circle'></i> Upload Failed</strong><br>{upload_result['error']}",
-                    displayer.BSstyle.WARNING
-                ),
-                column=0
-            )
-    
-
     # Section 1: Full Upload (user selects everything)
     disp.add_master_layout(
         displayer.DisplayerLayout(
@@ -215,44 +90,11 @@ def file_manager_demo():
             column=0
         )
         
-        # Simple file input
-        disp.add_display_item(displayer.DisplayerItemInputFile(
+        # Modern FilePond upload with all fields visible
+        disp.add_display_item(displayer.DisplayerItemFileUpload(
             id="file",
             text="Select File"
-        ), column=0)
-    
-        # Category dropdown
-        disp.add_display_item(displayer.DisplayerItemInputSelect(
-            id="category",
-            text="Category",
-            choices=categories,
-            value="general"
-        ), column=0)
-        
-        # Group ID dropdown
-        if group_ids:
-            group_id_choices = ["(none)"] + group_ids
-            disp.add_display_item(displayer.DisplayerItemInputSelect(
-                id="group_id",
-                text="Group ID (Optional)",
-                choices=group_id_choices,
-                value="(none)"
-            ), column=0)
-        
-        # Tags multi-select
-        disp.add_display_item(displayer.DisplayerItemInputMultiSelect(
-            id="tags",
-            text="Tags (Optional)",
-            choices=tags,
-            value=[]
-        ), column=0)
-        
-        # Upload button (framework handles form submission via target parameter in render_template)
-        disp.add_display_item(displayer.DisplayerItemButton(
-            id="upload_btn",
-            text="Upload File",
-            icon="upload",
-            color=displayer.BSstyle.PRIMARY
+            # All fields shown because nothing is pre-filled
         ), column=0)
     
     # Section 2: Simple Upload (category and tags pre-filled)
@@ -281,13 +123,15 @@ def file_manager_demo():
             column=0
         )
         
-        # File input only
-        disp.add_display_item(displayer.DisplayerItemInputFile(
+        # Modern FilePond upload with pre-filled values (hides those fields)
+        disp.add_display_item(displayer.DisplayerItemFileUpload(
             id="simple_file",
-            text="Select File"
+            text="Select File",
+            category="documents",
+            tags=["demo", "example"]
         ), column=0)
         
-        # Show pre-filled values
+        # Show what's pre-filled
         disp.add_display_item(
             displayer.DisplayerItemAlert(
                 "<p class='text-muted'><i class='mdi mdi-information'></i> Category: <strong>documents</strong>, Tags: <strong>demo, example</strong></p>",
@@ -295,14 +139,6 @@ def file_manager_demo():
             ),
             column=0
         )
-        
-        # Upload button
-        disp.add_display_item(displayer.DisplayerItemButton(
-            id="simple_upload_btn",
-            text="Upload File",
-            icon="upload",
-            color=displayer.BSstyle.SUCCESS
-        ), column=0)
     
     # Get latest file for display examples
     latest_file_id = get_latest_uploaded_file()

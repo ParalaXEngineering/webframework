@@ -769,8 +769,12 @@ def update():
         )
     )
     disp.add_display_item(displayer.DisplayerItemText("Load package from file"), 0)
-    disp.add_display_item(displayer.DisplayerItemInputFile("load_update_file"), 1)
-    disp.add_display_item(displayer.DisplayerItemButton("unpack", "Unpack"), 2)
+    disp.add_display_item(displayer.DisplayerItemFileUpload(
+        "load_update_file",
+        "Select Update Package",
+        category="updates",
+        accept_types=[".zip", ".7z", ".rar"]
+    ), 1)
 
     return render_template(
         "base_content.j2", content=disp.display(), target="updater.update"

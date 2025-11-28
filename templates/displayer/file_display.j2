@@ -260,7 +260,10 @@
     {% else %}
         {# Show icon based on file extension #}
         {% set icon_class = _get_file_icon(filename) %}
-        <i class="mdi {{ icon_class }}" style="font-size: 2.5rem;"></i>
+        <div class="file-icon-placeholder d-flex align-items-center justify-content-center" 
+             style="width: {{ size }}; height: {{ size }}; background-color: #f8f9fa; border-radius: 0.25rem;">
+            <i class="mdi {{ icon_class }}" style="font-size: calc({{ size }} * 0.6);"></i>
+        </div>
     {% endif %}
 {% endmacro %}
 

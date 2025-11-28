@@ -82,8 +82,6 @@ from .items import (
     DisplayerItemInputChoice,
     DisplayerItemInputMultiChoice,
     DisplayerItemInputFolder,
-    DisplayerItemInputFile,
-    DisplayerItemInputImage,
     DisplayerItemCalendar,
     # New items
     DisplayerItemCard,
@@ -163,8 +161,6 @@ __all__ = [
     'DisplayerItemInputChoice',
     'DisplayerItemInputMultiChoice',
     'DisplayerItemInputFolder',
-    'DisplayerItemInputFile',
-    'DisplayerItemInputImage',
     
     # Advanced items
     'DisplayerItemCalendar',

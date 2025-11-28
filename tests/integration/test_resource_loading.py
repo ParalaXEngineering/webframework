@@ -69,7 +69,7 @@ def check_html_for_resources(item_class_name: str, required_vendors: List[str]) 
     """
     Check if generated HTML contains expected resources for given vendors.
     
-    :param item_class_name: Name of DisplayerItem class (e.g., 'DisplayerItemInputFile')
+    :param item_class_name: Name of DisplayerItem class (e.g., 'DisplayerItemFileUpload')
     :param required_vendors: List of vendor names that should be loaded (e.g., ['filepond'])
     :return: Dict with 'success', 'missing', 'unexpected' keys
     """

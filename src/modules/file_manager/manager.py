@@ -1103,7 +1103,7 @@ class FileManager:
                     metadata[thumb_key] = thumb_relative.replace('\\', '/')
                     logger.debug(f"Found thumbnail for {file_version.filename}: {thumb_relative}")
                 else:
-                    logger.debug(f"Thumbnail not found for {file_version.filename}: {thumb_path}")
+                    logger.debug(f"No thumbnail for {file_version.filename}")
             
             files.append(metadata)
         
