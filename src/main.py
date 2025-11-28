@@ -18,6 +18,7 @@ import time
 import os
 import webbrowser
 import uuid
+import shutil
 
 import importlib
 import sys
@@ -56,6 +57,57 @@ def authorize_refresh(f):
     return f
 
 
+def _ensure_default_assets(app_path, framework_root, logger):
+    """
+    Ensure required default assets exist in the instance.
+    
+    Checks for favicon and default user avatar, copying from framework 
+    defaults if missing. Skips copying if files already exist.
+    
+    Args:
+        app_path: Path to the instance (e.g., Manual_Webapp root)
+        framework_root: Path to the framework root
+        logger: Logger instance for messages
+    """
+    # Define required assets: (instance_path, framework_source_path, description)
+    required_assets = [
+        (
+            os.path.join(app_path, "website", "assets", "images", "logo", "favicon.png"),
+            os.path.join(framework_root, "webengine", "assets", "images", "logo", "favicon.png"),
+            "favicon"
+        ),
+        (
+            os.path.join(app_path, "website", "assets", "images", "users", "default.svg"),
+            os.path.join(framework_root, "webengine", "assets", "images", "users", "default.svg"),
+            "default user avatar"
+        ),
+    ]
+    
+    for instance_path, framework_path, description in required_assets:
+        # Skip if already exists in instance
+        if os.path.exists(instance_path):
+            logger.debug(f"{description.capitalize()} already exists: {instance_path}")
+            continue
+        
+        # Check if framework default exists
+        if not os.path.exists(framework_path):
+            logger.warning(f"Framework default {description} not found: {framework_path}")
+            continue
+        
+        # Create directory if needed
+        instance_dir = os.path.dirname(instance_path)
+        if not os.path.exists(instance_dir):
+            os.makedirs(instance_dir)
+            logger.info(f"Created directory: {instance_dir}")
+        
+        # Copy from framework to instance
+        try:
+            shutil.copy2(framework_path, instance_path)
+            logger.info(f"Copied {description} from framework defaults: {os.path.basename(instance_path)}")
+        except Exception as e:
+            logger.error(f"Failed to copy {description}: {e}")
+
+
 def setup_app(app):
     """Setup Flask app. Only call when FLASK_AVAILABLE is True."""
     if not FLASK_AVAILABLE:
@@ -87,6 +139,11 @@ def setup_app(app):
         # Go up 2 levels from src/main.py to get framework root
         # src/main.py -> src/ -> webframework/
         app_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    # Ensure required default assets exist (favicon, default avatar)
+    # Use site_conf_app_path if set (instance path), otherwise use app_path
+    instance_path = site_conf.site_conf_app_path if site_conf.site_conf_app_path else app_path
+    _ensure_default_assets(instance_path, app_path, logger)
 
     # Get all Python files in the "pages" directory (if it exists)
     website_pages_path = os.path.join(app_path, "website", "pages")
