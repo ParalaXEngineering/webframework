@@ -31,18 +31,116 @@ Config structure:
     }
 """
 
+# Standard library
+from urllib.parse import urlparse, parse_qs
+
+# Third-party
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+
+# Local modules
 from ..modules import displayer
-from ..modules.utilities import util_post_to_json, util_post_unmap
-from ..modules.log.logger_factory import get_logger
 from ..modules.auth import require_admin, require_login
+from ..modules.log.logger_factory import get_logger
+from ..modules.utilities import util_post_to_json, util_post_unmap
 
 logger = get_logger(__name__)
 
 bp = Blueprint("settings", __name__, url_prefix="/settings")
 
 # For testing: bypass auth in displayer
-_bypass_auth = False
+_bypass_AUTH = False
+
+# Constants - Configuration and URLs
+CONFIG_WRAPPER = "settings"
+URL_PREFIX_OVERRIDABLE = "overridable_"
+FORM_FIELD_CSRF_TOKEN = "csrf_token"
+FORM_FIELD_SAVE = "save"
+
+# Constants - Setting type names
+TYPE_STRING = "string"
+TYPE_TEXT = "text"
+TYPE_STR = "str"
+TYPE_INT = "int"
+TYPE_INTEGER = "integer"
+TYPE_NUMBER = "number"
+TYPE_BOOL = "bool"
+TYPE_BOOLEAN = "boolean"
+TYPE_SELECT = "select"
+TYPE_DROPDOWN = "dropdown"
+TYPE_MULTI_SELECT = "multi_select"
+TYPE_MULTISELECT = "multiselect"
+TYPE_TEXT_LIST = "text_list"
+TYPE_LIST = "list"
+TYPE_ARRAY = "array"
+TYPE_KEY_VALUE = "key_value_pairs"
+TYPE_DICT = "dict"
+TYPE_OBJECT = "object"
+TYPE_DROPDOWN_MAPPING = "dropdown_mapping"
+TYPE_ICON = "icon"
+TYPE_SERIAL_PORT = "serial_port"
+
+# Constants - Type color scheme
+TYPE_COLORS = {
+    TYPE_STRING: "INFO",
+    TYPE_INT: "PRIMARY",
+    TYPE_BOOL: "SUCCESS",
+    TYPE_SELECT: "WARNING",
+    TYPE_TEXT_LIST: "SECONDARY",
+    TYPE_KEY_VALUE: "SECONDARY",
+}
+
+# Constants - Setting metadata
+METADATA_FRIENDLY = "friendly"
+METADATA_TYPE = "type"
+METADATA_VALUE = "value"
+METADATA_OPTIONS = "options"
+METADATA_OVERRIDABLE = "overridable_by_user"
+METADATA_DESCRIPTION = "_description"
+METADATA_CATEGORY_DESCRIPTION = "_category_description"
+
+# Constants - Error and flash messages
+ERROR_MANAGER_NOT_INITIALIZED = "Settings manager not initialized"
+ERROR_AUTH_NOT_INITIALIZED = "Authentication not initialized"
+ERROR_NOT_LOGGED_IN = "Not logged in"
+ERROR_SETTING_UNKNOWN_TYPE = "Unknown setting type"
+ERROR_SAVING_USER_OVERRIDE = "Error setting user framework override"
+ERROR_SAVING_GLOBAL_CONFIG = "Error setting global config value"
+ERROR_SAVING_SETTINGS = "Error saving settings"
+MSG_SETTINGS_SAVED = "Settings saved successfully!"
+MSG_NO_OVERRIDABLE_SETTINGS = "No settings are currently configured as user-overridable. Contact your administrator."
+
+# Constants - UI text and labels
+TEXT_SETTINGS = "Settings"
+TEXT_CONFIGURATION_SETTINGS = "Configuration Settings"
+TEXT_SETTINGS_CATEGORIES = "Settings Categories"
+TEXT_CATEGORY = "Category"
+TEXT_DESCRIPTION = "Description"
+TEXT_SETTINGS_COUNT = "Settings Count"
+TEXT_ACTIONS = "Actions"
+TEXT_SETTING = "Setting"
+TEXT_TYPE = "Type"
+TEXT_VALUE = "Value"
+TEXT_USER_OVERRIDABLE = "User Overridable"
+TEXT_SETTINGS_LINK = "settings.index"
+TEXT_USER_FRAMEWORK_SETTINGS = "My Framework Settings"
+TEXT_VIEW_SETTINGS = "View Settings"
+TEXT_FRAMEWORK_SETTINGS_LINK = "settings.user_view"
+TEXT_SAVE_SETTINGS = "Save Settings"
+TEXT_CONFIGURATION_OPTIONS = "Configuration options for"
+
+# Constants - Table column definitions
+COLUMNS_CATEGORY_TABLE = [TEXT_CATEGORY, TEXT_DESCRIPTION, TEXT_SETTINGS_COUNT, TEXT_ACTIONS]
+COLUMNS_SETTING_ADMIN = [TEXT_SETTING, TEXT_TYPE, TEXT_VALUE, TEXT_USER_OVERRIDABLE]
+COLUMNS_SETTING_USER = [TEXT_SETTING, TEXT_TYPE, TEXT_VALUE]
+
+# Constants - Boolean value representations
+BOOL_TRUE_VALUES = [True, "true", "on", "1", 1]
+DELIMITER_SPLIT = "#"
+SERIAL_PORT_NONE = "None"
+
+# Constants - HTTP return codes
+STATUS_ERROR = 500
+STATUS_OK = 200
 
 
 def get_manager():
@@ -57,24 +155,24 @@ def index():
     """Settings dashboard - main entry point."""
     manager = get_manager()
     if not manager:
-        return "Settings manager not initialized", 500
+        return ERROR_MANAGER_NOT_INITIALIZED, STATUS_ERROR
     
     disp = displayer.Displayer()
-    disp.add_generic("Settings", display=False)
-    disp.set_title("Configuration Settings")
+    disp.add_generic(TEXT_SETTINGS, display=False)
+    disp.set_title(TEXT_CONFIGURATION_SETTINGS)
     
     # Add breadcrumbs
-    disp.add_breadcrumb("Settings", "settings.index", [])
+    disp.add_breadcrumb(TEXT_SETTINGS, TEXT_SETTINGS_LINK, [])
     
     # Categories overview in a nice table
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [12], subtitle="Settings Categories"
+        displayer.Layouts.VERTICAL, [12], subtitle=TEXT_SETTINGS_CATEGORIES
     ))
     
     # Create simple table layout (no DataTables)
     layout_id = disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.TABLE,
-        columns=["Category", "Description", "Settings Count", "Actions"]
+        columns=COLUMNS_CATEGORY_TABLE
     ))
     
     categories = manager.list_categories()
@@ -91,14 +189,14 @@ def index():
         
         # Description (could be enhanced with metadata from manager)
         disp.add_display_item(
-            displayer.DisplayerItemText(f"Configuration options for {friendly.lower()}"),
+            displayer.DisplayerItemText(f"{TEXT_CONFIGURATION_OPTIONS} {friendly.lower()}"),
             column=1, line=line, layout_id=layout_id
         )
         
         # Settings count badge
         badge_style = displayer.BSstyle.INFO if count > 0 else displayer.BSstyle.SECONDARY
         disp.add_display_item(
-            displayer.DisplayerItemBadge(f"{count} settings", badge_style),
+            displayer.DisplayerItemBadge(f"{count} {TEXT_SETTINGS.lower()}", badge_style),
             column=2, line=line, layout_id=layout_id
         )
         
@@ -113,7 +211,7 @@ def index():
             column=3, line=line, layout_id=layout_id
         )
     
-    return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_auth), target="")
+    return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_AUTH), target="")
 
 
 @bp.route("/view", methods=["GET", "POST"])
@@ -132,16 +230,16 @@ def user_view():
 
 def _render_setting_row(disp, layout_id, line, category, key, setting, user_mode, user_overrides):
     """Helper function to render a single setting row in a table."""
-    is_overridable = setting.get("overridable_by_user", False)
+    is_overridable = setting.get(METADATA_OVERRIDABLE, False)
     
     # In user mode, skip non-overridable settings
     if user_mode and not is_overridable:
         return False  # Signal that row was not rendered
     
-    friendly = setting.get("friendly", key)
-    setting_type = setting.get("type", "string")
-    value = setting.get("value")
-    options = setting.get("options", [])
+    friendly = setting.get(METADATA_FRIENDLY, key)
+    setting_type = setting.get(METADATA_TYPE, TYPE_STRING)
+    value = setting.get(METADATA_VALUE)
+    options = setting.get(METADATA_OPTIONS, [])
     
     # In user mode, use user's override value if present
     full_key = f"{category}.{key}"
@@ -158,83 +256,76 @@ def _render_setting_row(disp, layout_id, line, category, key, setting, user_mode
     )
     
     # Type badge
-    type_colors = {
-        "string": displayer.BSstyle.INFO,
-        "int": displayer.BSstyle.PRIMARY,
-        "bool": displayer.BSstyle.SUCCESS,
-        "select": displayer.BSstyle.WARNING,
-        "text_list": displayer.BSstyle.SECONDARY,
-        "key_value_pairs": displayer.BSstyle.SECONDARY,
-    }
-    type_color = type_colors.get(setting_type, displayer.BSstyle.SECONDARY)
+    type_color = TYPE_COLORS.get(setting_type, displayer.BSstyle.SECONDARY)
+    type_color_obj = getattr(displayer.BSstyle, type_color, displayer.BSstyle.SECONDARY)
     disp.add_display_item(
-        displayer.DisplayerItemBadge(setting_type, type_color),
+        displayer.DisplayerItemBadge(setting_type, type_color_obj),
         column=1, line=line, layout_id=layout_id
     )
     
     # Value - render appropriate input widget based on type
-    if setting_type == "bool" or setting_type == "boolean":
+    if setting_type in (TYPE_BOOL, TYPE_BOOLEAN):
         # Boolean - checkbox
         disp.add_display_item(
             displayer.DisplayerItemInputCheckbox(form_field_name, "", value if isinstance(value, bool) else False),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "int" or setting_type == "integer" or setting_type == "number":
+    elif setting_type in (TYPE_INT, TYPE_INTEGER, TYPE_NUMBER):
         # Integer/Number - numeric input
         disp.add_display_item(
             displayer.DisplayerItemInputNumeric(form_field_name, "", value if isinstance(value, (int, float)) else 0),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "select" or setting_type == "dropdown":
+    elif setting_type in (TYPE_SELECT, TYPE_DROPDOWN):
         # Single select dropdown
         disp.add_display_item(
             displayer.DisplayerItemInputSelect(form_field_name, "", value, options or []),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "multi_select" or setting_type == "multiselect":
+    elif setting_type in (TYPE_MULTI_SELECT, TYPE_MULTISELECT):
         # Multi-select checkboxes
         disp.add_display_item(
             displayer.DisplayerItemInputMultiSelect(form_field_name, "", value if isinstance(value, list) else [], options or []),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "text_list" or setting_type == "list" or setting_type == "array":
+    elif setting_type in (TYPE_TEXT_LIST, TYPE_LIST, TYPE_ARRAY):
         # User-editable list
         disp.add_display_item(
             displayer.DisplayerItemInputTextList(form_field_name, "", value if isinstance(value, list) else []),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "key_value_pairs" or setting_type == "dict" or setting_type == "object":
+    elif setting_type in (TYPE_KEY_VALUE, TYPE_DICT, TYPE_OBJECT):
         # Key-value pairs
         value_list = [[k, v] for k, v in (value or {}).items()] if isinstance(value, dict) else []
         disp.add_display_item(
             displayer.DisplayerItemInputKeyValue(form_field_name, "", value_list),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "dropdown_mapping":
+    elif setting_type == TYPE_DROPDOWN_MAPPING:
         # Dropdown with custom values
         value_list = [[k, v] for k, v in (value or {}).items()] if isinstance(value, dict) else []
         disp.add_display_item(
             displayer.DisplayerItemInputDropdownValue(form_field_name, "", value_list, options or []),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "icon":
+    elif setting_type == TYPE_ICON:
         # Icon selector
         disp.add_display_item(
             displayer.DisplayerItemInputStringIcon(form_field_name, "", value if isinstance(value, str) else ""),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "serial_port":
+    elif setting_type == TYPE_SERIAL_PORT:
         # Serial port selector
         try:
             import serial.tools.list_ports
             serial_ports = [port.device for port in serial.tools.list_ports.comports()]
         except ImportError:
-            serial_ports = options or ["None"]
+            serial_ports = options or [SERIAL_PORT_NONE]
         disp.add_display_item(
             displayer.DisplayerItemInputSelect(form_field_name, "", value, serial_ports),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type == "string" or setting_type == "text" or setting_type == "str":
+    elif setting_type in (TYPE_STRING, TYPE_TEXT, TYPE_STR):
         # Explicit string type
         disp.add_display_item(
             displayer.DisplayerItemInputString(form_field_name, "", value if isinstance(value, str) else str(value or "")),
@@ -242,7 +333,7 @@ def _render_setting_row(disp, layout_id, line, category, key, setting, user_mode
         )
     else:
         # Unknown type - log warning and render as string with alert
-        logger.warning(f"Unknown setting type '{setting_type}' for {category}.{key}, rendering as string input")
+        logger.warning(f"{ERROR_SETTING_UNKNOWN_TYPE} '{setting_type}' for {category}.{key}, rendering as string input")
         disp.add_display_item(
             displayer.DisplayerItemInputString(form_field_name, "", str(value or "")),
             column=2, line=line, layout_id=layout_id
@@ -250,7 +341,7 @@ def _render_setting_row(disp, layout_id, line, category, key, setting, user_mode
     
     # Overridable checkbox (only in admin mode)
     if not user_mode:
-        checkbox_name = f"overridable_{full_key}"
+        checkbox_name = f"{URL_PREFIX_OVERRIDABLE}{full_key}"
         disp.add_display_item(
             displayer.DisplayerItemInputCheckbox(checkbox_name, "", is_overridable),
             column=3, line=line, layout_id=layout_id
@@ -263,12 +354,11 @@ def _view_settings(user_mode=False):
     """Internal function to view and edit settings with optional user filtering."""
     manager = get_manager()
     if not manager:
-        return "Settings manager not initialized", 500
+        return ERROR_MANAGER_NOT_INITIALIZED, STATUS_ERROR
     category_filter = request.args.get("category")
     
     # If POST and no category in args, try to get it from referrer
     if request.method == "POST" and not category_filter and request.referrer:
-        from urllib.parse import urlparse, parse_qs
         parsed = urlparse(request.referrer)
         query_params = parse_qs(parsed.query)
         if 'category' in query_params:
@@ -281,11 +371,11 @@ def _view_settings(user_mode=False):
             try:
                 from ..modules.auth import auth_manager
                 if not auth_manager:
-                    flash("Authentication not initialized", "danger")
+                    flash(ERROR_AUTH_NOT_INITIALIZED, "danger")
                     return redirect(url_for('common.login'))
                 current_user = auth_manager.get_current_user()
                 if not current_user:
-                    flash("Not logged in", "danger")
+                    flash(ERROR_NOT_LOGGED_IN, "danger")
                     return redirect(url_for('common.login'))
                 
                 # Use util_post_to_json to parse form data
@@ -294,15 +384,15 @@ def _view_settings(user_mode=False):
                 # Strip module prefix
                 settings_data = {}
                 for key, value in form_data.items():
-                    if isinstance(value, dict) and key not in ["csrf_token", "save"]:
+                    if isinstance(value, dict) and key not in [FORM_FIELD_CSRF_TOKEN, FORM_FIELD_SAVE]:
                         settings_data.update(value)
-                    elif key not in ["csrf_token", "save"]:
+                    elif key not in [FORM_FIELD_CSRF_TOKEN, FORM_FIELD_SAVE]:
                         settings_data[key] = value
                 
                 # Apply util_post_unmap to convert mapleft/mapright to dicts
-                wrapped_data = {"settings": settings_data}
+                wrapped_data = {CONFIG_WRAPPER: settings_data}
                 unmapped_data = util_post_unmap(wrapped_data)
-                settings_data = unmapped_data.get("settings", settings_data)
+                settings_data = unmapped_data.get(CONFIG_WRAPPER, settings_data)
                 
                 # Build list of all expected bool settings for checkbox handling
                 # Unchecked checkboxes don't send data, so we need to default them to False
@@ -315,21 +405,21 @@ def _view_settings(user_mode=False):
                 for cat in categories_to_check:
                     cat_data = manager.get_category(cat)
                     for key, setting in cat_data.items():  # type: ignore
-                        if key == "friendly" or not isinstance(setting, dict):
+                        if key == METADATA_FRIENDLY or not isinstance(setting, dict):
                             continue
-                        if "type" in setting:
-                            setting_type = setting["type"]
-                            if setting_type in ["bool", "boolean"]:
+                        if METADATA_TYPE in setting:
+                            setting_type = setting[METADATA_TYPE]
+                            if setting_type in [TYPE_BOOL, TYPE_BOOLEAN]:
                                 full_key = f"{cat}.{key}"
                                 all_bool_settings.add(full_key)
                         else:
                             # Check nested subcategories
                             for subkey, subsetting in setting.items():
-                                if subkey in ["friendly", "_description"] or not isinstance(subsetting, dict):
+                                if subkey in [METADATA_FRIENDLY, METADATA_DESCRIPTION] or not isinstance(subsetting, dict):
                                     continue
-                                if "type" in subsetting:
-                                    setting_type = subsetting["type"]
-                                    if setting_type in ["bool", "boolean"]:
+                                if METADATA_TYPE in subsetting:
+                                    setting_type = subsetting[METADATA_TYPE]
+                                    if setting_type in [TYPE_BOOL, TYPE_BOOLEAN]:
                                         full_key = f"{cat}.{key}.{subkey}"
                                         all_bool_settings.add(full_key)
                 
@@ -338,14 +428,14 @@ def _view_settings(user_mode=False):
                 
                 # Process each setting
                 for category, category_data in settings_data.items():
-                    if category in ["csrf_token", "save"]:
+                    if category in [FORM_FIELD_CSRF_TOKEN, FORM_FIELD_SAVE]:
                         continue
                     
                     if not isinstance(category_data, dict):
                         continue
                     
                     for setting_key, value in category_data.items():
-                        if setting_key in ["csrf_token", "save"]:
+                        if setting_key in [FORM_FIELD_CSRF_TOKEN, FORM_FIELD_SAVE]:
                             continue
                         
                         full_key = f"{category}.{setting_key}"
@@ -368,31 +458,31 @@ def _view_settings(user_mode=False):
                                         break
                                 
                                 if setting_data and isinstance(setting_data, dict):
-                                    setting_type = setting_data.get("type", "string")
+                                    setting_type = setting_data.get(METADATA_TYPE, TYPE_STRING)
                                     
                                     # Type conversion based on setting type
-                                    if setting_type in ["int", "integer", "number"]:
+                                    if setting_type in [TYPE_INT, TYPE_INTEGER, TYPE_NUMBER]:
                                         try:
                                             value = int(value)
                                         except (ValueError, TypeError):
-                                            value = setting_data.get("value", 0)
-                                    elif setting_type in ["bool", "boolean"]:
-                                        value = value in [True, "true", "on", "1", 1]
-                                    elif setting_type in ["text_list", "list", "array"]:
+                                            value = setting_data.get(METADATA_VALUE, 0)
+                                    elif setting_type in [TYPE_BOOL, TYPE_BOOLEAN]:
+                                        value = value in BOOL_TRUE_VALUES
+                                    elif setting_type in [TYPE_TEXT_LIST, TYPE_LIST, TYPE_ARRAY]:
                                         # util_post_to_json may already parse as list
                                         if isinstance(value, list):
                                             pass  # Already a list
                                         elif isinstance(value, str):
-                                            value = [v.strip() for v in value.split('#') if v.strip()]  # Split and filter empty
+                                            value = [v.strip() for v in value.split(DELIMITER_SPLIT) if v.strip()]  # Split and filter empty
                                         else:
                                             value = []
-                                    elif setting_type in ["multi_select", "multiselect"]:
+                                    elif setting_type in [TYPE_MULTI_SELECT, TYPE_MULTISELECT]:
                                         # Multi-select uses checkbox format: key_value: on
                                         # util_post_to_json already parsed this as list
                                         if isinstance(value, list):
                                             pass  # Already a list
                                         elif isinstance(value, str):
-                                            value = [v.strip() for v in value.split('#') if v.strip()]
+                                            value = [v.strip() for v in value.split(DELIMITER_SPLIT) if v.strip()]
                                         else:
                                             value = []
                                     # For dicts (key_value_pairs, dropdown_mapping), already parsed correctly
@@ -401,7 +491,7 @@ def _view_settings(user_mode=False):
                                     if auth_manager:
                                         auth_manager.set_user_framework_override(current_user, full_key, value)
                         except Exception:
-                            logger.exception("Error setting user framework override")
+                            logger.exception(ERROR_SAVING_USER_OVERRIDE)
                 
                 # Handle unchecked checkboxes - set to False
                 for bool_key in all_bool_settings:
@@ -409,15 +499,15 @@ def _view_settings(user_mode=False):
                         if auth_manager:
                             auth_manager.set_user_framework_override(current_user, bool_key, False)
                 
-                flash("Settings saved successfully!", "success")
+                flash(MSG_SETTINGS_SAVED, "success")
                 # Stay on the same page - rebuild URL with category if present
                 if category_filter:
                     return redirect(url_for('settings.user_view', category=category_filter))
                 else:
                     return redirect(url_for('settings.user_view'))
             except Exception as e:
-                logger.exception("Error saving user settings")
-                flash(f"Error saving settings: {str(e)}", "danger")
+                logger.exception(ERROR_SAVING_SETTINGS)
+                flash(f"{ERROR_SAVING_SETTINGS}: {str(e)}", "danger")
         else:
             # Admin mode - save to global config
             try:
@@ -429,19 +519,19 @@ def _view_settings(user_mode=False):
                 # We need to extract just the settings part
                 settings_data = {}
                 for key, value in form_data.items():
-                    if isinstance(value, dict) and key not in ["csrf_token", "save"]:
+                    if isinstance(value, dict) and key not in [FORM_FIELD_CSRF_TOKEN, FORM_FIELD_SAVE]:
                         # This is the module wrapper, extract its contents
                         settings_data.update(value)
-                    elif key not in ["csrf_token", "save"]:
+                    elif key not in [FORM_FIELD_CSRF_TOKEN, FORM_FIELD_SAVE]:
                         # Direct setting (shouldn't happen but handle it)
                         settings_data[key] = value
                 
                 # Apply util_post_unmap to convert mapleft/mapright to dicts
                 # util_post_unmap expects structure: {module: {item: {cat: {mapleft0: x, mapright0: y}}}}
                 # We need to wrap our data appropriately
-                wrapped_data = {"settings": settings_data}
+                wrapped_data = {CONFIG_WRAPPER: settings_data}
                 unmapped_data = util_post_unmap(wrapped_data)
-                settings_data = unmapped_data.get("settings", settings_data)
+                settings_data = unmapped_data.get(CONFIG_WRAPPER, settings_data)
                 
                 # Track overridable checkboxes
                 overridable_keys = set()
@@ -451,9 +541,9 @@ def _view_settings(user_mode=False):
                 # As: {"overridable_category": {"setting": "1"}}
                 # We need to reconstruct the full keys as "category.setting"
                 for key in list(settings_data.keys()):
-                    if key.startswith("overridable_"):
+                    if key.startswith(URL_PREFIX_OVERRIDABLE):
                         # Extract the category name (remove "overridable_" prefix)
-                        category = key.replace("overridable_", "")
+                        category = key.replace(URL_PREFIX_OVERRIDABLE, "")
                         
                         if isinstance(settings_data[key], dict):
                             # Dictionary of setting_name: "1" for checked boxes
@@ -476,21 +566,21 @@ def _view_settings(user_mode=False):
                 for cat in categories_to_check:
                     cat_data = manager.get_category(cat)
                     for key, setting in cat_data.items():  # type: ignore
-                        if key == "friendly" or not isinstance(setting, dict):
+                        if key == METADATA_FRIENDLY or not isinstance(setting, dict):
                             continue
-                        if "type" in setting:
-                            setting_type = setting["type"]
-                            if setting_type in ["bool", "boolean"]:
+                        if METADATA_TYPE in setting:
+                            setting_type = setting[METADATA_TYPE]
+                            if setting_type in [TYPE_BOOL, TYPE_BOOLEAN]:
                                 full_key = f"{cat}.{key}"
                                 all_bool_settings.add(full_key)
                         else:
                             # Check nested subcategories
                             for subkey, subsetting in setting.items():
-                                if subkey in ["friendly", "_description"] or not isinstance(subsetting, dict):
+                                if subkey in [METADATA_FRIENDLY, METADATA_DESCRIPTION] or not isinstance(subsetting, dict):
                                     continue
-                                if "type" in subsetting:
-                                    setting_type = subsetting["type"]
-                                    if setting_type in ["bool", "boolean"]:
+                                if METADATA_TYPE in subsetting:
+                                    setting_type = subsetting[METADATA_TYPE]
+                                    if setting_type in [TYPE_BOOL, TYPE_BOOLEAN]:
                                         full_key = f"{cat}.{key}.{subkey}"
                                         all_bool_settings.add(full_key)
                 
@@ -499,14 +589,14 @@ def _view_settings(user_mode=False):
                 
                 # Process each setting
                 for category, category_data in settings_data.items():
-                    if category in ["csrf_token", "save"]:
+                    if category in [FORM_FIELD_CSRF_TOKEN, FORM_FIELD_SAVE]:
                         continue
                     
                     if not isinstance(category_data, dict):
                         continue
                     
                     for setting_key, value in category_data.items():
-                        if setting_key in ["csrf_token", "save"]:
+                        if setting_key in [FORM_FIELD_CSRF_TOKEN, FORM_FIELD_SAVE]:
                             continue
                         
                         full_key = f"{category}.{setting_key}"
@@ -529,31 +619,31 @@ def _view_settings(user_mode=False):
                                         break
                                 
                                 if setting_data and isinstance(setting_data, dict):
-                                    setting_type = setting_data.get("type", "string")
+                                    setting_type = setting_data.get(METADATA_TYPE, TYPE_STRING)
                                     
                                     # Type conversion based on setting type
-                                    if setting_type in ["int", "integer", "number"]:
+                                    if setting_type in [TYPE_INT, TYPE_INTEGER, TYPE_NUMBER]:
                                         try:
                                             value = int(value)
                                         except (ValueError, TypeError):
-                                            value = setting_data.get("value", 0)
-                                    elif setting_type in ["bool", "boolean"]:
-                                        value = value in [True, "true", "on", "1", 1]
-                                    elif setting_type in ["text_list", "list", "array"]:
+                                            value = setting_data.get(METADATA_VALUE, 0)
+                                    elif setting_type in [TYPE_BOOL, TYPE_BOOLEAN]:
+                                        value = value in BOOL_TRUE_VALUES
+                                    elif setting_type in [TYPE_TEXT_LIST, TYPE_LIST, TYPE_ARRAY]:
                                         # util_post_to_json may already parse as list
                                         if isinstance(value, list):
                                             pass  # Already a list
                                         elif isinstance(value, str):
-                                            value = [v.strip() for v in value.split('#') if v.strip()]  # Split and filter empty
+                                            value = [v.strip() for v in value.split(DELIMITER_SPLIT) if v.strip()]  # Split and filter empty
                                         else:
                                             value = []
-                                    elif setting_type in ["multi_select", "multiselect"]:
+                                    elif setting_type in [TYPE_MULTI_SELECT, TYPE_MULTISELECT]:
                                         # Multi-select uses checkbox format: key_value: on
                                         # util_post_to_json already parsed this as list
                                         if isinstance(value, list):
                                             pass  # Already a list
                                         elif isinstance(value, str):
-                                            value = [v.strip() for v in value.split('#') if v.strip()]
+                                            value = [v.strip() for v in value.split(DELIMITER_SPLIT) if v.strip()]
                                         else:
                                             value = []
                                     # For dicts (key_value_pairs, dropdown_mapping), already parsed correctly
@@ -561,7 +651,7 @@ def _view_settings(user_mode=False):
                                     # Save to global config
                                     manager.set_setting(full_key, value)
                         except Exception:
-                            logger.exception("Error setting global config value")
+                            logger.exception(ERROR_SAVING_GLOBAL_CONFIG)
                 
                 # Handle unchecked checkboxes - set to False
                 for bool_key in all_bool_settings:
@@ -570,7 +660,7 @@ def _view_settings(user_mode=False):
                 
                 # Handle overridable checkboxes
                 for setting_key in overridable_keys:
-                    manager.set_setting_metadata(setting_key, "overridable_by_user", True)
+                    manager.set_setting_metadata(setting_key, METADATA_OVERRIDABLE, True)
                 
                 # Handle unchecked overridable checkboxes (set to False)
                 # Need to check both direct settings and subcategory settings
@@ -578,51 +668,51 @@ def _view_settings(user_mode=False):
                 for category in all_settings:  # type: ignore
                     category_data = all_settings[category]
                     for key in category_data:  # type: ignore
-                        if key == "friendly" or not isinstance(category_data[key], dict):
+                        if key == METADATA_FRIENDLY or not isinstance(category_data[key], dict):
                             continue
                         
                         # Check if this is a direct setting (has 'type' field)
-                        if "type" in category_data[key]:
+                        if METADATA_TYPE in category_data[key]:
                             full_key = f"{category}.{key}"
                             if full_key not in overridable_keys:
-                                manager.set_setting_metadata(full_key, "overridable_by_user", False)
+                                manager.set_setting_metadata(full_key, METADATA_OVERRIDABLE, False)
                         else:
                             # This is a subcategory, check its nested settings
                             subcat_data = category_data[key]
                             if isinstance(subcat_data, dict):
                                 for subkey in subcat_data:
-                                    if subkey in ["friendly", "_description"] or not isinstance(subcat_data[subkey], dict):
+                                    if subkey in [METADATA_FRIENDLY, METADATA_DESCRIPTION] or not isinstance(subcat_data[subkey], dict):
                                         continue
-                                    if "type" in subcat_data[subkey]:
+                                    if METADATA_TYPE in subcat_data[subkey]:
                                         full_key = f"{category}.{key}.{subkey}"
                                         if full_key not in overridable_keys:
-                                            manager.set_setting_metadata(full_key, "overridable_by_user", False)
+                                            manager.set_setting_metadata(full_key, METADATA_OVERRIDABLE, False)
                 
                 manager.save()
-                flash("Settings saved successfully!", "success")
+                flash(MSG_SETTINGS_SAVED, "success")
                 # Stay on the same page - rebuild URL with category if present
                 if category_filter:
                     return redirect(url_for('settings.view', category=category_filter))
                 else:
                     return redirect(url_for('settings.view'))
             except Exception as e:
-                logger.exception("Error saving settings")
-                flash(f"Error saving settings: {str(e)}", "danger")
+                logger.exception(ERROR_SAVING_SETTINGS)
+                flash(f"{ERROR_SAVING_SETTINGS}: {str(e)}", "danger")
     
     disp = displayer.Displayer()
     
     if user_mode:
-        disp.add_generic("My Framework Settings", display=False)
-        disp.set_title("My Framework Settings")
-        disp.add_breadcrumb("Framework Settings", "settings.user_view", [])
+        disp.add_generic(TEXT_USER_FRAMEWORK_SETTINGS, display=False)
+        disp.set_title(TEXT_USER_FRAMEWORK_SETTINGS)
+        disp.add_breadcrumb(TEXT_USER_FRAMEWORK_SETTINGS, TEXT_FRAMEWORK_SETTINGS_LINK, [])
     else:
-        disp.add_generic("View Settings", display=False)
-        disp.set_title("View Settings")
-        disp.add_breadcrumb("Settings", "settings.index", [])
+        disp.add_generic(TEXT_VIEW_SETTINGS, display=False)
+        disp.set_title(TEXT_VIEW_SETTINGS)
+        disp.add_breadcrumb(TEXT_SETTINGS, TEXT_SETTINGS_LINK, [])
         if category_filter:
-            disp.add_breadcrumb(f"View {manager.get_category_friendly(category_filter)}", "settings.view", [f"category={category_filter}"])
+            disp.add_breadcrumb(f"{TEXT_VIEW_SETTINGS} {manager.get_category_friendly(category_filter)}", "settings.view", [f"category={category_filter}"])
         else:
-            disp.add_breadcrumb("View All Settings", "settings.view", [])
+            disp.add_breadcrumb(f"{TEXT_VIEW_SETTINGS} All {TEXT_SETTINGS.lower()}", "settings.view", [])
     
     all_settings = manager.get_all_settings()
     
@@ -648,14 +738,14 @@ def _view_settings(user_mode=False):
             continue
             
         category_data = all_settings[category]
-        friendly_name = category_data.get("friendly", category)
+        friendly_name = category_data.get(METADATA_FRIENDLY, category)
         
         # In user mode, check if category has any overridable settings
         if user_mode:
             has_overridable_in_category = any(
-                setting.get("overridable_by_user", False)
+                setting.get(METADATA_OVERRIDABLE, False)
                 for key, setting in category_data.items()  # type: ignore
-                if key != "friendly" and isinstance(setting, dict)
+                if key != METADATA_FRIENDLY and isinstance(setting, dict)
             )
             if not has_overridable_in_category:
                 continue  # Skip category in user mode
@@ -667,11 +757,11 @@ def _view_settings(user_mode=False):
         ))
         
         # Show category description if present
-        if "_category_description" in category_data:
-            desc_data = category_data["_category_description"]
-            if isinstance(desc_data, dict) and "value" in desc_data:
+        if METADATA_CATEGORY_DESCRIPTION in category_data:
+            desc_data = category_data[METADATA_CATEGORY_DESCRIPTION]
+            if isinstance(desc_data, dict) and METADATA_VALUE in desc_data:
                 disp.add_display_item(
-                    displayer.DisplayerItemAlert(desc_data["value"], displayer.BSstyle.INFO),
+                    displayer.DisplayerItemAlert(desc_data[METADATA_VALUE], displayer.BSstyle.INFO),
                     column=0
                 )
         
@@ -680,23 +770,20 @@ def _view_settings(user_mode=False):
         direct_settings = {}
         
         for key, setting in category_data.items():  # type: ignore
-            if key in ["friendly", "_category_description"] or not isinstance(setting, dict):
+            if key in [METADATA_FRIENDLY, METADATA_CATEGORY_DESCRIPTION] or not isinstance(setting, dict):
                 continue
             
             # Check if this is a subcategory (has nested settings with 'type' field)
-            if "type" not in setting and "friendly" in setting:
+            if METADATA_TYPE not in setting and METADATA_FRIENDLY in setting:
                 # This is a subcategory
                 subcategories[key] = setting
-            elif "type" in setting:
+            elif METADATA_TYPE in setting:
                 # This is a direct setting
                 direct_settings[key] = setting
         
         # Render direct settings first (if any)
         if direct_settings:
-            if user_mode:
-                columns = ["Setting", "Type", "Value"]
-            else:
-                columns = ["Setting", "Type", "Value", "User Overridable"]
+            columns = COLUMNS_SETTING_USER if user_mode else COLUMNS_SETTING_ADMIN
             
             layout_id = disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
@@ -710,7 +797,7 @@ def _view_settings(user_mode=False):
         
         # Render each subcategory
         for subcat_key, subcat_data in subcategories.items():
-            subcat_friendly = subcat_data.get("friendly", subcat_key)
+            subcat_friendly = subcat_data.get(METADATA_FRIENDLY, subcat_key)
             
             # Add subcategory subtitle
             disp.add_master_layout(displayer.DisplayerLayout(
@@ -718,19 +805,16 @@ def _view_settings(user_mode=False):
             ))
             
             # Show subcategory description if present
-            if "_description" in subcat_data:
-                desc_data = subcat_data["_description"]
-                if isinstance(desc_data, dict) and "value" in desc_data:
+            if METADATA_DESCRIPTION in subcat_data:
+                desc_data = subcat_data[METADATA_DESCRIPTION]
+                if isinstance(desc_data, dict) and METADATA_VALUE in desc_data:
                     disp.add_display_item(
-                        displayer.DisplayerItemAlert(desc_data["value"], displayer.BSstyle.LIGHT),
+                        displayer.DisplayerItemAlert(desc_data[METADATA_VALUE], displayer.BSstyle.LIGHT),
                         column=0
                     )
             
             # Create table for subcategory settings
-            if user_mode:
-                columns = ["Setting", "Type", "Value"]
-            else:
-                columns = ["Setting", "Type", "Value", "User Overridable"]
+            columns = COLUMNS_SETTING_USER if user_mode else COLUMNS_SETTING_ADMIN
             
             layout_id = disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
@@ -739,10 +823,10 @@ def _view_settings(user_mode=False):
             
             line = 0
             for key, setting in subcat_data.items():
-                if key in ["friendly", "_description"] or not isinstance(setting, dict):
+                if key in [METADATA_FRIENDLY, METADATA_DESCRIPTION] or not isinstance(setting, dict):
                     continue
                 
-                if "type" not in setting:
+                if METADATA_TYPE not in setting:
                     continue  # Skip non-setting items
                 
                 # Use full key including subcategory: category.subcat_key.key
@@ -756,7 +840,7 @@ def _view_settings(user_mode=False):
         ))
         disp.add_display_item(
             displayer.DisplayerItemAlert(
-                "No settings are currently configured as user-overridable. Contact your administrator.",
+                MSG_NO_OVERRIDABLE_SETTINGS,
                 displayer.BSstyle.INFO
             ),
             column=0
@@ -766,9 +850,9 @@ def _view_settings(user_mode=False):
         disp.add_master_layout(displayer.DisplayerLayout(
             displayer.Layouts.VERTICAL, [12], alignment=[displayer.BSalign.R], spacing=2
         ))
-        disp.add_display_item(displayer.DisplayerItemButton("save", "Save Settings"), 0)
+        disp.add_display_item(displayer.DisplayerItemButton(FORM_FIELD_SAVE, TEXT_SAVE_SETTINGS), 0)
     
     # Set form target - displayer will handle the current URL automatically
     target = "settings.user_view" if user_mode else "settings.view"
-    return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_auth), target=target)
+    return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_AUTH), target=target)
 
