@@ -307,3 +307,25 @@ DELETE_RESULT_SUCCESS = TranslatableString("<p><strong>{deleted_count}</strong> 
 TITLE_CONFIRM_DELETION = TranslatableString("Confirm Deletion")
 TITLE_PARTIALLY_COMPLETE = TranslatableString("Partially Complete")
 TITLE_SUCCESS = TranslatableString("Success")
+
+# =============================================================================
+# File Handler Module Messages
+# =============================================================================
+# Error Messages
+ERROR_FILE_HANDLER_NOT_INIT = TranslatableString("File manager not initialized")
+ERROR_NO_FILE_PROVIDED = TranslatableString("No file provided")
+ERROR_NO_FILE_SELECTED = TranslatableString("No file selected")
+ERROR_INVALID_UPLOAD_PATH = TranslatableString("Invalid upload path")
+ERROR_FAILED_SAVE_FILE = TranslatableString("Failed to save file")
+ERROR_PERMISSION_DENIED_UPLOAD = TranslatableString("Permission denied: You need 'upload' permission for FileManager. Contact your administrator.")
+ERROR_PERMISSION_DENIED_DOWNLOAD = TranslatableString("Permission denied: You need 'download' permission for FileManager. Contact your administrator.")
+ERROR_PERMISSION_DENIED_DELETE = TranslatableString("Permission denied: You need 'delete' permission for FileManager. Contact your administrator.")
+ERROR_PERMISSION_DENIED_VIEW = TranslatableString("Permission denied: You need 'view' permission for FileManager. Contact your administrator.")
+ERROR_FILE_NOT_FOUND_HANDLER = TranslatableString("File not found")
+ERROR_THUMBNAIL_NOT_FOUND = TranslatableString("Thumbnail not found")
+ERROR_ORPHANED_FILE = TranslatableString("File not found on disk")
+ERROR_INTERNAL_SERVER = TranslatableString("Internal server error")
+
+# Success Messages
+MSG_FILE_DELETED_SUCCESS = TranslatableString("File deleted successfully")
+MSG_FILE_TOO_LARGE = TranslatableString("File too large")

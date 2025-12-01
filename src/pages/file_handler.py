@@ -10,6 +10,29 @@ from io import BytesIO
 # Third-party
 from flask import Blueprint, request, send_file, jsonify, session, abort
 
+# Framework modules - constants and i18n
+from ..modules.constants import (
+    IMAGE_MAX_SIZE,
+    USER_GUEST_NAME,
+)
+from ..modules.i18n.messages import (
+    ERROR_FILE_HANDLER_NOT_INIT,
+    ERROR_NO_FILE_PROVIDED,
+    ERROR_NO_FILE_SELECTED,
+    ERROR_INVALID_UPLOAD_PATH,
+    ERROR_FAILED_SAVE_FILE,
+    ERROR_PERMISSION_DENIED_UPLOAD,
+    ERROR_PERMISSION_DENIED_DOWNLOAD,
+    ERROR_PERMISSION_DENIED_DELETE,
+    ERROR_PERMISSION_DENIED_VIEW,
+    ERROR_FILE_NOT_FOUND_HANDLER,
+    ERROR_THUMBNAIL_NOT_FOUND,
+    ERROR_ORPHANED_FILE,
+    ERROR_INTERNAL_SERVER,
+    MSG_FILE_DELETED_SUCCESS,
+    MSG_FILE_TOO_LARGE,
+)
+
 # Local modules
 from ..modules.log.logger_factory import get_logger
 from ..modules.auth import auth_manager
@@ -27,25 +50,9 @@ PERMISSION_DOWNLOAD = "download"
 PERMISSION_DELETE = "delete"
 PERMISSION_VIEW = "view"
 
-# Constants - Error messages
-ERROR_FILE_MANAGER_NOT_INIT = "File manager not initialized"
-ERROR_NO_FILE_PROVIDED = "No file provided"
-ERROR_NO_FILE_SELECTED = "No file selected"
-ERROR_INVALID_UPLOAD_PATH = "Invalid upload path"
-ERROR_FAILED_SAVE_FILE = "Failed to save file"
-ERROR_PERMISSION_DENIED_UPLOAD = "Permission denied: You need 'upload' permission for FileManager. Contact your administrator."
-ERROR_PERMISSION_DENIED_DOWNLOAD = "Permission denied: You need 'download' permission for FileManager. Contact your administrator."
-ERROR_PERMISSION_DENIED_DELETE = "Permission denied: You need 'delete' permission for FileManager. Contact your administrator."
-ERROR_PERMISSION_DENIED_VIEW = "Permission denied: You need 'view' permission for FileManager. Contact your administrator."
-ERROR_FILE_NOT_FOUND = "File not found"
-ERROR_THUMBNAIL_NOT_FOUND = "Thumbnail not found"
-ERROR_ORPHANED_FILE = "File not found on disk"
-ERROR_INTERNAL_SERVER = "Internal server error"
-
 # Constants - File handling
 FILE_CATEGORY_DEFAULT = "general"
 FILE_EXTENSIONS_IMAGE = ('jpg', 'jpeg', 'png', 'gif', 'webp')
-IMAGE_MAX_SIZE = (1024, 1024)
 PARAM_RENAME_PLACEHOLDER_USER = '{username}'
 PARAM_RENAME_PLACEHOLDER_ALT = '{user}'
 FORM_FIELD_FILE = 'file'
@@ -72,7 +79,6 @@ FILENAME_SAFE_PATTERN = r'[^\w\-.]'
 FILENAME_SAFE_REPLACEMENT = '_'
 
 # Constants - User session
-SESSION_USER_DEFAULT = 'GUEST'
 SESSION_USER_ANON = 'anonymous'
 
 # Constants - Response keys
@@ -133,7 +139,7 @@ def upload():
         JSON response with file metadata or error
     """
     if not file_manager:
-        return jsonify({RESPONSE_ERROR: ERROR_FILE_MANAGER_NOT_INIT}), 500
+        return jsonify({RESPONSE_ERROR: ERROR_FILE_HANDLER_NOT_INIT}), 500
     
     # Check permission
     if not _require_permission(PERMISSION_MODULE, PERMISSION_UPLOAD):
@@ -155,7 +161,7 @@ def upload():
     
     try:
         # Get current user
-        current_user = session.get('user', SESSION_USER_DEFAULT)
+        current_user = session.get('user', USER_GUEST_NAME)
         
         # PRE-RESOLVE GROUP: Query/create group BEFORE upload transaction
         # This prevents SQLAlchemy UNIQUE constraint failures when multiple files upload simultaneously
@@ -303,7 +309,7 @@ def simple_upload():
         # URL for serving the file
         url = f"/common/assets/{upload_path.split(PATH_SEPARATOR)[0]}/?filename={PATH_SEPARATOR.join(upload_path.split(PATH_SEPARATOR)[1:])}/{final_name}" if PATH_SEPARATOR in upload_path else f"/common/assets/{upload_path}/?filename={final_name}"
         
-        current_user = session.get('user', SESSION_USER_DEFAULT)
+        current_user = session.get('user', USER_GUEST_NAME)
         logger.info(f"Simple file upload by {current_user}: {relative_path}")
         
         return jsonify({
@@ -335,7 +341,7 @@ def download(filepath):
         File download response
     """
     if not file_manager:
-        abort(500, ERROR_FILE_MANAGER_NOT_INIT)
+        abort(500, ERROR_FILE_HANDLER_NOT_INIT)
     
     # Check permission
     if not _require_permission(PERMISSION_MODULE, PERMISSION_DOWNLOAD):
@@ -359,7 +365,7 @@ def download(filepath):
         # Get MIME type
         mime_type = file_manager.get_mime_type(filepath)
         
-        logger.info(f"File download by {session.get('user', SESSION_USER_DEFAULT)}: {filepath}")
+        logger.info(f"File download by {session.get('user', USER_GUEST_NAME)}: {filepath}")
         
         # Send file - read into BytesIO to avoid Windows long path issues
         with open(file_path, 'rb') as f:
@@ -374,7 +380,7 @@ def download(filepath):
         
     except IOError as e:
         logger.warning(f"Invalid download path attempt: {filepath} - {e}")
-        abort(404, ERROR_FILE_NOT_FOUND)
+        abort(404, ERROR_FILE_NOT_FOUND_HANDLER)
         
     except Exception as e:
         logger.error(f"Unexpected download error for {filepath}: {e}", exc_info=True)
@@ -395,7 +401,7 @@ def delete(file_id):
         JSON response with success/error status
     """
     if not file_manager:
-        return jsonify({RESPONSE_ERROR: ERROR_FILE_MANAGER_NOT_INIT}), 500
+        return jsonify({RESPONSE_ERROR: ERROR_FILE_HANDLER_NOT_INIT}), 500
     
     # Check permission (higher permission level for delete)
     if not _require_permission(PERMISSION_MODULE, PERMISSION_DELETE):
@@ -409,10 +415,10 @@ def delete(file_id):
         success = file_manager.delete_file(file_id, delete_all_versions=delete_all_versions)
         
         if success:
-            logger.info(f"File deleted by {session.get('user', SESSION_USER_DEFAULT)}: ID {file_id} (all_versions={delete_all_versions})")
+            logger.info(f"File deleted by {session.get('user', USER_GUEST_NAME)}: ID {file_id} (all_versions={delete_all_versions})")
             return jsonify({
                 RESPONSE_SUCCESS: True,
-                RESPONSE_MESSAGE: "File deleted successfully"
+                RESPONSE_MESSAGE: MSG_FILE_DELETED_SUCCESS
             }), 200
         else:
             return jsonify({RESPONSE_ERROR: ERROR_FAILED_SAVE_FILE}), 500
@@ -435,7 +441,7 @@ def list_files():
         JSON response with file list
     """
     if not file_manager:
-        return jsonify({RESPONSE_ERROR: ERROR_FILE_MANAGER_NOT_INIT}), 500
+        return jsonify({RESPONSE_ERROR: ERROR_FILE_HANDLER_NOT_INIT}), 500
     
     # Check permission (list is covered by view)
     if not _require_permission(PERMISSION_MODULE, PERMISSION_VIEW):
@@ -471,7 +477,7 @@ def download_by_id(file_id):
         File download response
     """
     if not file_manager:
-        abort(500, ERROR_FILE_MANAGER_NOT_INIT)
+        abort(500, ERROR_FILE_HANDLER_NOT_INIT)
     
     # Check permission
     if not _require_permission(PERMISSION_MODULE, PERMISSION_DOWNLOAD):
@@ -481,7 +487,7 @@ def download_by_id(file_id):
     file_version = file_manager.get_file_by_id(file_id)
     
     if not file_version:
-        abort(404, ERROR_FILE_NOT_FOUND)
+        abort(404, ERROR_FILE_NOT_FOUND_HANDLER)
     
     try:
         # Get file from HashFS
@@ -492,7 +498,7 @@ def download_by_id(file_id):
             logger.error(f"File not found in HashFS: {file_version.storage_path} (orphaned DB record)")
             abort(404, f"File '{file_version.filename}' {ERROR_ORPHANED_FILE}")
         
-        logger.info(f"File download by {session.get('user', SESSION_USER_DEFAULT)}: {file_version.filename} (ID: {file_id})")
+        logger.info(f"File download by {session.get('user', USER_GUEST_NAME)}: {file_version.filename} (ID: {file_id})")
         
         # Send file - read into BytesIO to avoid Windows long path issues with send_file
         with open(file_path, 'rb') as f:
@@ -522,7 +528,7 @@ def get_versions(group_id: str, filename: str):
         JSON list of file versions
     """
     if not file_manager:
-        abort(500, ERROR_FILE_MANAGER_NOT_INIT)
+        abort(500, ERROR_FILE_HANDLER_NOT_INIT)
     
     # Check permission
     if not _require_permission(PERMISSION_MODULE, PERMISSION_VIEW):
@@ -539,4 +545,4 @@ def get_versions(group_id: str, filename: str):
 @bp.route("/restore", methods=["POST"])
 def handle_file_too_large(e):
     """Handle file size exceeded error."""
-    return jsonify({RESPONSE_ERROR: "File too large"}), 413
+    return jsonify({RESPONSE_ERROR: MSG_FILE_TOO_LARGE}), 413
