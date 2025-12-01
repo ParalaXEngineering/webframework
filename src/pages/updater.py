@@ -16,7 +16,7 @@ from flask import Blueprint, render_template, request
 # Local modules
 from ..modules import displayer, site_conf, utilities
 from ..modules import SFTPConnection
-from ..modules.auth.auth_manager import auth_manager
+from ..modules.auth import auth_manager
 from ..modules.log.logger_factory import get_logger
 from ..modules.threaded.threaded_action import Threaded_action
 from ..modules.utilities import get_config_or_error

@@ -186,7 +186,7 @@ class TestUserProfilePage:
         filepond_success = page.locator('.filepond--file-action-button[data-align="right"]').count() > 0
         
         # Also check hidden field value
-        hidden_value = page.evaluate("document.getElementById('User Profile.file_avatar')?.value || ''")
+        hidden_value = page.evaluate("document.getElementById('My Profile.file_avatar')?.value || ''")
         print(f"  Hidden field value: {hidden_value}")
         
         # Check if there's an error displayed in FilePond

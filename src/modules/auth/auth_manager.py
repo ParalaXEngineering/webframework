@@ -7,6 +7,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
+from flask import session
+
 from .auth_models import ModulePermission, User
 from .auth_utils import get_default_user_prefs, hash_password, verify_password
 from .security_utils import FailedLoginManager

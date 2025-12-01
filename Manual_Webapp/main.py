@@ -202,7 +202,7 @@ if __name__ == "__main__":
     print("  Open your browser to: http://localhost:5001")
     print("  ")
     print("  Default Credentials:")
-    print("  - Admin: username='admin', password='admin'")
+    print("  - Admin: username='admin', password='admin123'")
     print("  - Guest: username='GUEST', password='' (passwordless)")
     print("  ")
     print("  Demo Features:")

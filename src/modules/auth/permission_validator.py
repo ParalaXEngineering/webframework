@@ -23,9 +23,10 @@ def validate_permissions() -> List[Tuple[str, str]]:
     
     # Import auth_manager here to avoid circular imports
     try:
-        from .auth_manager import auth_manager
+        from . import auth_manager
     except ImportError:
-        from auth_manager import auth_manager
+        import auth
+        auth_manager = auth.auth_manager
     
     if not auth_manager:
         issues.append(("INFO", "Authentication system not enabled - skipping permission validation"))

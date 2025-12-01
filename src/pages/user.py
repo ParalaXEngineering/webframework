@@ -175,8 +175,8 @@ def profile():
     if request.method == 'POST':
         data_in = utilities.util_post_to_json(request.form.to_dict())
         
-        if "User Profile" in data_in:
-            module_data = data_in["User Profile"]
+        if TEXT_MY_PROFILE in data_in:
+            module_data = data_in[TEXT_MY_PROFILE]
             
             # Update profile info
             if BUTTON_UPDATE_INFO in module_data:
@@ -284,15 +284,15 @@ def profile():
         # Note: Raw HTML inputs must use module-prefixed names for proper form submission
         disp.add_display_item(DisplayerItemText(
             f'<div class="mb-3"><label for="{FORM_FIELD_CURRENT_PASSWORD}" class="form-label">{TEXT_CURRENT_PASSWORD}</label>'
-            f'<input type="password" class="form-control" id="{FORM_FIELD_CURRENT_PASSWORD}" name="User Profile.{FORM_FIELD_CURRENT_PASSWORD}"></div>'
+            f'<input type="password" class="form-control" id="{FORM_FIELD_CURRENT_PASSWORD}" name="{TEXT_MY_PROFILE}.{FORM_FIELD_CURRENT_PASSWORD}"></div>'
         ), column=0)
         disp.add_display_item(DisplayerItemText(
             f'<div class="mb-3"><label for="{FORM_FIELD_NEW_PASSWORD}" class="form-label">{TEXT_NEW_PASSWORD}</label>'
-            f'<input type="password" class="form-control" id="{FORM_FIELD_NEW_PASSWORD}" name="User Profile.{FORM_FIELD_NEW_PASSWORD}"></div>'
+            f'<input type="password" class="form-control" id="{FORM_FIELD_NEW_PASSWORD}" name="{TEXT_MY_PROFILE}.{FORM_FIELD_NEW_PASSWORD}"></div>'
         ), column=1)
         disp.add_display_item(DisplayerItemText(
             f'<div class="mb-3"><label for="{FORM_FIELD_CONFIRM_PASSWORD}" class="form-label">{TEXT_CONFIRM_PASSWORD}</label>'
-            f'<input type="password" class="form-control" id="{FORM_FIELD_CONFIRM_PASSWORD}" name="User Profile.{FORM_FIELD_CONFIRM_PASSWORD}"></div>'
+            f'<input type="password" class="form-control" id="{FORM_FIELD_CONFIRM_PASSWORD}" name="{TEXT_MY_PROFILE}.{FORM_FIELD_CONFIRM_PASSWORD}"></div>'
         ), column=2)
         
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))

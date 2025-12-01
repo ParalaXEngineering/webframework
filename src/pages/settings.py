@@ -81,12 +81,12 @@ TYPE_SERIAL_PORT = "serial_port"
 
 # Constants - Type color scheme
 TYPE_COLORS = {
-    TYPE_STRING: "INFO",
-    TYPE_INT: "PRIMARY",
-    TYPE_BOOL: "SUCCESS",
-    TYPE_SELECT: "WARNING",
-    TYPE_TEXT_LIST: "SECONDARY",
-    TYPE_KEY_VALUE: "SECONDARY",
+    TYPE_STRING: displayer.BSstyle.INFO,
+    TYPE_INT: displayer.BSstyle.PRIMARY,
+    TYPE_BOOL: displayer.BSstyle.SUCCESS,
+    TYPE_SELECT: displayer.BSstyle.WARNING,
+    TYPE_TEXT_LIST: displayer.BSstyle.SECONDARY,
+    TYPE_KEY_VALUE: displayer.BSstyle.SECONDARY,
 }
 
 # Constants - Setting metadata
@@ -257,9 +257,8 @@ def _render_setting_row(disp, layout_id, line, category, key, setting, user_mode
     
     # Type badge
     type_color = TYPE_COLORS.get(setting_type, displayer.BSstyle.SECONDARY)
-    type_color_obj = getattr(displayer.BSstyle, type_color, displayer.BSstyle.SECONDARY)
     disp.add_display_item(
-        displayer.DisplayerItemBadge(setting_type, type_color_obj),
+        displayer.DisplayerItemBadge(setting_type, type_color),
         column=1, line=line, layout_id=layout_id
     )
     

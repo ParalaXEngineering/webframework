@@ -10,7 +10,7 @@ from src.modules.displayer import (
     Displayer, DisplayerLayout, Layouts, TableMode,
     DisplayerItemText, DisplayerItemButton
 )
-from src.modules.auth.auth_manager import auth_manager
+from src.modules.auth import auth_manager
 
 
 @pytest.fixture(autouse=True)

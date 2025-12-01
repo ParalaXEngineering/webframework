@@ -244,8 +244,9 @@ def simple_upload():
     rename_to = request.form.get(FORM_FIELD_RENAME_TO, '')
     
     # Security: validate upload_path (no directory traversal)
-    if any(char in upload_path for char in UNSAFE_PATH_CHARS):
-        logger.warning(f"Simple upload rejected - invalid path: {upload_path}")
+    # Only block ".." for directory traversal - allow forward and backslashes for subdirectories
+    if '..' in upload_path:
+        logger.warning(f"Simple upload rejected - directory traversal attempt: {upload_path}")
         return jsonify({RESPONSE_ERROR: ERROR_INVALID_UPLOAD_PATH}), 400
     
     # Normalize path separators
