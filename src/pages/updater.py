@@ -39,7 +39,6 @@ FILE_BOOTLOADER_WIN = "BTL.bat"
 FILE_BOOTLOADER_LINUX = "BTL.sh"
 
 # Constants - Archive formats
-ARCHIVE_FORMAT_ZIP = "zip"
 ARCHIVE_FORMAT_TAR_GZ = "r:gz"
 PLATFORM_WINDOWS = "windows"
 PLATFORM_LINUX = "linux"
@@ -86,7 +85,6 @@ INFO_FOLDER_NOT_EXISTS = "Configured update folder doesn't exists"
 INFO_FTP_ERROR = "FTP server not accessible, please check your connection, use a zip file or use a local folder"
 MSG_APP_RESTART_CLOSE_TAB = "Application will restart, you can close this tab"
 MSG_PLEASE_RESTART = "Please restart application"
-MSG_UPDATE_DISTRIB_UNKNOWN = "Unknown distribution for update creation"
 
 
 def get_settings_manager():

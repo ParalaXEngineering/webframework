@@ -5,9 +5,33 @@ This module provides real-time monitoring of running threads with a modern
 card-based interface showing console output, logs, and process information.
 """
 
+# Third-party
 from flask import Blueprint, render_template, request, flash, redirect, url_for
+
+# Framework modules - constants and i18n
+from ..modules.constants import METHOD_GET, METHOD_POST, GET_POST
+from ..modules.i18n.messages import (
+    TEXT_THREAD_MONITOR,
+    TEXT_BREADCRUMB_THREADS,
+    TEXT_LOADING_THREADS,
+    TEXT_THREAD_STOPPED,
+    TEXT_THREAD_NOT_FOUND_STOP,
+    TEXT_THREAD_FORCE_KILLED,
+    TEXT_THREAD_NOT_FOUND_KILL,
+    TEXT_THREAD_MANAGER_NOT_INIT,
+    TEXT_STAT_TOTAL,
+    TEXT_STAT_RUNNING,
+    TEXT_STAT_WITH_PROCESS,
+    TEXT_STAT_WITH_ERROR
+)
+
+# Framework modules - core functionality
 from ..modules import displayer
 from ..modules.threaded import threaded_manager
+
+# =============================================================================
+# Domain-Specific Constants (Threads Module)
+# =============================================================================
 
 # Blueprint Configuration
 BP_NAME = "threads"
@@ -17,11 +41,6 @@ bp = Blueprint(BP_NAME, __name__, url_prefix=BP_URL_PREFIX)
 # Route Paths
 ROUTE_MAIN = "/"
 ROUTE_DELETE = "/delete"
-
-# HTTP Methods
-METHOD_GET = "GET"
-METHOD_POST = "POST"
-GET_POST = ["GET", "POST"]
 
 # Form Field Names
 FIELD_ACTION = "action"
@@ -34,41 +53,25 @@ ACTION_FORCE_KILL = "force_kill"
 # Query Parameters
 PARAM_THREAD_NAME = "thread_name"
 
-# UI Text
-TEXT_THREAD_MONITOR = "Thread Monitor"
-TEXT_BREADCRUMB_THREADS = "Threads"
-TEXT_LOADING_THREADS = "<p class='text-muted text-center'><i class='mdi mdi-loading mdi-spin'></i> Loading threads...</p>"
-TEXT_THREAD_STOPPED = "✓ Stopped thread: {}"
+# UI Icons and Styles
 TEXT_THREAD_STOPPED_ICON = "warning"
-TEXT_THREAD_NOT_FOUND_STOP = "✗ Thread not found: {}"
 TEXT_THREAD_FOUND_ERROR = "error"
-TEXT_THREAD_FORCE_KILLED = "✓ Force killed thread: {}"
-TEXT_THREAD_NOT_FOUND_KILL = "✗ Thread not found: {}"
-TEXT_THREAD_MANAGER_NOT_INIT = "Thread manager not initialized"
 
 # Template Configuration
 TEMPLATE_BASE_CONTENT = "base_content.j2"
 
-# Statistics Keys
+# Statistics Keys (from threaded_manager)
 STAT_TOTAL = "total"
 STAT_RUNNING = "running"
 STAT_WITH_PROCESS = "with_process"
 STAT_WITH_ERROR = "with_error"
-
-# UI Components
-TEXT_STAT_TOTAL = "Total Threads"
-TEXT_STAT_RUNNING = "Running"
-TEXT_STAT_WITH_PROCESS = "With Process"
-TEXT_STAT_WITH_ERROR = "With Errors"
 
 # Dynamic Content Configuration
 DYNAMIC_CONTENT_ID = "threads_content"
 DYNAMIC_CONTENT_CARD = False
 
 # Layout Configuration
-LAYOUT_VERTICAL = "VERTICAL"
 LAYOUT_STATS = [3, 3, 3, 3]
-LAYOUT_SEPARATOR = [12]
 LAYOUT_FULL_WIDTH = [12]
 
 

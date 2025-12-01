@@ -3,32 +3,21 @@ Admin authentication and authorization management blueprint.
 Manage users, groups, and module permissions.
 """
 
+# Third-party
 from flask import Blueprint, render_template, request, flash
 
-try:
-    from ..modules.auth import require_admin, auth_manager
-    from ..modules.auth.auth_utils import validate_username, validate_password_strength
-    from ..modules.auth.permission_registry import permission_registry
-    from ..modules.displayer import (
-        BSstyle, Displayer, DisplayerItemButton, DisplayerItemInputBox,
-        DisplayerItemInputMultiSelect, DisplayerItemInputPassword,
-        DisplayerItemInputSelect, DisplayerItemInputString, DisplayerItemText,
-        DisplayerLayout, Layouts, TableMode
-    )
-    from ..modules.log.logger_factory import get_logger
-    from ..modules import utilities
-except ImportError:
-    from modules.auth import require_admin, auth_manager
-    from modules.auth.auth_utils import validate_username, validate_password_strength
-    from modules.auth.permission_registry import permission_registry
-    from modules.displayer import (
-        BSstyle, Displayer, DisplayerItemButton, DisplayerItemInputBox,
-        DisplayerItemInputMultiSelect, DisplayerItemInputPassword,
-        DisplayerItemInputSelect, DisplayerItemInputString, DisplayerItemText,
-        DisplayerLayout, Layouts, TableMode
-    )
-    from modules.log.logger_factory import get_logger
-    from modules import utilities
+# Framework modules
+from ..modules.auth import require_admin, auth_manager
+from ..modules.auth.auth_utils import validate_username, validate_password_strength
+from ..modules.auth.permission_registry import permission_registry
+from ..modules.displayer import (
+    BSstyle, Displayer, DisplayerItemButton, DisplayerItemInputBox,
+    DisplayerItemInputMultiSelect, DisplayerItemInputPassword,
+    DisplayerItemInputSelect, DisplayerItemInputString, DisplayerItemText,
+    DisplayerLayout, Layouts, TableMode
+)
+from ..modules.log.logger_factory import get_logger
+from ..modules import utilities
 
 logger = get_logger("admin_auth")
 admin_auth_bp = Blueprint('admin_auth', __name__, url_prefix='/admin')
@@ -148,7 +137,7 @@ def manage_users():
     # User List Table
     users = auth_manager.get_all_users()
     user_data = []
-    for user in users:
+    for user in users:  # type: ignore
         user_data.append({
             "Username": user.username,
             "Display Name": user.display_name,
@@ -202,7 +191,7 @@ def manage_users():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Update User Groups</h3>"), column=0)
     
-    usernames = [u.username for u in users]
+    usernames = [u.username for u in users]  # type: ignore
     first_user_groups = users[0].groups if users else []
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [4, 6, 2]))
@@ -238,7 +227,7 @@ def manage_users():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Delete User</h3>"), column=0)
     
-    deletable_users = [u.username for u in users if u.username not in RESERVED_USERS]
+    deletable_users = [u.username for u in users if u.username not in RESERVED_USERS]  # type: ignore
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6, 6]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_user_to_delete",
@@ -281,7 +270,7 @@ def manage_permissions():
                 # Build new permissions from form data
                 new_permissions = {}
                 for module_name in all_modules:
-                    new_permissions[module_name] = {group: [] for group in all_groups}
+                    new_permissions[module_name] = {group: [] for group in all_groups}  # type: ignore
                 
                 # Parse checkbox format: checkbox_{module}|{group}|{action}
                 for key, value in module_data.items():
@@ -309,7 +298,7 @@ def manage_permissions():
     
     # Get all modules and groups (excluding admin)
     all_modules = permission_registry.get_all_modules()
-    all_groups = [g for g in auth_manager.get_all_groups() if g != SYSTEM_ADMIN_GROUP]
+    all_groups = [g for g in auth_manager.get_all_groups() if g != SYSTEM_ADMIN_GROUP]  # type: ignore
     
     if not all_modules:
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -341,7 +330,7 @@ def manage_permissions():
         layout_id = disp.add_master_layout(DisplayerLayout(Layouts.TABLE, header))
         
         for action_idx, action in enumerate(actions):
-            row = [DisplayerItemText(f"<strong>{action}</strong>")]
+            row: list = [DisplayerItemText(f"<strong>{action}</strong>")]
             
             for group in all_groups:
                 # Check if group has this action
@@ -433,7 +422,7 @@ def manage_groups():
     layout_id = disp.add_master_layout(DisplayerLayout(Layouts.TABLE, ["Group Name", "# Users"]))
     users = auth_manager.get_all_users()
     for line_idx, group in enumerate(groups):
-        user_count = sum(1 for u in users if group in u.groups)
+        user_count = sum(1 for u in users if group in u.groups)  # type: ignore
         disp.add_display_item(DisplayerItemText(group), 0, line=line_idx, layout_id=layout_id)
         disp.add_display_item(DisplayerItemText(str(user_count)), 1, line=line_idx, layout_id=layout_id)
     
@@ -449,7 +438,7 @@ def manage_groups():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Rename Group</h3>"), column=0)
     
-    renameable_groups = [g for g in groups if g not in RESERVED_GROUPS]
+    renameable_groups = [g for g in groups if g not in RESERVED_GROUPS]  # type: ignore
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [4, 6, 2]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_group_to_rename",
@@ -467,7 +456,7 @@ def manage_groups():
         "<div class='alert alert-warning'>Deleting a group removes it from all users and permissions.</div>"
     ), column=0)
     
-    deletable_groups = [g for g in groups if g not in RESERVED_GROUPS]
+    deletable_groups = [g for g in groups if g not in RESERVED_GROUPS]  # type: ignore
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6, 6]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_group_to_delete",

@@ -5,21 +5,50 @@ This module contains HTTP route handlers for shared functionality like downloads
 assets, login, and help pages.
 """
 
-from flask import Blueprint, render_template, request, send_file, redirect, session
-from typing import Dict, Any, cast
-from ..modules import auth
-
-from ..modules import utilities
-from ..modules import displayer
-from ..modules import site_conf
-from ..modules import User_defined_module
-
+# Standard library
 import os
 import sys
+from typing import Dict, Any, cast
+
+# Third-party
+from flask import Blueprint, render_template, request, send_file, redirect, session
 import markdown
+
+# Framework modules - constants and i18n
+from ..modules.constants import (
+    STATUS_OK,
+    STATUS_BAD_REQUEST,
+    STATUS_NOT_FOUND,
+    STATUS_SERVER_ERROR,
+    METHOD_GET,
+    METHOD_POST,
+    GET_POST,
+    PARAM_FILE,
+    PARAM_FILENAME,
+    PARAM_USER,
+    PARAM_PASSWORD
+)
+from ..modules.i18n.messages import (
+    ERROR_CONFIG_NOT_INIT,
+    ERROR_INVALID_FOLDER,
+    ERROR_FILENAME_REQUIRED,
+    ERROR_FILE_NOT_FOUND,
+    DEFAULT_HELP_TITLE,
+    TEXT_404_TEMPLATE,
+    TEXT_LOGIN_TEMPLATE,
+    TEXT_TEMPLATE_BASE,
+    TEXT_TEMPLATE_BASE_CONTENT
+)
+
+# Framework modules - core functionality
+from ..modules import auth, displayer, site_conf, User_defined_module, utilities
 from ..modules.log.logger_factory import get_logger
 
 logger = get_logger(__name__)
+
+# =============================================================================
+# Domain-Specific Constants (Common Pages)
+# =============================================================================
 
 # Blueprint Configuration
 BP_NAME = "common"
@@ -31,11 +60,6 @@ ROUTE_DOWNLOAD = "/download"
 ROUTE_ASSETS = "/assets/<asset_type>/"
 ROUTE_LOGIN = "/login"
 ROUTE_HELP = "/help"
-
-# HTTP Methods
-METHOD_GET = "GET"
-METHOD_POST = "POST"
-GET_POST = ["GET", "POST"]
 
 # Resource Paths
 RESOURCES_DIR = "ressources"
@@ -51,34 +75,12 @@ FILE_EXTENSION_JPEG = ".jpeg"
 FILE_EXTENSION_PNG = ".png"
 MIME_TYPE_SVG = "image/svg+xml"
 
-# Query Parameters
-PARAM_FILE = "file"
-PARAM_FILENAME = "filename"
+# Query Parameters (domain-specific)
 PARAM_TOPIC = "topic"
-PARAM_USER = "user"
-PARAM_PASSWORD = "password"
 
-# Form Field Names
+# Form Field Names (domain-specific)
 FIELD_USER = "user"
 FIELD_PASSWORD = "password"
-
-# Error Messages
-ERROR_CONFIG_NOT_INIT = "Site configuration not initialized"
-ERROR_INVALID_FOLDER = "Invalid folder type"
-ERROR_FILENAME_REQUIRED = "Filename required"
-ERROR_FILE_NOT_FOUND = "Fichier Markdown non trouvé."
-
-# Response Codes
-STATUS_OK = 200
-STATUS_BAD_REQUEST = 400
-STATUS_NOT_FOUND = 404
-STATUS_SERVER_ERROR = 500
-
-# UI Text
-TEXT_404_TEMPLATE = "404.j2"
-TEXT_LOGIN_TEMPLATE = "login.j2"
-TEXT_TEMPLATE_BASE = "base.j2"
-TEXT_TEMPLATE_BASE_CONTENT = "base_content.j2"
 
 # Markdown Configuration
 MARKDOWN_EXTENSIONS = ["sane_lists", "toc", "tables"]
@@ -86,9 +88,6 @@ MARKDOWN_EXTENSIONS = ["sane_lists", "toc", "tables"]
 # Avatar Configuration
 AVATAR_PREFIX = "users/"
 AVATAR_EXTENSIONS = [FILE_EXTENSION_SVG, FILE_EXTENSION_JPG, FILE_EXTENSION_JPEG, FILE_EXTENSION_PNG]
-
-# Default Values
-DEFAULT_HELP_TITLE = "Documentation: {}"
 
 
 @bp.route(ROUTE_DOWNLOAD, methods=[METHOD_GET])

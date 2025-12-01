@@ -3,6 +3,7 @@ User profile and preferences management blueprint.
 User self-service for password, avatar, and personal settings.
 """
 
+# Standard library
 import os
 import time
 
@@ -10,82 +11,76 @@ import time
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from PIL import Image
 
-try:
-    # Local modules (relative import)
-    from ..modules.displayer import (
-        Displayer, DisplayerLayout, Layouts,
-        DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
-        DisplayerItemInputSelect, DisplayerItemFileUpload,
-        DisplayerItemAlert, BSstyle
-    )
-    from ..modules.auth.auth_utils import verify_password, validate_password_strength
-    from ..modules import utilities
-    from ..modules.log.logger_factory import get_logger
-    from ..modules.auth import auth_manager
-except ImportError:
-    # Local modules (fallback for some contexts)
-    from modules.displayer import (
-        Displayer, DisplayerLayout, Layouts,
-        DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
-        DisplayerItemInputSelect, DisplayerItemFileUpload,
-        DisplayerItemAlert, BSstyle
-    )
-    from modules.auth.auth_utils import verify_password, validate_password_strength
-    from modules import utilities
-    from modules.log.logger_factory import get_logger
-    from modules.auth import auth_manager
+# Framework modules - constants and i18n
+from ..modules.constants import (
+    IMAGE_MAX_SIZE,
+    IMAGE_QUALITY_HIGH,
+    USER_GUEST_NAME
+)
+from ..modules.i18n.messages import (
+    TEXT_ACCESS_RESTRICTED,
+    TEXT_GUEST_ACCESS,
+    TEXT_PROFILE_NOT_AVAILABLE,
+    TEXT_GUEST_CANNOT_ACCESS,
+    TEXT_GUEST_LOGIN_MESSAGE,
+    TEXT_MY_PROFILE,
+    TEXT_PROFILE_BREADCRUMB,
+    TEXT_PROFILE_INFO,
+    TEXT_DISPLAY_NAME,
+    TEXT_EMAIL,
+    TEXT_UPDATE_PROFILE,
+    TEXT_PROFILE_PICTURE,
+    TEXT_UPLOAD_NEW_AVATAR,
+    TEXT_AVATAR_HELP,
+    TEXT_CHANGE_PASSWORD,
+    TEXT_CURRENT_PASSWORD,
+    TEXT_NEW_PASSWORD,
+    TEXT_CONFIRM_PASSWORD,
+    TEXT_CHANGE_PASSWORD_BTN,
+    TEXT_PASSWORD_REQUIREMENTS,
+    TEXT_PASSWORDLESS_ACCOUNT,
+    TEXT_ACCOUNT_INFO,
+    TEXT_USERNAME,
+    TEXT_GROUPS,
+    TEXT_ACCOUNT_CREATED,
+    TEXT_LAST_LOGIN,
+    TEXT_UNKNOWN,
+    TEXT_NEVER,
+    TEXT_PROPERTY,
+    MSG_PROFILE_UPDATED,
+    MSG_DISPLAY_NAME_EMPTY,
+    MSG_CURRENT_PASSWORD_INCORRECT,
+    MSG_PASSWORDS_NO_MATCH,
+    MSG_PASSWORD_INVALID,
+    MSG_PASSWORD_CHANGED,
+    ERROR_AUTH_NOT_INIT
+)
+
+# Framework modules - core functionality
+from ..modules.displayer import (
+    Displayer, DisplayerLayout, Layouts,
+    DisplayerItemText, DisplayerItemButton, DisplayerItemInputString,
+    DisplayerItemInputSelect, DisplayerItemFileUpload,
+    DisplayerItemAlert, BSstyle
+)
+from ..modules.auth.auth_utils import verify_password, validate_password_strength
+from ..modules import utilities
+from ..modules.log.logger_factory import get_logger
+from ..modules.auth import auth_manager
 
 logger = get_logger("user_profile")
 
-# Constants - Blueprint and URL routing
+# =============================================================================
+# Domain-Specific Constants (User Profile Module)
+# =============================================================================
+
+# Blueprint and URL routing
 BLUEPRINT_NAME = "user_profile"
 BLUEPRINT_PREFIX = "/user"
 ROUTE_PROFILE = "/profile"
 ROUTE_PREFERENCES = "/framework_preferences"
 
-# Constants - UI text and labels
-TEXT_ACCESS_RESTRICTED = "Access Restricted"
-TEXT_GUEST_ACCESS = "Guest Access"
-TEXT_PROFILE_NOT_AVAILABLE = "Profile Not Available for Guest Users"
-TEXT_GUEST_CANNOT_ACCESS = "Guest users cannot access or modify profile settings."
-TEXT_GUEST_LOGIN_MESSAGE = "Please log in with a registered account to access your profile."
-TEXT_MY_PROFILE = "My Profile"
-TEXT_PROFILE_BREADCRUMB = "Profile"
-TEXT_PROFILE_INFO = "Profile Information"
-TEXT_DISPLAY_NAME = "Display Name"
-TEXT_EMAIL = "Email"
-TEXT_UPDATE_PROFILE = "Update Profile"
-TEXT_PROFILE_PICTURE = "Profile Picture"
-TEXT_UPLOAD_NEW_AVATAR = "Upload New Avatar"
-TEXT_AVATAR_HELP = "Allowed: JPEG, PNG, SVG. Max size: 1024x1024 (auto-resized for raster images)"
-TEXT_CHANGE_PASSWORD = "Change Password"
-TEXT_CURRENT_PASSWORD = "Current Password"
-TEXT_NEW_PASSWORD = "New Password"
-TEXT_CONFIRM_PASSWORD = "Confirm Password"
-TEXT_CHANGE_PASSWORD_BTN = "Change Password"
-TEXT_PASSWORD_REQUIREMENTS = "Password must be at least 5 characters with letters and numbers."
-TEXT_PASSWORDLESS_ACCOUNT = "This is a passwordless account."
-TEXT_ACCOUNT_INFO = "Account Information"
-TEXT_USERNAME = "Username"
-TEXT_GROUPS = "Groups"
-TEXT_ACCOUNT_CREATED = "Account Created"
-TEXT_LAST_LOGIN = "Last Login"
-TEXT_UNKNOWN = "Unknown"
-TEXT_NEVER = "Never"
-TEXT_PROPERTY = "Property"
-TEXT_VALUE = "Value"
-
-# Constants - Message keys
-MSG_PROFILE_UPDATED = "Profile updated successfully!"
-MSG_DISPLAY_NAME_EMPTY = "Display name cannot be empty."
-MSG_CURRENT_PASSWORD_INCORRECT = "Current password is incorrect."
-MSG_PASSWORDS_NO_MATCH = "New passwords do not match."
-MSG_PASSWORD_INVALID = "Invalid password"
-MSG_PASSWORD_CHANGED = "Password changed successfully!"
-MSG_USER_NOT_FOUND = "User not found."
-MSG_ERROR_AUTH_NOT_INIT = "Authentication system not initialized"
-
-# Constants - Form field names
+# Form field names
 FORM_FIELD_DISPLAY_NAME = "input_display_name"
 FORM_FIELD_EMAIL = "input_email"
 FORM_FIELD_CURRENT_PASSWORD = "input_current_password"
@@ -95,22 +90,23 @@ FORM_FIELD_AVATAR = "file_avatar"
 BUTTON_UPDATE_INFO = "btn_update_info"
 BUTTON_CHANGE_PASSWORD = "btn_change_password"
 
-# Constants - Avatar and file upload
+# Avatar and file upload
 AVATAR_UPLOAD_PATH = "images/users"
 AVATAR_RENAME_PATTERN = "{username}"
 AVATAR_ACCEPT_TYPES = ["image/*"]
 AVATAR_SIZE = (200, 200)
-AVATAR_MAX_QUALITY = 95
-IMAGE_MAX_SIZE = (1024, 1024)
+AVATAR_MAX_QUALITY = IMAGE_QUALITY_HIGH
 DEFAULT_AVATAR_URL = "/common/assets/images/?filename=users/default.svg"
 
-# Constants - User and authentication
-USER_GUEST_NAME = "GUEST"
-SESSION_GUEST = "guest"
-
-# Constants - HTTP routes and redirects
+# HTTP routes (internal references)
 ROUTE_LOGIN = "common.login"
 ROUTE_SETTINGS_VIEW = "settings.user_view"
+
+# UI text (not extracted to i18n - table headers)
+TEXT_VALUE = "Value"
+
+# Error messages (local to module)
+MSG_USER_NOT_FOUND = "User not found."
 
 user_profile_bp = Blueprint(BLUEPRINT_NAME, __name__, url_prefix=BLUEPRINT_PREFIX)
 
@@ -138,8 +134,8 @@ def profile():
     # NOTE: This check should never fail in normal operation since this page
     # is only added to sidebar when authentication is enabled via site_conf
     if not auth_manager:
-        logger.error(f"{MSG_ERROR_AUTH_NOT_INIT} - this should not happen")
-        return MSG_ERROR_AUTH_NOT_INIT, 500
+        logger.error(f"{ERROR_AUTH_NOT_INIT} - this should not happen")
+        return ERROR_AUTH_NOT_INIT, 500
     
     # Get current user
     current_user = auth_manager.get_current_user()

@@ -4,6 +4,7 @@ File Handler Pages - Flask blueprint for file upload/download/delete routes.
 This module provides HTTP endpoints for secure file management operations.
 """
 
+# Standard library
 from io import BytesIO
 
 # Third-party
@@ -67,7 +68,6 @@ PATH_ASSET_DIRECTORY = 'website'
 PATH_ASSET_SUBDIRECTORY = 'assets'
 PATH_DEFAULT_UPLOAD = 'uploads'
 PATH_SEPARATOR = '/'
-UNSAFE_PATH_CHARS = ['..', '/', '\\']
 FILENAME_SAFE_PATTERN = r'[^\w\-.]'
 FILENAME_SAFE_REPLACEMENT = '_'
 

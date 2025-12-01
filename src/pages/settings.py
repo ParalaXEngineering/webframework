@@ -37,7 +37,41 @@ from urllib.parse import urlparse, parse_qs
 # Third-party
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 
-# Local modules
+# Framework modules - constants and i18n
+from ..modules.constants import (
+    STATUS_OK,
+    STATUS_SERVER_ERROR,
+    BOOL_TRUE_VALUES,
+    DELIMITER_SPLIT
+)
+from ..modules.i18n.messages import (
+    ERROR_SETTINGS_MANAGER_NOT_INIT,
+    ERROR_AUTH_NOT_INIT,
+    ERROR_NOT_LOGGED_IN,
+    ERROR_SETTING_UNKNOWN_TYPE,
+    ERROR_SAVING_USER_OVERRIDE,
+    ERROR_SAVING_GLOBAL_CONFIG,
+    ERROR_SAVING_SETTINGS,
+    MSG_SETTINGS_SAVED,
+    MSG_NO_OVERRIDABLE_SETTINGS,
+    TEXT_SETTINGS,
+    TEXT_CONFIGURATION_SETTINGS,
+    TEXT_SETTINGS_CATEGORIES,
+    TEXT_CATEGORY,
+    TEXT_DESCRIPTION,
+    TEXT_SETTINGS_COUNT,
+    TEXT_ACTIONS,
+    TEXT_SETTING,
+    TEXT_TYPE,
+    TEXT_VALUE,
+    TEXT_USER_OVERRIDABLE,
+    TEXT_USER_FRAMEWORK_SETTINGS,
+    TEXT_VIEW_SETTINGS,
+    TEXT_SAVE_SETTINGS,
+    TEXT_CONFIGURATION_OPTIONS
+)
+
+# Framework modules - core functionality
 from ..modules import displayer
 from ..modules.auth import require_admin, require_login
 from ..modules.log.logger_factory import get_logger
@@ -50,16 +84,18 @@ bp = Blueprint("settings", __name__, url_prefix="/settings")
 # For testing: bypass auth in displayer
 _bypass_AUTH = False
 
-# Constants - Configuration and URLs
+# =============================================================================
+# Domain-Specific Constants (Settings Module)
+# =============================================================================
+
+# Configuration and URLs
 CONFIG_WRAPPER = "settings"
 URL_PREFIX_OVERRIDABLE = "overridable_"
 FORM_FIELD_CSRF_TOKEN = "csrf_token"
 FORM_FIELD_SAVE = "save"
 
-# Constants - Setting type names
+# Setting Type Names (domain-specific to settings module)
 TYPE_STRING = "string"
-TYPE_TEXT = "text"
-TYPE_STR = "str"
 TYPE_INT = "int"
 TYPE_INTEGER = "integer"
 TYPE_NUMBER = "number"
@@ -79,7 +115,7 @@ TYPE_DROPDOWN_MAPPING = "dropdown_mapping"
 TYPE_ICON = "icon"
 TYPE_SERIAL_PORT = "serial_port"
 
-# Constants - Type color scheme
+# Type Color Scheme (UI-specific mapping)
 TYPE_COLORS = {
     TYPE_STRING: displayer.BSstyle.INFO,
     TYPE_INT: displayer.BSstyle.PRIMARY,
@@ -89,7 +125,7 @@ TYPE_COLORS = {
     TYPE_KEY_VALUE: displayer.BSstyle.SECONDARY,
 }
 
-# Constants - Setting metadata
+# Setting Metadata Keys
 METADATA_FRIENDLY = "friendly"
 METADATA_TYPE = "type"
 METADATA_VALUE = "value"
@@ -98,49 +134,17 @@ METADATA_OVERRIDABLE = "overridable_by_user"
 METADATA_DESCRIPTION = "_description"
 METADATA_CATEGORY_DESCRIPTION = "_category_description"
 
-# Constants - Error and flash messages
-ERROR_MANAGER_NOT_INITIALIZED = "Settings manager not initialized"
-ERROR_AUTH_NOT_INITIALIZED = "Authentication not initialized"
-ERROR_NOT_LOGGED_IN = "Not logged in"
-ERROR_SETTING_UNKNOWN_TYPE = "Unknown setting type"
-ERROR_SAVING_USER_OVERRIDE = "Error setting user framework override"
-ERROR_SAVING_GLOBAL_CONFIG = "Error setting global config value"
-ERROR_SAVING_SETTINGS = "Error saving settings"
-MSG_SETTINGS_SAVED = "Settings saved successfully!"
-MSG_NO_OVERRIDABLE_SETTINGS = "No settings are currently configured as user-overridable. Contact your administrator."
-
-# Constants - UI text and labels
-TEXT_SETTINGS = "Settings"
-TEXT_CONFIGURATION_SETTINGS = "Configuration Settings"
-TEXT_SETTINGS_CATEGORIES = "Settings Categories"
-TEXT_CATEGORY = "Category"
-TEXT_DESCRIPTION = "Description"
-TEXT_SETTINGS_COUNT = "Settings Count"
-TEXT_ACTIONS = "Actions"
-TEXT_SETTING = "Setting"
-TEXT_TYPE = "Type"
-TEXT_VALUE = "Value"
-TEXT_USER_OVERRIDABLE = "User Overridable"
+# Route Links (internal references)
 TEXT_SETTINGS_LINK = "settings.index"
-TEXT_USER_FRAMEWORK_SETTINGS = "My Framework Settings"
-TEXT_VIEW_SETTINGS = "View Settings"
 TEXT_FRAMEWORK_SETTINGS_LINK = "settings.user_view"
-TEXT_SAVE_SETTINGS = "Save Settings"
-TEXT_CONFIGURATION_OPTIONS = "Configuration options for"
 
-# Constants - Table column definitions
+# Table Column Definitions
 COLUMNS_CATEGORY_TABLE = [TEXT_CATEGORY, TEXT_DESCRIPTION, TEXT_SETTINGS_COUNT, TEXT_ACTIONS]
 COLUMNS_SETTING_ADMIN = [TEXT_SETTING, TEXT_TYPE, TEXT_VALUE, TEXT_USER_OVERRIDABLE]
 COLUMNS_SETTING_USER = [TEXT_SETTING, TEXT_TYPE, TEXT_VALUE]
 
-# Constants - Boolean value representations
-BOOL_TRUE_VALUES = [True, "true", "on", "1", 1]
-DELIMITER_SPLIT = "#"
+# Serial Port Configuration
 SERIAL_PORT_NONE = "None"
-
-# Constants - HTTP return codes
-STATUS_ERROR = 500
-STATUS_OK = 200
 
 
 def get_manager():
@@ -155,7 +159,7 @@ def index():
     """Settings dashboard - main entry point."""
     manager = get_manager()
     if not manager:
-        return ERROR_MANAGER_NOT_INITIALIZED, STATUS_ERROR
+        return ERROR_SETTINGS_MANAGER_NOT_INIT, STATUS_SERVER_ERROR
     
     disp = displayer.Displayer()
     disp.add_generic(TEXT_SETTINGS, display=False)
@@ -324,7 +328,7 @@ def _render_setting_row(disp, layout_id, line, category, key, setting, user_mode
             displayer.DisplayerItemInputSelect(form_field_name, "", value, serial_ports),
             column=2, line=line, layout_id=layout_id
         )
-    elif setting_type in (TYPE_STRING, TYPE_TEXT, TYPE_STR):
+    elif setting_type == TYPE_STRING:
         # Explicit string type
         disp.add_display_item(
             displayer.DisplayerItemInputString(form_field_name, "", value if isinstance(value, str) else str(value or "")),
@@ -353,7 +357,7 @@ def _view_settings(user_mode=False):
     """Internal function to view and edit settings with optional user filtering."""
     manager = get_manager()
     if not manager:
-        return ERROR_MANAGER_NOT_INITIALIZED, STATUS_ERROR
+        return ERROR_SETTINGS_MANAGER_NOT_INIT, STATUS_SERVER_ERROR
     category_filter = request.args.get("category")
     
     # If POST and no category in args, try to get it from referrer
@@ -370,7 +374,7 @@ def _view_settings(user_mode=False):
             try:
                 from ..modules.auth import auth_manager
                 if not auth_manager:
-                    flash(ERROR_AUTH_NOT_INITIALIZED, "danger")
+                    flash(ERROR_AUTH_NOT_INIT, "danger")
                     return redirect(url_for('common.login'))
                 current_user = auth_manager.get_current_user()
                 if not current_user:
@@ -679,7 +683,7 @@ def _view_settings(user_mode=False):
                             # This is a subcategory, check its nested settings
                             subcat_data = category_data[key]
                             if isinstance(subcat_data, dict):
-                                for subkey in subcat_data:
+                                for subkey in subcat_data:  # type: ignore
                                     if subkey in [METADATA_FRIENDLY, METADATA_DESCRIPTION] or not isinstance(subcat_data[subkey], dict):
                                         continue
                                     if METADATA_TYPE in subcat_data[subkey]:

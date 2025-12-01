@@ -65,7 +65,6 @@ PROGRESS_WARNING = 50
 ERROR_LONG_PATH_CODE = errno.ENAMETOOLONG
 REFRESH_DELAY = 7
 REFRESH_CONTENT = "<meta http-equiv='refresh' content='5'><p>Unpacking completed successfully. The page will reload shortly.</p>"
-COMPLETION_MESSAGE_PREFIX = "Unpacking completed successfully. The page will reload shortly."
 
 # Constants - UI/Display
 SUBTITLE_PACKAGE_CREATION = "Package creation"
@@ -84,7 +83,6 @@ LABEL_PACKAGE_TO_UNPACK = "Package to unpack"
 ICON_FILE_UPLOAD = "file-upload"
 ICON_FILE_PACKAGE = "file-package"
 STYLE_PRIMARY = "primary"
-STYLE_INFO = "Package creation"
 INFO_FOLDER_NOT_EXISTS = "Configured package folder doesn't exists"
 INFO_FTP_NOT_ACCESSIBLE = "FTP server not accessible, please check your connection, use a zip file or use a local folder"
 INFO_FTP_UNKNOWN_ERROR = "Unkown FTP error: "

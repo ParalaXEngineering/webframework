@@ -24,6 +24,31 @@ from ..modules.utilities import (
     util_generate_preview_html,
 )
 
+# Framework modules - constants and i18n
+from ..modules.constants import (
+    STATUS_BAD_REQUEST,
+    STATUS_NOT_FOUND,
+    STATUS_SERVER_ERROR,
+)
+from ..modules.i18n.messages import (
+    ERROR_FILE_MANAGER_NOT_INITIALIZED,
+    TEXT_NO_FILES_UPLOAD,
+    TEXT_NO_FILES_PERMISSION,
+    TEXT_NO_DELETE_PERMISSION,
+    TEXT_VERSIONING_INFO,
+    TEXT_TAGS_INFO,
+    TEXT_VERSIONS_DELETED_WARNING,
+    MSG_NO_FILES_SELECTED,
+    MSG_UPDATE_SUCCESS,
+    MSG_VERSION_RESTORED,
+    MSG_VERSION_DELETED,
+    MSG_VERSIONS_DELETED,
+    DELETE_CONFIRM_SINGLE,
+    DELETE_CONFIRM_MULTIPLE,
+    DELETE_RESULT_PARTIAL,
+    DELETE_RESULT_SUCCESS,
+)
+
 logger = get_logger(__name__)
 
 # Constants - Module and permission names
@@ -34,29 +59,7 @@ PERMISSION_DELETE = "delete"
 PERMISSION_EDIT = "edit"
 PERMISSION_VIEW = "view"
 
-# Constants - Error and initialization messages
-ERROR_NOT_INITIALIZED = "File manager not initialized"
-
-# Constants - UI text and labels
-TEXT_FILE_MANAGER = "File Manager"
-TEXT_BROWSE_FILES = "Browse Files"
-TEXT_EDIT_METADATA = "Edit File Metadata"
-TEXT_EDIT_FILE = "Edit File"
-TEXT_FILE_NOT_FOUND = "File Not Found"
-TEXT_CONFIRM_DELETE = "Confirm Delete"
-TEXT_DELETION_COMPLETE = "Deletion Complete"
-TEXT_VERSION_HISTORY = "Version History"
-TEXT_ERROR_LABEL = "Error"
-TEXT_FILE_INFORMATION = "File Information"
-TEXT_EDIT_FORM = "Edit Metadata"
-TEXT_FILES_TO_DELETE = "Files to Delete"
-TEXT_ALL_VERSIONS = "All Versions"
-TEXT_NO_FILES_UPLOAD = "No files found. Upload files to get started!"
-TEXT_NO_FILES_PERMISSION = "No files found. You need 'upload' permission to add files. Contact your administrator."
-TEXT_NO_DELETE_PERMISSION = "You need 'delete' permission to remove files. Contact your administrator."
-TEXT_VERSIONING_INFO = "Group ID for versioning. Files with the same group_id and filename are treated as versions of the same file."
-TEXT_TAGS_INFO = "Organize files with tags for easy searching and filtering."
-TEXT_VERSIONS_DELETED_WARNING = "Files with version history will have <strong>all versions</strong> deleted."
+# Constants - Domain-specific to file manager module
 
 # Constants - Table columns
 TABLE_COLUMNS_MAIN = ["Select", "Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Integrity", "Actions"]
@@ -83,35 +86,16 @@ ACTION_DOWNLOAD = "download"
 ACTION_CUSTOM = "custom"
 ACTION_STYLE_PRIMARY = "primary"
 ACTION_STYLE_WARNING = "warning"
-ACTION_STYLE_INFO = "info"
 ACTION_STYLE_DANGER = "danger"
-ACTION_STYLE_SUCCESS = "success"
 
-# Constants - Icons
-ICON_DOWNLOAD = "mdi mdi-download"
-ICON_PENCIL = "mdi mdi-pencil"
-ICON_HISTORY = "mdi mdi-history"
-ICON_DELETE = "mdi mdi-delete"
-ICON_DELETE_FOREVER = "delete-forever"
-ICON_TRASH = "trash"
-ICON_RESTORE = "mdi mdi-restore"
-ICON_FILE = "file"
-ICON_CLOSE_CIRCLE = "close-circle"
-ICON_CONTENT_SAVE = "content-save"
-ICON_ARROW_LEFT = "arrow-left"
-ICON_ALERT = "alert"
-ICON_CHECK_CIRCLE = "check-circle"
-ICON_INFO = "mdi mdi-information"
-ICON_INFO_OUTLINE = "mdi mdi-information-outline"
+# Constants - Integrity status strings (domain-specific to file manager)
+INTEGRITY_STATUS_OK = "OK"
+INTEGRITY_STATUS_MISSING = "Missing"
+INTEGRITY_STATUS_CHECKSUM_MISMATCH = "Checksum mismatch"
+INTEGRITY_STATUS_NOT_FOUND = "Not found"
+INTEGRITY_STATUS_UNKNOWN = "Unknown"
 
-# Constants - Integrity status strings
-STATUS_OK = "OK"
-STATUS_MISSING = "Missing"
-STATUS_CHECKSUM_MISMATCH = "Checksum mismatch"
-STATUS_NOT_FOUND = "Not found"
-STATUS_UNKNOWN = "Unknown"
-
-# Constants - Badge styles
+# Constants - Badge styles (domain-specific to file manager)
 BADGE_SUCCESS = "SUCCESS"
 BADGE_WARNING = "WARNING"
 BADGE_ERROR = "ERROR"
@@ -119,44 +103,19 @@ BADGE_SECONDARY = "SECONDARY"
 BADGE_PRIMARY = "PRIMARY"
 BADGE_INFO = "INFO"
 
-# Constants - File version strings
+# Constants - File version strings (domain-specific to file manager)
 VERSION_CURRENT = "Current"
 VERSION_ARCHIVED = "Archived"
 
-# Constants - File/group display
+# Constants - File/group display (domain-specific to file manager)
 GROUP_NONE = "(none)"
-THUMB_SIZE_150 = "150x150"
 THUMB_SIZE_DEFAULT = "60px"
-THUMB_SIZE_PREVIEW = "150px"
-THUMB_SIZE_SMALL = "50px"
 THUMB_EXTENSION = "_thumb.jpg"
 THUMB_DIR = ".thumbs"
 
-# Constants - Flash messages and deletions
-MSG_NO_FILES_SELECTED = "No files selected for deletion."
-MSG_UPDATE_SUCCESS = "Metadata for '{}' updated successfully."
-MSG_VERSION_RESTORED = "Version restored successfully! A new version has been created."
-MSG_VERSION_DELETED = "Version deleted successfully."
-MSG_VERSIONS_DELETED = "All versions deleted. File no longer exists."
-DELETE_CONFIRM_SINGLE_FMT = "You are about to permanently delete the following file: <strong>{}</strong><br><br>This action cannot be undone."
-DELETE_CONFIRM_MULTI_FMT = "You are about to permanently delete <strong>{} files</strong><br><br>This action cannot be undone."
-DELETE_RESULT_PARTIAL_FMT = "<p><strong>{}</strong> file(s) deleted successfully.</p>\n            <p><strong>{}</strong> file(s) failed to delete.</p>"
-DELETE_RESULT_SUCCESS_FMT = "<p><strong>{}</strong> file(s) deleted successfully.</p>"
-
-# Constants - Buttons and labels
-BUTTON_DELETE_SELECTED = "Delete Selected"
-BUTTON_SAVE_CHANGES = "Save Changes"
-BUTTON_CANCEL = "Cancel"
-BUTTON_YES_DELETE = "Yes, Delete"
-BUTTON_RETURN = "Return to File Manager"
-BUTTON_BACK = "Back to File Manager"
-
-# Constants - Layout dimensions and HTTP codes
+# Constants - Layout dimensions (domain-specific to file manager)
 LAYOUT_VERTICAL = [12]
 LAYOUT_BUTTONS = [6, 6]
-HTTP_BAD_REQUEST = 400
-HTTP_NOT_FOUND = 404
-HTTP_SERVER_ERROR = 500
 
 # Register module permissions (view is implicit)
 permission_registry.register_module(PERMISSION_MODULE, [PERMISSION_UPLOAD, PERMISSION_DOWNLOAD, PERMISSION_DELETE, PERMISSION_EDIT])
@@ -171,7 +130,7 @@ file_manager: Optional[Any] = None
 def index():
     """File manager main page - browse files, view statistics."""
     if not file_manager:
-        return ERROR_NOT_INITIALIZED, HTTP_SERVER_ERROR
+        return ERROR_FILE_MANAGER_NOT_INITIALIZED, STATUS_SERVER_ERROR
     
     disp = displayer.Displayer()
     disp.add_generic("File Manager", display=False)
@@ -280,7 +239,7 @@ def index():
                 is_valid, status = integrity_results.get(file_id, (False, "Unknown"))
                 
                 if is_valid:
-                    disp.add_display_item(displayer.DisplayerItemBadge("OK", BSstyle.SUCCESS), 
+                    disp.add_display_item(displayer.DisplayerItemBadge(INTEGRITY_STATUS_OK, BSstyle.SUCCESS), 
                                         column=8, line=idx, layout_id=table_layout_id)
                 elif status == "Missing":
                     disp.add_display_item(displayer.DisplayerItemBadge("Missing", BSstyle.WARNING), 
@@ -452,7 +411,7 @@ def edit_file(file_id):
         file_id: Database ID of the file version to edit
     """
     if not file_manager:
-        return ERROR_NOT_INITIALIZED, HTTP_SERVER_ERROR
+        return ERROR_FILE_MANAGER_NOT_INITIALIZED, STATUS_SERVER_ERROR
     
     disp = displayer.Displayer()
     disp.add_generic("Edit File Metadata")
@@ -517,7 +476,7 @@ def edit_file(file_id):
                 logger.info(f"Updated tags for file {file_id}: {current_tags} -> {new_tags}")
             
             # Flash success and redirect
-            flash(f"Metadata for '{file_version.filename}' updated successfully.", "success")
+            flash(MSG_UPDATE_SUCCESS.format(filename=file_version.filename), "success")
             return redirect(url_for('file_manager_admin.index'))
             
         except Exception as e:
@@ -653,7 +612,7 @@ def edit_file(file_id):
 def delete_multiple():
     """Handle multiple file deletion from checkboxes (redirects to confirm_delete)."""
     if not file_manager:
-        return ERROR_NOT_INITIALIZED, HTTP_SERVER_ERROR
+        return ERROR_FILE_MANAGER_NOT_INITIALIZED, STATUS_SERVER_ERROR
     
     # Get selected file IDs from form array
     file_ids_list = request.form.getlist('file_ids[]')
@@ -679,7 +638,7 @@ def confirm_delete():
     POST with confirm=true: Execute the deletion
     """
     if not file_manager:
-        return ERROR_NOT_INITIALIZED, HTTP_SERVER_ERROR
+        return ERROR_FILE_MANAGER_NOT_INITIALIZED, STATUS_SERVER_ERROR
     
     disp = displayer.Displayer()
     
@@ -694,12 +653,12 @@ def confirm_delete():
         # Always delete all versions (full deletion)
         delete_all_versions = True
         if not file_ids_str:
-            return "No files specified", HTTP_BAD_REQUEST
+            return "No files specified", STATUS_BAD_REQUEST
         
         try:
             file_ids = [int(fid) for fid in file_ids_str.split(',') if fid.strip()]
         except ValueError:
-            return "Invalid file IDs", HTTP_BAD_REQUEST
+            return "Invalid file IDs", STATUS_BAD_REQUEST
     else:
         # Show confirmation page (GET or first POST)
         if request.method == 'GET':
@@ -713,9 +672,9 @@ def confirm_delete():
                 try:
                     file_ids = [int(fid) for fid in multi_file_ids_str.split(',') if fid.strip()]
                 except ValueError:
-                    return "Invalid file IDs", HTTP_BAD_REQUEST
+                    return "Invalid file IDs", STATUS_BAD_REQUEST
             else:
-                return "No files specified", HTTP_BAD_REQUEST
+                return "No files specified", STATUS_BAD_REQUEST
         else:
             # First POST from inline delete form
             data = utilities.util_post_to_json(request.form.to_dict())
@@ -724,9 +683,9 @@ def confirm_delete():
                 try:
                     file_ids = [int(fid) for fid in multi_file_ids.split(',') if fid.strip()]
                 except ValueError:
-                    return "Invalid file IDs", HTTP_BAD_REQUEST
+                    return "Invalid file IDs", STATUS_BAD_REQUEST
             else:
-                return "No files specified", HTTP_BAD_REQUEST
+                return "No files specified", STATUS_BAD_REQUEST
         
         # Get file metadata
         files_to_delete = []
@@ -742,7 +701,7 @@ def confirm_delete():
                 })
         
         if not files_to_delete:
-            return "No valid files found", HTTP_NOT_FOUND
+            return "No valid files found", STATUS_NOT_FOUND
         
         # Build confirmation page
         disp.add_generic("Confirm Delete", display=False)
@@ -754,9 +713,9 @@ def confirm_delete():
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         
         if len(files_to_delete) == 1:
-            warning_html = f"You are about to permanently delete the following file: <strong>{files_to_delete[0]['filename']}</strong><br><br>This action cannot be undone."
+            warning_html = DELETE_CONFIRM_SINGLE.format(filename=files_to_delete[0]['filename'])
         else:
-            warning_html = f"You are about to permanently delete <strong>{len(files_to_delete)} files</strong><br><br>This action cannot be undone."
+            warning_html = DELETE_CONFIRM_MULTIPLE.format(count=len(files_to_delete))
         
         disp.add_display_item(displayer.DisplayerItemAlert(warning_html, BSstyle.ERROR, icon="alert", title="Confirm Deletion"), column=0)
         
@@ -844,13 +803,10 @@ def confirm_delete():
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
     
     if failed_files:
-        result_html = f"""
-            <p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>
-            <p><strong>{len(failed_files)}</strong> file(s) failed to delete.</p>
-        """
+        result_html = DELETE_RESULT_PARTIAL.format(deleted_count=deleted_count, failed_count=len(failed_files))
         disp.add_display_item(displayer.DisplayerItemAlert(result_html, BSstyle.WARNING, icon="check-circle", title="Partially Complete"), column=0)
     else:
-        result_html = f"<p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>"
+        result_html = DELETE_RESULT_SUCCESS.format(deleted_count=deleted_count)
         disp.add_display_item(displayer.DisplayerItemAlert(result_html, BSstyle.SUCCESS, icon="check-circle", title="Success"), column=0)
     
     disp.add_display_item(displayer.DisplayerItemButton(
@@ -877,7 +833,7 @@ def version_history(group_id, filename):
         HTML page with version history table
     """
     if not file_manager:
-        return ERROR_NOT_INITIALIZED, HTTP_SERVER_ERROR
+        return ERROR_FILE_MANAGER_NOT_INITIALIZED, STATUS_SERVER_ERROR
     
     try:
         # Convert '(none)' placeholder back to None for files without a group
@@ -1083,7 +1039,7 @@ def restore_version(target_version_id, group_id, filename):
         restored = file_manager.restore_version(current_version.id, target_version_id)
         
         logger.info(f"Version restored by {session.get('user', 'GUEST')}: {restored.filename}")
-        flash("Version restored successfully! A new version has been created.", "success")
+        flash(MSG_VERSION_RESTORED, "success")
         
     except Exception as e:
         logger.error(f"Failed to restore version: {e}", exc_info=True)
@@ -1116,7 +1072,7 @@ def delete_single_version(file_id, group_id, filename):
         
         if success:
             logger.info(f"Single version deleted by {session.get('user', 'GUEST')}: ID {file_id}")
-            flash("Version deleted successfully.", "success")
+            flash(MSG_VERSION_DELETED, "success")
         else:
             flash("Failed to delete version.", "error")
         
@@ -1133,5 +1089,5 @@ def delete_single_version(file_id, group_id, filename):
         return redirect(url_for('file_manager_admin.version_history', group_id=group_id, filename=filename))
     else:
         # No more versions, redirect to main file manager
-        flash("All versions deleted. File no longer exists.", "info")
+        flash(MSG_VERSIONS_DELETED, "info")
         return redirect(url_for('file_manager_admin.index'))

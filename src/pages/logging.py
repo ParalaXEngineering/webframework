@@ -5,6 +5,7 @@ This module provides real-time monitoring of framework log files with a modern
 tabbed interface showing log content with automatic updates using DataTables.
 """
 
+# Standard library
 import os
 import re
 from typing import Dict, Any, List
@@ -53,7 +54,6 @@ TEXT_NO_LOG_FILES = "No log files found in"
 # Constants - Table configuration
 TABLE_COLUMNS_LOG = ["#", "Timestamp", "Level", "File", "Line", "Message"]
 TABLE_ID_LOG = "log_table_{}"
-TABLE_MODE = "log_table"
 TABLE_PAGE_LENGTH = 25
 TABLE_SORT_COLUMN = 0
 TABLE_SORT_ORDER = "desc"
