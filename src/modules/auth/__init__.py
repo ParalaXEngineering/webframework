@@ -119,16 +119,23 @@ def require_admin():
             user_obj = auth_manager.get_user(current_user)  # type: ignore[attr-defined]
             if not user_obj or 'admin' not in user_obj.groups:
                 # User is logged in but not admin - show access denied
-                from submodules.framework.src.modules import displayer
-                disp = displayer.Displayer()
+                try:
+                    from .displayer import (
+                        Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, BSstyle
+                    )
+                except ImportError:
+                    from modules.displayer import (
+                        Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, BSstyle
+                    )
+                disp = Displayer()
                 disp.add_generic("Access Denied")
-                disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+                disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
                 disp.add_display_item(
-                    displayer.DisplayerItemAlert(
+                    DisplayerItemAlert(
                         f"<p>This page require admin privilege.</p>"
                         f"<p>Current user: <strong>{current_user}</strong></p>"
                         f"<p>Please contact an administrator to request access.</p>",
-                        displayer.BSstyle.ERROR,
+                        BSstyle.ERROR,
                         title = "Admin access required",
                         icon = "shield-alert"
                     ),
