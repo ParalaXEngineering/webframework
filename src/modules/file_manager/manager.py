@@ -112,10 +112,10 @@ class FileManager:
             SessionLocal = sessionmaker(bind=self.engine)
             self.db_session: Session = SessionLocal()
             
-            logger.info(f"File manager database initialized at {self.db_path}")
+            logger.info("File manager database initialized at %s", self.db_path)
             
         except Exception as e:
-            logger.error(f"Failed to initialize file manager database: {e}", exc_info=True)
+            logger.error("Failed to initialize file manager database: %s", e, exc_info=True)
             raise
     
     def _init_storage(self):
@@ -124,7 +124,7 @@ class FileManager:
             self.storage = ContentAddressableStorage(self.hashfs_path)
             logger.info("Content-addressable storage (hashfs) initialized")
         except Exception as e:
-            logger.error(f"Failed to initialize hashfs: {e}", exc_info=True)
+            logger.error("Failed to initialize hashfs: %s", e, exc_info=True)
             raise RuntimeError(f"HashFS initialization failed: {e}")
     
     def _sanitize_filename(self, filename: str) -> str:
@@ -331,9 +331,9 @@ class FileManager:
             file_size = storage_metadata['size']
             
             if storage_metadata['is_duplicate']:
-                logger.info(f"File deduplicated (existing content): {safe_filename}")
+                logger.info("File deduplicated (existing content): %s", safe_filename)
         except Exception as e:
-            logger.error(f"HashFS storage failed: {e}", exc_info=True)
+            logger.error("HashFS storage failed: %s", e, exc_info=True)
             raise IOError(f"Failed to store file in HashFS: {e}")
         
         # Get MIME type
@@ -393,17 +393,17 @@ class FileManager:
         if self.generate_thumbnails:
             # Get actual file path from HashFS
             actual_file_path = self.storage.get(storage_path)
-            logger.info(f"Generating thumbnails for {safe_filename} at {actual_file_path}")
+            logger.info("Generating thumbnails for %s at %s", safe_filename, actual_file_path)
             thumbnails = self._generate_thumbnails(actual_file_path, storage_path, safe_filename)
             if thumbnails:
-                logger.info(f"Adding {len(thumbnails)} thumbnails to metadata: {list(thumbnails.keys())}")
+                logger.info("Adding %s thumbnails to metadata: %s", len(thumbnails), list(thumbnails.keys()))
                 metadata.update(thumbnails)
             else:
-                logger.warning(f"No thumbnails generated for {safe_filename}")
+                logger.warning("No thumbnails generated for %s", safe_filename)
         else:
             logger.info("Thumbnail generation is disabled")
         
-        logger.info(f"File uploaded: {safe_filename} (group: {group_id or 'none'}, version: {version_number}, size: {file_size} bytes)")
+        logger.info("File uploaded: %s (group: %s, version: %s, size: %s bytes)", safe_filename, group_id or 'none', version_number, file_size)
         return metadata
 
     def get_or_create_group(self, group_id: str, created_by: str = 'GUEST') -> 'FileGroup':
@@ -489,13 +489,13 @@ class FileManager:
         # Get extension from original filename, not the HashFS path
         ext = Path(original_filename).suffix.lower()
         
-        logger.info(f"Attempting thumbnail generation for {original_filename} (ext: {ext})")
+        logger.info("Attempting thumbnail generation for %s (ext: %s)", original_filename, ext)
         
         # Determine file type and generate thumbnails
         if ext in {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}:
             # Image files - use Pillow
             if PIL_AVAILABLE:
-                logger.info(f"Generating image thumbnails for {original_filename}")
+                logger.info("Generating image thumbnails for %s", original_filename)
                 thumbnails = self._generate_image_thumbnails(file_path, relative_path)
             else:
                 logger.warning("PIL not available - cannot generate image thumbnails")
@@ -503,7 +503,7 @@ class FileManager:
         elif ext == '.pdf':
             # PDF files - use PyMuPDF
             if PYMUPDF_AVAILABLE:
-                logger.info(f"Generating PDF thumbnails for {original_filename}")
+                logger.info("Generating PDF thumbnails for %s", original_filename)
                 thumbnails = self._generate_pdf_thumbnails(file_path, relative_path)
             else:
                 logger.warning("PyMuPDF not available - cannot generate PDF thumbnails")
@@ -511,9 +511,9 @@ class FileManager:
         elif ext in {'.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'}:
             # Office files - would need LibreOffice or similar, skip for now
             # Could be added as Phase 3 enhancement
-            logger.debug(f"Thumbnail generation for {ext} not yet implemented")
+            logger.debug("Thumbnail generation for %s not yet implemented", ext)
         
-        logger.info(f"Generated {len(thumbnails)} thumbnails for {original_filename}: {list(thumbnails.keys())}")
+        logger.info("Generated %s thumbnails for %s: %s", len(thumbnails), original_filename, list(thumbnails.keys()))
         return thumbnails
     
     def _generate_image_thumbnails(self, file_path: Path, relative_path: str) -> Dict:
@@ -573,13 +573,13 @@ class FileManager:
                         img_copy.save(thumb_path, 'JPEG', quality=self.image_quality, optimize=True)
                         
                         thumbnails[thumb_name] = thumb_relative.replace('\\', '/')
-                        logger.info(f"Generated thumbnail: {thumb_relative} at {thumb_path}")
+                        logger.info("Generated thumbnail: %s at %s", thumb_relative, thumb_path)
                         
                     except Exception as e:
-                        logger.error(f"Failed to generate {size_str} thumbnail for {relative_path}: {e}", exc_info=True)
+                        logger.error("Failed to generate %s thumbnail for %s: %s", size_str, relative_path, e, exc_info=True)
         
         except Exception as e:
-            logger.error(f"Failed to process image {file_path}: {e}")
+            logger.error("Failed to process image %s: %s", file_path, e)
         
         return thumbnails
     
@@ -638,15 +638,15 @@ class FileManager:
                     pix.save(thumb_path, "jpeg", jpg_quality=self.image_quality)
                     
                     thumbnails[thumb_name] = thumb_relative.replace('\\', '/')
-                    logger.debug(f"Generated PDF thumbnail: {thumb_relative}")
+                    logger.debug("Generated PDF thumbnail: %s", thumb_relative)
                     
                 except Exception as e:
-                    logger.warning(f"Failed to generate {size_str} thumbnail for PDF {relative_path}: {e}")
+                    logger.warning("Failed to generate %s thumbnail for PDF %s: %s", size_str, relative_path, e)
             
             doc.close()
             
         except Exception as e:
-            logger.error(f"Failed to process PDF {file_path}: {e}")
+            logger.error("Failed to process PDF %s: %s", file_path, e)
         
         return thumbnails
     
@@ -689,7 +689,7 @@ class FileManager:
             file_version = self.db_session.query(FileVersion).get(file_id)
             
             if not file_version:
-                logger.warning(f"Attempted to delete non-existent file ID: {file_id}")
+                logger.warning("Attempted to delete non-existent file ID: %s", file_id)
                 return False
             
             # Collect versions to delete
@@ -701,7 +701,7 @@ class FileManager:
                         FileVersion.filename == file_version.filename
                     )
                 ).all()
-                logger.info(f"Deleting all {len(versions_to_delete)} versions of {file_version.filename} in group {file_version.group_id}")
+                logger.info("Deleting all %s versions of %s in group %s", len(versions_to_delete), file_version.filename, file_version.group_id)
             else:
                 versions_to_delete = [file_version]
             
@@ -732,11 +732,11 @@ class FileManager:
                     # No other references, safe to delete physical file
                     try:
                         self.storage.delete(storage_path)
-                        logger.info(f"Deleted physical file and thumbnails (no other references): {storage_path}")
+                        logger.info("Deleted physical file and thumbnails (no other references): %s", storage_path)
                     except Exception as e:
-                        logger.warning(f"Failed to delete physical file {storage_path}: {e}")
+                        logger.warning("Failed to delete physical file %s: %s", storage_path, e)
                 else:
-                    logger.info(f"Physical file and thumbnails retained ({other_refs} other references): {storage_paths_to_check[checksum]}")
+                    logger.info("Physical file and thumbnails retained (%s other references): %s", other_refs, storage_paths_to_check[checksum])
             
             # Clean up orphaned FileGroup if no files remain in the group
             if group_id_to_check:
@@ -745,7 +745,7 @@ class FileManager:
             return True
             
         except Exception as e:
-            logger.error(f"Failed to delete file {file_id}: {e}", exc_info=True)
+            logger.error("Failed to delete file %s: %s", file_id, e, exc_info=True)
             self.db_session.rollback()
             return False
     
@@ -765,10 +765,10 @@ class FileManager:
                 if group:
                     self.db_session.delete(group)
                     self.db_session.commit()
-                    logger.info(f"Deleted orphaned FileGroup: {group_id}")
+                    logger.info("Deleted orphaned FileGroup: %s", group_id)
                     return True
         except Exception as e:
-            logger.warning(f"Failed to cleanup orphaned group {group_id}: {e}")
+            logger.warning("Failed to cleanup orphaned group %s: %s", group_id, e)
         return False
     
     def _delete_thumbnails(self, storage_path: str):
@@ -788,9 +788,9 @@ class FileManager:
                 if thumb_file.exists():
                     try:
                         thumb_file.unlink()
-                        logger.debug(f"Deleted thumbnail: {thumb_file}")
+                        logger.debug("Deleted thumbnail: %s", thumb_file)
                     except Exception as e:
-                        logger.warning(f"Failed to delete thumbnail {thumb_file}: {e}")
+                        logger.warning("Failed to delete thumbnail %s: %s", thumb_file, e)
     
     def get_mime_type(self, storage_path: str) -> str:
         """Get MIME type for a file from its storage path.
@@ -845,7 +845,7 @@ class FileManager:
             group_id=group_id,
             name=name,
             description=description,
-            created_by='SYSTEM'  # TODO: Pass user parameter
+            created_by='SYSTEM'  # Future: pass user parameter from auth context
         )
         self.db_session.add(file_group)
         self.db_session.commit()
@@ -1002,15 +1002,15 @@ class FileManager:
         
         # Create new version as copy of target
         restored = FileVersion(
-            group_id=current.group_id,
-            filename=current.filename,
-            storage_path=target.storage_path,  # Reuse same physical file!
-            file_size=target.file_size,
-            mime_type=target.mime_type,
-            checksum=target.checksum,
-            uploaded_by='GUEST',  # TODO: Pass user parameter
-            is_current=True,
-            source_version_id=target_version_id
+           group_id=current.group_id,
+           filename=current.filename,
+           storage_path=target.storage_path,  # Reuse same physical file!
+           file_size=target.file_size,
+           mime_type=target.mime_type,
+           checksum=target.checksum,
+           uploaded_by='GUEST',  # Future: pass user parameter from auth context
+           is_current=True,
+           source_version_id=target_version_id
         )
         
         # Copy tags from target version
@@ -1020,7 +1020,7 @@ class FileManager:
         self.db_session.add(restored)
         self.db_session.commit()
         
-        logger.info(f"Restored file version: {current.filename} (from v{target_version_id} to new version)")
+        logger.info("Restored file version: %s (from v%s to new version)", current.filename, target_version_id)
         return restored
     
     def search_by_tags(self, tags: List[str], match_all: bool = False) -> List[FileVersion]:
@@ -1101,9 +1101,9 @@ class FileManager:
                 if thumb_path.exists():
                     thumb_relative = f".thumbs/{size_str}/{storage_path_obj.parent}/{storage_path_obj.stem}_thumb.jpg"
                     metadata[thumb_key] = thumb_relative.replace('\\', '/')
-                    logger.debug(f"Found thumbnail for {file_version.filename}: {thumb_relative}")
+                    logger.debug("Found thumbnail for %s: %s", file_version.filename, thumb_relative)
                 else:
-                    logger.debug(f"No thumbnail for {file_version.filename}")
+                    logger.debug("No thumbnail for %s", file_version.filename)
             
             files.append(metadata)
         
@@ -1132,7 +1132,7 @@ class FileManager:
         file_version.group_id = new_group_id if new_group_id else None
         self.db_session.commit()
         
-        logger.info(f"Updated group_id for file {file_id}: {new_group_id}")
+        logger.info("Updated group_id for file %s: %s", file_id, new_group_id)
         return True
     
     def verify_files_bulk(self, file_ids: List[int]) -> Dict[int, Tuple[bool, str]]:
@@ -1208,13 +1208,13 @@ class FileManager:
             file_path = self.storage.get(file_version.storage_path)
         except IOError:
             # File not found in storage
-            logger.warning(f"File integrity check failed - missing: {file_version.storage_path}")
+            logger.warning("File integrity check failed - missing: %s", file_version.storage_path)
             return False, "Missing"
         
         try:
             # Check if file exists (double-check after get())
             if not file_path.exists():
-                logger.warning(f"File integrity check failed - missing: {file_version.storage_path}")
+                logger.warning("File integrity check failed - missing: %s", file_version.storage_path)
                 return False, "Missing"
             
             # Verify checksum
@@ -1230,6 +1230,6 @@ class FileManager:
             return True, "OK"
             
         except Exception as e:
-            logger.error(f"File integrity check error for file {file_id}: {e}")
+            logger.error("File integrity check error for file %s: %s", file_id, e)
             return False, f"Error: {str(e)}"
 
