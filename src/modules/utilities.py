@@ -276,20 +276,64 @@ def util_post_unmap(data: dict) -> dict:
     return data
 
 
-def util_post_to_json(data: dict) -> dict:
-    """Transform an HTML form data structure into a nested JSON object.
+def util_post_to_json(data: dict, debug: bool = False) -> dict:
+    """Transform HTML form data into nested JSON using ParalaX field conventions.
     
-    Converts flat form data with dot-separated keys into nested dictionaries.
-    Example:
-        Input: {"level0a.level1a": "a", "level0a.level1b": "b"}
-        Output: {"level0a": {"level1a": "a", "level1b": "b"}}
+    This is the **core form processing function** for the framework. All Displayer
+    form inputs use naming conventions that this function parses.
+    
+    CRITICAL: Always use this instead of request.form.get() for form processing.
     
     Args:
-        data: The HTML form post data with dot-separated keys.
+        data: Flat form data from request.form.to_dict()
+        debug: If True, prints transformation steps for troubleshooting
         
     Returns:
-        A nested dictionary representation of the form data.
+        Nested dictionary structure matching the form hierarchy
+    
+    Field Naming Conventions:
+        Dot Notation (nesting):
+            "module.section.field" -> {"module": {"section": {"field": value}}}
+            
+        Checkbox/Multi-select (value="on"):
+            "colors_red": "on", "colors_blue": "on" -> {"colors": ["red", "blue"]}
+            
+        ID Separator (#):
+            "prefix#actualfield" -> {"actualfield": value}  (prefix stripped)
+            
+        List Pattern (fieldlist0, fieldlist1, ...):
+            "items.namelist0": "a", "items.namelist1": "b" -> {"items": {"name": ["a", "b"]}}
+    
+    Examples:
+        >>> # Simple nesting
+        >>> util_post_to_json({"user.name": "John", "user.age": "30"})
+        {'user': {'name': 'John', 'age': '30'}}
+        
+        >>> # Checkboxes (multiple selection)
+        >>> util_post_to_json({"options_email": "on", "options_sms": "on"})
+        {'options': ['email', 'sms']}
+        
+        >>> # Mixed
+        >>> util_post_to_json({
+        ...     "config.server.host": "localhost",
+        ...     "config.server.port": "8080",
+        ...     "config.features_logging": "on",
+        ...     "config.features_debug": "on"
+        ... })
+        {'config': {'server': {'host': 'localhost', 'port': '8080'}, 'features': ['logging', 'debug']}}
+    
+    Warning:
+        - Field names cannot start or end with "."
+        - The "on" value is reserved for checkbox handling
+        - List patterns must match: [a-zA-Z]*list[0-9]+
+    
+    See Also:
+        - util_post_unmap(): For key-value mapping fields
+        - DisplayerItemInputChoice: Generates checkbox fields
+        - DisplayerItemInputSelect: Generates select fields
     """
+    if debug:
+        print(f"[util_post_to_json] Input: {data}")
     formated = {}
 
     # For each item given, we will parse level by level
@@ -357,7 +401,43 @@ def util_post_to_json(data: dict) -> dict:
                     current = [data[item]]
             item_split.pop(0)
 
+    if debug:
+        print(f"[util_post_to_json] Output: {formated}")
     return formated
+
+
+def form_to_nested_dict(data: dict[str, str], separator: str = ".") -> dict:
+    """Simple form-to-dict conversion using only dot notation.
+    
+    A simpler alternative to util_post_to_json for new code that doesn't need
+    the legacy checkbox/list patterns. Only handles dot-separated nesting.
+    
+    Args:
+        data: Flat form data dictionary
+        separator: Separator character for nesting (default: ".")
+        
+    Returns:
+        Nested dictionary
+        
+    Example:
+        >>> form_to_nested_dict({"a.b.c": "value", "a.b.d": "other"})
+        {'a': {'b': {'c': 'value', 'd': 'other'}}}
+    """
+    result: dict = {}
+    
+    for key, value in data.items():
+        parts = key.split(separator)
+        current = result
+        
+        for i, part in enumerate(parts[:-1]):
+            if part not in current:
+                current[part] = {}
+            current = current[part]
+        
+        current[parts[-1]] = value
+    
+    return result
+
 
 def util_view_reload_displayer(id: str, disp: "displayer.Displayer") -> list:
     """Reload a multi-user input with new data while using a displayer as input.

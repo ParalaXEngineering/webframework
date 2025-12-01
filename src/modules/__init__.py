@@ -11,6 +11,7 @@ HTTP-related code should be in src.pages instead.
 """
 
 from . import action
+from . import app_context
 from . import auth
 from . import config_manager
 from . import displayer
@@ -23,6 +24,7 @@ from .log import log_parser
 
 __all__ = [
     'action',
+    'app_context',
     'auth',
     'config_manager',
     'displayer',
