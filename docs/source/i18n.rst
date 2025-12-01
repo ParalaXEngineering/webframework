@@ -21,19 +21,24 @@ The framework's i18n system provides:
 Architecture
 ------------
 
-The i18n system consists of three main components:
+The i18n system uses a **hybrid extension pattern** where websites extend framework messages:
 
-1. **TranslatableString Classes** (``src/modules/i18n/messages.py``)
-   - Python classes representing translatable messages
-   - Automatically call ``gettext()`` when converted to string
-   - Centralized message definitions
+1. **Framework Messages** (``src/modules/i18n/messages.py``)
+   - TranslatableString instances for all framework UI strings
+   - Automatically translate using ``gettext()`` when converted to string
+   - ~800+ pre-defined messages organized by module
 
-2. **Babel Configuration** (``babel.cfg``)
+2. **Website Messages** (``website/i18n/messages.py``)
+   - Extends framework messages via star import
+   - Add website-specific TranslatableString instances
+   - Single import location for all strings (framework + custom)
+
+3. **Babel Configuration** (``babel.cfg``)
    - Defines where to find translatable strings
    - Scans Python files and Jinja2 templates
    - Extraction patterns and options
 
-3. **Translation Files** (``translations/`` directory)
+4. **Translation Files** (``translations/`` directory)
    - ``.pot`` (Portable Object Template): Master list of all strings
    - ``.po`` (Portable Object): Human-readable translations for each language
    - ``.mo`` (Machine Object): Compiled binary files used at runtime
@@ -41,36 +46,54 @@ The i18n system consists of three main components:
 How It Works
 ------------
 
-**1. Define Messages as Classes**
+**1. Framework Provides Base Messages**
 
-In ``src/modules/i18n/messages.py``:
+The framework includes ~800+ pre-defined messages in ``src/modules/i18n/messages.py``:
 
 .. code-block:: python
 
-   class MSG_SETTINGS_SAVED(TranslatableString):
-       """User message: settings saved successfully."""
-       en = "Settings saved successfully"
+   # Framework messages (already defined)
+   MSG_SETTINGS_SAVED = TranslatableString("Settings saved successfully!")
+   ERROR_NOT_LOGGED_IN = TranslatableString("Not logged in")
+   TEXT_SETTINGS = TranslatableString("Settings")
+
+**2. Website Extends with Custom Messages**
+
+Create ``website/i18n/messages.py`` to add your own:
+
+.. code-block:: python
+
+   """Website-specific translatable messages."""
    
-   class ERROR_NOT_LOGGED_IN(TranslatableString):
-       """Error message: user not logged in."""
-       en = "Not logged in"
+   # Import ALL framework messages
+   from src.modules.i18n.messages import *  # noqa: F403
+   
+   # Add your custom messages
+   TEXT_MY_DASHBOARD = TranslatableString("Dashboard")  # noqa: F405
+   TEXT_ANALYTICS = TranslatableString("Analytics")  # noqa: F405
+   MSG_REPORT_READY = TranslatableString("Report generated!")  # noqa: F405
 
-**2. Use in Your Code**
+**3. Use in Your Code (Single Import)**
+
+Import from ``website.i18n.messages`` to get both framework AND custom strings:
 
 .. code-block:: python
 
-   from modules.i18n.messages import MSG_SETTINGS_SAVED, ERROR_NOT_LOGGED_IN
+   # Import from website - gets BOTH framework and custom messages
+   from website.i18n.messages import (
+       TEXT_SETTINGS,        # Framework string
+       MSG_SETTINGS_SAVED,   # Framework string
+       TEXT_MY_DASHBOARD,    # Your custom string
+       MSG_REPORT_READY      # Your custom string
+   )
    from flask import flash
    
-   @app.route('/settings', methods=['POST'])
-   def save_settings():
-       if not is_logged_in():
-           flash(ERROR_NOT_LOGGED_IN, "error")
-           return redirect('/login')
-       
-       # Save settings...
-       flash(MSG_SETTINGS_SAVED, "success")
-       return redirect('/settings')
+   @app.route('/dashboard')
+   def dashboard():
+       # Use both framework and custom strings seamlessly
+       disp.add_generic(TEXT_MY_DASHBOARD)
+       disp.add_breadcrumb(TEXT_SETTINGS, "/settings")
+       flash(MSG_REPORT_READY, "success")
 
 The messages automatically translate based on the user's language preference!
 
@@ -266,67 +289,120 @@ Run without a subcommand for interactive mode:
 
    python framework_manager.py babel
 
+Website Setup: Adding Custom Messages
+--------------------------------------
+
+Quick Start
+^^^^^^^^^^^
+
+**Step 1: Create i18n structure**
+
+.. code-block:: bash
+
+   mkdir -p website/i18n
+   touch website/i18n/__init__.py
+   touch website/i18n/messages.py
+   touch website/i18n/messages.pyi  # Type stub for VSCode
+   touch website/py.typed            # PEP 561 marker
+
+**Step 2: Create** ``website/i18n/__init__.py``:
+
+.. code-block:: python
+
+   from .messages import *
+   __all__ = ['messages']
+
+**Step 3: Create** ``website/i18n/messages.py``:
+
+.. code-block:: python
+
+   """Website-specific translatable messages."""
+   
+   # Import ALL framework messages
+   from src.modules.i18n.messages import *  # noqa: F403
+   
+   # Add your custom translatable strings
+   TEXT_MY_DASHBOARD = TranslatableString("Dashboard")  # noqa: F405
+   TEXT_ANALYTICS = TranslatableString("Analytics")  # noqa: F405
+   MSG_CUSTOM_SUCCESS = TranslatableString("Success!")  # noqa: F405
+
+**Step 4: Create** ``website/i18n/messages.pyi`` **(for VSCode)**:
+
+.. code-block:: python
+
+   # Type stub for IDE support
+   from src.modules.i18n.messages import *
+   
+   # Declare your custom messages
+   TEXT_MY_DASHBOARD: str
+   TEXT_ANALYTICS: str
+   MSG_CUSTOM_SUCCESS: str
+
+**Step 5: Update** ``.vscode/settings.json``:
+
+.. code-block:: json
+
+   {
+       "python.analysis.extraPaths": [
+           "${workspaceFolder}/your_webapp",
+           "${workspaceFolder}/src",
+           "${workspaceFolder}"
+       ]
+   }
+
+Replace ``your_webapp`` with your actual webapp folder name.
+
 Creating Translatable Strings
-------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The framework uses a clever pattern for translatable strings:
-
-Base Class
-^^^^^^^^^^
+The framework uses the ``TranslatableString`` class that automatically translates when converted to string:
 
 .. code-block:: python
 
-   class TranslatableString:
-       """Base class for translatable string constants.
-       
-       Subclasses define the English text as 'en' class attribute.
-       When converted to string, automatically translates using gettext().
-       """
-       en = ""  # Override in subclass
-       
-       def __str__(self):
-           if BABEL_AVAILABLE:
-               return gettext(self.en)
-           return self.en
-       
-       def format(self, **kwargs):
-           return str(self).format(**kwargs)
-
-Message Definition
-^^^^^^^^^^^^^^^^^^
-
-Define messages by subclassing ``TranslatableString``:
-
-.. code-block:: python
-
-   class TEXT_SETTINGS(TranslatableString):
-       """Navigation text for settings page."""
-       en = "Settings"
+   # In website/i18n/messages.py
    
-   class MSG_USER_CREATED(TranslatableString):
-       """Success message when user account created."""
-       en = "User '{username}' created successfully"
+   # Simple string
+   TEXT_MY_PAGE = TranslatableString("My Page Title")  # noqa: F405
    
-   class ERROR_INVALID_EMAIL(TranslatableString):
-       """Error message for invalid email format."""
-       en = "Invalid email address format"
+   # String with placeholders
+   MSG_USER_CREATED = TranslatableString(  # noqa: F405
+       "User '{username}' created successfully"
+   )
+   
+   # Error message
+   ERROR_VALIDATION_FAILED = TranslatableString(  # noqa: F405
+       "Validation failed: {reason}"
+   )
 
 Usage Examples
 ^^^^^^^^^^^^^^
+
+**Import from website.i18n.messages** (gets both framework and custom):
+
+.. code-block:: python
+
+   from website.i18n.messages import (
+       TEXT_SETTINGS,        # Framework string
+       TEXT_MY_DASHBOARD,    # Your custom string
+       MSG_SETTINGS_SAVED,   # Framework string
+       MSG_CUSTOM_SUCCESS    # Your custom string
+   )
 
 **Simple Message:**
 
 .. code-block:: python
 
-   from modules.i18n.messages import TEXT_SETTINGS
-   
+   # Use framework string
    disp.add_breadcrumb(TEXT_SETTINGS, "/settings")
+   
+   # Use your custom string
+   disp.add_generic(TEXT_MY_DASHBOARD)
 
 **Message with Parameters:**
 
 .. code-block:: python
 
-   from modules.i18n.messages import MSG_USER_CREATED
+   from website.i18n.messages import MSG_USER_CREATED
    
    flash(MSG_USER_CREATED.format(username="john"), "success")
 
@@ -335,7 +411,8 @@ Usage Examples
 .. code-block:: jinja
 
    <h1>{{ TEXT_SETTINGS }}</h1>
-   <p>{{ ERROR_INVALID_EMAIL }}</p>
+   <h2>{{ TEXT_MY_DASHBOARD }}</h2>
+   <p>{{ MSG_CUSTOM_SUCCESS }}</p>
 
 Naming Conventions
 ^^^^^^^^^^^^^^^^^^

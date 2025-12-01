@@ -22,7 +22,7 @@ framework_root = os.path.dirname(manual_webapp_root)
 sys.path.insert(0, framework_root)
 sys.path.insert(0, os.path.join(framework_root, 'src'))
 
-# Add Manual_Webapp to path for demo_support imports
+# Add Manual_Webapp to path for demo_support and website imports
 sys.path.insert(0, manual_webapp_root)
 
 # Import framework setup

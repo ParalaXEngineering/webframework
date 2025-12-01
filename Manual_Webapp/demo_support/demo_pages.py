@@ -8,16 +8,22 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from src.modules import displayer, utilities
 from src.modules.auth import require_login
 
+# Import website-specific i18n messages (includes framework messages too)
+from website.i18n.messages import (
+    TEXT_SIMPLE_FORM_DEMO, TEXT_SIMPLE_FORM_EXAMPLE,
+    TEXT_THREADING_DEMO, TEXT_SCHEDULER_DEMO, TEXT_WORKFLOW_DEMO
+)
+
 # Create blueprint for demo routes
 demo_bp = Blueprint('demo', __name__)
 
-@demo_bp.route('/simple-form-demo', methods=['GET', 'POST'])
+@demo_bp.route('/simple-form-demo', methods=['GET', 'POST']) 
 @require_login()
 def simple_form_demo():
     """Simple form demo - basic text input and display."""
     disp = displayer.Displayer()
-    disp.add_generic("Simple Form Demo")
-    disp.set_title("Simple Form Example")
+    disp.add_generic(TEXT_SIMPLE_FORM_DEMO)
+    disp.set_title(TEXT_SIMPLE_FORM_EXAMPLE)
     
     disp.add_breadcrumb("Simple Form", "demo.simple_form_demo", [])
     
@@ -68,7 +74,7 @@ def threading_demo():
     
     disp = displayer.Displayer()
     disp.add_module(DemoThreadedAction)
-    disp.set_title("Threading System Demo")
+    disp.set_title(TEXT_THREADING_DEMO)
     
     disp.add_breadcrumb("Threading Demo", "demo.threading_demo", [])
     
