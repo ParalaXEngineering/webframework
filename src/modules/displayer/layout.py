@@ -6,9 +6,9 @@ are arranged on the page (vertical, horizontal, table, tabs, spacer).
 """
 
 import warnings
-from typing import Optional, List, Dict, Any, Union
+from typing import Any, Dict, List, Optional, Union
 
-from .core import Layouts, TableMode, BSalign, BSstyle, MAZERStyles, ResourceRegistry
+from .core import BSalign, BSstyle, Layouts, MAZERStyles, ResourceRegistry, TableMode
 
 
 class DisplayerLayout:

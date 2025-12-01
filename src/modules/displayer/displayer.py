@@ -5,20 +5,20 @@ This module contains the Displayer class which orchestrates the creation
 of modules, layouts, and items for rendering web pages.
 """
 
-from typing import Optional, Dict, List, Any
-from .core import ResourceRegistry, Layouts
+from typing import Any, Dict, List, Optional
+
+from .core import Layouts, ResourceRegistry
 from .layout import DisplayerLayout
+
+try:
+    from ..auth import auth_manager as auth_manager_module
+except ImportError:
+    from auth import auth_manager as auth_manager_module
 
 try:
     from ..log.logger_factory import get_logger
 except ImportError:
     from log.logger_factory import get_logger
-
-try:
-    # Import the module, not the object, so we get the updated value
-    from ..auth import auth_manager as auth_manager_module
-except ImportError:
-    from auth import auth_manager as auth_manager_module
 
 try:
     from flask import session
@@ -27,6 +27,9 @@ except ImportError:
     session = None
 
 logger = get_logger("displayer")
+
+# Constants for internal layout management
+_RESPONSIVE_ADDON_KEY = "responsive_addon"
 
 
 class Displayer:
@@ -494,7 +497,7 @@ class Displayer:
 
             # Setup the all layout variable (merge responsive_addon to preserve all tables)
             for item in layout.m_all_layout:
-                if item == "responsive_addon" and item in self.m_all_layout:
+                if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
                     # Merge responsive_addon dictionaries instead of overwriting
                     self.m_all_layout[item].update(layout.m_all_layout[item])
                 else:
@@ -507,7 +510,7 @@ class Displayer:
             self.g_next_layout += 1
             # Merge responsive_addon to preserve all tables
             for item in layout.m_all_layout:
-                if item == "responsive_addon" and item in self.m_all_layout:
+                if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
                     # Merge responsive_addon dictionaries instead of overwriting
                     self.m_all_layout[item].update(layout.m_all_layout[item])
                 else:
@@ -521,7 +524,7 @@ class Displayer:
                 self.g_next_layout += 1
                 # Merge responsive_addon to preserve all tables
                 for item in layout.m_all_layout:
-                    if item == "responsive_addon" and item in self.m_all_layout:
+                    if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
                         self.m_all_layout[item].update(layout.m_all_layout[item])
                     else:
                         self.m_all_layout[item] = layout.m_all_layout[item]
@@ -533,7 +536,7 @@ class Displayer:
                 layout.display(master_layout["lines"][line][column], self.g_next_layout)
                 self.g_next_layout += 1
                 for item in layout.m_all_layout:
-                    if item == "responsive_addon" and item in self.m_all_layout:
+                    if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
                         self.m_all_layout[item].update(layout.m_all_layout[item])
                     else:
                         self.m_all_layout[item] = layout.m_all_layout[item]
@@ -544,7 +547,7 @@ class Displayer:
                 layout.display(master_layout["containers"][column], self.g_next_layout)
                 self.g_next_layout += 1
                 for item in layout.m_all_layout:
-                    if item == "responsive_addon" and item in self.m_all_layout:
+                    if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
                         self.m_all_layout[item].update(layout.m_all_layout[item])
                     else:
                         self.m_all_layout[item] = layout.m_all_layout[item]
@@ -558,7 +561,7 @@ class Displayer:
                 self.g_next_layout += 1
                 # Merge responsive_addon to preserve all tables
                 for item in layout.m_all_layout:
-                    if item == "responsive_addon" and item in self.m_all_layout:
+                    if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
                         self.m_all_layout[item].update(layout.m_all_layout[item])
                     else:
                         self.m_all_layout[item] = layout.m_all_layout[item]
@@ -570,7 +573,7 @@ class Displayer:
                 layout.display(master_layout["lines"][line][column], self.g_next_layout)
                 self.g_next_layout += 1
                 for item in layout.m_all_layout:
-                    if item == "responsive_addon" and item in self.m_all_layout:
+                    if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
                         self.m_all_layout[item].update(layout.m_all_layout[item])
                     else:
                         self.m_all_layout[item] = layout.m_all_layout[item]
@@ -600,7 +603,7 @@ class Displayer:
 
         # Setup the all layout variable (merge responsive_addon to preserve all tables)
         for item in layout.m_all_layout:
-            if item == "responsive_addon" and item in self.m_all_layout:
+            if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
                 # Merge responsive_addon dictionaries instead of overwriting
                 self.m_all_layout[item].update(layout.m_all_layout[item])
             else:

@@ -29,7 +29,6 @@ from .core import (
     BSstyle,
     BSalign,
     MAZERStyles,
-    TableMode
 )
 
 # Layout system
@@ -111,7 +110,6 @@ __all__ = [
     'BSstyle',
     'BSalign',
     'MAZERStyles',
-    'TableMode',
     
     # Main classes
     'Displayer',

@@ -6,8 +6,9 @@ This module provides simplified DisplayerItems for file management:
 - DisplayerItemFileDisplay: File display with configurable actions (download, edit, history, delete)
 """
 
-from typing import Optional, List, Dict
-from .core import DisplayerItems, DisplayerCategory
+from typing import Dict, List, Optional
+
+from .core import DisplayerCategory, DisplayerItems
 from .items import DisplayerItem
 
 

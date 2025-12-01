@@ -1,6 +1,6 @@
-from typing import Optional, List, Dict, Any, ClassVar, Union
+from typing import Any, ClassVar, Dict, List, Optional, Union
 
-from .core import DisplayerItems, DisplayerCategory, BSstyle
+from .core import BSstyle, DisplayerCategory, DisplayerItems
 
 
 class DisplayerItem:
@@ -1104,7 +1104,7 @@ class DisplayerItemInputSelect(DisplayerItem):
                 combined.sort(key=lambda pair: pair[0])
                 # Unzip safely
                 choices, tooltips = map(list, zip(*combined))
-            elif len(choices) > 0:
+            elif choices:
                 choices.sort()
 
         self.m_data = choices
@@ -2193,7 +2193,6 @@ class DisplayerItemCard(DisplayerItem):
         )
 
 
-@DisplayerCategory.DISPLAY
 @DisplayerCategory.DISPLAY
 class DisplayerItemDynamicContent(DisplayerItem):
     """
