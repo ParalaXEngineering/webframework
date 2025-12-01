@@ -1721,6 +1721,49 @@ class DisplayerItemInputString(DisplayerItem):
         """
         return cls(id="test_string", text="Enter a string", value="Sample string", focus=False)
 
+
+@DisplayerCategory.INPUT
+class DisplayerItemInputPassword(DisplayerItem):
+    """
+    Specialized display item for a password input field.
+
+    Renders as an HTML password input with masked characters.
+    """
+
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None, focus: bool = False) -> None:
+        """
+        Initialize a password input field.
+
+        Args:
+            id: Unique identifier for the input field
+            text: Label text displayed above the input (default: None)
+            value: Pre-filled value in the input field (default: None)
+            focus: Whether this field should receive focus on page load (default: False)
+
+        Example:
+            >>> password_input = DisplayerItemInputPassword(
+            ...     id="user_password",
+            ...     text="Enter your password",
+            ...     focus=True
+            ... )
+        """
+        super().__init__(DisplayerItems.INPASSWORD)
+        self.m_text = text
+        self.m_value = value
+        self.m_id = id
+        self.m_focus = focus
+        return
+
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample password input.
+        
+        Returns:
+            Instance of the class with test data.
+        """
+        return cls(id="test_password", text="Enter a password", value="", focus=False)
+
+
 @DisplayerCategory.INPUT
 class DisplayerItemInputStringIcon(DisplayerItem):
     """Specialized display to display an input string that also displays an associated MDI icon if valid."""

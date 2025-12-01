@@ -73,6 +73,7 @@ from .items import (
     DisplayerItemInputText,
     DisplayerItemInputTextJS,
     DisplayerItemInputString,
+    DisplayerItemInputPassword,
     DisplayerItemInputStringIcon,
     DisplayerItemInputMultiText,
     DisplayerItemInputMultiInt,

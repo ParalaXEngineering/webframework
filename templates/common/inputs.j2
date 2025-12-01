@@ -69,6 +69,10 @@
     <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control {% if focus %}focusable{% endif %}" {% if focus %} autofocus {% endif %}>
 {% endmacro %}
 
+{% macro inputpassword(name, default=None, focus=False) %}
+    <input type="password" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control {% if focus %}focusable{% endif %}" {% if focus %} autofocus {% endif %}>
+{% endmacro %}
+
 {% macro inputtext(name, default=None) %}
     <textarea name="{{ name }}" id="{{ name }}" {% if default %} {% endif %} cols="50" rows="5">{{ default }}</textarea>
 {% endmacro %}

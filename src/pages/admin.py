@@ -14,8 +14,8 @@ try:
         Displayer, DisplayerLayout, Layouts, TableMode,
         DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemInputString,
-        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle,
-        TableMode
+        DisplayerItemInputPassword, DisplayerItemInputBox,
+        DisplayerItemInputMultiSelect, BSstyle, TableMode
     )
     from ..modules.auth.auth_utils import validate_username, validate_password_strength
     from ..modules.auth.permission_registry import permission_registry
@@ -27,8 +27,8 @@ except ImportError:
         Displayer, DisplayerLayout, Layouts, TableMode,
         DisplayerItemText, DisplayerItemButton,
         DisplayerItemInputSelect, DisplayerItemInputString,
-        DisplayerItemInputBox, DisplayerItemInputMultiSelect, BSstyle,
-        TableMode
+        DisplayerItemInputPassword, DisplayerItemInputBox,
+        DisplayerItemInputMultiSelect, BSstyle, TableMode
     )
     from modules.auth.auth_utils import validate_username, validate_password_strength
     from modules.auth.permission_registry import permission_registry
@@ -173,11 +173,7 @@ def manage_users():
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [3, 3, 3, 3]))
     disp.add_display_item(DisplayerItemInputString("input_username", "Username"), column=0)
-    # TODO: Replace with proper password input type when available
-    disp.add_display_item(DisplayerItemText(
-        '<div class="mb-3"><label for="input_password" class="form-label">Password (empty for passwordless)</label>'
-        '<input type="password" class="form-control" id="input_password" name="input_password"></div>'
-    ), column=1)
+    disp.add_display_item(DisplayerItemInputPassword("input_password", "Password (empty for passwordless)"), column=1)
     disp.add_display_item(DisplayerItemInputString("input_display_name", "Display Name"), column=2)
     disp.add_display_item(DisplayerItemInputString("input_email", "Email"), column=3)
     
@@ -225,11 +221,7 @@ def manage_users():
         value=usernames[0] if usernames else None,
         choices=usernames
     ), column=0)
-    # TODO: Replace with proper password input type when available
-    disp.add_display_item(DisplayerItemText(
-        '<div class="mb-3"><label for="input_reset_password" class="form-label">New Password</label>'
-        '<input type="password" class="form-control" id="input_reset_password" name="input_reset_password"></div>'
-    ), column=1)
+    disp.add_display_item(DisplayerItemInputPassword("input_reset_password", "New Password"), column=1)
     disp.add_display_item(DisplayerItemButton("btn_reset_password", "Reset", color=BSstyle.WARNING), column=2)
     
     # Delete User

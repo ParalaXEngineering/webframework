@@ -41,6 +41,8 @@
         {{innum(item["id"], item["value"], item["text"], item.get("step"))}}
     {% elif item["type"] == "INSTRING" %}
         {{instring(item["id"], item["value"], item["text"], item["focus"])}}
+    {% elif item["type"] == "INPASSWORD" %}
+        {{inpassword(item["id"], item["value"], item["text"], item["focus"])}}
     {% elif item["type"] == "INSTRINGICON" %}
         {{instringicon(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INTEXT" %}
@@ -944,6 +946,18 @@ document.addEventListener('DOMContentLoaded', function() {
         {{ common_input.inputstring(id, value, focus)}}
     {% else %}
         {{ common_input.inputstring(id, history[id] if history is defined else None, focus)}}
+    {% endif %}
+{% endmacro %}
+
+{% macro inpassword(id, value, text, focus) %}
+    {% if text %}
+        <span>{{ text }}</span>
+    {% endif %}
+
+    {% if value %}
+        {{ common_input.inputpassword(id, value, focus)}}
+    {% else %}
+        {{ common_input.inputpassword(id, history[id] if history is defined else None, focus)}}
     {% endif %}
 {% endmacro %}
 
