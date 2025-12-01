@@ -16,10 +16,15 @@ current request context. When Babel is not initialized, it returns the English s
 """
 
 try:
-    from flask_babel import gettext
+    from flask_babel import gettext, _
     BABEL_AVAILABLE = True
+    print("[i18n] ✓ Flask-Babel imported successfully")
 except ImportError:
     BABEL_AVAILABLE = False
+    print("[i18n] ✗ Flask-Babel not available")
+    # Fallback gettext that returns original string
+    def gettext(s): return s
+    def _(s): return s
 
 
 class TranslatableString(str):
@@ -39,14 +44,39 @@ class TranslatableString(str):
         """Apply translation when converted to string."""
         if BABEL_AVAILABLE:
             try:
-                return gettext(self._content)  # type: ignore
-            except (RuntimeError, AttributeError):
+                from flask import has_request_context, current_app
+                from flask_babel import get_locale
+                
+                # Debug info
+                if self._content in ["Settings", "My Profile", "Settings saved successfully!", "Upload New Avatar"]:
+                    if has_request_context():
+                        current_locale = get_locale()
+                        print(f"[TranslatableString] Translating '{self._content}' with locale={current_locale}")
+                    else:
+                        print(f"[TranslatableString] WARNING: No request context for '{self._content}'")
+                
+                translated = gettext(self._content)  # type: ignore
+                
+                # Debug output
+                if self._content in ["Settings", "My Profile", "Settings saved successfully!", "Upload New Avatar"]:
+                    print(f"[TranslatableString] '{self._content}' -> '{translated}'")
+                    if translated == self._content:
+                        print(f"[TranslatableString] ⚠ Translation not found for '{self._content}'!")
+                
+                return translated
+            except (RuntimeError, AttributeError) as e:
                 # Babel not initialized, no request context, or _content not set
+                print(f"[TranslatableString] ERROR translating '{self._content}': {e}")
                 return self._content  # type: ignore
+        print(f"[TranslatableString] BABEL NOT AVAILABLE for '{self._content}'")
         return self._content  # type: ignore
     
     def __repr__(self):
         return f"TranslatableString({self._content!r})"  # type: ignore
+    
+    def __html__(self):
+        """Support Jinja2 autoescape - treat as safe HTML."""
+        return str(self)
     
     def format(self, *args, **kwargs):
         """Support string formatting with translation."""
@@ -171,6 +201,80 @@ TEXT_STAT_WITH_ERROR = TranslatableString("With Errors")
 # =============================================================================
 # Error Messages
 ERROR_FILE_MANAGER_NOT_INITIALIZED = TranslatableString("File manager not initialized")
+ERROR_FILE_NOT_FOUND_FM = TranslatableString("File Not Found")
+ERROR_FILE_NOT_FOUND_DESC = TranslatableString("The requested file could not be found.")
+ERROR_UPDATE_FAILED = TranslatableString("Update Failed")
+ERROR_LOADING_FILES = TranslatableString("Error Loading Files")
+ERROR_LOADING_VERSION_HISTORY = TranslatableString("Error Loading Version History")
+
+# Page Titles
+TEXT_FILE_MANAGER = TranslatableString("File Manager")
+TEXT_FILE_MANAGER_BROWSE = TranslatableString("File Manager - Browse Files")
+TEXT_EDIT_FILE_METADATA = TranslatableString("Edit File Metadata")
+TEXT_CONFIRM_DELETE = TranslatableString("Confirm Delete")
+TEXT_DELETION_COMPLETE = TranslatableString("Deletion Complete")
+TEXT_VERSION_HISTORY = TranslatableString("Version History")
+TEXT_VERSION_HISTORY_FILE = TranslatableString("Version History: {filename}")
+
+# Breadcrumbs
+TEXT_BREADCRUMB_FILE_MANAGER = TranslatableString("File Manager")
+TEXT_BREADCRUMB_EDIT_FILE = TranslatableString("Edit File")
+TEXT_BREADCRUMB_CONFIRM_DELETE = TranslatableString("Confirm Delete")
+TEXT_BREADCRUMB_DELETION_COMPLETE = TranslatableString("Deletion Complete")
+TEXT_BREADCRUMB_VERSION_HISTORY = TranslatableString("Version History")
+
+# Buttons
+BUTTON_DELETE_SELECTED = TranslatableString("Delete Selected")
+BUTTON_SAVE_CHANGES = TranslatableString("Save Changes")
+BUTTON_CANCEL = TranslatableString("Cancel")
+BUTTON_YES_DELETE = TranslatableString("Yes, Delete")
+BUTTON_RETURN_FILE_MANAGER = TranslatableString("Return to File Manager")
+BUTTON_BACK_FILE_MANAGER = TranslatableString("Back to File Manager")
+
+# Tooltips
+TOOLTIP_DOWNLOAD = TranslatableString("Download")
+TOOLTIP_EDIT_METADATA = TranslatableString("Edit Metadata")
+TOOLTIP_VIEW_HISTORY = TranslatableString("View History")
+TOOLTIP_DELETE = TranslatableString("Delete")
+TOOLTIP_DOWNLOAD_VERSION = TranslatableString("Download this version")
+TOOLTIP_RESTORE_VERSION = TranslatableString("Restore v{version} as current")
+TOOLTIP_DELETE_VERSION = TranslatableString("Delete v{version} only")
+
+# Badges
+BADGE_MISSING = TranslatableString("Missing")
+BADGE_CORRUPTED = TranslatableString("Corrupted")
+BADGE_NOT_FOUND = TranslatableString("Not Found")
+BADGE_CURRENT = TranslatableString("Current")
+BADGE_ARCHIVED = TranslatableString("Archived")
+BADGE_VERSION = TranslatableString("v{version}")
+
+# Labels and Sections
+LABEL_FILE_INFORMATION = TranslatableString("File Information")
+LABEL_EDIT_METADATA = TranslatableString("Edit Metadata")
+LABEL_FILES_TO_DELETE = TranslatableString("Files to Delete")
+LABEL_ALL_VERSIONS = TranslatableString("All Versions")
+LABEL_GROUP_ID = TranslatableString("Group ID")
+LABEL_TAGS = TranslatableString("Tags")
+LABEL_SIZE = TranslatableString("Size")
+LABEL_TYPE = TranslatableString("Type")
+LABEL_UPLOADED = TranslatableString("Uploaded")
+LABEL_VERSION = TranslatableString("Version")
+LABEL_CHECKSUM = TranslatableString("Checksum")
+LABEL_UPLOADED_BY = TranslatableString("Uploaded By")
+
+# Table Headers
+TABLE_HEADER_SELECT = TranslatableString("Select")
+TABLE_HEADER_PREVIEW = TranslatableString("Preview")
+TABLE_HEADER_FILENAME = TranslatableString("Filename")
+TABLE_HEADER_GROUP_ID = TranslatableString("Group ID")
+TABLE_HEADER_TAGS = TranslatableString("Tags")
+TABLE_HEADER_VERSION = TranslatableString("Version")
+TABLE_HEADER_SIZE = TranslatableString("Size")
+TABLE_HEADER_UPLOADED = TranslatableString("Uploaded")
+TABLE_HEADER_INTEGRITY = TranslatableString("Integrity")
+TABLE_HEADER_ACTIONS = TranslatableString("Actions")
+TABLE_HEADER_STATUS = TranslatableString("Status")
+TABLE_HEADER_CHECKSUM = TranslatableString("Checksum")
 
 # User-Facing Messages
 TEXT_NO_FILES_UPLOAD = TranslatableString("No files found. Upload files to get started!")
@@ -186,9 +290,20 @@ MSG_UPDATE_SUCCESS = TranslatableString("Metadata for '{filename}' updated succe
 MSG_VERSION_RESTORED = TranslatableString("Version restored successfully! A new version has been created.")
 MSG_VERSION_DELETED = TranslatableString("Version deleted successfully.")
 MSG_VERSIONS_DELETED = TranslatableString("All versions deleted. File no longer exists.")
+MSG_FILE_MANAGER_NOT_INIT = TranslatableString("File manager not initialized")
+MSG_TARGET_VERSION_NOT_FOUND = TranslatableString("Target version not found")
+MSG_CURRENT_VERSION_NOT_FOUND = TranslatableString("Current version not found")
+MSG_DELETE_VERSION_FAILED = TranslatableString("Failed to delete version.")
+MSG_DELETE_VERSION_ERROR = TranslatableString("Failed to delete version: {error}")
+MSG_RESTORE_VERSION_ERROR = TranslatableString("Failed to restore version: {error}")
 
 # Confirmation and Result Messages
 DELETE_CONFIRM_SINGLE = TranslatableString("You are about to permanently delete the following file: <strong>{filename}</strong><br><br>This action cannot be undone.")
 DELETE_CONFIRM_MULTIPLE = TranslatableString("You are about to permanently delete <strong>{count} files</strong><br><br>This action cannot be undone.")
 DELETE_RESULT_PARTIAL = TranslatableString("<p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>\n            <p><strong>{failed_count}</strong> file(s) failed to delete.</p>")
 DELETE_RESULT_SUCCESS = TranslatableString("<p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>")
+
+# Titles with Icons
+TITLE_CONFIRM_DELETION = TranslatableString("Confirm Deletion")
+TITLE_PARTIALLY_COMPLETE = TranslatableString("Partially Complete")
+TITLE_SUCCESS = TranslatableString("Success")

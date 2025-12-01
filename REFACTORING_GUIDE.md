@@ -15,7 +15,80 @@ Study `src/pages/settings.py` - it demonstrates the correct pattern:
 
 ---
 
-## Analysis Methodology
+## Automated Analysis Tool
+
+**NEW**: Use the built-in refactoring analyzer in `framework_manager.py`:
+
+```bash
+# Analyze a file for refactoring opportunities
+python framework_manager.py refactor src/pages/myfile.py
+
+# Get JSON output (for scripts/automation)
+python framework_manager.py refactor src/pages/myfile.py --json
+```
+
+The tool automatically:
+1. ✅ Identifies orphaned constants (defined but never used)
+2. ✅ Extracts all user-facing strings that need i18n
+3. ✅ Counts constant usage
+4. ✅ Categorizes strings (buttons, tooltips, alerts, etc.)
+5. ✅ Provides actionable summary and next steps
+
+**Example output:**
+```
+============================================================
+CONSTANT USAGE ANALYSIS
+============================================================
+Constant                                    Usage Count
+----------------------------------------------------------------------
+PERMISSION_MODULE                                9 uses   
+GROUP_NONE                                       9 uses   
+ICON_DOWNLOAD                                    1 uses   ⚠️  ORPHANED
+
+============================================================
+ORPHANED CONSTANTS (SHOULD BE DELETED)
+============================================================
+  Found 1 orphaned constant(s):
+    ❌ ICON_DOWNLOAD
+  Recommendation: DELETE them.
+
+============================================================
+USER-FACING STRINGS (SHOULD BE IN i18n/messages.py)
+============================================================
+  Total user-facing strings found: 82
+
+  PAGE_TITLES (12):
+    Line   76: File Manager
+    Line   77: File Manager - Browse Files
+    ...
+
+  BUTTONS (8):
+    Line  263: Delete Selected
+    Line  532: Save Changes
+    ...
+
+============================================================
+SUMMARY
+============================================================
+  Constants:
+    • Total defined: 8
+    • Used: 7
+    • Orphaned (DELETE): 1
+
+  User-Facing Strings:
+    • Total found: 82
+    • Need extraction to i18n/messages.py
+
+  Next Steps:
+    1. Delete 1 orphaned constant(s)
+    2. Add ~82 TranslatableStrings to i18n/messages.py
+    3. Replace hardcoded strings with imported constants
+    4. Keep domain-specific constants in module
+```
+
+---
+
+## Manual Analysis Methodology (if needed)
 
 ### Step 1: Extract All Constants
 Find all constant definitions in the target file:
@@ -23,7 +96,57 @@ Find all constant definitions in the target file:
 grep -n "^[A-Z][A-Z_]* = " target_file.py
 ```
 
-### Step 2: Check Actual Usage
+### Step 2: Extract ALL User-Facing Strings (not just constants!)
+
+**NOTE**: The automated tool (see above) handles this automatically. Manual analysis is only needed if you want to customize the extraction logic.
+
+**CRITICAL**: User-facing strings are NOT limited to defined constants. Find ALL hardcoded strings in the code:
+
+**Locations to check:**
+1. **Button/Label text**: `text="Save"`, `text="Cancel"`, `text="Delete Selected"`
+2. **Dialog/Section titles**: `title="Edit File"`, `subtitle="File Information"`
+3. **Page titles**: `set_title("File Manager - Browse Files")`
+4. **Breadcrumb text**: `add_breadcrumb("File Manager")`
+5. **Alert messages**: `DisplayerItemAlert("No files found...")`
+6. **Badge text**: `DisplayerItemBadge("Missing")`, `DisplayerItemBadge("Corrupted")`
+7. **Tooltips**: `"tooltip": "Download"`, `"tooltip": "Edit Metadata"`
+8. **Generic headings**: `add_generic("Edit File Metadata")`
+9. **Form field labels**: `text="Group ID"`, `text="Tags"`
+10. **Flash messages**: `flash("File updated successfully!")`
+11. **Error messages in responses**: `return "Invalid file IDs", STATUS_BAD_REQUEST`
+12. **Info/status text**: Messages displayed to users
+
+**Python script to find them:**
+```python
+import re
+
+with open('target_file.py', 'r') as f:
+    content = f.read()
+
+# Find all string literals that look like user-facing text
+patterns = [
+    r'text=[\'"](.*?)[\'"]',  # Button text
+    r'title=[\'"](.*?)[\'"]',  # Titles
+    r'subtitle=[\'"](.*?)[\'"]',  # Subtitles
+    r'"tooltip":\s*[\'"](.*?)[\'"]',  # Tooltips
+    r'DisplayerItemAlert\(\s*["\']([^"\']+)["\']',  # Alerts
+    r'DisplayerItemBadge\(\s*["\']([^"\']+)["\']',  # Badges
+    r'add_generic\(\s*["\']([^"\']+)["\']',  # Generic headings
+    r'set_title\(\s*["\']([^"\']+)["\']',  # Page titles
+    r'add_breadcrumb\(\s*["\']([^"\']+)["\']',  # Breadcrumbs
+    r'flash\(\s*["\']([^"\']+)["\']',  # Flash messages
+    r'return\s+["\']([^"\']+)["\'],\s*(STATUS_|HTTP_)',  # Response messages
+]
+
+for pattern in patterns:
+    matches = re.finditer(pattern, content)
+    for match in matches:
+        string = match.group(1) if match.lastindex else match.group(0)
+        if string and len(string) > 3 and not string.isupper():
+            print(f"  {string}")
+```
+
+### Step 3: Check Actual Usage of Constants
 For each constant, count how many times it's actually used:
 ```bash
 # For a specific constant
@@ -38,7 +161,6 @@ done
 
 **Key insight**: If count = 1, the constant is **ONLY the definition** → it's ORPHANED → DELETE IT
 
-### Step 3: Categorize Each Constant
 
 #### 🌍 **User-Facing Strings** → Move to `i18n/messages.py`
 
@@ -262,7 +384,82 @@ return f"Error connecting to {server}: {error}", 500
 return ERROR_CONNECTION_FAILED.format(error=error), STATUS_SERVER_ERROR
 ```
 
-### Step 6: Keep Domain-Specific Constants
+### Step 5b: **CRITICAL - Extract ALL Hardcoded User-Facing Strings**
+
+Before removing domain-specific constants, search the entire file for **ALL hardcoded strings** that are user-visible. These MUST be moved to i18n/messages.py.
+
+**Locations to check:**
+1. **Button/Label text**: `text="Save"`, `text="Cancel"`, `text="Delete Selected"`
+2. **Dialog/Section titles**: `title="Edit File"`, `subtitle="File Information"`
+3. **Page titles**: `set_title("File Manager - Browse Files")`
+4. **Breadcrumb text**: `add_breadcrumb("File Manager")`
+5. **Alert messages**: `DisplayerItemAlert("No files found...")`
+6. **Badge text**: `DisplayerItemBadge("Missing")`, `DisplayerItemBadge("Corrupted")`
+7. **Tooltips**: `"tooltip": "Download"`, `"tooltip": "Edit Metadata"`
+8. **Generic headings**: `add_generic("Edit File Metadata")`
+9. **Form field labels**: `text="Group ID"`, `text="Tags"`
+10. **Flash messages**: `flash("File updated successfully!")`
+11. **Error response messages**: `return "Invalid file IDs", STATUS_BAD_REQUEST`
+12. **Info/status text**: Messages displayed to users anywhere
+
+**Python script to extract them:**
+```python
+import re
+
+with open('target_file.py', 'r') as f:
+    lines = f.readlines()
+
+patterns = [
+    r'text=[\'"](.*?)[\'"]',  # Button text
+    r'title=[\'"](.*?)[\'"]',  # Titles
+    r'subtitle=[\'"](.*?)[\'"]',  # Subtitles
+    r'"tooltip":\s*[\'"](.*?)[\'"]',  # Tooltips
+    r'DisplayerItemAlert\(\s*["\']([^"\']+)["\']',  # Alerts
+    r'DisplayerItemBadge\(\s*["\']([^"\']+)["\']',  # Badges
+    r'add_generic\(\s*["\']([^"\']+)["\']',  # Generic headings
+    r'set_title\(\s*["\']([^"\']+)["\']',  # Page titles
+    r'add_breadcrumb\(\s*["\']([^"\']+)["\']',  # Breadcrumbs
+    r'flash\(\s*["\']([^"\']+)["\']',  # Flash messages
+]
+
+user_facing = {}
+for i, line in enumerate(lines, 1):
+    for pattern in patterns:
+        matches = re.finditer(pattern, line)
+        for match in matches:
+            string = match.group(1) if match.lastindex else match.group(0)
+            if string and len(string) > 3 and not string.isupper():
+                user_facing[string] = i
+
+print("Found user-facing strings:")
+for string, line_num in sorted(user_facing.items()):
+    print(f"  Line {line_num}: {string}")
+```
+
+**Example from file_manager_admin.py:**
+```python
+# HARDCODED - Move to i18n/messages.py
+text="Delete Selected"
+text="Save Changes"
+text="Cancel"
+"tooltip": "Download"
+"tooltip": "Edit Metadata"
+"tooltip": "View History"
+"tooltip": "Delete"
+title="File Information"
+subtitle="Edit Metadata"
+set_title("File Manager - Browse Files")
+add_breadcrumb("File Manager")
+add_breadcrumb("Edit File")
+DisplayerItemAlert("No files found. Upload files to get started!")
+DisplayerItemBadge("Missing")
+DisplayerItemBadge("Corrupted")
+DisplayerItemBadge("Not Found")
+```
+
+These should become TranslatableStrings in i18n/messages.py, then imported and used in the code.
+
+### Step 6: Update Usage Sites
 
 Leave these untouched in the module:
 ```python

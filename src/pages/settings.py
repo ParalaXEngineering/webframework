@@ -35,7 +35,7 @@ Config structure:
 from urllib.parse import urlparse, parse_qs
 
 # Third-party
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 
 # Framework modules - constants and i18n
 from ..modules.constants import (
@@ -493,6 +493,13 @@ def _view_settings(user_mode=False):
                                     # Save to user override
                                     if auth_manager:
                                         auth_manager.set_user_framework_override(current_user, full_key, value)
+                                        
+                                        # Special handling for language change - update session immediately
+                                        if full_key == "framework_ui.language":
+                                            session['locale'] = value
+                                            logger.info(f"[i18n] Language changed to '{value}' for user '{current_user}', session updated")
+                                            print(f"[i18n] *** SESSION UPDATED: locale = '{value}' for user '{current_user}'")
+                                            print(f"[i18n] *** Session dict: {dict(session)}")
                         except Exception:
                             logger.exception(ERROR_SAVING_USER_OVERRIDE)
                 
@@ -653,6 +660,11 @@ def _view_settings(user_mode=False):
                                     
                                     # Save to global config
                                     manager.set_setting(full_key, value)
+                                    
+                                    # Special handling for language change - update session immediately
+                                    if full_key == "framework_ui.language":
+                                        session['locale'] = value
+                                        logger.info(f"[i18n] Global language changed to '{value}', session updated")
                         except Exception:
                             logger.exception(ERROR_SAVING_GLOBAL_CONFIG)
                 

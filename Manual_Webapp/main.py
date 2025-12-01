@@ -146,9 +146,12 @@ logger.info("Initializing manual test application using framework setup")
 site_conf.site_conf_obj = TestSiteConf()
 site_conf.site_conf_app_path = manual_webapp_root
 
-# IMPORTANT: Keep working directory at framework root for templates/static resolution
-# The framework's Flask app is configured to use framework_root/templates and framework_root/webengine
-# We only override the config path via site_conf_app_path
+# IMPORTANT: Change working directory to framework root for templates/static/translations resolution
+# The framework's Flask app is configured to use framework_root/templates, framework_root/webengine,
+# and framework_root/translations. We only override the config path via site_conf_app_path.
+os.chdir(framework_root)
+print(f"[Manual_Webapp] ✓ Changed working directory to: {framework_root}")
+logger.info(f"Changed working directory to framework root: {framework_root}")
 
 # Inject auth_manager into auth module
 auth_module.auth_manager = auth_manager_instance

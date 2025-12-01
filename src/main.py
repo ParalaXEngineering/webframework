@@ -157,6 +157,13 @@ def setup_app(app):
 
     socketio_obj = SocketIO(app)  # type: ignore
     
+    # Initialize Babel for i18n support
+    try:
+        from .modules.i18n import init_babel
+    except ImportError:
+        from modules.i18n import init_babel
+    init_babel(app)
+    
     # Initialize logger using centralized factory and log application start
     logger = get_logger("main")
     logger.info("Application starting up")

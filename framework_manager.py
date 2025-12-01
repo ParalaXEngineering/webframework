@@ -17,8 +17,10 @@ import sys
 import shutil
 import subprocess
 import argparse
+import json
+import re
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Dict, Tuple
 
 # Check Python version early
 if sys.version_info < (3, 7):
@@ -823,6 +825,229 @@ def diagnose_tools():
 
 
 # ============================================================================
+# Refactoring Analysis Functions
+# ============================================================================
+
+def analyze_constants_usage(file_path: Path) -> Dict[str, int]:
+    """
+    Analyze constant usage in a Python file.
+    
+    Args:
+        file_path: Path to Python file to analyze
+    
+    Returns:
+        Dictionary mapping constant names to usage count
+    """
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Find all constant definitions
+    constant_pattern = r'^([A-Z][A-Z_0-9]*)\s*='
+    constants = re.findall(constant_pattern, content, re.MULTILINE)
+    
+    # Remove duplicates while preserving order
+    seen = set()
+    unique_constants = []
+    for const in constants:
+        if const not in seen:
+            unique_constants.append(const)
+            seen.add(const)
+    
+    # Count usage for each constant
+    usage_counts = {}
+    for const in unique_constants:
+        pattern = rf'\b{re.escape(const)}\b'
+        matches = len(re.findall(pattern, content))
+        usage_counts[const] = matches
+    
+    return usage_counts
+
+
+def extract_user_facing_strings(file_path: Path) -> Dict[str, list]:
+    """
+    Extract user-facing strings from a Python file.
+    
+    Args:
+        file_path: Path to Python file to analyze
+    
+    Returns:
+        Dictionary with categories of user-facing strings
+    """
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        content = ''.join(lines)
+    
+    results = {
+        'page_titles': [],
+        'breadcrumbs': [],
+        'buttons': [],
+        'tooltips': [],
+        'badges': [],
+        'alerts': [],
+        'labels': [],
+        'table_headers': [],
+        'flash_messages': [],
+        'error_messages': []
+    }
+    
+    # Patterns for different categories
+    patterns = [
+        (r'set_title\(["\']([^"\']+?)["\']', 'page_titles'),
+        (r'add_generic\(["\']([^"\']+?)["\']', 'page_titles'),
+        (r'add_breadcrumb\(["\']([^"\']+?)["\']', 'breadcrumbs'),
+        (r'text=["\']([^"\']+?)["\']', 'buttons'),
+        (r'"tooltip":\s*["\']([^"\']+?)["\']', 'tooltips'),
+        (r'DisplayerItemBadge\(["\']([^"\']+?)["\']', 'badges'),
+        (r'DisplayerItemAlert\(["\']([^"\'<]+?)["\']', 'alerts'),
+        (r'flash\(["\']([^"\']+?)["\']', 'flash_messages'),
+        (r'title=["\']([^"\']+?)["\']', 'labels'),
+        (r'subtitle=["\']([^"\']+?)["\']', 'labels'),
+    ]
+    
+    for pattern, category in patterns:
+        matches = re.finditer(pattern, content)
+        for match in matches:
+            string = match.group(1)
+            # Filter out empty, too short, or all-uppercase strings
+            if string and len(string) > 2 and not string.isupper():
+                line_num = content[:match.start()].count('\n') + 1
+                results[category].append({
+                    'text': string,
+                    'line': line_num
+                })
+    
+    # Extract table headers (special case)
+    table_pattern = r'DisplayerLayout\([^,]+,\s*\[([^\]]+)\]'
+    for match in re.finditer(table_pattern, content):
+        headers_str = match.group(1)
+        headers = re.findall(r'["\']([^"\',]+)["\']', headers_str)
+        line_num = content[:match.start()].count('\n') + 1
+        for header in headers:
+            if header and len(header) > 1 and not header.isupper():
+                results['table_headers'].append({
+                    'text': header,
+                    'line': line_num
+                })
+    
+    # Remove duplicates while preserving first occurrence
+    for category in results:
+        seen = set()
+        unique = []
+        for item in results[category]:
+            if item['text'] not in seen:
+                unique.append(item)
+                seen.add(item['text'])
+        results[category] = unique
+    
+    return results
+
+
+def analyze_refactoring(file_path: Path, output_format: str = 'text') -> None:
+    """
+    Perform comprehensive refactoring analysis on a Python file.
+    
+    Args:
+        file_path: Path to Python file to analyze
+        output_format: Output format ('text' or 'json')
+    """
+    if not file_path.exists():
+        log(f"File not found: {file_path}", "error")
+        return
+    
+    print_header(f"Refactoring Analysis: {file_path.name}")
+    
+    # Analyze constants
+    log("Analyzing constant usage...", "info")
+    usage_counts = analyze_constants_usage(file_path)
+    
+    # Extract user-facing strings
+    log("Extracting user-facing strings...", "info")
+    user_strings = extract_user_facing_strings(file_path)
+    
+    # Prepare results
+    orphaned_constants = [const for const, count in usage_counts.items() if count == 1]
+    used_constants = {const: count for const, count in usage_counts.items() if count > 1}
+    
+    total_user_strings = sum(len(strings) for strings in user_strings.values())
+    
+    if output_format == 'json':
+        # JSON output
+        result = {
+            'file': str(file_path),
+            'constants': {
+                'used': used_constants,
+                'orphaned': orphaned_constants,
+                'total': len(usage_counts)
+            },
+            'user_facing_strings': {
+                'categories': user_strings,
+                'total': total_user_strings
+            }
+        }
+        print(json.dumps(result, indent=2))
+    else:
+        # Text output
+        print("\n" + "=" * 70)
+        print("CONSTANT USAGE ANALYSIS")
+        print("=" * 70)
+        
+        if usage_counts:
+            print(f"\n{'Constant':<40} {'Usage Count':>15}")
+            print("-" * 70)
+            for const, count in sorted(usage_counts.items(), key=lambda x: (-x[1], x[0])):
+                status = "⚠️  ORPHANED" if count == 1 else ""
+                print(f"{const:<40} {count:>10} uses   {status}")
+        else:
+            print("\n  No constants defined.")
+        
+        print("\n" + "=" * 70)
+        print("ORPHANED CONSTANTS (SHOULD BE DELETED)")
+        print("=" * 70)
+        
+        if orphaned_constants:
+            print(f"\n  Found {len(orphaned_constants)} orphaned constant(s):\n")
+            for const in orphaned_constants:
+                print(f"    ❌ {const}")
+            print(f"\n  These constants are defined but never used.")
+            print(f"  Recommendation: DELETE them.")
+        else:
+            print("\n  ✅ No orphaned constants! All constants are being used.")
+        
+        print("\n" + "=" * 70)
+        print("USER-FACING STRINGS (SHOULD BE IN i18n/messages.py)")
+        print("=" * 70)
+        print(f"\n  Total user-facing strings found: {total_user_strings}\n")
+        
+        for category, strings in user_strings.items():
+            if strings:
+                print(f"\n  {category.upper().replace('_', ' ')} ({len(strings)}):")
+                for item in strings[:10]:  # Show first 10
+                    print(f"    Line {item['line']:4d}: {item['text'][:60]}")
+                if len(strings) > 10:
+                    print(f"    ... and {len(strings) - 10} more")
+        
+        print("\n" + "=" * 70)
+        print("SUMMARY")
+        print("=" * 70)
+        print(f"\n  Constants:")
+        print(f"    • Total defined: {len(usage_counts)}")
+        print(f"    • Used: {len(used_constants)}")
+        print(f"    • Orphaned (DELETE): {len(orphaned_constants)}")
+        print(f"\n  User-Facing Strings:")
+        print(f"    • Total found: {total_user_strings}")
+        print(f"    • Need extraction to i18n/messages.py")
+        print(f"\n  Next Steps:")
+        if orphaned_constants:
+            print(f"    1. Delete {len(orphaned_constants)} orphaned constant(s)")
+        else:
+            print(f"    1. ✅ No orphaned constants to delete")
+        print(f"    2. Add ~{total_user_strings} TranslatableStrings to i18n/messages.py")
+        print(f"    3. Replace hardcoded strings with imported constants")
+        print(f"    4. Keep domain-specific constants in module")
+        print()
+
+
+# ============================================================================
 # Documentation Functions
 # ============================================================================
 
@@ -929,6 +1154,8 @@ Examples:
   python framework_manager.py example --run
   python framework_manager.py docs
   python framework_manager.py diagnose
+  python framework_manager.py refactor src/pages/myfile.py
+  python framework_manager.py refactor src/pages/myfile.py --json
         """
     )
     
@@ -950,6 +1177,11 @@ Examples:
     
     # Diagnose command
     subparsers.add_parser("diagnose", help="Diagnose system tools and configuration")
+    
+    # Refactor command
+    refactor_parser = subparsers.add_parser("refactor", help="Analyze file for refactoring opportunities")
+    refactor_parser.add_argument("file", help="Python file to analyze")
+    refactor_parser.add_argument("--json", action="store_true", help="Output in JSON format")
     
     args = parser.parse_args()
     
@@ -994,6 +1226,12 @@ Examples:
         build_documentation()
     elif args.command == "diagnose":
         diagnose_tools()
+    elif args.command == "refactor":
+        file_path = Path(args.file)
+        if not file_path.is_absolute():
+            file_path = FRAMEWORK_ROOT / file_path
+        output_format = 'json' if args.json else 'text'
+        analyze_refactoring(file_path, output_format)
 
 
 def manage_example_interactive():

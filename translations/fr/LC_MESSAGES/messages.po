@@ -1,0 +1,638 @@
+# French translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-12-01 14:36+0100\n"
+"PO-Revision-Date: 2025-12-01 14:36+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: src/modules/i18n/messages.py:66
+msgid "Site configuration not initialized"
+msgstr "Configuration du site non initialisée"
+
+#: src/modules/i18n/messages.py:67
+msgid "Authentication system not initialized"
+msgstr "Système d'authentification non initialisé"
+
+#: src/modules/i18n/messages.py:68
+msgid "Not logged in"
+msgstr "Non connecté"
+
+#: src/modules/i18n/messages.py:69
+msgid "User not found."
+msgstr "Utilisateur introuvable."
+
+#: src/modules/i18n/messages.py:70
+msgid "Invalid folder type"
+msgstr "Type de dossier invalide"
+
+#: src/modules/i18n/messages.py:71
+msgid "Filename required"
+msgstr "Nom de fichier requis"
+
+#: src/modules/i18n/messages.py:72
+msgid "Markdown file not found."
+msgstr "Fichier Markdown introuvable."
+
+#: src/modules/i18n/messages.py:77
+msgid "Settings manager not initialized"
+msgstr "Gestionnaire de paramètres non initialisé"
+
+#: src/modules/i18n/messages.py:78
+msgid "Unknown setting type"
+msgstr "Type de paramètre inconnu"
+
+#: src/modules/i18n/messages.py:79
+msgid "Error setting user framework override"
+msgstr "Erreur lors de la définition de la surcharge utilisateur du framework"
+
+#: src/modules/i18n/messages.py:80
+msgid "Error setting global config value"
+msgstr "Erreur lors de la définition de la valeur de configuration globale"
+
+#: src/modules/i18n/messages.py:81
+msgid "Error saving settings"
+msgstr "Erreur lors de l'enregistrement des paramètres"
+
+#: src/modules/i18n/messages.py:83
+msgid "Settings saved successfully!"
+msgstr "Paramètres enregistrés avec succès !"
+
+#: src/modules/i18n/messages.py:84
+msgid ""
+"No settings are currently configured as user-overridable. Contact your "
+"administrator."
+msgstr "Aucun paramètre n'est actuellement configurable par l'utilisateur. Contactez votre administrateur."
+
+#: src/modules/i18n/messages.py:86
+msgid "Settings"
+msgstr "Paramètres"
+
+#: src/modules/i18n/messages.py:87
+msgid "Configuration Settings"
+msgstr "Paramètres de configuration"
+
+#: src/modules/i18n/messages.py:88
+msgid "Settings Categories"
+msgstr "Catégories de paramètres"
+
+#: src/modules/i18n/messages.py:89
+msgid "Category"
+msgstr "Catégorie"
+
+#: src/modules/i18n/messages.py:90
+msgid "Description"
+msgstr "Description"
+
+#: src/modules/i18n/messages.py:91
+msgid "Settings Count"
+msgstr "Nombre de paramètres"
+
+#: src/modules/i18n/messages.py:92 src/modules/i18n/messages.py:245
+msgid "Actions"
+msgstr "Actions"
+
+#: src/modules/i18n/messages.py:93
+msgid "Setting"
+msgstr "Paramètre"
+
+#: src/modules/i18n/messages.py:94 src/modules/i18n/messages.py:229
+msgid "Type"
+msgstr "Type"
+
+#: src/modules/i18n/messages.py:95
+msgid "Value"
+msgstr "Valeur"
+
+#: src/modules/i18n/messages.py:96
+msgid "User Overridable"
+msgstr "Modifiable par l'utilisateur"
+
+#: src/modules/i18n/messages.py:97
+msgid "My Framework Settings"
+msgstr "Mes paramètres du framework"
+
+#: src/modules/i18n/messages.py:98
+msgid "View Settings"
+msgstr "Voir les paramètres"
+
+#: src/modules/i18n/messages.py:99
+msgid "Save Settings"
+msgstr "Enregistrer les paramètres"
+
+#: src/modules/i18n/messages.py:100
+msgid "Configuration options for"
+msgstr "Options de configuration pour"
+
+#: src/modules/i18n/messages.py:111
+#, python-brace-format
+msgid "Documentation: {}"
+msgstr "Documentation : {}"
+
+#: src/modules/i18n/messages.py:116
+msgid "Access Restricted"
+msgstr "Accès restreint"
+
+#: src/modules/i18n/messages.py:117
+msgid "Guest Access"
+msgstr "Accès invité"
+
+#: src/modules/i18n/messages.py:118
+msgid "Profile Not Available for Guest Users"
+msgstr "Profil non disponible pour les utilisateurs invités"
+
+#: src/modules/i18n/messages.py:119
+msgid "Guest users cannot access or modify profile settings."
+msgstr "Les utilisateurs invités ne peuvent pas accéder ou modifier les paramètres de profil."
+
+#: src/modules/i18n/messages.py:120
+msgid "Please log in with a registered account to access your profile."
+msgstr "Veuillez vous connecter avec un compte enregistré pour accéder à votre profil."
+
+#: src/modules/i18n/messages.py:121
+msgid "My Profile"
+msgstr "Mon profil"
+
+#: src/modules/i18n/messages.py:122
+msgid "Profile"
+msgstr "Profil"
+
+#: src/modules/i18n/messages.py:123
+msgid "Profile Information"
+msgstr "Informations du profil"
+
+#: src/modules/i18n/messages.py:124
+msgid "Display Name"
+msgstr "Nom d'affichage"
+
+#: src/modules/i18n/messages.py:125
+msgid "Email"
+msgstr "Email"
+
+#: src/modules/i18n/messages.py:126
+msgid "Update Profile"
+msgstr "Mettre à jour le profil"
+
+#: src/modules/i18n/messages.py:127
+msgid "Profile Picture"
+msgstr "Photo de profil"
+
+#: src/modules/i18n/messages.py:128
+msgid "Upload New Avatar"
+msgstr "Télécharger un nouvel avatar"
+
+#: src/modules/i18n/messages.py:129
+msgid ""
+"Allowed: JPEG, PNG, SVG. Max size: 1024x1024 (auto-resized for raster "
+"images)"
+msgstr "Autorisé : JPEG, PNG, SVG. Taille max : 1024x1024 (redimensionné automatiquement pour les images matricielles)"
+
+#: src/modules/i18n/messages.py:130 src/modules/i18n/messages.py:134
+msgid "Change Password"
+msgstr "Changer le mot de passe"
+
+#: src/modules/i18n/messages.py:131
+msgid "Current Password"
+msgstr "Mot de passe actuel"
+
+#: src/modules/i18n/messages.py:132
+msgid "New Password"
+msgstr "Nouveau mot de passe"
+
+#: src/modules/i18n/messages.py:133
+msgid "Confirm Password"
+msgstr "Confirmer le mot de passe"
+
+#: src/modules/i18n/messages.py:135
+msgid "Password must be at least 5 characters with letters and numbers."
+msgstr "Le mot de passe doit contenir au moins 5 caractères avec des lettres et des chiffres."
+
+#: src/modules/i18n/messages.py:136
+msgid "This is a passwordless account."
+msgstr "Ceci est un compte sans mot de passe."
+
+#: src/modules/i18n/messages.py:137
+msgid "Account Information"
+msgstr "Informations du compte"
+
+#: src/modules/i18n/messages.py:138
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+#: src/modules/i18n/messages.py:139
+msgid "Groups"
+msgstr "Groupes"
+
+#: src/modules/i18n/messages.py:140
+msgid "Account Created"
+msgstr "Compte créé"
+
+#: src/modules/i18n/messages.py:141
+msgid "Last Login"
+msgstr "Dernière connexion"
+
+#: src/modules/i18n/messages.py:142
+msgid "Unknown"
+msgstr "Inconnu"
+
+#: src/modules/i18n/messages.py:143
+msgid "Never"
+msgstr "Jamais"
+
+#: src/modules/i18n/messages.py:144
+msgid "Property"
+msgstr "Propriété"
+
+#: src/modules/i18n/messages.py:146
+msgid "Profile updated successfully!"
+msgstr "Profil mis à jour avec succès !"
+
+#: src/modules/i18n/messages.py:147
+msgid "Display name cannot be empty."
+msgstr "Le nom d'affichage ne peut pas être vide."
+
+#: src/modules/i18n/messages.py:148
+msgid "Current password is incorrect."
+msgstr "Le mot de passe actuel est incorrect."
+
+#: src/modules/i18n/messages.py:149
+msgid "New passwords do not match."
+msgstr "Les nouveaux mots de passe ne correspondent pas."
+
+#: src/modules/i18n/messages.py:150
+msgid "Invalid password"
+msgstr "Mot de passe invalide"
+
+#: src/modules/i18n/messages.py:151
+msgid "Password changed successfully!"
+msgstr "Mot de passe changé avec succès !"
+
+#: src/modules/i18n/messages.py:156
+msgid "Thread Monitor"
+msgstr "Moniteur de threads"
+
+#: src/modules/i18n/messages.py:157
+msgid "Threads"
+msgstr "Threads"
+
+#: src/modules/i18n/messages.py:158
+msgid ""
+"<p class='text-muted text-center'><i class='mdi mdi-loading mdi-"
+"spin'></i> Loading threads...</p>"
+msgstr "<p class='text-muted text-center'><i class='mdi mdi-loading mdi-spin'></i> Chargement des threads...</p>"
+
+#: src/modules/i18n/messages.py:159
+#, python-brace-format
+msgid "✓ Stopped thread: {}"
+msgstr "✓ Thread arrêté : {}"
+
+#: src/modules/i18n/messages.py:160 src/modules/i18n/messages.py:162
+#, python-brace-format
+msgid "✗ Thread not found: {}"
+msgstr "✗ Thread introuvable : {}"
+
+#: src/modules/i18n/messages.py:161
+#, python-brace-format
+msgid "✓ Force killed thread: {}"
+msgstr "✓ Thread forcé à s'arrêter : {}"
+
+#: src/modules/i18n/messages.py:163
+msgid "Thread manager not initialized"
+msgstr "Gestionnaire de threads non initialisé"
+
+#: src/modules/i18n/messages.py:164
+msgid "Total Threads"
+msgstr "Total des threads"
+
+#: src/modules/i18n/messages.py:165
+msgid "Running"
+msgstr "En cours"
+
+#: src/modules/i18n/messages.py:166
+msgid "With Process"
+msgstr "Avec processus"
+
+#: src/modules/i18n/messages.py:167
+msgid "With Errors"
+msgstr "Avec erreurs"
+
+#: src/modules/i18n/messages.py:173 src/modules/i18n/messages.py:263
+msgid "File manager not initialized"
+msgstr "Gestionnaire de fichiers non initialisé"
+
+#: src/modules/i18n/messages.py:174
+msgid "File Not Found"
+msgstr "Fichier introuvable"
+
+#: src/modules/i18n/messages.py:175
+msgid "The requested file could not be found."
+msgstr "Le fichier demandé est introuvable."
+
+#: src/modules/i18n/messages.py:176
+msgid "Update Failed"
+msgstr "Mise à jour échouée"
+
+#: src/modules/i18n/messages.py:177
+msgid "Error Loading Files"
+msgstr "Erreur lors du chargement des fichiers"
+
+#: src/modules/i18n/messages.py:178
+msgid "Error Loading Version History"
+msgstr "Erreur lors du chargement de l'historique des versions"
+
+#: src/modules/i18n/messages.py:181 src/modules/i18n/messages.py:190
+msgid "File Manager"
+msgstr "Gestionnaire de fichiers"
+
+#: src/modules/i18n/messages.py:182
+msgid "File Manager - Browse Files"
+msgstr "Gestionnaire de fichiers - Parcourir les fichiers"
+
+#: src/modules/i18n/messages.py:183
+msgid "Edit File Metadata"
+msgstr "Éditer les métadonnées du fichier"
+
+#: src/modules/i18n/messages.py:184 src/modules/i18n/messages.py:192
+msgid "Confirm Delete"
+msgstr "Confirmer la suppression"
+
+#: src/modules/i18n/messages.py:185 src/modules/i18n/messages.py:193
+msgid "Deletion Complete"
+msgstr "Suppression terminée"
+
+#: src/modules/i18n/messages.py:186 src/modules/i18n/messages.py:194
+msgid "Version History"
+msgstr "Historique des versions"
+
+#: src/modules/i18n/messages.py:187
+#, python-brace-format
+msgid "Version History: {filename}"
+msgstr "Historique des versions : {filename}"
+
+#: src/modules/i18n/messages.py:191
+msgid "Edit File"
+msgstr "Éditer le fichier"
+
+#: src/modules/i18n/messages.py:197
+msgid "Delete Selected"
+msgstr "Supprimer la sélection"
+
+#: src/modules/i18n/messages.py:198
+msgid "Save Changes"
+msgstr "Enregistrer les modifications"
+
+#: src/modules/i18n/messages.py:199
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/modules/i18n/messages.py:200
+msgid "Yes, Delete"
+msgstr "Oui, supprimer"
+
+#: src/modules/i18n/messages.py:201
+msgid "Return to File Manager"
+msgstr "Retour au gestionnaire de fichiers"
+
+#: src/modules/i18n/messages.py:202
+msgid "Back to File Manager"
+msgstr "Retour au gestionnaire de fichiers"
+
+#: src/modules/i18n/messages.py:205
+msgid "Download"
+msgstr "Télécharger"
+
+#: src/modules/i18n/messages.py:206 src/modules/i18n/messages.py:223
+msgid "Edit Metadata"
+msgstr "Éditer les métadonnées"
+
+#: src/modules/i18n/messages.py:207
+msgid "View History"
+msgstr "Voir l'historique"
+
+#: src/modules/i18n/messages.py:208
+msgid "Delete"
+msgstr "Supprimer"
+
+#: src/modules/i18n/messages.py:209
+msgid "Download this version"
+msgstr "Télécharger cette version"
+
+#: src/modules/i18n/messages.py:210
+#, python-brace-format
+msgid "Restore v{version} as current"
+msgstr "Restaurer v{version} comme actuelle"
+
+#: src/modules/i18n/messages.py:211
+#, python-brace-format
+msgid "Delete v{version} only"
+msgstr "Supprimer uniquement v{version}"
+
+#: src/modules/i18n/messages.py:214
+msgid "Missing"
+msgstr "Manquant"
+
+#: src/modules/i18n/messages.py:215
+msgid "Corrupted"
+msgstr "Corrompu"
+
+#: src/modules/i18n/messages.py:216
+msgid "Not Found"
+msgstr "Introuvable"
+
+#: src/modules/i18n/messages.py:217
+msgid "Current"
+msgstr "Actuelle"
+
+#: src/modules/i18n/messages.py:218
+msgid "Archived"
+msgstr "Archivée"
+
+#: src/modules/i18n/messages.py:219
+#, python-brace-format
+msgid "v{version}"
+msgstr "v{version}"
+
+#: src/modules/i18n/messages.py:222
+msgid "File Information"
+msgstr "Informations du fichier"
+
+#: src/modules/i18n/messages.py:224
+msgid "Files to Delete"
+msgstr "Fichiers à supprimer"
+
+#: src/modules/i18n/messages.py:225
+msgid "All Versions"
+msgstr "Toutes les versions"
+
+#: src/modules/i18n/messages.py:226 src/modules/i18n/messages.py:239
+msgid "Group ID"
+msgstr "ID de groupe"
+
+#: src/modules/i18n/messages.py:227 src/modules/i18n/messages.py:240
+msgid "Tags"
+msgstr "Étiquettes"
+
+#: src/modules/i18n/messages.py:228 src/modules/i18n/messages.py:242
+msgid "Size"
+msgstr "Taille"
+
+#: src/modules/i18n/messages.py:230 src/modules/i18n/messages.py:243
+msgid "Uploaded"
+msgstr "Téléchargé"
+
+#: src/modules/i18n/messages.py:231 src/modules/i18n/messages.py:241
+msgid "Version"
+msgstr "Version"
+
+#: src/modules/i18n/messages.py:232 src/modules/i18n/messages.py:247
+msgid "Checksum"
+msgstr "Somme de contrôle"
+
+#: src/modules/i18n/messages.py:233
+msgid "Uploaded By"
+msgstr "Téléchargé par"
+
+#: src/modules/i18n/messages.py:236
+msgid "Select"
+msgstr "Sélectionner"
+
+#: src/modules/i18n/messages.py:237
+msgid "Preview"
+msgstr "Aperçu"
+
+#: src/modules/i18n/messages.py:238
+msgid "Filename"
+msgstr "Nom du fichier"
+
+#: src/modules/i18n/messages.py:244
+msgid "Integrity"
+msgstr "Intégrité"
+
+#: src/modules/i18n/messages.py:246
+msgid "Status"
+msgstr "Statut"
+
+#: src/modules/i18n/messages.py:250
+msgid "No files found. Upload files to get started!"
+msgstr "Aucun fichier trouvé. Téléchargez des fichiers pour commencer !"
+
+#: src/modules/i18n/messages.py:251
+msgid ""
+"No files found. You need 'upload' permission to add files. Contact your "
+"administrator."
+msgstr "Aucun fichier trouvé. Vous avez besoin de la permission 'upload' pour ajouter des fichiers. Contactez votre administrateur."
+
+#: src/modules/i18n/messages.py:252
+msgid "You need 'delete' permission to remove files. Contact your administrator."
+msgstr "Vous avez besoin de la permission 'delete' pour supprimer des fichiers. Contactez votre administrateur."
+
+#: src/modules/i18n/messages.py:253
+msgid ""
+"Group ID for versioning. Files with the same group_id and filename are "
+"treated as versions of the same file."
+msgstr "ID de groupe pour le versioning. Les fichiers avec le même group_id et nom de fichier sont traités comme des versions du même fichier."
+
+#: src/modules/i18n/messages.py:254
+msgid "Organize files with tags for easy searching and filtering."
+msgstr "Organisez les fichiers avec des étiquettes pour faciliter la recherche et le filtrage."
+
+#: src/modules/i18n/messages.py:255
+msgid ""
+"Files with version history will have <strong>all versions</strong> "
+"deleted."
+msgstr "Les fichiers avec un historique de versions auront <strong>toutes les versions</strong> supprimées."
+
+#: src/modules/i18n/messages.py:258
+msgid "No files selected for deletion."
+msgstr "Aucun fichier sélectionné pour la suppression."
+
+#: src/modules/i18n/messages.py:259
+#, python-brace-format
+msgid "Metadata for '{filename}' updated successfully."
+msgstr "Métadonnées pour '{filename}' mises à jour avec succès."
+
+#: src/modules/i18n/messages.py:260
+msgid "Version restored successfully! A new version has been created."
+msgstr "Version restaurée avec succès ! Une nouvelle version a été créée."
+
+#: src/modules/i18n/messages.py:261
+msgid "Version deleted successfully."
+msgstr "Version supprimée avec succès."
+
+#: src/modules/i18n/messages.py:262
+msgid "All versions deleted. File no longer exists."
+msgstr "Toutes les versions supprimées. Le fichier n'existe plus."
+
+#: src/modules/i18n/messages.py:264
+msgid "Target version not found"
+msgstr "Version cible introuvable"
+
+#: src/modules/i18n/messages.py:265
+msgid "Current version not found"
+msgstr "Version actuelle introuvable"
+
+#: src/modules/i18n/messages.py:266
+msgid "Failed to delete version."
+msgstr "Échec de la suppression de la version."
+
+#: src/modules/i18n/messages.py:267
+#, python-brace-format
+msgid "Failed to delete version: {error}"
+msgstr "Échec de la suppression de la version : {error}"
+
+#: src/modules/i18n/messages.py:268
+#, python-brace-format
+msgid "Failed to restore version: {error}"
+msgstr "Échec de la restauration de la version : {error}"
+
+#: src/modules/i18n/messages.py:271
+#, python-brace-format
+msgid ""
+"You are about to permanently delete the following file: "
+"<strong>{filename}</strong><br><br>This action cannot be undone."
+msgstr "Vous êtes sur le point de supprimer définitivement le fichier suivant : <strong>{filename}</strong><br><br>Cette action est irréversible."
+
+#: src/modules/i18n/messages.py:272
+#, python-brace-format
+msgid ""
+"You are about to permanently delete <strong>{count} "
+"files</strong><br><br>This action cannot be undone."
+msgstr "Vous êtes sur le point de supprimer définitivement <strong>{count} fichiers</strong><br><br>Cette action est irréversible."
+
+#: src/modules/i18n/messages.py:273
+#, python-brace-format
+msgid ""
+"<p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>\n"
+"            <p><strong>{failed_count}</strong> file(s) failed to "
+"delete.</p>"
+msgstr "<p><strong>{deleted_count}</strong> fichier(s) supprimé(s) avec succès.</p>\n            <p><strong>{failed_count}</strong> fichier(s) n'ont pas pu être supprimé(s).</p>"
+
+#: src/modules/i18n/messages.py:274
+#, python-brace-format
+msgid "<p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>"
+msgstr "<p><strong>{deleted_count}</strong> fichier(s) supprimé(s) avec succès.</p>"
+
+#: src/modules/i18n/messages.py:277
+msgid "Confirm Deletion"
+msgstr "Confirmer la suppression"
+
+#: src/modules/i18n/messages.py:278
+msgid "Partially Complete"
+msgstr "Partiellement terminé"
+
+#: src/modules/i18n/messages.py:279
+msgid "Success"
+msgstr "Succès"
+

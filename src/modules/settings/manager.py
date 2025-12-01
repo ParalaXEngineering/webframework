@@ -150,7 +150,7 @@ class SettingsManager:
         
         # Check each feature and merge its config if enabled
         feature_map = {
-            "framework_ui": (site_conf_obj.m_enable_threads or site_conf_obj.m_enable_log_viewer),
+            "framework_ui": True,  # Always enabled (includes language setting)
             "bug_tracker": site_conf_obj.m_enable_bug_tracker,
             "updater": site_conf_obj.m_enable_updater,
             "packager": site_conf_obj.m_enable_packager,

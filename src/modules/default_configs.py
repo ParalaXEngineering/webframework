@@ -16,6 +16,15 @@ FRAMEWORK_UI_CONFIG = {
     "framework_ui": {
         "friendly": "Framework UI Configuration",
         
+        "language": {
+            "friendly": "Language / Langue",
+            "type": "select",
+            "value": "en",
+            "options": ["en", "fr"],
+            "persistent": True,
+            "overridable_by_user": True
+        },
+        
         "thread_status_enabled": {
             "friendly": "Show Thread Status in Topbar",
             "type": "bool",
@@ -240,7 +249,7 @@ FILE_STORAGE_CONFIG = {
 
 # Map of feature flags to their config sections
 FEATURE_CONFIGS = {
-    "framework_ui": FRAMEWORK_UI_CONFIG,  # Added when threads or logs enabled
+    "framework_ui": FRAMEWORK_UI_CONFIG,  # Always enabled (includes language, thread status, log viewer settings)
     "bug_tracker": REDMINE_CONFIG,
     "updater": UPDATES_CONFIG,
     "packager": UPDATES_CONFIG,  # Packager uses same config as updater

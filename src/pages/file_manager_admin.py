@@ -32,15 +32,90 @@ from ..modules.constants import (
 )
 from ..modules.i18n.messages import (
     ERROR_FILE_MANAGER_NOT_INITIALIZED,
+    ERROR_FILE_NOT_FOUND_FM,
+    ERROR_FILE_NOT_FOUND_DESC,
+    ERROR_UPDATE_FAILED,
+    ERROR_LOADING_FILES,
+    ERROR_LOADING_VERSION_HISTORY,
+    TEXT_FILE_MANAGER,
+    TEXT_FILE_MANAGER_BROWSE,
+    TEXT_EDIT_FILE_METADATA,
+    TEXT_CONFIRM_DELETE,
+    TEXT_DELETION_COMPLETE,
+    TEXT_VERSION_HISTORY,
+    TEXT_VERSION_HISTORY_FILE,
+    TEXT_BREADCRUMB_FILE_MANAGER,
+    TEXT_BREADCRUMB_EDIT_FILE,
+    TEXT_BREADCRUMB_CONFIRM_DELETE,
+    TEXT_BREADCRUMB_DELETION_COMPLETE,
+    TEXT_BREADCRUMB_VERSION_HISTORY,
+    BUTTON_DELETE_SELECTED,
+    BUTTON_SAVE_CHANGES,
+    BUTTON_CANCEL,
+    BUTTON_YES_DELETE,
+    BUTTON_RETURN_FILE_MANAGER,
+    BUTTON_BACK_FILE_MANAGER,
+    TOOLTIP_DOWNLOAD,
+    TOOLTIP_EDIT_METADATA,
+    TOOLTIP_VIEW_HISTORY,
+    TOOLTIP_DELETE,
+    TOOLTIP_DOWNLOAD_VERSION,
+    TOOLTIP_RESTORE_VERSION,
+    TOOLTIP_DELETE_VERSION,
+    BADGE_MISSING,
+    BADGE_CORRUPTED,
+    BADGE_NOT_FOUND,
+    BADGE_CURRENT,
+    BADGE_ARCHIVED,
+    BADGE_VERSION,
+    LABEL_FILE_INFORMATION,
+    LABEL_EDIT_METADATA,
+    LABEL_FILES_TO_DELETE,
+    LABEL_ALL_VERSIONS,
+    LABEL_GROUP_ID,
+    LABEL_TAGS,
+    LABEL_SIZE,
+    LABEL_TYPE,
+    LABEL_UPLOADED,
+    LABEL_VERSION,
+    LABEL_CHECKSUM,
+    LABEL_UPLOADED_BY,
+    TABLE_HEADER_SELECT,
+    TABLE_HEADER_PREVIEW,
+    TABLE_HEADER_FILENAME,
+    TABLE_HEADER_GROUP_ID,
+    TABLE_HEADER_TAGS,
+    TABLE_HEADER_VERSION,
+    TABLE_HEADER_SIZE,
+    TABLE_HEADER_UPLOADED,
+    TABLE_HEADER_INTEGRITY,
+    TABLE_HEADER_ACTIONS,
+    TABLE_HEADER_STATUS,
+    TABLE_HEADER_CHECKSUM,
+    TEXT_NO_FILES_UPLOAD,
+    TEXT_NO_FILES_PERMISSION,
+    TEXT_NO_DELETE_PERMISSION,
+    TEXT_VERSIONING_INFO,
+    TEXT_TAGS_INFO,
+    TEXT_VERSIONS_DELETED_WARNING,
     MSG_NO_FILES_SELECTED,
     MSG_UPDATE_SUCCESS,
     MSG_VERSION_RESTORED,
     MSG_VERSION_DELETED,
     MSG_VERSIONS_DELETED,
+    MSG_FILE_MANAGER_NOT_INIT,
+    MSG_TARGET_VERSION_NOT_FOUND,
+    MSG_CURRENT_VERSION_NOT_FOUND,
+    MSG_DELETE_VERSION_FAILED,
+    MSG_DELETE_VERSION_ERROR,
+    MSG_RESTORE_VERSION_ERROR,
     DELETE_CONFIRM_SINGLE,
     DELETE_CONFIRM_MULTIPLE,
     DELETE_RESULT_PARTIAL,
     DELETE_RESULT_SUCCESS,
+    TITLE_CONFIRM_DELETION,
+    TITLE_PARTIALLY_COMPLETE,
+    TITLE_SUCCESS,
 )
 
 logger = get_logger(__name__)
@@ -73,9 +148,9 @@ def index():
         return ERROR_FILE_MANAGER_NOT_INITIALIZED, STATUS_SERVER_ERROR
     
     disp = displayer.Displayer()
-    disp.add_generic("File Manager", display=False)
-    disp.set_title("File Manager - Browse Files")
-    disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
+    disp.add_generic(TEXT_FILE_MANAGER, display=False)
+    disp.set_title(TEXT_FILE_MANAGER_BROWSE)
+    disp.add_breadcrumb(TEXT_BREADCRUMB_FILE_MANAGER, "file_manager_admin.index", [])
     
     # Check user permissions
     current_user = session.get('user', 'GUEST')
@@ -91,7 +166,7 @@ def index():
         if files:            
             table_layout_id = disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
-                ["Select", "Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Integrity", "Actions"],
+                [TABLE_HEADER_SELECT, TABLE_HEADER_PREVIEW, TABLE_HEADER_FILENAME, TABLE_HEADER_GROUP_ID, TABLE_HEADER_TAGS, TABLE_HEADER_VERSION, TABLE_HEADER_SIZE, TABLE_HEADER_UPLOADED, TABLE_HEADER_INTEGRITY, TABLE_HEADER_ACTIONS],
                 datatable_config={
                     "table_id": "file_list_table",
                     "mode": displayer.TableMode.INTERACTIVE,
@@ -182,13 +257,13 @@ def index():
                     disp.add_display_item(displayer.DisplayerItemBadge(INTEGRITY_STATUS_OK, BSstyle.SUCCESS), 
                                         column=8, line=idx, layout_id=table_layout_id)
                 elif status == "Missing":
-                    disp.add_display_item(displayer.DisplayerItemBadge("Missing", BSstyle.WARNING), 
+                    disp.add_display_item(displayer.DisplayerItemBadge(BADGE_MISSING, BSstyle.WARNING), 
                                         column=8, line=idx, layout_id=table_layout_id)
                 elif status == "Checksum mismatch":
-                    disp.add_display_item(displayer.DisplayerItemBadge("Corrupted", BSstyle.ERROR), 
+                    disp.add_display_item(displayer.DisplayerItemBadge(BADGE_CORRUPTED, BSstyle.ERROR), 
                                         column=8, line=idx, layout_id=table_layout_id)
                 elif status == "Not found":
-                    disp.add_display_item(displayer.DisplayerItemBadge("Not Found", BSstyle.SECONDARY), 
+                    disp.add_display_item(displayer.DisplayerItemBadge(BADGE_NOT_FOUND, BSstyle.SECONDARY), 
                                         column=8, line=idx, layout_id=table_layout_id)
                 else:
                     disp.add_display_item(displayer.DisplayerItemBadge(f"Error: {status}", BSstyle.ERROR), 
@@ -203,7 +278,7 @@ def index():
                     "url": url_for('file_handler.download_by_id', file_id=file_meta.get('id', 0)),
                     "icon": "mdi mdi-download",
                     "style": "primary",
-                    "tooltip": "Download"
+                    "tooltip": str(TOOLTIP_DOWNLOAD)
                 })
                 
                 # Edit (only if user has edit permission)
@@ -213,7 +288,7 @@ def index():
                         "url": url_for('file_manager_admin.edit_file', file_id=file_meta.get('id', 0)),
                         "icon": "mdi mdi-pencil",
                         "style": "warning",
-                        "tooltip": "Edit Metadata"
+                        "tooltip": str(TOOLTIP_EDIT_METADATA)
                     })
                 
                 # History (show for all files that might have versions)
@@ -229,7 +304,7 @@ def index():
                             "url": url_for('file_manager_admin.version_history', group_id=group_param, filename=file_meta['name']),
                             "icon": "mdi mdi-history",
                             "style": "info",
-                            "tooltip": "View History"
+                            "tooltip": str(TOOLTIP_VIEW_HISTORY)
                         })
                 except Exception:
                     pass  # Skip history button if we can't get versions
@@ -241,7 +316,7 @@ def index():
                         "url": url_for('file_manager_admin.confirm_delete', file_id=file_meta.get('id', 0)),
                         "icon": "mdi mdi-delete",
                         "style": "danger",
-                        "tooltip": "Delete"
+                        "tooltip": str(TOOLTIP_DELETE)
                     })
                 
                 disp.add_display_item(
@@ -260,7 +335,7 @@ def index():
                 disp.add_display_item(
                     displayer.DisplayerItemButton(
                         id="delete_selected_btn",
-                        text="Delete Selected",
+                        text=str(BUTTON_DELETE_SELECTED),
                         icon="trash",
                         color=BSstyle.ERROR
                     ),
@@ -269,7 +344,7 @@ def index():
             else:
                 disp.add_display_item(
                     displayer.DisplayerItemAlert(
-                        "<i class='mdi mdi-information'></i> You need 'delete' permission to remove files. Contact your administrator.",
+                        f"<i class='mdi mdi-information'></i> {TEXT_NO_DELETE_PERMISSION}",
                         BSstyle.INFO
                     ),
                     column=0
@@ -278,12 +353,12 @@ def index():
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
             if can_upload:
                 disp.add_display_item(displayer.DisplayerItemAlert(
-                    "No files found. Upload files to get started!",
+                    str(TEXT_NO_FILES_UPLOAD),
                     BSstyle.INFO
                 ), column=0)
             else:
                 disp.add_display_item(displayer.DisplayerItemAlert(
-                    "No files found. You need 'upload' permission to add files. Contact your administrator.",
+                    str(TEXT_NO_FILES_PERMISSION),
                     BSstyle.WARNING
                 ), column=0)
         
@@ -297,7 +372,7 @@ def index():
         
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>Error Loading Files</h4><p>{str(e)}</p>",
+            f"<h4>{ERROR_LOADING_FILES}</h4><p>{str(e)}</p>",
             BSstyle.ERROR
         ), column=0)
         
@@ -354,11 +429,11 @@ def edit_file(file_id):
         return ERROR_FILE_MANAGER_NOT_INITIALIZED, STATUS_SERVER_ERROR
     
     disp = displayer.Displayer()
-    disp.add_generic("Edit File Metadata")
-    disp.set_title("Edit File Metadata")
+    disp.add_generic(TEXT_EDIT_FILE_METADATA)
+    disp.set_title(TEXT_EDIT_FILE_METADATA)
     
-    disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
-    disp.add_breadcrumb("Edit File", "file_manager_admin.edit_file", [f"file_id={file_id}"])
+    disp.add_breadcrumb(TEXT_BREADCRUMB_FILE_MANAGER, "file_manager_admin.index", [])
+    disp.add_breadcrumb(TEXT_BREADCRUMB_EDIT_FILE, "file_manager_admin.edit_file", [f"file_id={file_id}"])
     
     # Get file from database
     file_version = file_manager.get_file_by_id(file_id)
@@ -366,7 +441,7 @@ def edit_file(file_id):
     if not file_version:
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         disp.add_display_item(displayer.DisplayerItemAlert(
-            "<h4>File Not Found</h4><p>The requested file could not be found.</p>",
+            f"<h4>{ERROR_FILE_NOT_FOUND_FM}</h4><p>{ERROR_FILE_NOT_FOUND_DESC}</p>",
             BSstyle.ERROR
         ), column=0)
         return render_template("base_content.j2", content=disp.display())
@@ -423,7 +498,7 @@ def edit_file(file_id):
             logger.error(f"Edit file error: {e}", exc_info=True)
             disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
             disp.add_display_item(displayer.DisplayerItemAlert(
-                f"<h4>Update Failed</h4><p>{str(e)}</p>",
+                f"<h4>{ERROR_UPDATE_FAILED}</h4><p>{str(e)}</p>",
                 BSstyle.ERROR
             ), column=0)
     
@@ -431,7 +506,7 @@ def edit_file(file_id):
     current_tags = [tag.tag_name for tag in file_version.tags]
     
     # File info section
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="File Information"))
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle=str(LABEL_FILE_INFORMATION)))
     
     # Get version number
     version_num = 1
@@ -466,14 +541,14 @@ def edit_file(file_id):
             {preview_html}
         </div>
         <div class="col-md-5">
-            <p><strong>Size:</strong> {util_format_file_size(file_version.file_size)}</p>
-            <p><strong>Type:</strong> {file_version.mime_type}</p>
-            <p><strong>Uploaded:</strong> {util_format_date(file_version.uploaded_at.isoformat())}</p>
+            <p><strong>{LABEL_SIZE}:</strong> {util_format_file_size(file_version.file_size)}</p>
+            <p><strong>{LABEL_TYPE}:</strong> {file_version.mime_type}</p>
+            <p><strong>{LABEL_UPLOADED}:</strong> {util_format_date(file_version.uploaded_at.isoformat())}</p>
         </div>
         <div class="col-md-5">
-            <p><strong>Group ID:</strong> {file_version.group_id or GROUP_NONE}</p>
-            <p><strong>Version:</strong> v{version_num}</p>
-            <p><strong>Checksum:</strong> {file_version.checksum[:16] if file_version.checksum else 'N/A'}...</p>
+            <p><strong>{LABEL_GROUP_ID}:</strong> {file_version.group_id or GROUP_NONE}</p>
+            <p><strong>{LABEL_VERSION}:</strong> v{version_num}</p>
+            <p><strong>{LABEL_CHECKSUM}:</strong> {file_version.checksum[:16] if file_version.checksum else 'N/A'}...</p>
         </div>
     </div>
     """
@@ -487,7 +562,7 @@ def edit_file(file_id):
     ), column=0)
     
     # Edit form
-    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="Edit Metadata"))
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle=str(LABEL_EDIT_METADATA)))
     
     # Get all existing group IDs from database
     from ..modules.file_manager import FileGroup
@@ -496,14 +571,14 @@ def edit_file(file_id):
     
     # Group ID dropdown with explanatory text above
     disp.add_display_item(displayer.DisplayerItemAlert(
-        "<small class='text-muted'>Group ID for versioning. Files with the same group_id and filename are treated as versions of the same file.</small>",
+        f"<small class='text-muted'>{TEXT_VERSIONING_INFO}</small>",
         BSstyle.NONE
     ), column=0)
     
     current_group = file_version.group_id if file_version.group_id else "(none)"
     disp.add_display_item(displayer.DisplayerItemInputSelect(
         id="group_id",
-        text="Group ID",
+        text=str(LABEL_GROUP_ID),
         choices=group_choices,
         value=current_group
     ), column=0)
@@ -513,13 +588,13 @@ def edit_file(file_id):
     
     # Tags multi-select with explanatory text above
     disp.add_display_item(displayer.DisplayerItemAlert(
-        "<small class='text-muted'>Organize files with tags for easy searching and filtering.</small>",
+        f"<small class='text-muted'>{TEXT_TAGS_INFO}</small>",
         BSstyle.NONE
     ), column=0)
     
     disp.add_display_item(displayer.DisplayerItemInputMultiSelect(
         id="tags",
-        text="Tags",
+        text=str(LABEL_TAGS),
         choices=available_tags,
         value=current_tags
     ), column=0)
@@ -529,14 +604,14 @@ def edit_file(file_id):
     
     disp.add_display_item(displayer.DisplayerItemButton(
         id="save_btn",
-        text="Save Changes",
+        text=str(BUTTON_SAVE_CHANGES),
         icon="content-save",
         color=BSstyle.PRIMARY
     ), column=0)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         id="cancel_btn",
-        text="Cancel",
+        text=str(BUTTON_CANCEL),
         icon="close-circle",
         link=url_for('file_manager_admin.index'),
         color=BSstyle.SECONDARY
@@ -583,7 +658,7 @@ def confirm_delete():
     disp = displayer.Displayer()
     
     # Check if this is a confirmation (second POST) or deletion request
-    is_executing = request.method == 'POST' and request.form.get('Confirm Delete.confirm_deletion') == 'true'
+    is_executing = request.method == 'POST' and request.form.get(f'{TEXT_CONFIRM_DELETE}.confirm_deletion') == 'true'
     
     if is_executing:
         # Execute deletion (second POST)
@@ -644,10 +719,10 @@ def confirm_delete():
             return "No valid files found", STATUS_NOT_FOUND
         
         # Build confirmation page
-        disp.add_generic("Confirm Delete", display=False)
+        disp.add_generic(TEXT_CONFIRM_DELETE, display=False)
         
-        disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
-        disp.add_breadcrumb("Confirm Delete", "file_manager_admin.confirm_delete", [])
+        disp.add_breadcrumb(TEXT_BREADCRUMB_FILE_MANAGER, "file_manager_admin.index", [])
+        disp.add_breadcrumb(TEXT_BREADCRUMB_CONFIRM_DELETE, "file_manager_admin.confirm_delete", [])
         
         # Warning message
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
@@ -657,14 +732,14 @@ def confirm_delete():
         else:
             warning_html = DELETE_CONFIRM_MULTIPLE.format(count=len(files_to_delete))
         
-        disp.add_display_item(displayer.DisplayerItemAlert(warning_html, BSstyle.ERROR, icon="alert", title="Confirm Deletion"), column=0)
+        disp.add_display_item(displayer.DisplayerItemAlert(warning_html, BSstyle.ERROR, icon="alert", title=str(TITLE_CONFIRM_DELETION)), column=0)
         
         # File list table
         if len(files_to_delete) > 1:
             disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
-                ["Filename", "Group ID", "Size", "Uploaded"],
-                subtitle="Files to Delete"
+                [TABLE_HEADER_FILENAME, TABLE_HEADER_GROUP_ID, TABLE_HEADER_SIZE, TABLE_HEADER_UPLOADED],
+                subtitle=str(LABEL_FILES_TO_DELETE)
             ))
             
             for idx, file_info in enumerate(files_to_delete):
@@ -691,7 +766,7 @@ def confirm_delete():
         if has_versioned_files:
             # Inform user that all versions will be deleted
             disp.add_display_item(displayer.DisplayerItemAlert(
-                "<i class='mdi mdi-information-outline'></i> Files with version history will have <strong>all versions</strong> deleted.",
+                f"<i class='mdi mdi-information-outline'></i> {TEXT_VERSIONS_DELETED_WARNING}",
                 BSstyle.INFO
             ), column=0)
         
@@ -700,14 +775,14 @@ def confirm_delete():
         
         disp.add_display_item(displayer.DisplayerItemButton(
             id="confirm_delete_btn",
-            text="Yes, Delete",
+            text=str(BUTTON_YES_DELETE),
             icon="delete-forever",
             color=BSstyle.ERROR
         ), column=0)
         
         disp.add_display_item(displayer.DisplayerItemButton(
             id="cancel_btn",
-            text="Cancel",
+            text=str(BUTTON_CANCEL),
             icon="close-circle",
             link=url_for('file_manager_admin.index'),
             color=BSstyle.SECONDARY
@@ -734,24 +809,24 @@ def confirm_delete():
             failed_files.append(fid)
     
     # Show result page
-    disp.add_generic("Deletion Complete")
-    disp.set_title("Deletion Complete")
+    disp.add_generic(TEXT_DELETION_COMPLETE)
+    disp.set_title(TEXT_DELETION_COMPLETE)
     
-    disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
-    disp.add_breadcrumb("Deletion Complete", "file_manager_admin.confirm_delete", [])
+    disp.add_breadcrumb(TEXT_BREADCRUMB_FILE_MANAGER, "file_manager_admin.index", [])
+    disp.add_breadcrumb(TEXT_BREADCRUMB_DELETION_COMPLETE, "file_manager_admin.confirm_delete", [])
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
     
     if failed_files:
         result_html = DELETE_RESULT_PARTIAL.format(deleted_count=deleted_count, failed_count=len(failed_files))
-        disp.add_display_item(displayer.DisplayerItemAlert(result_html, BSstyle.WARNING, icon="check-circle", title="Partially Complete"), column=0)
+        disp.add_display_item(displayer.DisplayerItemAlert(result_html, BSstyle.WARNING, icon="check-circle", title=str(TITLE_PARTIALLY_COMPLETE)), column=0)
     else:
         result_html = DELETE_RESULT_SUCCESS.format(deleted_count=deleted_count)
-        disp.add_display_item(displayer.DisplayerItemAlert(result_html, BSstyle.SUCCESS, icon="check-circle", title="Success"), column=0)
+        disp.add_display_item(displayer.DisplayerItemAlert(result_html, BSstyle.SUCCESS, icon="check-circle", title=str(TITLE_SUCCESS)), column=0)
     
     disp.add_display_item(displayer.DisplayerItemButton(
         id="return_btn",
-        text="Return to File Manager",
+        text=str(BUTTON_RETURN_FILE_MANAGER),
         icon="arrow-left",
         link=url_for('file_manager_admin.index'),
         color=BSstyle.PRIMARY
@@ -782,17 +857,17 @@ def version_history(group_id, filename):
         
         # Build version history page
         disp = displayer.Displayer()
-        disp.add_generic(f"Version History - {filename}", display=False)
-        disp.set_title(f"Version History: {filename}")
-        disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
-        disp.add_breadcrumb("Version History", "file_manager_admin.version_history", [group_id, filename])
+        disp.add_generic(TEXT_VERSION_HISTORY_FILE.format(filename=filename), display=False)
+        disp.set_title(TEXT_VERSION_HISTORY_FILE.format(filename=filename))
+        disp.add_breadcrumb(TEXT_BREADCRUMB_FILE_MANAGER, "file_manager_admin.index", [])
+        disp.add_breadcrumb(TEXT_BREADCRUMB_VERSION_HISTORY, "file_manager_admin.version_history", [group_id, filename])
                 
         # Version table
         if versions:
             disp.add_master_layout(displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
-                ["Preview", "Version", "Status", "Size", "Checksum", "Uploaded", "Uploaded By", "Actions"],
-                subtitle="All Versions"
+                [TABLE_HEADER_PREVIEW, TABLE_HEADER_VERSION, TABLE_HEADER_STATUS, TABLE_HEADER_SIZE, TABLE_HEADER_CHECKSUM, TABLE_HEADER_UPLOADED, LABEL_UPLOADED_BY, TABLE_HEADER_ACTIONS],
+                subtitle=str(LABEL_ALL_VERSIONS)
             ))
             
             # Sort versions by upload date (newest first)
@@ -821,15 +896,15 @@ def version_history(group_id, filename):
                 
                 # Version number (count from oldest)
                 version_num = len(versions) - sorted_versions.index(version)
-                disp.add_display_item(displayer.DisplayerItemBadge(f"v{version_num}", BSstyle.PRIMARY), 
+                disp.add_display_item(displayer.DisplayerItemBadge(BADGE_VERSION.format(version=version_num), BSstyle.PRIMARY), 
                                     column=1, line=idx)
                 
                 # Status (current or archived)
                 if version.get('is_current'):
-                    disp.add_display_item(displayer.DisplayerItemBadge("Current", BSstyle.SUCCESS), 
+                    disp.add_display_item(displayer.DisplayerItemBadge(BADGE_CURRENT, BSstyle.SUCCESS), 
                                         column=2, line=idx)
                 else:
-                    disp.add_display_item(displayer.DisplayerItemBadge("Archived", BSstyle.SECONDARY), 
+                    disp.add_display_item(displayer.DisplayerItemBadge(BADGE_ARCHIVED, BSstyle.SECONDARY), 
                                         column=2, line=idx)
                 
                 # Size
@@ -866,7 +941,7 @@ def version_history(group_id, filename):
                     "url": download_url,
                     "icon": "mdi mdi-download",
                     "style": "primary",
-                    "tooltip": "Download this version"
+                    "tooltip": str(TOOLTIP_DOWNLOAD_VERSION)
                 })
                 
                 # Restore button for non-current versions (simple GET link)
@@ -880,7 +955,7 @@ def version_history(group_id, filename):
                         "url": restore_url,
                         "icon": "mdi mdi-restore",
                         "style": "success",
-                        "tooltip": f"Restore v{version_num} as current"
+                        "tooltip": str(TOOLTIP_RESTORE_VERSION.format(version=version_num))
                     })
                 
                 # Delete single version button (only if more than one version exists)
@@ -894,7 +969,7 @@ def version_history(group_id, filename):
                         "url": delete_version_url,
                         "icon": "mdi mdi-delete",
                         "style": "danger",
-                        "tooltip": f"Delete v{version_num} only",
+                        "tooltip": str(TOOLTIP_DELETE_VERSION.format(version=version_num)),
                         "confirm": f"Delete version {version_num} of {filename}?"
                     })
                 
@@ -911,7 +986,7 @@ def version_history(group_id, filename):
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         disp.add_display_item(displayer.DisplayerItemButton(
             id="back_btn",
-            text="Back to File Manager",
+            text=str(BUTTON_BACK_FILE_MANAGER),
             icon="arrow-left",
             link=url_for('file_manager_admin.index'),
             color=BSstyle.SECONDARY
@@ -923,13 +998,13 @@ def version_history(group_id, filename):
         logger.error(f"Failed to display version history: {e}", exc_info=True)
         
         disp = displayer.Displayer()
-        disp.add_generic("Error")
-        disp.set_title("Version History Error")
-        disp.add_breadcrumb("File Manager", "file_manager_admin.index", [])
+        disp.add_generic(ERROR_LOADING_VERSION_HISTORY)
+        disp.set_title(ERROR_LOADING_VERSION_HISTORY)
+        disp.add_breadcrumb(TEXT_BREADCRUMB_FILE_MANAGER, "file_manager_admin.index", [])
         
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         disp.add_display_item(displayer.DisplayerItemAlert(
-            f"<h4>Error Loading Version History</h4><p>{str(e)}</p>",
+            f"<h4>{ERROR_LOADING_VERSION_HISTORY}</h4><p>{str(e)}</p>",
             BSstyle.ERROR
         ), column=0)
         
@@ -950,7 +1025,7 @@ def restore_version(target_version_id, group_id, filename):
         Redirect to version history with flash message
     """
     if not file_manager:
-        flash("File manager not initialized", "error")
+        flash(MSG_FILE_MANAGER_NOT_INIT, "error")
         return redirect(url_for('file_manager_admin.index'))
     
     try:
@@ -961,7 +1036,7 @@ def restore_version(target_version_id, group_id, filename):
         target_version = session_db.query(FileVersion).filter_by(id=target_version_id).first()
         
         if not target_version:
-            flash("Target version not found", "error")
+            flash(MSG_TARGET_VERSION_NOT_FOUND, "error")
             return redirect(url_for('file_manager_admin.index'))
         
         # Find current version in same group
@@ -972,7 +1047,7 @@ def restore_version(target_version_id, group_id, filename):
         ).first()
         
         if not current_version:
-            flash("Current version not found", "error")
+            flash(MSG_CURRENT_VERSION_NOT_FOUND, "error")
             return redirect(url_for('file_manager_admin.index'))
         
         # Restore version
@@ -983,7 +1058,7 @@ def restore_version(target_version_id, group_id, filename):
         
     except Exception as e:
         logger.error(f"Failed to restore version: {e}", exc_info=True)
-        flash(f"Failed to restore version: {str(e)}", "error")
+        flash(MSG_RESTORE_VERSION_ERROR.format(error=str(e)), "error")
     
     # Redirect back to version history page
     return redirect(url_for('file_manager_admin.version_history', group_id=group_id, filename=filename))
@@ -1003,7 +1078,7 @@ def delete_single_version(file_id, group_id, filename):
         Redirect to version history with flash message
     """
     if not file_manager:
-        flash("File manager not initialized", "error")
+        flash(MSG_FILE_MANAGER_NOT_INIT, "error")
         return redirect(url_for('file_manager_admin.index'))
     
     try:
@@ -1014,11 +1089,11 @@ def delete_single_version(file_id, group_id, filename):
             logger.info(f"Single version deleted by {session.get('user', 'GUEST')}: ID {file_id}")
             flash(MSG_VERSION_DELETED, "success")
         else:
-            flash("Failed to delete version.", "error")
+            flash(MSG_DELETE_VERSION_FAILED, "error")
         
     except Exception as e:
         logger.error(f"Failed to delete single version {file_id}: {e}", exc_info=True)
-        flash(f"Failed to delete version: {str(e)}", "error")
+        flash(MSG_DELETE_VERSION_ERROR.format(error=str(e)), "error")
     
     # Check if there are remaining versions
     actual_group_id = None if group_id == GROUP_NONE else group_id
