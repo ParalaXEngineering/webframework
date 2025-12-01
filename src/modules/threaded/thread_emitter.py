@@ -18,6 +18,23 @@ try:
         DisplayerItemAlert, DisplayerItemBadge, DisplayerItemConsole,
         DisplayerItemIconText, DisplayerItemText, DisplayerLayout, Layouts,
     )
+    from ..i18n.messages import (
+        MSG_THREAD_COMPLETED_HEADER,
+        MSG_THREAD_LAST_N,
+        MSG_THREAD_NO_DATA,
+        MSG_THREAD_NO_THREADS,
+        MSG_THREAD_RUNNING_HEADER,
+        STATUS_THREAD_ABORTED,
+        STATUS_THREAD_COMPLETED,
+        STATUS_THREAD_ERROR,
+        STATUS_THREAD_RUNNING,
+        TEXT_THREAD_INFO_NAME,
+        TEXT_THREAD_INFO_PROGRESS,
+        TEXT_THREAD_INFO_STATUS,
+        TEXT_THREAD_TAB_CONSOLE,
+        TEXT_THREAD_TAB_INFO,
+        TEXT_THREAD_TAB_LOGS,
+    )
     from ..log.logger_factory import get_logger
     from ..socketio_manager import socketio_manager
     from . import threaded_manager
@@ -27,6 +44,23 @@ except ImportError:
         DisplayerItemAlert, DisplayerItemBadge, DisplayerItemConsole,
         DisplayerItemIconText, DisplayerItemText, DisplayerLayout, Layouts,
     )
+    from i18n.messages import (
+        MSG_THREAD_COMPLETED_HEADER,
+        MSG_THREAD_LAST_N,
+        MSG_THREAD_NO_DATA,
+        MSG_THREAD_NO_THREADS,
+        MSG_THREAD_RUNNING_HEADER,
+        STATUS_THREAD_ABORTED,
+        STATUS_THREAD_COMPLETED,
+        STATUS_THREAD_ERROR,
+        STATUS_THREAD_RUNNING,
+        TEXT_THREAD_INFO_NAME,
+        TEXT_THREAD_INFO_PROGRESS,
+        TEXT_THREAD_INFO_STATUS,
+        TEXT_THREAD_TAB_CONSOLE,
+        TEXT_THREAD_TAB_INFO,
+        TEXT_THREAD_TAB_LOGS,
+    )
     from log.logger_factory import get_logger
     from socketio_manager import socketio_manager
     import threaded_manager
@@ -34,25 +68,8 @@ except ImportError:
 
 # Constants for thread status display
 DEFAULT_EMISSION_INTERVAL = 1.0
-MAX_COMPLETED_THREADS_DISPLAYED = 10
 MAX_CONSOLE_LINES = 30
 MAX_LOG_LINES = 20
-THREADS_CONTENT_ID = 'threads_content'
-RELOAD_EVENT = 'reload'
-
-# Status display strings
-STATUS_RUNNING = "Running"
-STATUS_COMPLETED = "Completed"
-STATUS_ABORTED = "Aborted"
-STATUS_ERROR = "Error"
-STATUS_NO_THREADS = "No threads currently running. Visit the Threading Demo to start some!"
-
-# Message templates
-MSG_NO_DATA = "No data available"
-MSG_RUNNING_HEADER = "Running Threads"
-MSG_COMPLETED_HEADER = "Completed Threads History"
-MSG_LAST_N = "Last 10"
-MSG_ERROR_RENDERING = "Error rendering thread display: %s"
 
 
 class ThreadEmitter:
@@ -180,7 +197,7 @@ class ThreadEmitter:
             disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
             disp.add_display_item(DisplayerItemAlert(
                 id="no_threads",
-                text=STATUS_NO_THREADS,
+                text=str(MSG_THREAD_NO_THREADS),
                 highlightType=BSstyle.INFO,
                 icon="information"
             ), 0)
@@ -203,7 +220,7 @@ class ThreadEmitter:
         if running_threads:
             # Section header
             disp.add_display_item(DisplayerItemText(
-                f"<h4><i class='mdi mdi-play-circle'></i> {MSG_RUNNING_HEADER} ({len(running_threads)})</h4>"
+                f"<h4><i class='mdi mdi-play-circle'></i> {MSG_THREAD_RUNNING_HEADER} ({len(running_threads)})</h4>"
             ), row_index)
             row_index += 1
 
@@ -216,7 +233,7 @@ class ThreadEmitter:
         if completed_threads:
             # Section header
             disp.add_display_item(DisplayerItemText(
-                f"<h4 class='mt-4'><i class='mdi mdi-history'></i> {MSG_COMPLETED_HEADER} ({len(completed_threads)}) - {MSG_LAST_N}</h4>"
+                f"<h4 class='mt-4'><i class='mdi mdi-history'></i> {MSG_THREAD_COMPLETED_HEADER} ({len(completed_threads)}) - {MSG_THREAD_LAST_N}</h4>"
             ), row_index)
             row_index += 1
 
@@ -285,13 +302,13 @@ class ThreadEmitter:
 
         # Status badge
         if error:
-            status_badge = STATUS_ABORTED if "Aborted" in error else STATUS_ERROR
+            status_badge = str(STATUS_THREAD_ABORTED) if "Aborted" in error else str(STATUS_THREAD_ERROR)
             badge_style = BSstyle.WARNING if "Aborted" in error else BSstyle.ERROR
             disp.add_display_item(DisplayerItemBadge(status_badge, badge_style), column=right_col, layout_id=header_layout_id)
         elif is_actually_running:
-            disp.add_display_item(DisplayerItemBadge(STATUS_RUNNING, BSstyle.SUCCESS), column=right_col, layout_id=header_layout_id)
+            disp.add_display_item(DisplayerItemBadge(str(STATUS_THREAD_RUNNING), BSstyle.SUCCESS), column=right_col, layout_id=header_layout_id)
         else:
-            disp.add_display_item(DisplayerItemBadge(STATUS_COMPLETED, BSstyle.INFO), column=right_col, layout_id=header_layout_id)
+            disp.add_display_item(DisplayerItemBadge(str(STATUS_THREAD_COMPLETED), BSstyle.INFO), column=right_col, layout_id=header_layout_id)
 
         # Progress badge
         if progress > 0:
@@ -309,7 +326,7 @@ class ThreadEmitter:
         if not console_data:
             disp.add_display_item(DisplayerItemAlert(
                 id=f"{thread_id}_nodata",
-                text=MSG_NO_DATA,
+                text=str(MSG_THREAD_NO_DATA),
                 highlightType=BSstyle.LIGHT,
                 icon="mdi-information-outline"
             ), column=0, layout_id=master)
@@ -321,10 +338,10 @@ class ThreadEmitter:
         # Build tab titles
         tab_titles = []
         if console_output:
-            tab_titles.append("Console")
+            tab_titles.append(str(TEXT_THREAD_TAB_CONSOLE))
         if logs:
-            tab_titles.append("Logs")
-        tab_titles.append("Info")
+            tab_titles.append(str(TEXT_THREAD_TAB_LOGS))
+        tab_titles.append(str(TEXT_THREAD_TAB_INFO))
 
         # Add TABS layout with unique ID for this thread
         tabs_layout_id = disp.add_master_layout(
@@ -383,7 +400,7 @@ class ThreadEmitter:
             layout_id=master_info
         )
 
-        disp.add_display_item(DisplayerItemText("<strong>Thread Name:</strong>"), column=0, layout_id=info_tab_id)
+        disp.add_display_item(DisplayerItemText(f"<strong>{TEXT_THREAD_INFO_NAME}</strong>"), column=0, layout_id=info_tab_id)
         disp.add_display_item(DisplayerItemText(thread_name), column=1, layout_id=info_tab_id)
 
         # Info line 2: Status
@@ -392,15 +409,15 @@ class ThreadEmitter:
             column=0,
             layout_id=master_info
         )
-        disp.add_display_item(DisplayerItemText("<strong>Status:</strong>"), column=0, layout_id=info_tab_id)
+        disp.add_display_item(DisplayerItemText(f"<strong>{TEXT_THREAD_INFO_STATUS}</strong>"), column=0, layout_id=info_tab_id)
 
         # Determine status text
         if error:
-            status_text = STATUS_ABORTED if "Aborted" in error else STATUS_ERROR
+            status_text = str(STATUS_THREAD_ABORTED) if "Aborted" in error else str(STATUS_THREAD_ERROR)
         elif is_actually_running:
-            status_text = STATUS_RUNNING
+            status_text = str(STATUS_THREAD_RUNNING)
         else:
-            status_text = STATUS_COMPLETED
+            status_text = str(STATUS_THREAD_COMPLETED)
         disp.add_display_item(DisplayerItemText(status_text), column=1, layout_id=info_tab_id)
 
         # Info line 3: Progress
@@ -409,7 +426,7 @@ class ThreadEmitter:
             column=0,
             layout_id=master_info
         )
-        disp.add_display_item(DisplayerItemText("<strong>Progress:</strong>"), column=0, layout_id=info_tab_id)
+        disp.add_display_item(DisplayerItemText(f"<strong>{TEXT_THREAD_INFO_PROGRESS}</strong>"), column=0, layout_id=info_tab_id)
         disp.add_display_item(DisplayerItemText(f"{progress}%"), column=1, layout_id=info_tab_id)
 
         # Row 2: Error (if present)

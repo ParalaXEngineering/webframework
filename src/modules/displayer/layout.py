@@ -9,6 +9,19 @@ import warnings
 from typing import Any, Dict, List, Optional, Union
 
 from .core import BSalign, BSstyle, Layouts, MAZERStyles, ResourceRegistry, TableMode
+from ..i18n.messages import (
+    ERROR_BOTH_RESPONSIVE_AND_DATATABLE,
+    ERROR_GRID_CONFIG_ITEMS_NOT_LIST,
+    ERROR_GRID_CONFIG_NO_ITEMS,
+    ERROR_GRID_CONFIG_NOT_DICT,
+    ERROR_GRID_ITEM_EXCEEDS_BOUNDS,
+    ERROR_GRID_ITEM_INVALID_WIDTH,
+    ERROR_GRID_ITEM_INVALID_X,
+    ERROR_GRID_ITEM_MISSING_KEY,
+    ERROR_GRID_ITEM_NOT_DICT,
+    ERROR_GRID_LAYOUT_REQUIRES_CONFIG,
+    WARNING_RESPONSIVE_DEPRECATED,
+)
 
 
 class DisplayerLayout:
@@ -136,17 +149,16 @@ class DisplayerLayout:
         # GridStack is only needed for the editor itself
         if layoutType == Layouts.GRID:
             if grid_config is None:
-                raise ValueError("GRID layout requires grid_config parameter")
+                raise ValueError(str(ERROR_GRID_LAYOUT_REQUIRES_CONFIG))
             self._validate_grid_config(grid_config)
         
         # Handle backward compatibility: responsive -> datatable_config
         if responsive is not None and datatable_config is not None:
-            raise ValueError("Cannot specify both 'responsive' and 'datatable_config'. Use 'datatable_config' only.")
+            raise ValueError(str(ERROR_BOTH_RESPONSIVE_AND_DATATABLE))
         
         if responsive is not None:
             warnings.warn(
-                "Parameter 'responsive' is deprecated and will be removed in v2.0. "
-                "Use 'datatable_config' instead with TableMode enum.",
+                str(WARNING_RESPONSIVE_DEPRECATED),
                 DeprecationWarning,
                 stacklevel=2
             )
@@ -180,33 +192,33 @@ class DisplayerLayout:
             ValueError: If configuration is invalid
         """
         if not isinstance(config, dict):
-            raise ValueError("grid_config must be a dictionary")
+            raise ValueError(str(ERROR_GRID_CONFIG_NOT_DICT))
         
         if "items" not in config:
-            raise ValueError("grid_config must contain 'items' key")
+            raise ValueError(str(ERROR_GRID_CONFIG_NO_ITEMS))
         
         if not isinstance(config["items"], list):
-            raise ValueError("grid_config['items'] must be a list")
+            raise ValueError(str(ERROR_GRID_CONFIG_ITEMS_NOT_LIST))
         
         # Validate each item
         for idx, item in enumerate(config["items"]):
             if not isinstance(item, dict):
-                raise ValueError(f"Item {idx} must be a dictionary")
+                raise ValueError(ERROR_GRID_ITEM_NOT_DICT.format(idx=idx))
             
             required_keys = ["field_id", "x", "y", "w", "h"]
             for key in required_keys:
                 if key not in item:
-                    raise ValueError(f"Item {idx} missing required key: {key}")
+                    raise ValueError(ERROR_GRID_ITEM_MISSING_KEY.format(idx=idx, key=key))
             
             # Validate grid constraints (Bootstrap 12-column)
             if item["w"] < 1 or item["w"] > 12:
-                raise ValueError(f"Item {idx} width (w) must be between 1 and 12")
+                raise ValueError(ERROR_GRID_ITEM_INVALID_WIDTH.format(idx=idx))
             
             if item["x"] < 0 or item["x"] >= 12:
-                raise ValueError(f"Item {idx} x position must be between 0 and 11")
+                raise ValueError(ERROR_GRID_ITEM_INVALID_X.format(idx=idx))
             
             if item["x"] + item["w"] > 12:
-                raise ValueError(f"Item {idx} exceeds grid bounds (x + w > 12)")
+                raise ValueError(ERROR_GRID_ITEM_EXCEEDS_BOUNDS.format(idx=idx))
     
     def _convert_old_responsive_format(self, responsive: Dict[str, Any]) -> Dict[str, Any]:
         """

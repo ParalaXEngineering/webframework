@@ -16,6 +16,41 @@ import redminelib
 
 from ..modules import User_defined_module, displayer, site_conf, utilities
 from ..modules.auth import auth_manager
+from ..modules.constants import USER_GUEST_NAME
+from ..modules.i18n.messages import (
+    ERROR_BUG_ISSUE_NOT_FOUND,
+    ERROR_BUG_REDMINE_CONNECTION,
+    ERROR_BUG_INVALID_FORM,
+    ERROR_BUG_DESCRIPTION_REQUIRED,
+    ERROR_BUG_SUBJECT_REQUIRED,
+    ERROR_BUG_REDMINE_PROJECT_NOT_FOUND,
+    ERROR_BUG_REDMINE_PROJECT_DATA,
+    ERROR_BUG_REDMINE_CONNECTION_FAILED,
+    ERROR_BUG_PROJECT_ID_NOT_CONFIGURED,
+    ERROR_BUG_ISSUE_UPDATE_FAILED,
+    ERROR_BUG_ISSUE_CREATION_FAILED,
+    ERROR_BUG_VERSION_CREATE_FAILED,
+    TEXT_BUG_TRACKER,
+    TEXT_BUG_EDIT_ISSUE,
+    TEXT_BUG_EDIT_ISSUE_FALLBACK,
+    TEXT_BUG_CREATE_DESCRIPTION,
+    TEXT_BUG_CURRENT_ISSUES,
+    TEXT_BUG_CLOSED_ISSUES,
+    TEXT_BUG_REJECTED_ISSUES,
+    TEXT_BUG_SUBJECT,
+    TEXT_BUG_DESCRIPTION,
+    TEXT_BUG_ENTER_SUBJECT,
+    TEXT_BUG_ENTER_DESCRIPTION,
+    TEXT_BUG_EDIT_ISSUE_SUBTITLE,
+    BUTTON_BUG_UPDATE_ISSUE,
+    BUTTON_BUG_SUBMIT,
+    TABLE_HEADER_BUG_ISSUE_ID,
+    TABLE_HEADER_BUG_STATUS,
+    TABLE_HEADER_BUG_SUBJECT,
+    TABLE_HEADER_BUG_DESCRIPTION,
+    TABLE_HEADER_BUG_UPDATED_TIME,
+    TABLE_HEADER_BUG_ACTIONS,
+)
 from ..modules.log.logger_factory import get_logger
 from ..modules.utilities import get_config_or_error
 
@@ -29,30 +64,9 @@ CONFIG_REDMINE_USER = "redmine.user.value"
 CONFIG_REDMINE_PASSWORD = "redmine.password.value"
 CONFIG_REDMINE_PROJECT_ID = "redmine.project_id.value"
 
-# Error messages
-ERROR_ISSUE_NOT_FOUND = "Issue #{issue_id} was not found in Redmine."
-ERROR_REDMINE_CONNECTION = "Error connecting to Redmine: {error}"
-ERROR_INVALID_FORM = "Invalid form submission"
-ERROR_DESCRIPTION_REQUIRED = "Please provide a meaningful description"
-ERROR_SUBJECT_REQUIRED = "Please provide a meaningful subject"
+# Validation constants
 ERROR_DESCRIPTION_MIN_LENGTH = 5
 ERROR_SUBJECT_MIN_LENGTH = 5
-ERROR_REDMINE_PROJECT_NOT_FOUND = "Project '{project_id}' was not found in Redmine. Please check the Project ID in Settings > Redmine Configuration."
-ERROR_REDMINE_PROJECT_DATA = "Error fetching project data from Redmine: {error}"
-ERROR_REDMINE_CONNECTION_FAILED = "Redmine connection failed with the following message: {error}"
-ERROR_PROJECT_ID_NOT_CONFIGURED = "Redmine project ID is not configured. Please set it in Settings > Redmine Configuration > Project ID."
-ERROR_ISSUE_UPDATE_FAILED = "Issue update failed: {error}"
-ERROR_ISSUE_CREATION_FAILED = "Issue creation failed with the following message: {error}"
-ERROR_VERSION_CREATE_FAILED = "Failed to create version '{version_name}' in Redmine: {error}"
-
-# UI text constants
-LABEL_FORM_KEY_BUGTRACKER = "Bug Tracker"
-LABEL_FORM_KEY_EDIT_ISSUE = "Edit Issue ID: {issue_id}"
-LABEL_FORM_KEY_EDIT_ISSUE_FALLBACK = "Edit Issue"
-LABEL_FORM_KEY_CREATE_DESCRIPTION = "Create a new issue"
-LABEL_FORM_KEY_CURRENT_ISSUES = "Current issues"
-LABEL_FORM_KEY_CLOSED_ISSUES = "Closed issues"
-LABEL_FORM_KEY_REJECTED_ISSUES = "Rejected issues"
 
 # Redmine API constants
 REDMINE_VERIFY_SSL = False
@@ -76,7 +90,6 @@ HTML_DIV_DESCRIPTION = '<div style="max-width:40vw; white-space:normal; word-bre
 HTML_IMAGE_TAG = '<img src="data:{mime_type};base64,{img_base64}" alt="{filename}"/>'
 
 # User/audit constants
-DEFAULT_USER = "GUEST"
 AUDIT_ADDED_BY = "_Added by User {user}_"
 AUDIT_LAST_EDITED_BY = "_Last edited by User {user}_"
 
@@ -100,7 +113,7 @@ def edit_issue(issue_id):
     """Edit an existing Redmine issue."""
     settings_mgr = get_settings_manager()
     disp = displayer.Displayer()
-    User_defined_module.User_defined_module.m_default_name = f"Edit Issue ID {issue_id}"
+    User_defined_module.User_defined_module.m_default_name = TEXT_BUG_EDIT_ISSUE.format(issue_id=issue_id)
     disp.add_module(User_defined_module.User_defined_module)
 
     if site_conf.site_conf_obj and not site_conf.site_conf_obj.m_globals["on_target"]:
@@ -129,35 +142,35 @@ def edit_issue(issue_id):
             issue = redmine.issue.get(issue_id)
 
         except redminelib.exceptions.ResourceNotFoundError:
-            return render_template("error.j2", error=ERROR_ISSUE_NOT_FOUND.format(issue_id=issue_id))
+            return render_template("error.j2", error=ERROR_BUG_ISSUE_NOT_FOUND.format(issue_id=issue_id))
         except Exception as e:
-            return render_template("error.j2", error=ERROR_REDMINE_CONNECTION.format(error=e))
+            return render_template("error.j2", error=ERROR_BUG_REDMINE_CONNECTION.format(error=e))
 
         if request.method == "POST":
             data_in = utilities.util_post_to_json(request.form.to_dict())
             # Get the form data - the key should be "Edit Issue ID: {issue_id}"
-            form_key = LABEL_FORM_KEY_EDIT_ISSUE.format(issue_id=issue_id)
+            form_key = TEXT_BUG_EDIT_ISSUE.format(issue_id=issue_id)
             if form_key not in data_in:
                 # Fallback: try to find any key with "Edit Issue"
-                form_key = next((k for k in data_in.keys() if LABEL_FORM_KEY_EDIT_ISSUE_FALLBACK in k), None)
+                form_key = next((k for k in data_in.keys() if TEXT_BUG_EDIT_ISSUE_FALLBACK in k), None)
                 if not form_key:
-                    return render_template("error.j2", error=ERROR_INVALID_FORM)
+                    return render_template("error.j2", error=ERROR_BUG_INVALID_FORM)
 
             form_data = data_in[form_key]
 
             if len(form_data.get("description", "")) < ERROR_DESCRIPTION_MIN_LENGTH:
-                return render_template("error.j2", error=ERROR_DESCRIPTION_REQUIRED)
+                return render_template("error.j2", error=ERROR_BUG_DESCRIPTION_REQUIRED)
             if len(form_data.get("subject", "")) < ERROR_SUBJECT_MIN_LENGTH:
-                return render_template("error.j2", error=ERROR_SUBJECT_REQUIRED)
+                return render_template("error.j2", error=ERROR_BUG_SUBJECT_REQUIRED)
 
             # Convert HTML description to Redmine textile format
             description_html = form_data.get("description", "")
             description_textile, embedded_images = html_to_redmine_textile(description_html)
 
             try:
-                current_user = DEFAULT_USER
+                current_user = USER_GUEST_NAME
                 if auth_manager:
-                    current_user = auth_manager.get_current_user() or DEFAULT_USER
+                    current_user = auth_manager.get_current_user() or USER_GUEST_NAME
 
                 # Prepare update data
                 update_data = {
@@ -200,19 +213,19 @@ def edit_issue(issue_id):
                             os.remove(temp_img_path)
                         except Exception:
                             pass
-                return render_template("error.j2", error=ERROR_ISSUE_UPDATE_FAILED.format(error=e))
+                return render_template("error.j2", error=ERROR_BUG_ISSUE_UPDATE_FAILED.format(error=e))
 
         # Display edit form
         disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle=f"Edit Issue ID: {issue_id}")
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle=TEXT_BUG_EDIT_ISSUE_SUBTITLE.format(issue_id=issue_id))
         )
-        disp.add_display_item(displayer.DisplayerItemText("Subject"), 0)
+        disp.add_display_item(displayer.DisplayerItemText(TEXT_BUG_SUBJECT), 0)
         disp.add_display_item(displayer.DisplayerItemInputString("subject", value=issue.subject), 1)
 
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle="")
         )
-        disp.add_display_item(displayer.DisplayerItemText("Description (supports rich text and images)"), 0)
+        disp.add_display_item(displayer.DisplayerItemText(TEXT_BUG_DESCRIPTION), 0)
         # Convert textile description back to HTML for TinyMCE editing
         description_html = redmine_textile_to_html(issue.description, issue)
         disp.add_display_item(displayer.DisplayerItemInputText("description", value=description_html), 1)
@@ -220,7 +233,7 @@ def edit_issue(issue_id):
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
         )
-        disp.add_display_item(displayer.DisplayerItemButton(FORM_EDIT_ISSUE_BUTTON, "Update Issue"))
+        disp.add_display_item(displayer.DisplayerItemButton(FORM_EDIT_ISSUE_BUTTON, BUTTON_BUG_UPDATE_ISSUE))
 
     # Build the form action URL manually since we need issue_id parameter
     form_action = url_for('bug.edit_issue', issue_id=issue_id)
@@ -483,7 +496,7 @@ def bugtracker():
     settings_mgr = get_settings_manager()
     disp = displayer.Displayer()
     # disp.add_generic("Changelog", display=False)
-    User_defined_module.User_defined_module.m_default_name = "Bug Tracker"
+    User_defined_module.User_defined_module.m_default_name = TEXT_BUG_TRACKER
     disp.add_module(User_defined_module.User_defined_module)
 
     if site_conf.site_conf_obj and not site_conf.site_conf_obj.m_globals["on_target"]:
@@ -509,12 +522,12 @@ def bugtracker():
                 requests={"verify": REDMINE_VERIFY_SSL}
             )
         except Exception as e:
-            return render_template("error.j2", error=ERROR_REDMINE_CONNECTION_FAILED.format(error=e))
+            return render_template("error.j2", error=ERROR_BUG_REDMINE_CONNECTION_FAILED.format(error=e))
 
         # Get project_id from settings
         project_id = configs[CONFIG_REDMINE_PROJECT_ID]
         if not project_id:
-            return render_template("error.j2", error=ERROR_PROJECT_ID_NOT_CONFIGURED)
+            return render_template("error.j2", error=ERROR_BUG_PROJECT_ID_NOT_CONFIGURED)
 
         # Get version name from site_conf if available
         version_name = ""
@@ -530,16 +543,16 @@ def bugtracker():
             issues_rejected = redmine.issue.filter(project_id=project_id, status_id=REDMINE_STATUS_REJECTED)
             versions = redmine.version.filter(project_id=project_id)
         except redminelib.exceptions.ResourceNotFoundError:
-            return render_template("error.j2", error=ERROR_REDMINE_PROJECT_NOT_FOUND.format(project_id=project_id))
+            return render_template("error.j2", error=ERROR_BUG_REDMINE_PROJECT_NOT_FOUND.format(project_id=project_id))
         except Exception as e:
-            return render_template("error.j2", error=ERROR_REDMINE_PROJECT_DATA.format(error=e))
+            return render_template("error.j2", error=ERROR_BUG_REDMINE_PROJECT_DATA.format(error=e))
 
         if request.method == "POST":
-            data_in = utilities.util_post_to_json(request.form.to_dict())[LABEL_FORM_KEY_BUGTRACKER]
+            data_in = utilities.util_post_to_json(request.form.to_dict())[TEXT_BUG_TRACKER]
             if len(data_in.get("description", "")) < ERROR_DESCRIPTION_MIN_LENGTH:
-                return render_template("error.j2", error=ERROR_DESCRIPTION_REQUIRED)
+                return render_template("error.j2", error=ERROR_BUG_DESCRIPTION_REQUIRED)
             if len(data_in.get("subject", "")) < ERROR_SUBJECT_MIN_LENGTH:
-                return render_template("error.j2", error=ERROR_SUBJECT_REQUIRED)
+                return render_template("error.j2", error=ERROR_BUG_SUBJECT_REQUIRED)
 
             # Convert HTML description to Redmine textile format
             description_html = data_in.get("description", "")
@@ -565,13 +578,13 @@ def bugtracker():
                     # Refresh versions list
                     versions = redmine.version.filter(project_id=project_id)
                 except Exception as e:
-                    return render_template("error.j2", error=ERROR_VERSION_CREATE_FAILED.format(version_name=version_name, error=e))
+                    return render_template("error.j2", error=ERROR_BUG_VERSION_CREATE_FAILED.format(version_name=version_name, error=e))
 
             log_archive_path = None
             try:
-                current_user = DEFAULT_USER
+                current_user = USER_GUEST_NAME
                 if auth_manager:
-                    current_user = auth_manager.get_current_user() or DEFAULT_USER
+                    current_user = auth_manager.get_current_user() or USER_GUEST_NAME
 
                 # Create logs archive
                 try:
@@ -645,7 +658,7 @@ def bugtracker():
                         except Exception:
                             pass
 
-                return render_template("error.j2", error=ERROR_ISSUE_CREATION_FAILED.format(error=e))
+                return render_template("error.j2", error=ERROR_BUG_ISSUE_CREATION_FAILED.format(error=e))
 
         # Check for pre-filled data from report_error
         prefill_data = session.pop('prefill_bug', {})
@@ -653,34 +666,34 @@ def bugtracker():
         prefill_description = prefill_data.get('description', '')
 
         disp.add_master_layout(
-            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle=LABEL_FORM_KEY_CREATE_DESCRIPTION)
+            displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle=TEXT_BUG_CREATE_DESCRIPTION)
         )
-        disp.add_display_item(displayer.DisplayerItemText("Enter subject"), 0)
+        disp.add_display_item(displayer.DisplayerItemText(TEXT_BUG_ENTER_SUBJECT), 0)
         disp.add_display_item(displayer.DisplayerItemInputString("subject", value=prefill_subject), 1)
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle="")
         )
-        disp.add_display_item(displayer.DisplayerItemText("Enter Description (supports rich text and images)"), 0)
+        disp.add_display_item(displayer.DisplayerItemText(TEXT_BUG_ENTER_DESCRIPTION), 0)
         disp.add_display_item(displayer.DisplayerItemInputText("description", value=prefill_description), 1)
 
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
         )
-        disp.add_display_item(displayer.DisplayerItemButton(FORM_CREATE_ISSUE_BUTTON, "Submit"))
+        disp.add_display_item(displayer.DisplayerItemButton(FORM_CREATE_ISSUE_BUTTON, BUTTON_BUG_SUBMIT))
 
         # Display current issues in a table
         disp.add_master_layout(
             displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
                 [
-                    "#",
-                    "Status",
-                    "Subject",
-                    "Description",
-                    "Updated Time",
-                    "Actions"
+                    TABLE_HEADER_BUG_ISSUE_ID,
+                    TABLE_HEADER_BUG_STATUS,
+                    TABLE_HEADER_BUG_SUBJECT,
+                    TABLE_HEADER_BUG_DESCRIPTION,
+                    TABLE_HEADER_BUG_UPDATED_TIME,
+                    TABLE_HEADER_BUG_ACTIONS
                 ],
-                subtitle=LABEL_FORM_KEY_CURRENT_ISSUES,
+                subtitle=TEXT_BUG_CURRENT_ISSUES,
             )
         )
 
@@ -705,14 +718,14 @@ def bugtracker():
             displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
                 [
-                    "#",
-                    "Status",
-                    "Subject",
-                    "Description",
-                    "Updated Time",
-                    "Actions"
+                    TABLE_HEADER_BUG_ISSUE_ID,
+                    TABLE_HEADER_BUG_STATUS,
+                    TABLE_HEADER_BUG_SUBJECT,
+                    TABLE_HEADER_BUG_DESCRIPTION,
+                    TABLE_HEADER_BUG_UPDATED_TIME,
+                    TABLE_HEADER_BUG_ACTIONS
                 ],
-                subtitle=LABEL_FORM_KEY_CLOSED_ISSUES,
+                subtitle=TEXT_BUG_CLOSED_ISSUES,
             )
         )
 
@@ -738,14 +751,14 @@ def bugtracker():
             displayer.DisplayerLayout(
                 displayer.Layouts.TABLE,
                 [
-                    "#",
-                    "Status",
-                    "Subject",
-                    "Description",
-                    "Updated Time",
-                    "Actions"
+                    TABLE_HEADER_BUG_ISSUE_ID,
+                    TABLE_HEADER_BUG_STATUS,
+                    TABLE_HEADER_BUG_SUBJECT,
+                    TABLE_HEADER_BUG_DESCRIPTION,
+                    TABLE_HEADER_BUG_UPDATED_TIME,
+                    TABLE_HEADER_BUG_ACTIONS
                 ],
-                subtitle=LABEL_FORM_KEY_REJECTED_ISSUES,
+                subtitle=TEXT_BUG_REJECTED_ISSUES,
             )
         )
 

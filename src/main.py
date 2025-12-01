@@ -43,16 +43,21 @@ except ImportError:
     from modules.socketio_manager import initialize_socketio_manager
     from modules.threaded import threaded_manager
 
-# Constants
+# Framework modules - constants
+try:
+    from .modules.constants import USER_GUEST_NAME
+except ImportError:
+    from modules.constants import USER_GUEST_NAME
+
+# Domain-specific constants for main application setup
 DEFAULT_SECRET_KEY = "super secret key"
 COOKIE_SAMESITE = "Lax"
 SESSION_TYPE = "filesystem"
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 5000
-DEFAULT_USER = "GUEST"
+DEFAULT_USER = USER_GUEST_NAME  # Use framework constant for consistency
 ANONYMOUS_USER = "anonymous"
 STARTUP_URL = "http://127.0.0.1:5000/common/login"
-PAGES_DIR_NAME = "pages"
 WEBSITE_PAGES_PATH = "website/pages"
 WEBSITE_AUTH_PATH = "website/auth"
 WEBSITE_CONFIG_PATH = "website/config.json"

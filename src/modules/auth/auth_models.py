@@ -7,6 +7,13 @@ from typing import List, Dict, Optional
 from datetime import datetime
 
 
+# =============================================================================
+# Auth Module Constants
+# =============================================================================
+# Default avatar filename for new user accounts
+DEFAULT_AVATAR = "default.jpg"
+
+
 @dataclass
 class User:
     """User account model."""
@@ -15,7 +22,7 @@ class User:
     groups: List[str] = field(default_factory=list)
     display_name: Optional[str] = None
     email: Optional[str] = None
-    avatar: str = "default.jpg"
+    avatar: str = DEFAULT_AVATAR
     created_at: Optional[str] = None
     last_login: Optional[str] = None
     
@@ -40,7 +47,7 @@ class User:
             groups=data.get("groups", []),
             display_name=data.get("display_name"),
             email=data.get("email"),
-            avatar=data.get("avatar", "default.jpg"),
+            avatar=data.get("avatar", DEFAULT_AVATAR),
             created_at=data.get("created_at"),
             last_login=data.get("last_login")
         )

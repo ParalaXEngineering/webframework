@@ -14,11 +14,25 @@ from typing import Any, Dict, List, Optional, cast
 try:
     from ..log.logger_factory import get_logger
     from ..threaded import threaded_manager
+    from ..i18n.messages import (
+        LOG_SCHEDULER_ERROR_EXECUTING,
+        LOG_SCHEDULER_LT_STOPPED,
+        LOG_SCHEDULER_LT_STARTED,
+        LOG_SCHEDULER_STARTED,
+        LOG_SCHEDULER_COLLECTED_MESSAGES,
+    )
     from .emitter import MessageEmitter
     from .message_queue import MessageQueue, MessageType
 except ImportError:
     from log.logger_factory import get_logger
     from threaded import threaded_manager
+    from i18n.messages import (
+        LOG_SCHEDULER_ERROR_EXECUTING,
+        LOG_SCHEDULER_LT_STOPPED,
+        LOG_SCHEDULER_LT_STARTED,
+        LOG_SCHEDULER_STARTED,
+        LOG_SCHEDULER_COLLECTED_MESSAGES,
+    )
     from emitter import MessageEmitter
     from message_queue import MessageQueue, MessageType
 
@@ -74,19 +88,19 @@ class Scheduler_LongTerm:
                     try:
                         func()
                     except Exception as e:
-                        self.m_logger.error("Error executing function %s: %s", func.__name__, e)
+                        self.m_logger.error(LOG_SCHEDULER_ERROR_EXECUTING.format(func_name=func.__name__, error=str(e)))
                     
                     # Update last execution time
                     self.functions = [(f, p, (current_time if f is func else last_run)) for f, p, last_run in self.functions]
 
             time.sleep(10)
 
-        self.m_logger.info("LT Scheduler stopped")
+        self.m_logger.info(LOG_SCHEDULER_LT_STOPPED)
 
     def start(self):
         """Start the scheduler in its thread."""
         if not self.running:
-            self.m_logger.info("LT Scheduler started")
+            self.m_logger.info(LOG_SCHEDULER_LT_STARTED)
             self.thread.start()
 
     def stop(self):
@@ -283,7 +297,7 @@ class Scheduler:
     def start(self):
         """Start the scheduler."""
         self.m_logger = get_logger("scheduler")
-        self.m_logger.info("Scheduler started")
+        self.m_logger.info(LOG_SCHEDULER_STARTED)
         
         # Configure emitter logger if it exists
         if self._emitter is not None and hasattr(self._emitter, 'logger'):
@@ -308,8 +322,13 @@ class Scheduler:
 
             # Debug: Log what we collected
             if any([buttons, popups, status, results, modals, reloads, button_disable, button_enable]):
-                self.m_logger.debug("Collected messages - Status: %d, Popups: %d, Results: %d, Buttons: %d, Reloads: %d",
-                    len(status), len(popups), len(results), len(buttons), len(reloads))
+                self.m_logger.debug(LOG_SCHEDULER_COLLECTED_MESSAGES.format(
+                    status_count=len(status),
+                    popup_count=len(popups),
+                    result_count=len(results),
+                    button_count=len(buttons),
+                    reload_count=len(reloads)
+                ))
 
             # Emit using emitter (handles filtering and errors)
             if self._emitter is not None:

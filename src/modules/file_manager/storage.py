@@ -14,8 +14,28 @@ from io import BytesIO
 
 try:
     from ..log.logger_factory import get_logger
+    from ..i18n.messages import (
+        ERROR_STORAGE_FAILED_TO_STORE,
+        ERROR_STORAGE_FILE_NOT_FOUND,
+        ERROR_STORAGE_CHECKSUM_NOT_FOUND,
+        LOG_STORAGE_INITIALIZED,
+        LOG_STORAGE_FILE_EXISTS,
+        LOG_STORAGE_FILE_STORED,
+        LOG_STORAGE_FILE_DELETED,
+        LOG_STORAGE_DELETE_NONEXISTENT,
+    )
 except ImportError:
     from log.logger_factory import get_logger
+    from i18n.messages import (
+        ERROR_STORAGE_FAILED_TO_STORE,
+        ERROR_STORAGE_FILE_NOT_FOUND,
+        ERROR_STORAGE_CHECKSUM_NOT_FOUND,
+        LOG_STORAGE_INITIALIZED,
+        LOG_STORAGE_FILE_EXISTS,
+        LOG_STORAGE_FILE_STORED,
+        LOG_STORAGE_FILE_DELETED,
+        LOG_STORAGE_DELETE_NONEXISTENT,
+    )
 
 logger = get_logger("file_manager.storage")
 
@@ -49,7 +69,7 @@ class ContentAddressableStorage:
             algorithm='sha256'  # Hash algorithm
         )
         
-        logger.info(f"Initialized content-addressable storage at {storage_path}")
+        logger.info(LOG_STORAGE_INITIALIZED.format(storage_path=storage_path))
     
     def store(self, file_stream: BinaryIO, original_filename: Optional[str] = None) -> Dict[str, Any]:
         """Store file content and return storage metadata.
@@ -87,14 +107,14 @@ class ContentAddressableStorage:
             # File already exists, get its address
             is_duplicate = True
             address = self.fs.get(checksum)
-            logger.debug(f"File already exists (deduplication): {checksum[:16]}...")
+            logger.debug(LOG_STORAGE_FILE_EXISTS.format(checksum_prefix=checksum[:16]))
         else:
             # File doesn't exist, store it
             address = self.fs.put(BytesIO(content))
-            logger.debug(f"Stored new file: {checksum[:16]}...")
+            logger.debug(LOG_STORAGE_FILE_STORED.format(checksum_prefix=checksum[:16]))
         
         if address is None:
-            raise IOError("Failed to store file")
+            raise IOError(str(ERROR_STORAGE_FAILED_TO_STORE))
         return {
             'checksum': checksum,
             'storage_path': address.relpath,
@@ -119,7 +139,7 @@ class ContentAddressableStorage:
         abs_path = self.storage_path / storage_path
         
         if not abs_path.exists():
-            raise IOError(f"File not found in storage: {storage_path}")
+            raise IOError(ERROR_STORAGE_FILE_NOT_FOUND.format(storage_path=storage_path))
         
         return abs_path
     
@@ -137,7 +157,7 @@ class ContentAddressableStorage:
         """
         address = self.fs.get(checksum)
         if address is None:
-            raise IOError(f"File with checksum {checksum} not found")
+            raise IOError(ERROR_STORAGE_CHECKSUM_NOT_FOUND.format(checksum=checksum))
         return Path(address.abspath)
     
     def exists(self, checksum: str) -> bool:
@@ -171,10 +191,10 @@ class ContentAddressableStorage:
         try:
             abs_path = self.get(storage_path)
             abs_path.unlink()
-            logger.debug(f"Deleted file: {storage_path}")
+            logger.debug(LOG_STORAGE_FILE_DELETED.format(storage_path=storage_path))
             return True
         except (IOError, FileNotFoundError):
-            logger.warning(f"Attempted to delete non-existent file: {storage_path}")
+            logger.warning(LOG_STORAGE_DELETE_NONEXISTENT.format(storage_path=storage_path))
             return False
     
     def calculate_checksum(self, file_path: Path) -> str:

@@ -8,6 +8,24 @@ import logging
 from typing import List, Tuple
 
 from .permission_registry import permission_registry
+from ..i18n.messages import (
+    INFO_AUTH_NOT_ENABLED,
+    INFO_NO_MODULES_REGISTERED_VALIDATOR,
+    INFO_VALIDATING_PERMISSIONS,
+    INFO_GUEST_NO_PERMISSIONS,
+    INFO_VALIDATION_PASSED,
+    INFO_VALIDATION_COMPLETE,
+    ERROR_MODULE_NO_PERMISSIONS,
+    ERROR_PERMISSION_VALIDATION,
+    WARNING_OLD_CRUD_ACTIONS,
+    WARNING_UNREGISTERED_ACTIONS,
+    WARNING_PERMISSION_VALIDATION,
+    TEXT_PERMISSION_VALIDATION_START,
+    TEXT_PERMISSION_VALIDATION_COMPLETE,
+    MSG_CRITICAL_PERMISSION_ERRORS,
+    MSG_FIX_ISSUES_PRODUCTION,
+    MSG_SEE_LOGS_DETAILS,
+)
 
 logger = logging.getLogger("permission_validator")
 
@@ -29,17 +47,17 @@ def validate_permissions() -> List[Tuple[str, str]]:
         auth_manager = auth.auth_manager
     
     if not auth_manager:
-        issues.append(("INFO", "Authentication system not enabled - skipping permission validation"))
+        issues.append(("INFO", str(INFO_AUTH_NOT_ENABLED)))
         return issues
     
     # Get all registered modules
     registered_modules = permission_registry.get_all_modules()
     
     if not registered_modules:
-        issues.append(("WARNING", "No modules registered with permission_registry - this may be intentional"))
+        issues.append(("WARNING", str(INFO_NO_MODULES_REGISTERED_VALIDATOR)))
         return issues
     
-    logger.info("Validating permissions for %d registered modules...", len(registered_modules))
+    logger.info(str(INFO_VALIDATING_PERMISSIONS), len(registered_modules))
     
     # Check each registered module
     for module_name in registered_modules:
@@ -52,8 +70,7 @@ def validate_permissions() -> List[Tuple[str, str]]:
         if not module_perms:
             issues.append((
                 "ERROR",
-                f"Module '{module_name}' registered but has NO permissions configured! "
-                f"Add it to permissions.json with appropriate group permissions."
+                ERROR_MODULE_NO_PERMISSIONS.format(module_name=module_name)
             ))
             continue
         
@@ -62,8 +79,7 @@ def validate_permissions() -> List[Tuple[str, str]]:
         if old_actions:
             issues.append((
                 "WARNING",
-                f"Module '{module_name}' uses old CRUD action names: {old_actions}. "
-                f"Consider using 'view' (implicit) instead."
+                WARNING_OLD_CRUD_ACTIONS.format(module_name=module_name, old_actions=old_actions)
             ))
         
         # Check if guest group exists and has permissions
@@ -72,7 +88,7 @@ def validate_permissions() -> List[Tuple[str, str]]:
             if not guest_actions:
                 issues.append((
                     "INFO",
-                    f"Module '{module_name}': guest group has no permissions (explicitly denied)"
+                    INFO_GUEST_NO_PERMISSIONS.format(module_name=module_name)
                 ))
         
         # Validate that actions in permissions match registered actions
@@ -81,8 +97,12 @@ def validate_permissions() -> List[Tuple[str, str]]:
             if invalid_actions:
                 issues.append((
                     "WARNING",
-                    f"Module '{module_name}', group '{group}' has unregistered actions: {invalid_actions}. "
-                    f"These may be from old configuration. Registered actions: {registered_actions}"
+                    WARNING_UNREGISTERED_ACTIONS.format(
+                        module_name=module_name,
+                        group=group,
+                        invalid_actions=invalid_actions,
+                        registered_actions=registered_actions
+                    )
                 ))
     
     # Summary
@@ -90,11 +110,15 @@ def validate_permissions() -> List[Tuple[str, str]]:
     warnings = sum(1 for sev, _ in issues if sev == "WARNING")
     
     if errors == 0 and warnings == 0:
-        issues.append(("INFO", f"✓ Permission validation passed for all {len(registered_modules)} modules"))
+        issues.append(("INFO", INFO_VALIDATION_PASSED.format(count=len(registered_modules))))
     else:
         issues.append((
             "INFO",
-            f"Permission validation complete: {errors} errors, {warnings} warnings, {len(registered_modules)} modules checked"
+            INFO_VALIDATION_COMPLETE.format(
+                errors=errors,
+                warnings=warnings,
+                count=len(registered_modules)
+            )
         ))
     
     return issues
@@ -104,9 +128,9 @@ def log_validation_results(issues: List[Tuple[str, str]]):
     """Log validation results with appropriate severity."""
     for severity, message in issues:
         if severity == "ERROR":
-            logger.error(f"PERMISSION ERROR: {message}")
+            logger.error(ERROR_PERMISSION_VALIDATION.format(message=message))
         elif severity == "WARNING":
-            logger.warning(f"PERMISSION WARNING: {message}")
+            logger.warning(WARNING_PERMISSION_VALIDATION.format(message=message))
         else:
             logger.info(message)
 
@@ -115,7 +139,7 @@ def validate_and_log():
     """Run validation and log results. Call this at application startup."""
     separator = "=" * 70
     logger.info(separator)
-    logger.info("Starting Permission System Validation")
+    logger.info(str(TEXT_PERMISSION_VALIDATION_START))
     logger.info(separator)
     
     issues = validate_permissions()
@@ -126,14 +150,14 @@ def validate_and_log():
     if errors:
         error_separator = "!" * 70
         print("\n" + error_separator)
-        print("CRITICAL PERMISSION ERRORS DETECTED:")
+        print(str(MSG_CRITICAL_PERMISSION_ERRORS))
         print(error_separator)
         for error in errors:
             print(f"  ✗ {error}")
-        print("\nPlease fix these issues before proceeding to production!")
-        print("See logs for full details.")
+        print(str(MSG_FIX_ISSUES_PRODUCTION))
+        print(str(MSG_SEE_LOGS_DETAILS))
         print(error_separator + "\n")
     
     logger.info(separator)
-    logger.info("Permission Validation Complete")
+    logger.info(str(TEXT_PERMISSION_VALIDATION_COMPLETE))
     logger.info(separator)

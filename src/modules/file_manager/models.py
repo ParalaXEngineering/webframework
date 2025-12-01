@@ -12,6 +12,14 @@ from datetime import datetime
 
 Base = declarative_base()
 
+# =============================================================================
+# Domain-Specific Constants - Thumbnail Configuration
+# =============================================================================
+THUMB_DIR = ".thumbs"
+THUMB_SIZE_SMALL = "150x150"
+THUMB_SIZE_MEDIUM = "300x300"
+THUMB_SUFFIX = "_thumb.jpg"
+
 
 # Association table for many-to-many relationship between file versions and tags
 file_version_tags = Table(
@@ -120,7 +128,7 @@ class FileVersion(Base):
             hash_dirs = path.parent
             # Get the filename without extension
             hash_name = path.stem
-            thumb_path = f".thumbs/150x150/{hash_dirs}/{hash_name}_thumb.jpg"
+            thumb_path = f"{THUMB_DIR}/{THUMB_SIZE_SMALL}/{hash_dirs}/{hash_name}{THUMB_SUFFIX}"
             return thumb_path
         return None
     
@@ -136,7 +144,7 @@ class FileVersion(Base):
             path = Path(self.storage_path)  # type: ignore[arg-type]
             hash_dirs = path.parent
             hash_name = path.stem
-            thumb_path = f".thumbs/300x300/{hash_dirs}/{hash_name}_thumb.jpg"
+            thumb_path = f"{THUMB_DIR}/{THUMB_SIZE_MEDIUM}/{hash_dirs}/{hash_name}{THUMB_SUFFIX}"
             return thumb_path
         return None
     

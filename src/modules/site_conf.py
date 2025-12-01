@@ -17,36 +17,74 @@ try:
 except ImportError:
     from log.logger_factory import get_logger
 
+try:
+    from .i18n.messages import (
+        TEXT_SECTION_SYSTEM,
+        TEXT_SECTION_USER_MANAGEMENT,
+        TEXT_SECTION_ACCOUNT,
+        TEXT_SECTION_ADMIN,
+        TEXT_SECTION_MONITORING,
+        TEXT_SECTION_TOOLS,
+        TEXT_SECTION_DEPLOYMENT,
+        TEXT_MY_PROFILE_SIDEBAR,
+        TEXT_FRAMEWORK_PREFERENCES,
+        TEXT_USERS,
+        TEXT_PERMISSIONS,
+        TEXT_GROUPS_SIDEBAR,
+        TEXT_THREAD_MONITOR_SIDEBAR,
+        TEXT_LOG_VIEWER_SIDEBAR,
+        TEXT_BUG_TRACKER_SIDEBAR,
+        TEXT_SETTINGS_SIDEBAR,
+        TEXT_UPDATER_SIDEBAR,
+        TEXT_PACKAGER_SIDEBAR,
+        TEXT_FILE_MANAGER_SIDEBAR,
+        TEXT_DEFAULT_INDEX_MESSAGE,
+    )
+except ImportError:
+    from i18n.messages import (
+        TEXT_SECTION_SYSTEM,
+        TEXT_SECTION_USER_MANAGEMENT,
+        TEXT_SECTION_ACCOUNT,
+        TEXT_SECTION_ADMIN,
+        TEXT_SECTION_MONITORING,
+        TEXT_SECTION_TOOLS,
+        TEXT_SECTION_DEPLOYMENT,
+        TEXT_MY_PROFILE_SIDEBAR,
+        TEXT_FRAMEWORK_PREFERENCES,
+        TEXT_USERS,
+        TEXT_PERMISSIONS,
+        TEXT_GROUPS_SIDEBAR,
+        TEXT_THREAD_MONITOR_SIDEBAR,
+        TEXT_LOG_VIEWER_SIDEBAR,
+        TEXT_BUG_TRACKER_SIDEBAR,
+        TEXT_SETTINGS_SIDEBAR,
+        TEXT_UPDATER_SIDEBAR,
+        TEXT_PACKAGER_SIDEBAR,
+        TEXT_FILE_MANAGER_SIDEBAR,
+        TEXT_DEFAULT_INDEX_MESSAGE,
+    )
+
 logger = get_logger("site_conf")
 
 # Module-level state
 site_conf_obj = None
 site_conf_app_path = None
 
-# Sidebar section names (constants to avoid magic strings)
-SECTION_SYSTEM = "System"
-SECTION_USER_MANAGEMENT = "User Management"
-SECTION_ACCOUNT = "Account"
-SECTION_ADMIN = "Admin"
-SECTION_MONITORING = "Monitoring"
-SECTION_TOOLS = "Tools"
-SECTION_DEPLOYMENT = "Deployment"
-
-# Sidebar endpoints (constants for navigation)
+# Sidebar endpoints (technical identifiers - domain-specific)
 ENDPOINT_USER = "user"
 ENDPOINT_ADMIN = "admin"
 ENDPOINT_MONITORING = "monitoring"
 ENDPOINT_TOOLS = "tools"
 ENDPOINT_DEPLOYMENT = "deployment"
 
-# Sidebar attribute keys
+# Sidebar attribute keys (technical identifiers - domain-specific)
 ATTR_NAME = "name"
 ATTR_ENDPOINT = "endpoint"
 ATTR_IS_TITLE = "isTitle"
 ATTR_SUBMENU = "submenu"
 ATTR_ICON = "icon"
 
-# Icons (MDI format)
+# Icons (MDI format - domain-specific)
 ICON_ACCOUNT_CIRCLE = "account-circle"
 ICON_SHIELD_LOCK = "shield-lock"
 ICON_MONITOR_DASHBOARD = "monitor-dashboard"
@@ -54,13 +92,12 @@ ICON_TOOLBOX = "toolbox"
 ICON_PACKAGE_VARIANT = "package-variant"
 ICON_COG_SYNC = "cog-sync"
 
-# Default values
+# Default values (domain-specific)
 DEFAULT_PORT = 5000
 DEFAULT_VERSION = "0.0.0.1"
 DEFAULT_APP_NAME = "Default"
 DEFAULT_ICON = "home"
 DEFAULT_FOOTER = "2024 &copy;ESD"
-DEFAULT_INDEX_MESSAGE = "Bienvenue sur la page par défaut du framework ESD"
 DEFAULT_HOME_ENDPOINT = "framework_index"
 
 class Site_conf:
@@ -79,7 +116,7 @@ class Site_conf:
 
         self.m_include_tar_gz_dirs = []
 
-        self.m_index = DEFAULT_INDEX_MESSAGE
+        self.m_index = str(TEXT_DEFAULT_INDEX_MESSAGE)
         
         self.m_home_endpoint = DEFAULT_HOME_ENDPOINT
         """Default home page endpoint - can be overridden by website modules"""
@@ -139,12 +176,12 @@ class Site_conf:
     def _ensure_system_title(self):
         """Helper to ensure 'System' title exists in sidebar."""
         has_system_title = any(
-            item.get(ATTR_NAME) == SECTION_SYSTEM and item.get(ATTR_IS_TITLE) 
+            item.get(ATTR_NAME) == str(TEXT_SECTION_SYSTEM) and item.get(ATTR_IS_TITLE) 
             for item in self.m_sidebar
         )
         
         if not has_system_title:
-            self.add_sidebar_title(SECTION_SYSTEM)
+            self.add_sidebar_title(str(TEXT_SECTION_SYSTEM))
 
     def enable_authentication(self, add_to_sidebar: bool = True):
         """Enable authentication system and automatically add login/logout functionality.
@@ -157,16 +194,16 @@ class Site_conf:
         
         if add_to_sidebar:
             # Add User Management section
-            self.add_sidebar_title(SECTION_USER_MANAGEMENT)
-            self.add_sidebar_section(SECTION_ACCOUNT, ICON_ACCOUNT_CIRCLE, ENDPOINT_USER)
-            self.add_sidebar_submenu("My Profile", "user_profile.profile", endpoint=ENDPOINT_USER)
-            self.add_sidebar_submenu("Framework Preferences", "user_profile.framework_preferences", endpoint=ENDPOINT_USER)
+            self.add_sidebar_title(str(TEXT_SECTION_USER_MANAGEMENT))
+            self.add_sidebar_section(str(TEXT_SECTION_ACCOUNT), ICON_ACCOUNT_CIRCLE, ENDPOINT_USER)
+            self.add_sidebar_submenu(str(TEXT_MY_PROFILE_SIDEBAR), "user_profile.profile", endpoint=ENDPOINT_USER)
+            self.add_sidebar_submenu(str(TEXT_FRAMEWORK_PREFERENCES), "user_profile.framework_preferences", endpoint=ENDPOINT_USER)
             
             # Add Admin section
-            self.add_sidebar_section(SECTION_ADMIN, ICON_SHIELD_LOCK, ENDPOINT_ADMIN)
-            self.add_sidebar_submenu("Users", "admin_auth.manage_users", endpoint=ENDPOINT_ADMIN)
-            self.add_sidebar_submenu("Permissions", "admin_auth.manage_permissions", endpoint=ENDPOINT_ADMIN)
-            self.add_sidebar_submenu("Groups", "admin_auth.manage_groups", endpoint=ENDPOINT_ADMIN)
+            self.add_sidebar_section(str(TEXT_SECTION_ADMIN), ICON_SHIELD_LOCK, ENDPOINT_ADMIN)
+            self.add_sidebar_submenu(str(TEXT_USERS), "admin_auth.manage_users", endpoint=ENDPOINT_ADMIN)
+            self.add_sidebar_submenu(str(TEXT_PERMISSIONS), "admin_auth.manage_permissions", endpoint=ENDPOINT_ADMIN)
+            self.add_sidebar_submenu(str(TEXT_GROUPS_SIDEBAR), "admin_auth.manage_groups", endpoint=ENDPOINT_ADMIN)
     
     def enable_threads(self, add_to_sidebar: bool = True, add_to_topbar: Optional[bool] = None, topbar_icon: Optional[str] = None, topbar_area: Optional[str] = None):
         """Enable thread monitoring and background task management.
@@ -191,8 +228,8 @@ class Site_conf:
                 item.get(ATTR_ENDPOINT) == ENDPOINT_MONITORING for item in self.m_sidebar
             )
             if not has_monitoring:
-                self.add_sidebar_section(SECTION_MONITORING, ICON_MONITOR_DASHBOARD, ENDPOINT_MONITORING)
-            self.add_sidebar_submenu("Thread Monitor", "threads.threads", endpoint=ENDPOINT_MONITORING)
+                self.add_sidebar_section(str(TEXT_SECTION_MONITORING), ICON_MONITOR_DASHBOARD, ENDPOINT_MONITORING)
+            self.add_sidebar_submenu(str(TEXT_THREAD_MONITOR_SIDEBAR), "threads.threads", endpoint=ENDPOINT_MONITORING)
         
         # Read from settings if parameters not explicitly provided
         if add_to_topbar is None:
@@ -227,8 +264,8 @@ class Site_conf:
                 item.get(ATTR_ENDPOINT) == ENDPOINT_MONITORING for item in self.m_sidebar
             )
             if not has_monitoring:
-                self.add_sidebar_section(SECTION_MONITORING, ICON_MONITOR_DASHBOARD, ENDPOINT_MONITORING)
-            self.add_sidebar_submenu("Log Viewer", "logging.logs", endpoint=ENDPOINT_MONITORING)
+                self.add_sidebar_section(str(TEXT_SECTION_MONITORING), ICON_MONITOR_DASHBOARD, ENDPOINT_MONITORING)
+            self.add_sidebar_submenu(str(TEXT_LOG_VIEWER_SIDEBAR), "logging.logs", endpoint=ENDPOINT_MONITORING)
     
     def enable_bug_tracker(self, add_to_sidebar: bool = True):
         """Enable bug tracker page.
@@ -244,8 +281,8 @@ class Site_conf:
                 item.get(ATTR_ENDPOINT) == ENDPOINT_TOOLS for item in self.m_sidebar
             )
             if not has_tools:
-                self.add_sidebar_section(SECTION_TOOLS, ICON_TOOLBOX, ENDPOINT_TOOLS)
-            self.add_sidebar_submenu("Bug Tracker", "bug.bugtracker", endpoint=ENDPOINT_TOOLS)
+                self.add_sidebar_section(str(TEXT_SECTION_TOOLS), ICON_TOOLBOX, ENDPOINT_TOOLS)
+            self.add_sidebar_submenu(str(TEXT_BUG_TRACKER_SIDEBAR), "bug.bugtracker", endpoint=ENDPOINT_TOOLS)
     
     def enable_settings(self, add_to_sidebar: bool = True):
         """Enable settings page.
@@ -261,8 +298,8 @@ class Site_conf:
                 item.get(ATTR_ENDPOINT) == ENDPOINT_TOOLS for item in self.m_sidebar
             )
             if not has_tools:
-                self.add_sidebar_section(SECTION_TOOLS, ICON_TOOLBOX, ENDPOINT_TOOLS)
-            self.add_sidebar_submenu("Settings", "settings.index", endpoint=ENDPOINT_TOOLS)
+                self.add_sidebar_section(str(TEXT_SECTION_TOOLS), ICON_TOOLBOX, ENDPOINT_TOOLS)
+            self.add_sidebar_submenu(str(TEXT_SETTINGS_SIDEBAR), "settings.index", endpoint=ENDPOINT_TOOLS)
     
     def enable_updater(self, add_to_sidebar: bool = True):
         """Enable updater page.
@@ -278,8 +315,8 @@ class Site_conf:
                 item.get(ATTR_ENDPOINT) == ENDPOINT_DEPLOYMENT for item in self.m_sidebar
             )
             if not has_deployment:
-                self.add_sidebar_section(SECTION_DEPLOYMENT, ICON_PACKAGE_VARIANT, ENDPOINT_DEPLOYMENT)
-            self.add_sidebar_submenu("Updater", "updater.update", endpoint=ENDPOINT_DEPLOYMENT)
+                self.add_sidebar_section(str(TEXT_SECTION_DEPLOYMENT), ICON_PACKAGE_VARIANT, ENDPOINT_DEPLOYMENT)
+            self.add_sidebar_submenu(str(TEXT_UPDATER_SIDEBAR), "updater.update", endpoint=ENDPOINT_DEPLOYMENT)
     
     def enable_packager(self, add_to_sidebar: bool = True):
         """Enable packager page.
@@ -295,8 +332,8 @@ class Site_conf:
                 item.get(ATTR_ENDPOINT) == ENDPOINT_DEPLOYMENT for item in self.m_sidebar
             )
             if not has_deployment:
-                self.add_sidebar_section(SECTION_DEPLOYMENT, ICON_PACKAGE_VARIANT, ENDPOINT_DEPLOYMENT)
-            self.add_sidebar_submenu("Packager", "packager.packager", endpoint=ENDPOINT_DEPLOYMENT)
+                self.add_sidebar_section(str(TEXT_SECTION_DEPLOYMENT), ICON_PACKAGE_VARIANT, ENDPOINT_DEPLOYMENT)
+            self.add_sidebar_submenu(str(TEXT_PACKAGER_SIDEBAR), "packager.packager", endpoint=ENDPOINT_DEPLOYMENT)
     
     def enable_file_manager(self, add_to_sidebar: bool = False, enable_admin_page: bool = True):
         """Enable file upload/download management system.
@@ -316,8 +353,8 @@ class Site_conf:
                 item.get(ATTR_ENDPOINT) == ENDPOINT_TOOLS for item in self.m_sidebar
             )
             if not has_tools:
-                self.add_sidebar_section(SECTION_TOOLS, ICON_TOOLBOX, ENDPOINT_TOOLS)
-            self.add_sidebar_submenu("File Manager", "file_manager_admin.index", endpoint=ENDPOINT_TOOLS)
+                self.add_sidebar_section(str(TEXT_SECTION_TOOLS), ICON_TOOLBOX, ENDPOINT_TOOLS)
+            self.add_sidebar_submenu(str(TEXT_FILE_MANAGER_SIDEBAR), "file_manager_admin.index", endpoint=ENDPOINT_TOOLS)
     
     def enable_all_features(self, add_to_sidebar: bool = True, add_to_topbar: bool = True):
         """Enable all framework features (useful for demos and testing).

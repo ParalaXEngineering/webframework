@@ -53,9 +53,9 @@ ACTION_FORCE_KILL = "force_kill"
 # Query Parameters
 PARAM_THREAD_NAME = "thread_name"
 
-# UI Icons and Styles
-TEXT_THREAD_STOPPED_ICON = "warning"
-TEXT_THREAD_FOUND_ERROR = "error"
+# Flash Message Categories
+FLASH_CATEGORY_WARNING = "warning"
+FLASH_CATEGORY_ERROR = "error"
 
 # Template Configuration
 TEMPLATE_BASE_CONTENT = "base_content.j2"
@@ -102,9 +102,9 @@ def threads():
             thread = manager.get_thread(thread_name)
             if thread:
                 manager.del_thread(thread)
-                flash(TEXT_THREAD_STOPPED.format(thread_name), TEXT_THREAD_STOPPED_ICON)
+                flash(TEXT_THREAD_STOPPED.format(thread_name), FLASH_CATEGORY_WARNING)
             else:
-                flash(TEXT_THREAD_NOT_FOUND_STOP.format(thread_name), TEXT_THREAD_FOUND_ERROR)
+                flash(TEXT_THREAD_NOT_FOUND_STOP.format(thread_name), FLASH_CATEGORY_ERROR)
         elif manager and action == ACTION_FORCE_KILL and thread_name:
             thread = manager.get_thread(thread_name)
             if thread:
@@ -112,12 +112,12 @@ def threads():
                 if hasattr(thread, 'stop'):
                     thread.stop()
                 manager.del_thread(thread)
-                flash(TEXT_THREAD_FORCE_KILLED.format(thread_name), TEXT_THREAD_FOUND_ERROR)
+                flash(TEXT_THREAD_FORCE_KILLED.format(thread_name), FLASH_CATEGORY_ERROR)
             else:
-                flash(TEXT_THREAD_NOT_FOUND_KILL.format(thread_name), TEXT_THREAD_FOUND_ERROR)
+                flash(TEXT_THREAD_NOT_FOUND_KILL.format(thread_name), FLASH_CATEGORY_ERROR)
     
     if manager is None:
-        flash(TEXT_THREAD_MANAGER_NOT_INIT, TEXT_THREAD_FOUND_ERROR)
+        flash(TEXT_THREAD_MANAGER_NOT_INIT, FLASH_CATEGORY_ERROR)
         return render_template(TEMPLATE_BASE_CONTENT, content=disp.display())
     
     # Statistics section

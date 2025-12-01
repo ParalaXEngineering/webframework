@@ -5,9 +5,19 @@ import logging
 import os
 from typing import Any, Dict, Optional
 
+# Import user-facing messages for i18n
+from ..i18n.messages import (
+    ERROR_CONFIG_NOT_READABLE,
+    ERROR_INVALID_KEY,
+    ERROR_CATEGORY_NOT_FOUND,
+    ERROR_SETTING_NOT_FOUND,
+    ERROR_SETTINGS_FILE_EMPTY,
+    ERROR_SETTING_PATH_NOT_FOUND,
+)
+
 logger = logging.getLogger(__name__)
 
-# Constants for settings structure keys
+# Constants for settings structure keys (domain-specific to settings module)
 FRIENDLY_KEY = "friendly"
 VALUE_KEY = "value"
 TYPE_KEY = "type"
@@ -40,7 +50,7 @@ class SettingsStorage:
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 self._settings = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
-            logger.warning("Config file not readable at %s, using empty config", self.config_path)
+            logger.warning(ERROR_CONFIG_NOT_READABLE.format(path=self.config_path))
             self._settings = {}
         
         return self._settings if self._settings else {}
@@ -90,14 +100,14 @@ class SettingsStorage:
         
         parts = key.split('.')
         if len(parts) < 2:
-            raise ValueError(f"Invalid key: {key}")
+            raise ValueError(ERROR_INVALID_KEY.format(key=key))
         
         category, setting = parts[0], '.'.join(parts[1:])
         
         if self._settings and category not in self._settings:
-            raise KeyError(f"Category not found: {category}")
+            raise KeyError(ERROR_CATEGORY_NOT_FOUND.format(category=category))
         if self._settings and setting not in self._settings[category]:
-            raise KeyError(f"Setting not found: {setting}")
+            raise KeyError(ERROR_SETTING_NOT_FOUND.format(setting=setting))
         
         if self._settings:
             self._settings[category][setting][VALUE_KEY] = value
@@ -151,7 +161,7 @@ class SettingsStorage:
         
         if not self._settings:
             if raise_on_missing:
-                raise SettingNotFoundError("Settings file is empty or not loaded")
+                raise SettingNotFoundError(str(ERROR_SETTINGS_FILE_EMPTY))
             return default
         
         current = self._settings
@@ -168,9 +178,10 @@ class SettingsStorage:
                         path_str, available
                     )
                     raise SettingNotFoundError(
-                        f"Setting not found: {path_str}\n"
-                        f"Available keys at this level: {available}\n"
-                        f"Please check your config.json file and ensure the setting exists."
+                        ERROR_SETTING_PATH_NOT_FOUND.format(
+                            path=path_str,
+                            available=available
+                        )
                     )
                 return default
             current = current[key]

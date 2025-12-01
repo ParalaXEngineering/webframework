@@ -13,8 +13,24 @@ import paramiko
 
 try:
     from .log.logger_factory import get_logger
+    from .i18n.messages import (
+        ERROR_SFTP_CONNECTION_FAILED,
+        ERROR_SFTP_REMOTE_DIR_NOT_FOUND,
+        ERROR_SFTP_DOWNLOAD_FAILED,
+        ERROR_SFTP_UPLOAD_FAILED,
+        ERROR_SFTP_MKDIR_FAILED,
+        ERROR_SFTP_CHECK_EXISTENCE_FAILED,
+    )
 except ImportError:
     from log.logger_factory import get_logger
+    from i18n.messages import (
+        ERROR_SFTP_CONNECTION_FAILED,
+        ERROR_SFTP_REMOTE_DIR_NOT_FOUND,
+        ERROR_SFTP_DOWNLOAD_FAILED,
+        ERROR_SFTP_UPLOAD_FAILED,
+        ERROR_SFTP_MKDIR_FAILED,
+        ERROR_SFTP_CHECK_EXISTENCE_FAILED,
+    )
 
 logger = get_logger(__name__)
 
@@ -60,7 +76,7 @@ class SFTPConnection:
             # Create SFTP client from transport
             self.sftp = paramiko.SFTPClient.from_transport(self.transport)
         except Exception as e:
-            logger.debug("SFTP connection failed for %s:%s - %s", self.host, self.port, e)
+            logger.debug(ERROR_SFTP_CONNECTION_FAILED.format(host=self.host, port=self.port, error=e))
             self.sftp = None
 
     def listdir(self, remote_path):
@@ -77,7 +93,7 @@ class SFTPConnection:
             try:
                 return self.sftp.listdir(remote_path)
             except FileNotFoundError:
-                logger.debug("Remote directory not found: %s", remote_path)
+                logger.debug(ERROR_SFTP_REMOTE_DIR_NOT_FOUND.format(remote_path=remote_path))
                 return []
         return []
 
@@ -93,7 +109,7 @@ class SFTPConnection:
             try:
                 self.sftp.get(remote_path, local_path)
             except Exception as e:
-                logger.error("Failed to download %s: %s", remote_path, e)
+                logger.error(ERROR_SFTP_DOWNLOAD_FAILED.format(remote_path=remote_path, error=e))
 
     def upload_file(self, local_path, remote_path):
         """Upload a file to remote SFTP server.
@@ -107,7 +123,7 @@ class SFTPConnection:
             try:
                 self.sftp.put(local_path, remote_path)
             except Exception as e:
-                logger.error("Failed to upload %s to %s: %s", local_path, remote_path, e)
+                logger.error(ERROR_SFTP_UPLOAD_FAILED.format(local_path=local_path, remote_path=remote_path, error=e))
 
     def mkdir(self, remote_path):
         """Create a remote directory if it doesn't exist.
@@ -121,7 +137,7 @@ class SFTPConnection:
                 self.sftp.mkdir(remote_path)
             except OSError:
                 # Directory already exists or permission denied
-                logger.debug("Cannot create directory (may already exist): %s", remote_path)
+                logger.debug(ERROR_SFTP_MKDIR_FAILED.format(remote_path=remote_path))
 
     def close(self):
         """Close SFTP connection cleanly."""
@@ -149,7 +165,7 @@ class SFTPConnection:
             except FileNotFoundError:
                 return False
             except Exception as e:
-                logger.error("Failed to check existence of %s: %s", remote_path, e)
+                logger.error(ERROR_SFTP_CHECK_EXISTENCE_FAILED.format(remote_path=remote_path, error=e))
                 return False
         return False
 
@@ -176,4 +192,4 @@ class SFTPConnection:
                 try:
                     self.sftp.get(remote_path, local_path)
                 except Exception as e:
-                    logger.error("Failed to download %s: %s", remote_path, e)
+                    logger.error(ERROR_SFTP_DOWNLOAD_FAILED.format(remote_path=remote_path, error=e))

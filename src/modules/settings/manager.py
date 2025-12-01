@@ -2,13 +2,15 @@
 
 from typing import Any, Dict, List, Optional
 
-from .storage import SettingsStorage
+from .storage import (
+    SettingsStorage,
+    FRIENDLY_KEY,
+    VALUE_KEY,
+    TYPE_KEY,
+    OPTIONS_KEY,
+)
 
-# Constants for settings structure keys
-FRIENDLY_KEY = "friendly"
-VALUE_KEY = "value"
-TYPE_KEY = "type"
-OPTIONS_KEY = "options"
+# Manager-specific constants (not in storage layer)
 OVERRIDABLE_KEY = "overridable_by_user"
 DEFAULT_VALUE_KEY = "default_value"
 

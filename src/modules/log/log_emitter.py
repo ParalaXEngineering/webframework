@@ -12,11 +12,9 @@ from typing import Dict, List, Optional, Set
 
 from .logger_factory import get_logger
 from ..socketio_manager import socketio_manager
+from ..i18n.messages import ERROR_LOGS_DIR_NOT_FOUND
 
-# Log level constants
-LOG_LEVELS = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-
-# Regex patterns for log parsing
+# Regex patterns for log parsing (domain-specific to log parsing)
 PATTERN_STANDARD = r'^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2},\d{3})\s*-\s*(DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*-\s*([^\-]+?)\s*-\s*([^\-]+?\.py:\d+)\s*-\s*(.*)$'
 PATTERN_FALLBACK = r'^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2},\d{3})\s*-\s*(DEBUG|INFO|WARNING|ERROR|CRITICAL)\s*-\s*(.*)$'
 
@@ -123,7 +121,7 @@ class LogEmitter:
              }
          """
          if not os.path.exists(self.logs_dir):
-             return {'error': 'Logs directory not found'}
+             return {'error': str(ERROR_LOGS_DIR_NOT_FOUND)}
          
          try:
              log_files_data = []

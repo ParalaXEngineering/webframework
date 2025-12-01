@@ -18,6 +18,45 @@ from ..modules.auth import auth_manager
 from ..modules.threaded.threaded_action import Threaded_action
 from ..modules.utilities import get_config_or_error
 
+# Import user-facing messages from i18n
+from ..modules.i18n.messages import (
+    TEXT_PACKAGER_TITLE,
+    SUBTITLE_PACKAGE_CREATION,
+    SUBTITLE_PACKAGE_RESTORATION,
+    TEXT_CREATE_PACKAGE,
+    TEXT_UPLOAD_PACKAGE,
+    TEXT_SELECT_PACKAGE,
+    TEXT_PACKAGE_AVAILABLE,
+    BUTTON_PACKAGE_CREATION,
+    BUTTON_PACKAGE_UPLOAD,
+    BUTTON_PACKAGE_INSTALL,
+    BUTTON_INSTALL_PACKAGE_ALT,
+    BUTTON_UNPACK,
+    LABEL_FILES_TO_UPLOAD,
+    LABEL_PACKAGE_TO_UNPACK,
+    STATUS_CREATING_ARCHIVE,
+    STATUS_UPLOADING_PACKAGE,
+    STATUS_DOWNLOADING_PACKAGE,
+    STATUS_DELETING_TAR_GZ,
+    STATUS_UNPACKING_ARCHIVE,
+    STATUS_UNPACKING_SUCCESS,
+    ERROR_SFTP_CONFIG,
+    ERROR_UPLOAD_CONFIG,
+    ERROR_DOWNLOAD_CONFIG,
+    ERROR_PACKAGE_MUST_ZIP,
+    ERROR_CONFIG,
+    ERROR_UNPACKING_FAILED,
+    ERROR_PACKAGE_UPLOAD_FAILED,
+    ERROR_PACKAGE_DOWNLOAD_FAILED,
+    ERROR_LONG_PATH,
+    ERROR_PACKAGE_CREATION_FAILED,
+    ERROR_ARCHIVE_CREATION,
+    INFO_FOLDER_NOT_EXISTS,
+    INFO_FTP_NOT_ACCESSIBLE,
+    INFO_FTP_UNKNOWN_ERROR,
+    REFRESH_CONTENT,
+)
+
 # Constants - Configuration keys
 CONFIG_UPDATES_ADDRESS = "updates.address.value"
 CONFIG_UPDATES_USER = "updates.user.value"
@@ -34,22 +73,7 @@ FILE_VERSION = "version.txt"
 VERSION_FILE_PATH = os.path.join(DIR_RESOURCES, FILE_VERSION)
 ARCHIVE_DATE_FORMAT = "%y%m%d_"
 
-# Constants - Status messages
-STATUS_CREATING_ARCHIVE = "Creating archive, this might take a while"
-STATUS_UPLOADING_PACKAGE = "Uploading package, this might take a while"
-STATUS_DOWNLOADING_PACKAGE = "Downloading package, this might take a while"
-STATUS_DELETING_TAR_GZ = "Deleting old tar.gz content"
-STATUS_UNPACKING_ARCHIVE = "Unpacking archive, this might take a while"
-STATUS_UNPACKING_SUCCESS = "Unpacking archive success"
-ERROR_SFTP_CONFIG = "Failed to get SFTP config from settings"
-ERROR_UPLOAD_CONFIG = "Failed to get upload config from settings"
-ERROR_DOWNLOAD_CONFIG = "Failed to get download config from settings"
-ERROR_PACKAGE_MUST_ZIP = "Package must be a .zip"
-ERROR_CONFIG = "Configuration error"
-ERROR_UNPACKING_FAILED = "Unpacking failed: "
-ERROR_PACKAGE_UPLOAD_FAILED = "Package uploading failed: "
-ERROR_PACKAGE_DOWNLOAD_FAILED = "Download package failed: "
-ERROR_LONG_PATH = "Skipping file with too long path: "
+
 
 # Constants - Source modes
 SOURCE_FOLDER = "Folder"
@@ -64,28 +88,17 @@ PROGRESS_WARNING = 50
 # Constants - Error handling
 ERROR_LONG_PATH_CODE = errno.ENAMETOOLONG
 REFRESH_DELAY = 7
-REFRESH_CONTENT = "<meta http-equiv='refresh' content='5'><p>Unpacking completed successfully. The page will reload shortly.</p>"
 
-# Constants - UI/Display
-SUBTITLE_PACKAGE_CREATION = "Package creation"
-SUBTITLE_PACKAGE_RESTORATION = "Package restoration"
-TEXT_CREATE_PACKAGE = "Create a new package"
-TEXT_UPLOAD_PACKAGE = "Upload package"
-TEXT_SELECT_PACKAGE = "Select a package to download"
-TEXT_PACKAGE_AVAILABLE = "Package available localy"
-BUTTON_PACKAGE_CREATION = "Package creation"
-BUTTON_PACKAGE_UPLOAD = "Package upload"
-BUTTON_PACKAGE_INSTALL = "Install Package"
-BUTTON_INSTALL_PACKAGE_ALT = "Install package"
-BUTTON_UNPACK = "Unpack"
-LABEL_FILES_TO_UPLOAD = "Files to upload"
-LABEL_PACKAGE_TO_UNPACK = "Package to unpack"
+# Constants - UI/Display (technical constants used in code)
 ICON_FILE_UPLOAD = "file-upload"
 ICON_FILE_PACKAGE = "file-package"
 STYLE_PRIMARY = "primary"
-INFO_FOLDER_NOT_EXISTS = "Configured package folder doesn't exists"
-INFO_FTP_NOT_ACCESSIBLE = "FTP server not accessible, please check your connection, use a zip file or use a local folder"
-INFO_FTP_UNKNOWN_ERROR = "Unkown FTP error: "
+
+# Constants - Form button IDs
+BTN_ACTION_PACK = "pack"
+BTN_ACTION_UPLOAD = "upload"
+BTN_ACTION_DOWNLOAD = "download"
+BTN_ACTION_UNPACK = "unpack"
 
 
 def get_settings_manager():
@@ -188,10 +201,10 @@ class SETUP_Packager(Threaded_action):
                     )
             except Exception as e:
                 if self.m_logger:
-                    self.m_logger.info("Package creation failed: " + str(e))
+                    self.m_logger.info(ERROR_PACKAGE_CREATION_FAILED.format() + str(e))
                 if self.m_scheduler:
                     self.m_scheduler.emit_status(
-                        self.get_name(), "Error in creating the archive: " + str(e), PROGRESS_ERROR
+                        self.get_name(), ERROR_ARCHIVE_CREATION.format() + str(e), PROGRESS_ERROR
                     )
 
             to_upload_files = utilities.util_dir_structure(
@@ -486,17 +499,17 @@ def packager():
             data_in = data_in[SETUP_Packager.m_default_name]
             packager = SETUP_Packager()
 
-            if "pack" in data_in:
+            if BTN_ACTION_PACK in data_in:
                 packager.set_file(data_in["create_package"])
                 packager.set_action("create_package")
 
-            elif "upload" in data_in:
+            elif BTN_ACTION_UPLOAD in data_in:
                 for item in data_raw:
                     if data_raw[item] == STYLE_PRIMARY:
                         packager.set_file(item)
                 packager.set_action("upload_package")
 
-            elif "download" in data_in:
+            elif BTN_ACTION_DOWNLOAD in data_in:
                 packager.set_file(data_in["download_package"])
                 packager.set_action("download_package")
             else:
@@ -517,7 +530,7 @@ def packager():
 
     disp = displayer.Displayer()
     disp.add_module(SETUP_Packager, display=False)
-    disp.set_title("Binaries Package Manager")
+    disp.set_title(TEXT_PACKAGER_TITLE)
 
     # Check if user is admin
     current_user_name = auth_manager.get_current_user() if auth_manager else None
@@ -541,7 +554,7 @@ def packager():
         disp.add_display_item(displayer.DisplayerItemText(TEXT_CREATE_PACKAGE), 0)
         disp.add_display_item(displayer.DisplayerItemInputString("create_package"), 1)
         disp.add_display_item(
-            displayer.DisplayerItemButton("pack", BUTTON_PACKAGE_CREATION), 2
+            displayer.DisplayerItemButton(BTN_ACTION_PACK, BUTTON_PACKAGE_CREATION), 2
         )
 
         to_upload_files = utilities.util_dir_structure(
@@ -573,7 +586,7 @@ def packager():
             1,
         )
         disp.add_display_item(
-            displayer.DisplayerItemButton("upload", BUTTON_PACKAGE_UPLOAD), 2
+            displayer.DisplayerItemButton(BTN_ACTION_UPLOAD, BUTTON_PACKAGE_UPLOAD), 2
         )
 
     disp.add_master_layout(
@@ -605,7 +618,7 @@ def packager():
         ),
         1,
     )
-    disp.add_display_item(displayer.DisplayerItemButton("unpack", BUTTON_UNPACK), 2)
+    disp.add_display_item(displayer.DisplayerItemButton(BTN_ACTION_UNPACK, BUTTON_UNPACK), 2)
 
     # Load configuration with error handling
     configs, error = get_config_or_error(get_settings_manager(),
@@ -666,7 +679,7 @@ def packager():
                 1,
             )
             disp.add_display_item(
-                displayer.DisplayerItemButton("download", BUTTON_PACKAGE_INSTALL), 2
+                displayer.DisplayerItemButton(BTN_ACTION_DOWNLOAD, BUTTON_PACKAGE_INSTALL), 2
             )
 
     # FTP mode
@@ -716,7 +729,7 @@ def packager():
                 1,
             )
             disp.add_display_item(
-                displayer.DisplayerItemButton("download", BUTTON_INSTALL_PACKAGE_ALT), 2
+                displayer.DisplayerItemButton(BTN_ACTION_DOWNLOAD, BUTTON_INSTALL_PACKAGE_ALT), 2
             )
 
         except socket.gaierror:

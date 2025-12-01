@@ -7,6 +7,16 @@ from typing import Optional, Tuple
 
 import bcrypt
 
+# Import user-facing error messages from i18n
+from ..i18n.messages import (
+    ERROR_PASSWORD_TOO_SHORT,
+    ERROR_PASSWORD_NO_LETTER,
+    ERROR_PASSWORD_NO_NUMBER,
+    ERROR_USERNAME_TOO_SHORT,
+    ERROR_USERNAME_TOO_LONG,
+    ERROR_USERNAME_INVALID_FORMAT,
+)
+
 # Constants for password validation
 MIN_PASSWORD_LENGTH = 5
 MIN_USERNAME_LENGTH = 3
@@ -76,13 +86,13 @@ def validate_password_strength(password: str) -> Tuple[bool, Optional[str]]:
         (is_valid, error_message)
     """
     if len(password) < MIN_PASSWORD_LENGTH:
-        return False, f"Password must be at least {MIN_PASSWORD_LENGTH} characters long"
+        return False, ERROR_PASSWORD_TOO_SHORT.format(min_length=MIN_PASSWORD_LENGTH)
     
     if not re.search(LETTER_PATTERN, password):
-        return False, "Password must contain at least one letter"
+        return False, str(ERROR_PASSWORD_NO_LETTER)
     
     if not re.search(DIGIT_PATTERN, password):
-        return False, "Password must contain at least one number"
+        return False, str(ERROR_PASSWORD_NO_NUMBER)
     
     return True, None
 
@@ -103,13 +113,13 @@ def validate_username(username: str) -> Tuple[bool, Optional[str]]:
         (is_valid, error_message)
     """
     if len(username) < MIN_USERNAME_LENGTH:
-        return False, f"Username must be at least {MIN_USERNAME_LENGTH} characters long"
+        return False, ERROR_USERNAME_TOO_SHORT.format(min_length=MIN_USERNAME_LENGTH)
     
     if len(username) > MAX_USERNAME_LENGTH:
-        return False, f"Username cannot exceed {MAX_USERNAME_LENGTH} characters"
+        return False, ERROR_USERNAME_TOO_LONG.format(max_length=MAX_USERNAME_LENGTH)
     
     if not re.match(USERNAME_PATTERN, username):
-        return False, "Username must start with letter/number and contain only letters, numbers, underscore, or hyphen"
+        return False, str(ERROR_USERNAME_INVALID_FORMAT)
     
     return True, None
 

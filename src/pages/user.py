@@ -47,12 +47,14 @@ from ..modules.i18n.messages import (
     TEXT_UNKNOWN,
     TEXT_NEVER,
     TEXT_PROPERTY,
+    TEXT_VALUE_COLUMN,
     MSG_PROFILE_UPDATED,
     MSG_DISPLAY_NAME_EMPTY,
     MSG_CURRENT_PASSWORD_INCORRECT,
     MSG_PASSWORDS_NO_MATCH,
     MSG_PASSWORD_INVALID,
     MSG_PASSWORD_CHANGED,
+    MSG_USER_NOT_FOUND,
     ERROR_AUTH_NOT_INIT
 )
 
@@ -101,12 +103,6 @@ DEFAULT_AVATAR_URL = "/common/assets/images/?filename=users/default.svg"
 # HTTP routes (internal references)
 ROUTE_LOGIN = "common.login"
 ROUTE_SETTINGS_VIEW = "settings.user_view"
-
-# UI text (not extracted to i18n - table headers)
-TEXT_VALUE = "Value"
-
-# Error messages (local to module)
-MSG_USER_NOT_FOUND = "User not found."
 
 user_profile_bp = Blueprint(BLUEPRINT_NAME, __name__, url_prefix=BLUEPRINT_PREFIX)
 
@@ -310,7 +306,7 @@ def profile():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText(f"<h3 class='mt-5'>{TEXT_ACCOUNT_INFO}</h3>"), column=0)
     
-    table_layout_id = disp.add_master_layout(DisplayerLayout(Layouts.TABLE, [TEXT_PROPERTY, TEXT_VALUE]))
+    table_layout_id = disp.add_master_layout(DisplayerLayout(Layouts.TABLE, [TEXT_PROPERTY, TEXT_VALUE_COLUMN]))
     disp.add_display_item(DisplayerItemText(TEXT_USERNAME), column=0, layout_id=table_layout_id)
     disp.add_display_item(DisplayerItemText(user.username), column=1, layout_id=table_layout_id)
     

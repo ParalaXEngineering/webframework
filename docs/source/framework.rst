@@ -292,6 +292,41 @@ Example usage:
 
 For detailed documentation, see :doc:`file_manager`.
 
+Internationalization (i18n)
+---------------------------
+
+The framework includes comprehensive internationalization support using Flask-Babel:
+
+* **Automatic Translation**: User-facing strings automatically translate based on user preferences
+* **TranslatableString Classes**: Type-safe message constants in ``src/modules/i18n/messages.py``
+* **Multiple Languages**: Easy management of translations for any number of languages
+* **User Preferences**: Per-user and global language settings
+* **Browser Detection**: Automatic language detection from browser preferences
+
+Translation workflow:
+
+.. code-block:: bash
+
+   # Extract translatable strings
+   python framework_manager.py babel extract
+   
+   # Initialize new language
+   python framework_manager.py babel init fr
+   
+   # Compile translations
+   python framework_manager.py babel compile
+
+Usage in code:
+
+.. code-block:: python
+
+   from modules.i18n.messages import MSG_SETTINGS_SAVED, TEXT_SETTINGS
+   
+   flash(MSG_SETTINGS_SAVED, "success")  # Automatically translated!
+   disp.add_breadcrumb(TEXT_SETTINGS, "/settings")
+
+For complete documentation, see :doc:`i18n`.
+
 Utilities
 ---------
 

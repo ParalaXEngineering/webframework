@@ -35,6 +35,7 @@ from ..modules.i18n.messages import (
     ERROR_FILE_NOT_FOUND,
     DEFAULT_HELP_TITLE,
     TEXT_404_TEMPLATE,
+    TEXT_HELP,
     TEXT_LOGIN_TEMPLATE,
     TEXT_TEMPLATE_BASE,
     TEXT_TEMPLATE_BASE_CONTENT
@@ -220,7 +221,7 @@ def help():
         content = markdown.markdown(text_data, extensions=MARKDOWN_EXTENSIONS)
         
         disp = displayer.Displayer()
-        User_defined_module.User_defined_module.m_default_name = "Help"
+        User_defined_module.User_defined_module.m_default_name = str(TEXT_HELP)
         disp.add_module(User_defined_module.User_defined_module, display=False)
         disp.set_title(DEFAULT_HELP_TITLE.format(topic.capitalize().replace('_', ' ').upper()))
         

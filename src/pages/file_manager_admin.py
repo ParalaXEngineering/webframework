@@ -132,6 +132,12 @@ PERMISSION_VIEW = "view"
 GROUP_NONE = "(none)"
 INTEGRITY_STATUS_OK = "OK"
 
+# Constants - Integrity check status codes (technical, returned by file_manager)
+INTEGRITY_STATUS_MISSING = "Missing"
+INTEGRITY_STATUS_CHECKSUM_MISMATCH = "Checksum mismatch"
+INTEGRITY_STATUS_NOT_FOUND = "Not found"
+INTEGRITY_STATUS_UNKNOWN = "Unknown"
+
 # Register module permissions (view is implicit)
 permission_registry.register_module(PERMISSION_MODULE, [PERMISSION_UPLOAD, PERMISSION_DOWNLOAD, PERMISSION_DELETE, PERMISSION_EDIT])
 
@@ -154,9 +160,9 @@ def index():
     
     # Check user permissions
     current_user = session.get('user', 'GUEST')
-    can_upload = auth_manager.has_permission(current_user, "FileManager", "upload") if auth_manager else True
-    can_delete = auth_manager.has_permission(current_user, "FileManager", "delete") if auth_manager else True
-    can_edit = auth_manager.has_permission(current_user, "FileManager", "edit") if auth_manager else True
+    can_upload = auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_UPLOAD) if auth_manager else True
+    can_delete = auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_DELETE) if auth_manager else True
+    can_edit = auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_EDIT) if auth_manager else True
     
     try:
         # Get file list from database (Phase 3 - includes versions, tags, group_id)
@@ -251,18 +257,18 @@ def index():
             # Display integrity status for each file
             for idx, file_meta in enumerate(files):
                 file_id = file_meta.get('id', 0)
-                is_valid, status = integrity_results.get(file_id, (False, "Unknown"))
+                is_valid, status = integrity_results.get(file_id, (False, INTEGRITY_STATUS_UNKNOWN))
                 
                 if is_valid:
                     disp.add_display_item(displayer.DisplayerItemBadge(INTEGRITY_STATUS_OK, BSstyle.SUCCESS), 
                                         column=8, line=idx, layout_id=table_layout_id)
-                elif status == "Missing":
+                elif status == INTEGRITY_STATUS_MISSING:
                     disp.add_display_item(displayer.DisplayerItemBadge(BADGE_MISSING, BSstyle.WARNING), 
                                         column=8, line=idx, layout_id=table_layout_id)
-                elif status == "Checksum mismatch":
+                elif status == INTEGRITY_STATUS_CHECKSUM_MISMATCH:
                     disp.add_display_item(displayer.DisplayerItemBadge(BADGE_CORRUPTED, BSstyle.ERROR), 
                                         column=8, line=idx, layout_id=table_layout_id)
-                elif status == "Not found":
+                elif status == INTEGRITY_STATUS_NOT_FOUND:
                     disp.add_display_item(displayer.DisplayerItemBadge(BADGE_NOT_FOUND, BSstyle.SECONDARY), 
                                         column=8, line=idx, layout_id=table_layout_id)
                 else:
@@ -453,7 +459,7 @@ def edit_file(file_id):
             form_data = data_in.get("Edit File Metadata", {})
             
             new_group_id = form_data.get("group_id", "").strip()
-            if new_group_id == "(none)":
+            if new_group_id == GROUP_NONE:
                 new_group_id = ""
             
             # Handle tags (can be list from multi-select or string)
@@ -567,7 +573,7 @@ def edit_file(file_id):
     # Get all existing group IDs from database
     from ..modules.file_manager import FileGroup
     existing_groups = file_manager.db_session.query(FileGroup).all()
-    group_choices = ["(none)"] + [g.group_id for g in existing_groups]
+    group_choices = [GROUP_NONE] + [g.group_id for g in existing_groups]
     
     # Group ID dropdown with explanatory text above
     disp.add_display_item(displayer.DisplayerItemAlert(
@@ -575,7 +581,7 @@ def edit_file(file_id):
         BSstyle.NONE
     ), column=0)
     
-    current_group = file_version.group_id if file_version.group_id else "(none)"
+    current_group = file_version.group_id if file_version.group_id else GROUP_NONE
     disp.add_display_item(displayer.DisplayerItemInputSelect(
         id="group_id",
         text=str(LABEL_GROUP_ID),

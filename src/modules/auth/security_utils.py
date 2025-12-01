@@ -15,6 +15,13 @@ from typing import Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
+# =============================================================================
+# Security Constants
+# =============================================================================
+# Default security thresholds for failed login attempts
+DEFAULT_MAX_ATTEMPTS = 5  # Maximum failed login attempts before account lockout
+DEFAULT_LOCKOUT_MINUTES = 5  # Duration of account lockout in minutes
+
 
 class FailedLoginManager:
     """
@@ -39,9 +46,6 @@ class FailedLoginManager:
         # Reset after successful login
         manager.reset_attempts("john")
     """
-    
-    DEFAULT_MAX_ATTEMPTS = 5
-    DEFAULT_LOCKOUT_MINUTES = 5
     
     def __init__(self, 
                  lockout_file: str = "failed_logins.json",

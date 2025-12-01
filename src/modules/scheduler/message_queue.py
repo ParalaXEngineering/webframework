@@ -15,6 +15,17 @@ try:
 except ImportError:
     from log.logger_factory import get_logger
 
+try:
+    from ..i18n.messages import (
+        LOG_QUEUE_ADDED_USER,
+        LOG_QUEUE_ADDED_BROADCAST,
+    )
+except ImportError:
+    from i18n.messages import (
+        LOG_QUEUE_ADDED_USER,
+        LOG_QUEUE_ADDED_BROADCAST,
+    )
+
 
 class MessageType(Enum):
     """Types of messages that can be queued."""
@@ -81,9 +92,9 @@ class MessageQueue:
             message = QueuedMessage(data=data, username=username)
             self._queues[msg_type].append(message)
             if username:
-                self._logger.debug("[QUEUE] Added %s message for user '%s'", msg_type.name, username)
+                self._logger.debug(LOG_QUEUE_ADDED_USER.format(msg_type=msg_type.name, username=username))
             else:
-                self._logger.debug("[QUEUE] Added %s broadcast message", msg_type.name)
+                self._logger.debug(LOG_QUEUE_ADDED_BROADCAST.format(msg_type=msg_type.name))
     
     def get_all(self, msg_type: MessageType) -> List[QueuedMessage]:
         """

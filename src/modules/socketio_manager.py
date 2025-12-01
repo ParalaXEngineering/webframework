@@ -18,15 +18,17 @@ from flask_socketio import join_room, leave_room
 
 try:
     from .log.logger_factory import get_logger
+    from .constants import SESSION_USER
 except ImportError:
     from log.logger_factory import get_logger
+    from constants import SESSION_USER
 
-# Session and room naming constants
-SESSION_USER_KEY = 'user'
-SESSION_ID_KEY = '_id'
-DEFAULT_USERNAME = 'anonymous'
-DEFAULT_SESSION_ID = 'unknown'
-ROOM_FORMAT = "user_{username}_{sid}"
+# Session and room naming constants (domain-specific to SocketIO manager)
+SESSION_USER_KEY = SESSION_USER  # Flask session key for username
+SESSION_ID_KEY = '_id'  # Flask session key for session ID
+DEFAULT_USERNAME = 'anonymous'  # Default username when session has no user
+DEFAULT_SESSION_ID = 'unknown'  # Default session ID when not available
+ROOM_FORMAT = "user_{username}_{sid}"  # Format string for room identifiers
 
 
 class SocketIOManager:

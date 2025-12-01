@@ -6,8 +6,10 @@ to support background tasks with real-time progress updates via SocketIO.
 
 try:
     from .threaded import Threaded_action
+    from .i18n.messages import TEXT_CUSTOM_MODULE_DEFAULT
 except ImportError:
     from threaded import Threaded_action
+    from i18n.messages import TEXT_CUSTOM_MODULE_DEFAULT
 
 
 class User_defined_module(Threaded_action):
@@ -18,7 +20,7 @@ class User_defined_module(Threaded_action):
     `emit_console()` for real-time updates to the user's SocketIO room.
     """
 
-    m_default_name = "Custom Module"
+    m_default_name = TEXT_CUSTOM_MODULE_DEFAULT
 
     def __init__(self):
         """Initialize the user-defined module."""

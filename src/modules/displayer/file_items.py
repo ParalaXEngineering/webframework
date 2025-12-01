@@ -10,6 +10,7 @@ from typing import Dict, List, Optional
 
 from .core import DisplayerCategory, DisplayerItems
 from .items import DisplayerItem
+from ..i18n.messages import ERROR_FILE_ID_OR_METADATA_REQUIRED
 
 
 @DisplayerCategory.INPUT
@@ -224,7 +225,7 @@ class DisplayerItemFileDisplay(DisplayerItem):
         
         # Validate that we have either file_id or file_metadata
         if file_id is None and file_metadata is None:
-            raise ValueError("Either file_id or file_metadata must be provided")
+            raise ValueError(str(ERROR_FILE_ID_OR_METADATA_REQUIRED))
     
     def display(self, container: list, parent_id: Optional[str] = None) -> None:
         """Add this item to a container view for template rendering.

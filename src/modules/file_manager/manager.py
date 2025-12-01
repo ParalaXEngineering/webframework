@@ -27,6 +27,34 @@ from sqlalchemy.orm import sessionmaker, Session
 from .models import Base, FileGroup, FileVersion, FileTag
 from .storage import ContentAddressableStorage
 
+# Framework i18n
+try:
+    from ..i18n.messages import (
+        ERROR_NO_FILE_PROVIDED_VALIDATION,
+        ERROR_FILE_TYPE_NOT_ALLOWED,
+        ERROR_FILE_TOO_LARGE_VALIDATION,
+        ERROR_FILE_IS_EMPTY,
+        ERROR_FILENAME_REQUIRED_VALIDATION,
+        ERROR_INVALID_FILENAME,
+        ERROR_INVALID_TAGS,
+        ERROR_INVALID_CATEGORY,
+        ERROR_FILE_VERSION_NOT_FOUND,
+        ERROR_CANNOT_RESTORE_DIFFERENT_FILE,
+    )
+except ImportError:
+    from i18n.messages import (
+        ERROR_NO_FILE_PROVIDED_VALIDATION,
+        ERROR_FILE_TYPE_NOT_ALLOWED,
+        ERROR_FILE_TOO_LARGE_VALIDATION,
+        ERROR_FILE_IS_EMPTY,
+        ERROR_FILENAME_REQUIRED_VALIDATION,
+        ERROR_INVALID_FILENAME,
+        ERROR_INVALID_TAGS,
+        ERROR_INVALID_CATEGORY,
+        ERROR_FILE_VERSION_NOT_FOUND,
+        ERROR_CANNOT_RESTORE_DIFFERENT_FILE,
+    )
+
 # Image processing
 try:
     from PIL import Image
@@ -160,12 +188,13 @@ class FileManager:
         """
         # Check if file exists
         if not file_obj or not file_obj.filename:
-            return False, "No file provided"
+            return False, str(ERROR_NO_FILE_PROVIDED_VALIDATION)
         
         # Check file extension
         ext = os.path.splitext(file_obj.filename)[1].lower()
         if ext not in self.allowed_extensions:
-            return False, f"File type '{ext}' not allowed. Allowed types: {', '.join(sorted(self.allowed_extensions))}"
+            allowed_types = ', '.join(sorted(self.allowed_extensions))
+            return False, ERROR_FILE_TYPE_NOT_ALLOWED.format(ext=ext, allowed_types=allowed_types)
         
         # Check file size
         file_obj.seek(0, os.SEEK_END)
@@ -175,10 +204,10 @@ class FileManager:
         if size > self.max_file_size:
             max_mb = self.max_file_size / (1024 * 1024)
             actual_mb = size / (1024 * 1024)
-            return False, f"File too large ({actual_mb:.1f}MB). Maximum allowed: {max_mb:.0f}MB"
+            return False, ERROR_FILE_TOO_LARGE_VALIDATION.format(actual_mb=actual_mb, max_mb=max_mb)
         
         if size == 0:
-            return False, "File is empty"
+            return False, str(ERROR_FILE_IS_EMPTY)
         
         return True, None
     
@@ -248,11 +277,11 @@ class FileManager:
         # Sanitize filename
         original_filename = file_obj.filename
         if not original_filename:
-            raise ValueError("Filename is required")
+            raise ValueError(str(ERROR_FILENAME_REQUIRED_VALIDATION))
         safe_filename = self._sanitize_filename(original_filename)
         
         if not safe_filename:
-            raise ValueError(f"Invalid filename: '{original_filename}'")
+            raise ValueError(ERROR_INVALID_FILENAME.format(filename=original_filename))
         
         # Validate tags (if provided)
         if tags:
@@ -262,7 +291,7 @@ class FileManager:
             invalid_tags = [t for t in tag_names if t not in valid_tags]
             if invalid_tags:
                 raise ValueError(
-                    f"Invalid tags: {invalid_tags}. Valid tags are: {valid_tags}"
+                    ERROR_INVALID_TAGS.format(invalid_tags=invalid_tags, valid_tags=valid_tags)
                 )
         
         # Validate category (if provided and not empty)
@@ -270,7 +299,7 @@ class FileManager:
             valid_categories = self.categories
             if category not in valid_categories:
                 raise ValueError(
-                    f"Invalid category: '{category}'. Valid categories are: {valid_categories}"
+                    ERROR_INVALID_CATEGORY.format(category=category, valid_categories=valid_categories)
                 )
         
         # Determine group_id (admin can specify, or None for files without a group)
@@ -992,10 +1021,10 @@ class FileManager:
         target = self.db_session.query(FileVersion).get(target_version_id)
         
         if not current or not target:
-            raise ValueError("File version not found")
+            raise ValueError(str(ERROR_FILE_VERSION_NOT_FOUND))
         
         if current.group_id != target.group_id or current.filename != target.filename:
-            raise ValueError("Cannot restore from different file")
+            raise ValueError(str(ERROR_CANNOT_RESTORE_DIFFERENT_FILE))
         
         # Mark current as not current
         current.is_current = False

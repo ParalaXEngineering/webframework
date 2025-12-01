@@ -110,14 +110,6 @@ ERROR_SAVING_USER_OVERRIDE = TranslatableString("Error setting user framework ov
 ERROR_SAVING_GLOBAL_CONFIG = TranslatableString("Error setting global config value")
 ERROR_SAVING_SETTINGS = TranslatableString("Error saving settings")
 
-# Settings Storage Messages
-ERROR_CONFIG_NOT_READABLE = TranslatableString("Config file not readable at {path}, using empty config")
-ERROR_INVALID_KEY = TranslatableString("Invalid key: {key}")
-ERROR_CATEGORY_NOT_FOUND = TranslatableString("Category not found: {category}")
-ERROR_SETTING_NOT_FOUND = TranslatableString("Setting not found: {setting}")
-ERROR_SETTINGS_FILE_EMPTY = TranslatableString("Settings file is empty or not loaded")
-ERROR_SETTING_PATH_NOT_FOUND = TranslatableString("Setting not found: {path}\nAvailable keys at this level: {available}\nPlease check your config.json file and ensure the setting exists.")
-
 MSG_SETTINGS_SAVED = TranslatableString("Settings saved successfully!")
 MSG_NO_OVERRIDABLE_SETTINGS = TranslatableString("No settings are currently configured as user-overridable. Contact your administrator.")
 
@@ -226,29 +218,6 @@ TEXT_STAT_RUNNING = TranslatableString("Running")
 TEXT_STAT_WITH_PROCESS = TranslatableString("With Process")
 TEXT_STAT_WITH_ERROR = TranslatableString("With Errors")
 
-# Thread Emitter - Status Messages
-STATUS_THREAD_RUNNING = TranslatableString("Running")
-STATUS_THREAD_COMPLETED = TranslatableString("Completed")
-STATUS_THREAD_ABORTED = TranslatableString("Aborted")
-STATUS_THREAD_ERROR = TranslatableString("Error")
-
-# Thread Emitter - UI Messages
-MSG_THREAD_NO_THREADS = TranslatableString("No threads currently running. Visit the Threading Demo to start some!")
-MSG_THREAD_NO_DATA = TranslatableString("No data available")
-MSG_THREAD_RUNNING_HEADER = TranslatableString("Running Threads")
-MSG_THREAD_COMPLETED_HEADER = TranslatableString("Completed Threads History")
-MSG_THREAD_LAST_N = TranslatableString("Last 10")
-
-# Thread Emitter - Tab Labels
-TEXT_THREAD_TAB_CONSOLE = TranslatableString("Console")
-TEXT_THREAD_TAB_LOGS = TranslatableString("Logs")
-TEXT_THREAD_TAB_INFO = TranslatableString("Info")
-
-# Thread Emitter - Info Labels
-TEXT_THREAD_INFO_NAME = TranslatableString("Thread Name:")
-TEXT_THREAD_INFO_STATUS = TranslatableString("Status:")
-TEXT_THREAD_INFO_PROGRESS = TranslatableString("Progress:")
-
 # =============================================================================
 # File Manager Module Messages
 # =============================================================================
@@ -271,21 +240,6 @@ ERROR_INVALID_TAGS = TranslatableString("Invalid tags: {invalid_tags}. Valid tag
 ERROR_INVALID_CATEGORY = TranslatableString("Invalid category: '{category}'. Valid categories are: {valid_categories}")
 ERROR_FILE_VERSION_NOT_FOUND = TranslatableString("File version not found")
 ERROR_CANNOT_RESTORE_DIFFERENT_FILE = TranslatableString("Cannot restore from different file")
-
-# DisplayerItem Validation Errors (file_items.py)
-ERROR_FILE_ID_OR_METADATA_REQUIRED = TranslatableString("Either file_id or file_metadata must be provided")
-
-# Storage Error Messages (storage.py)
-ERROR_STORAGE_FAILED_TO_STORE = TranslatableString("Failed to store file")
-ERROR_STORAGE_FILE_NOT_FOUND = TranslatableString("File not found in storage: {storage_path}")
-ERROR_STORAGE_CHECKSUM_NOT_FOUND = TranslatableString("File with checksum {checksum} not found")
-
-# Storage Log Messages (storage.py)
-LOG_STORAGE_INITIALIZED = TranslatableString("Initialized content-addressable storage at {storage_path}")
-LOG_STORAGE_FILE_EXISTS = TranslatableString("File already exists (deduplication): {checksum_prefix}...")
-LOG_STORAGE_FILE_STORED = TranslatableString("Stored new file: {checksum_prefix}...")
-LOG_STORAGE_FILE_DELETED = TranslatableString("Deleted file: {storage_path}")
-LOG_STORAGE_DELETE_NONEXISTENT = TranslatableString("Attempted to delete non-existent file: {storage_path}")
 
 # Page Titles
 TEXT_FILE_MANAGER = TranslatableString("File Manager")
@@ -409,20 +363,6 @@ ERROR_INTERNAL_SERVER = TranslatableString("Internal server error")
 # Success Messages
 MSG_FILE_DELETED_SUCCESS = TranslatableString("File deleted successfully")
 MSG_FILE_TOO_LARGE = TranslatableString("File too large")
-
-
-# =============================================================================
-# Auth Utils Module Messages (Password & Username Validation)
-# =============================================================================
-# Password Validation Errors
-ERROR_PASSWORD_TOO_SHORT = TranslatableString("Password must be at least {min_length} characters long")
-ERROR_PASSWORD_NO_LETTER = TranslatableString("Password must contain at least one letter")
-ERROR_PASSWORD_NO_NUMBER = TranslatableString("Password must contain at least one number")
-
-# Username Validation Errors
-ERROR_USERNAME_TOO_SHORT = TranslatableString("Username must be at least {min_length} characters long")
-ERROR_USERNAME_TOO_LONG = TranslatableString("Username cannot exceed {max_length} characters")
-ERROR_USERNAME_INVALID_FORMAT = TranslatableString("Username must start with letter/number and contain only letters, numbers, underscore, or hyphen")
 
 # =============================================================================
 # Admin Auth Module Messages
@@ -681,7 +621,6 @@ REFRESH_CONTENT = TranslatableString("<meta http-equiv='refresh' content='5'><p>
 # Error Messages
 ERROR_INVALID_LOG_FILE = TranslatableString("Invalid log file name")
 ERROR_LOG_FILE_NOT_FOUND = TranslatableString("Log file not found")
-ERROR_LOGS_DIR_NOT_FOUND = TranslatableString("Logs directory not found")
 
 # Page Titles
 TEXT_LOG_VIEWER = TranslatableString("Log Viewer")
@@ -758,178 +697,3 @@ STATUS_THREAD_STARTING_FOR_USER = TranslatableString("Starting thread '{name}' f
 
 # Warnings and Info Messages
 WARNING_THREAD_DEFAULT_ACTION = TranslatableString("Default action - override this method")
-
-# =============================================================================
-# Displayer Module Messages
-# =============================================================================
-# Error Messages - Permission and Access
-ERROR_DISPLAYER_NOT_LOGGED_IN = TranslatableString("You must be logged in to access this module.")
-ERROR_DISPLAYER_PERMISSION_DENIED = TranslatableString("You need '{required_action}' permission for '{required_permission}' module.")
-
-# =============================================================================
-# Displayer Layout Module Messages
-# =============================================================================
-# Error Messages
-ERROR_GRID_LAYOUT_REQUIRES_CONFIG = TranslatableString("GRID layout requires grid_config parameter")
-ERROR_BOTH_RESPONSIVE_AND_DATATABLE = TranslatableString("Cannot specify both 'responsive' and 'datatable_config'. Use 'datatable_config' only.")
-ERROR_GRID_CONFIG_NOT_DICT = TranslatableString("grid_config must be a dictionary")
-ERROR_GRID_CONFIG_NO_ITEMS = TranslatableString("grid_config must contain 'items' key")
-ERROR_GRID_CONFIG_ITEMS_NOT_LIST = TranslatableString("grid_config['items'] must be a list")
-ERROR_GRID_ITEM_NOT_DICT = TranslatableString("Item {idx} must be a dictionary")
-ERROR_GRID_ITEM_MISSING_KEY = TranslatableString("Item {idx} missing required key: {key}")
-ERROR_GRID_ITEM_INVALID_WIDTH = TranslatableString("Item {idx} width (w) must be between 1 and 12")
-ERROR_GRID_ITEM_INVALID_X = TranslatableString("Item {idx} x position must be between 0 and 11")
-ERROR_GRID_ITEM_EXCEEDS_BOUNDS = TranslatableString("Item {idx} exceeds grid bounds (x + w > 12)")
-
-# Deprecation Warnings
-WARNING_RESPONSIVE_DEPRECATED = TranslatableString("Parameter 'responsive' is deprecated and will be removed in v2.0. Use 'datatable_config' instead with TableMode enum.")
-
-# =============================================================================
-# Scheduler Message Queue Module Messages
-# =============================================================================
-# Debug/Log Messages (user-visible in logs)
-LOG_QUEUE_ADDED_USER = TranslatableString("[QUEUE] Added {msg_type} message for user '{username}'")
-LOG_QUEUE_ADDED_BROADCAST = TranslatableString("[QUEUE] Added {msg_type} broadcast message")
-
-# =============================================================================
-# Scheduler Module Messages
-# =============================================================================
-# Log Messages (for debugging and monitoring)
-LOG_SCHEDULER_ERROR_EXECUTING = TranslatableString("Error executing function {func_name}: {error}")
-LOG_SCHEDULER_LT_STOPPED = TranslatableString("LT Scheduler stopped")
-LOG_SCHEDULER_LT_STARTED = TranslatableString("LT Scheduler started")
-LOG_SCHEDULER_STARTED = TranslatableString("Scheduler started")
-LOG_SCHEDULER_COLLECTED_MESSAGES = TranslatableString("Collected messages - Status: {status_count}, Popups: {popup_count}, Results: {result_count}, Buttons: {button_count}, Reloads: {reload_count}")
-
-# =============================================================================
-# Log Parser Module Messages
-# =============================================================================
-# Error Messages
-ERROR_LOG_FILE_NOT_FOUND_PARSER = TranslatableString("Log file not found: {log_file_path}")
-ERROR_READING_LOG_FILE = TranslatableString("Error reading log file: {error}")
-
-# =============================================================================
-# User Defined Module Messages
-# =============================================================================
-# Default Module Name
-TEXT_CUSTOM_MODULE_DEFAULT = TranslatableString("Custom Module")
-
-# =============================================================================
-# Utilities Module Messages
-# =============================================================================
-# Error Messages
-ERROR_CONFIG_KEY_NOT_FOUND = TranslatableString("Configuration key not found in config.json. Please configure the required settings in the Settings page (/settings).\nMissing key: {key}")
-
-# =============================================================================
-# SFTP Connection Module Messages
-# =============================================================================
-# Error Messages
-ERROR_SFTP_CONNECTION_FAILED = TranslatableString("SFTP connection failed for {host}:{port} - {error}")
-ERROR_SFTP_REMOTE_DIR_NOT_FOUND = TranslatableString("Remote directory not found: {remote_path}")
-ERROR_SFTP_DOWNLOAD_FAILED = TranslatableString("Failed to download {remote_path}: {error}")
-ERROR_SFTP_UPLOAD_FAILED = TranslatableString("Failed to upload {local_path} to {remote_path}: {error}")
-ERROR_SFTP_MKDIR_FAILED = TranslatableString("Cannot create directory (may already exist): {remote_path}")
-ERROR_SFTP_CHECK_EXISTENCE_FAILED = TranslatableString("Failed to check existence of {remote_path}: {error}")
-
-# =============================================================================
-# Config Manager Module Messages
-# =============================================================================
-# Success Messages
-MSG_NETWORK_CONFIG_SUCCESS = TranslatableString("Network configuration applied successfully")
-
-# Error Messages
-ERROR_NETWORK_VALIDATION = TranslatableString("IP address and subnet mask are required for static configuration")
-ERROR_NETWORK_CONFIG = TranslatableString("Configuration error: {}")
-ERROR_NETWORK_CMD_FAILED = TranslatableString("Command failed: {}")
-
-# =============================================================================
-# Default Configs Module Messages (Configuration Friendly Names)
-# =============================================================================
-# Framework UI Configuration
-CONFIG_FRAMEWORK_UI = TranslatableString("Framework UI Configuration")
-CONFIG_LANGUAGE = TranslatableString("Language / Langue")
-CONFIG_THREAD_STATUS_ENABLED = TranslatableString("Show Thread Status in Topbar")
-CONFIG_THREAD_STATUS_POSITION = TranslatableString("Thread Status Position in Topbar")
-CONFIG_THREAD_STATUS_ICON = TranslatableString("Thread Status Icon")
-CONFIG_LOG_VIEWER_MAX_LINES = TranslatableString("Log Viewer Max Lines to Display")
-CONFIG_LOG_VIEWER_REFRESH_INTERVAL = TranslatableString("Log Viewer Refresh Interval (seconds)")
-
-# Redmine Configuration
-CONFIG_REDMINE = TranslatableString("Redmine Configuration")
-CONFIG_REDMINE_USER = TranslatableString("User")
-CONFIG_REDMINE_PASSWORD = TranslatableString("Password")
-CONFIG_REDMINE_ADDRESS = TranslatableString("Server Address")
-CONFIG_REDMINE_PROJECT_ID = TranslatableString("Project ID")
-
-# Updates/Maintenance Configuration
-CONFIG_UPDATES = TranslatableString("Maintenance server configuration")
-CONFIG_UPDATES_SOURCE = TranslatableString("Source")
-CONFIG_UPDATES_FOLDER = TranslatableString("Local folder")
-CONFIG_UPDATES_FTP_ADDRESS = TranslatableString("FTP Address")
-CONFIG_UPDATES_FTP_PATH = TranslatableString("FTP Remote path")
-CONFIG_UPDATES_FTP_USER = TranslatableString("FTP User")
-CONFIG_UPDATES_FTP_PASSWORD = TranslatableString("FTP Password")
-
-# File Storage Configuration
-CONFIG_FILE_STORAGE = TranslatableString("File Storage Settings")
-CONFIG_HASHFS_PATH = TranslatableString("HashFS Storage Directory")
-CONFIG_MAX_FILE_SIZE_MB = TranslatableString("Max File Size (MB)")
-CONFIG_ALLOWED_EXTENSIONS = TranslatableString("Allowed Extensions")
-CONFIG_CATEGORIES = TranslatableString("File Categories")
-CONFIG_GROUP_IDS = TranslatableString("Available Group IDs")
-CONFIG_GENERATE_THUMBNAILS = TranslatableString("Generate Thumbnails")
-CONFIG_THUMBNAIL_SIZES = TranslatableString("Thumbnail Sizes (WxH)")
-CONFIG_IMAGE_QUALITY = TranslatableString("Image Compression Quality (1-100)")
-CONFIG_STRIP_EXIF = TranslatableString("Remove EXIF Metadata from Images")
-CONFIG_TAGS = TranslatableString("Available File Tags")
-
-# =============================================================================
-# Workflow Module Messages
-# =============================================================================
-# Button Labels
-BUTTON_WORKFLOW_PREVIOUS = TranslatableString("Previous")
-BUTTON_WORKFLOW_NEXT = TranslatableString("Next")
-BUTTON_WORKFLOW_SKIP = TranslatableString("Skip")
-BUTTON_WORKFLOW_FINISH = TranslatableString("Finish")
-BUTTON_WORKFLOW_PROCESSING = TranslatableString("Processing...")
-BUTTON_WORKFLOW_REDO_LAST = TranslatableString("Redo Last Step")
-BUTTON_WORKFLOW_REDO = TranslatableString("🔄 Redo")
-
-# Error Messages
-ERROR_WORKFLOW_DISPLAY_FAILED = TranslatableString("Error displaying step: {error}")
-ERROR_WORKFLOW_NO_CURRENT_STEP = TranslatableString("No current step available")
-ERROR_WORKFLOW_INVALID_TARGET_STEP = TranslatableString("Invalid target step index: {target_step_index}")
-ERROR_WORKFLOW_ACTION_FAILED = TranslatableString("Step action failed: {error}")
-ERROR_WORKFLOW_SKIP_FAILED = TranslatableString("Step skip failed: {error}")
-
-# Status Messages
-MSG_WORKFLOW_STEP_PROGRESS = TranslatableString("<strong>Step {visible_idx} of {total_visible}</strong> ({progress}% complete)")
-
-# =============================================================================
-# Site Configuration Module Messages
-# =============================================================================
-# Sidebar Section Names (user-visible)
-TEXT_SECTION_SYSTEM = TranslatableString("System")
-TEXT_SECTION_USER_MANAGEMENT = TranslatableString("User Management")
-TEXT_SECTION_ACCOUNT = TranslatableString("Account")
-TEXT_SECTION_ADMIN = TranslatableString("Admin")
-TEXT_SECTION_MONITORING = TranslatableString("Monitoring")
-TEXT_SECTION_TOOLS = TranslatableString("Tools")
-TEXT_SECTION_DEPLOYMENT = TranslatableString("Deployment")
-
-# Sidebar Submenu Names (user-visible)
-TEXT_MY_PROFILE_SIDEBAR = TranslatableString("My Profile")
-TEXT_FRAMEWORK_PREFERENCES = TranslatableString("Framework Preferences")
-TEXT_USERS = TranslatableString("Users")
-TEXT_PERMISSIONS = TranslatableString("Permissions")
-TEXT_GROUPS_SIDEBAR = TranslatableString("Groups")
-TEXT_THREAD_MONITOR_SIDEBAR = TranslatableString("Thread Monitor")
-TEXT_LOG_VIEWER_SIDEBAR = TranslatableString("Log Viewer")
-TEXT_BUG_TRACKER_SIDEBAR = TranslatableString("Bug Tracker")
-TEXT_SETTINGS_SIDEBAR = TranslatableString("Settings")
-TEXT_UPDATER_SIDEBAR = TranslatableString("Updater")
-TEXT_PACKAGER_SIDEBAR = TranslatableString("Packager")
-TEXT_FILE_MANAGER_SIDEBAR = TranslatableString("File Manager")
-
-# Default Messages
-TEXT_DEFAULT_INDEX_MESSAGE = TranslatableString("Welcome to the ESD framework default page")

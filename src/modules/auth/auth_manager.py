@@ -9,14 +9,34 @@ from typing import Dict, List, Optional, Set
 
 from flask import session
 
-from .auth_models import ModulePermission, User
+from .auth_models import ModulePermission, User, DEFAULT_AVATAR
 from .auth_utils import get_default_user_prefs, hash_password, verify_password
-from .security_utils import FailedLoginManager
+from .security_utils import (
+    FailedLoginManager,
+    DEFAULT_MAX_ATTEMPTS as DEFAULT_MAX_LOGIN_ATTEMPTS,
+    DEFAULT_LOCKOUT_MINUTES,
+)
 
 try:
     from ..log.logger_factory import get_logger
 except ImportError:
     from log.logger_factory import get_logger
+
+# Import user-facing messages for i18n
+try:
+    from ..i18n.messages import (
+        ERROR_AUTH_ACCOUNT_LOCKED,
+        ERROR_AUTH_USER_DOES_NOT_EXIST,
+        ERROR_AUTH_TOO_MANY_ATTEMPTS,
+        ERROR_AUTH_BAD_PASSWORD,
+    )
+except ImportError:
+    from i18n.messages import (
+        ERROR_AUTH_ACCOUNT_LOCKED,
+        ERROR_AUTH_USER_DOES_NOT_EXIST,
+        ERROR_AUTH_TOO_MANY_ATTEMPTS,
+        ERROR_AUTH_BAD_PASSWORD,
+    )
 
 logger = get_logger("auth.auth_manager")
 
@@ -30,12 +50,12 @@ USER_PREFS_DIR = "user_prefs"
 
 DEFAULT_ADMIN_USER = "admin"
 DEFAULT_GUEST_USER = "guest"
-DEFAULT_AVATAR = "default.jpg"
+# DEFAULT_AVATAR imported from auth_models
 ADMIN_GROUP = "admin"
 GUEST_GROUP = "guest"
 
-DEFAULT_MAX_LOGIN_ATTEMPTS = 5
-DEFAULT_LOCKOUT_MINUTES = 5
+# Security constants imported from security_utils:
+# DEFAULT_MAX_LOGIN_ATTEMPTS, DEFAULT_LOCKOUT_MINUTES
 
 DEFAULT_ADMIN_ACTIONS = ["view", "edit", "delete", "execute"]
 DEFAULT_PAGES_KEY = "pages"
@@ -442,13 +462,13 @@ class AuthManager:
             remaining_time = self.failed_login_manager.get_lockout_time_remaining(username)
             minutes = int(remaining_time // 60)
             seconds = int(remaining_time % 60)
-            error_message = f"Account locked. Try again in {minutes}m {seconds}s"
+            error_message = ERROR_AUTH_ACCOUNT_LOCKED.format(minutes=minutes, seconds=seconds)
             return (False, error_message)
         
         # Check if user exists
         user = self._users.get(username)
         if not user:
-            error_message = "User does not exist"
+            error_message = str(ERROR_AUTH_USER_DOES_NOT_EXIST)
             return (False, error_message)
         
         # Check for passwordless users (always allowed)
@@ -470,9 +490,9 @@ class AuthManager:
             
             if count >= DEFAULT_MAX_LOGIN_ATTEMPTS:
                 # Account is now locked
-                error_message = f"Too many failed attempts. Account locked for {DEFAULT_LOCKOUT_MINUTES} minutes."
+                error_message = ERROR_AUTH_TOO_MANY_ATTEMPTS.format(lockout_minutes=DEFAULT_LOCKOUT_MINUTES)
             else:
-                error_message = f"Bad password ({attempts_left} attempts remaining)"
+                error_message = ERROR_AUTH_BAD_PASSWORD.format(attempts_left=attempts_left)
             
             return (False, error_message)
     

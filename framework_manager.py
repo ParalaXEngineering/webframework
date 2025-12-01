@@ -1048,6 +1048,395 @@ def analyze_refactoring(file_path: Path, output_format: str = 'text') -> None:
 
 
 # ============================================================================
+# Babel i18n Functions
+# ============================================================================
+
+def babel_extract():
+    """Extract translatable strings from Python and template files."""
+    print_header("Extracting Translatable Strings")
+    
+    python_exe = get_python_executable()
+    
+    # Check if pybabel is available
+    log("Checking for Babel...")
+    pybabel_exe = ToolDetector.find_executable("pybabel", [python_exe.parent])
+    
+    if not pybabel_exe:
+        # Try python -m flask_babel (alternative)
+        result = subprocess.run(
+            [str(python_exe), "-c", "import babel; print(babel.__version__)"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
+    else:
+        result = subprocess.run(
+            [str(pybabel_exe), "--version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
+    
+    if result.returncode != 0:
+        log("Babel not installed", "error")
+        log("Installing Babel...", "info")
+        install_result = ToolDetector.run_with_pip(
+            python_exe,
+            ["install", "babel", "flask-babel"],
+            cwd=FRAMEWORK_ROOT
+        )
+        if install_result.returncode != 0:
+            log("Failed to install Babel", "error")
+            return
+        log("Babel installed successfully", "success")
+    
+    # Run pybabel extract
+    log("Extracting strings...")
+    output_file = FRAMEWORK_ROOT / "translations" / "messages.pot"
+    
+    pybabel_exe = ToolDetector.find_executable("pybabel", [python_exe.parent])
+    if not pybabel_exe:
+        log("pybabel executable not found", "error")
+        return
+    
+    cmd = [
+        str(pybabel_exe), "extract",
+        "-F", "babel.cfg",
+        "-k", "_",
+        "-k", "gettext",
+        "-k", "TranslatableString",
+        "-o", str(output_file),
+        "."
+    ]
+    
+    result = subprocess.run(
+        cmd,
+        cwd=FRAMEWORK_ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True
+    )
+    
+    if result.returncode != 0:
+        log("Extraction failed", "error")
+        print(result.stderr)
+        return
+    
+    # Count extracted strings
+    if output_file.exists():
+        with open(output_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+            count = content.count('msgid "') - 1  # -1 for the header msgid
+        
+        print_header("Extraction Complete!")
+        print(f"  Output: {output_file}")
+        print(f"  Strings extracted: {count}")
+        print("\n  Next steps:")
+        print("    1. Run 'python framework_manager.py babel init <locale>' to create new language")
+        print("    2. Run 'python framework_manager.py babel update' to update existing translations")
+        print()
+    else:
+        log("No output file created", "error")
+
+
+def babel_init(locale: str):
+    """Initialize a new language translation."""
+    print_header(f"Initializing Translation: {locale}")
+    
+    python_exe = get_python_executable()
+    translations_dir = FRAMEWORK_ROOT / "translations"
+    pot_file = translations_dir / "messages.pot"
+    
+    if not pot_file.exists():
+        log("messages.pot not found", "error")
+        log("Run 'python framework_manager.py babel extract' first", "info")
+        return
+    
+    # Check if locale already exists
+    locale_dir = translations_dir / locale / "LC_MESSAGES"
+    if locale_dir.exists() and (locale_dir / "messages.po").exists():
+        log(f"Translation for '{locale}' already exists", "warning")
+        confirm = input(f"Overwrite existing '{locale}' translation? (yes/no): ").strip().lower()
+        if confirm != "yes":
+            print("Initialization cancelled.")
+            return
+    
+    # Run pybabel init
+    log(f"Creating {locale} translation...")
+    
+    pybabel_exe = ToolDetector.find_executable("pybabel", [python_exe.parent])
+    if not pybabel_exe:
+        log("pybabel executable not found", "error")
+        return
+    
+    cmd = [
+        str(pybabel_exe), "init",
+        "-i", str(pot_file),
+        "-d", str(translations_dir),
+        "-l", locale
+    ]
+    
+    result = subprocess.run(
+        cmd,
+        cwd=FRAMEWORK_ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True
+    )
+    
+    if result.returncode != 0:
+        log("Initialization failed", "error")
+        print(result.stderr)
+        return
+    
+    po_file = locale_dir / "messages.po"
+    if po_file.exists():
+        print_header("Translation Initialized!")
+        print(f"  Language: {locale}")
+        print(f"  File: {po_file}")
+        print("\n  Next steps:")
+        print(f"    1. Edit {po_file} and translate the msgstr strings")
+        print("    2. Run 'python framework_manager.py babel compile' to generate .mo files")
+        print()
+    else:
+        log("Initialization completed but .po file not found", "warning")
+
+
+def babel_compile():
+    """Compile .po files to binary .mo files."""
+    print_header("Compiling Translations")
+    
+    python_exe = get_python_executable()
+    translations_dir = FRAMEWORK_ROOT / "translations"
+    
+    if not translations_dir.exists():
+        log("translations/ directory not found", "error")
+        return
+    
+    # Find all .po files
+    po_files = list(translations_dir.glob("*/LC_MESSAGES/messages.po"))
+    
+    if not po_files:
+        log("No .po files found", "warning")
+        log("Run 'python framework_manager.py babel init <locale>' first", "info")
+        return
+    
+    log(f"Found {len(po_files)} translation(s) to compile...")
+    
+    # Get pybabel executable
+    pybabel_exe = ToolDetector.find_executable("pybabel", [python_exe.parent])
+    if not pybabel_exe:
+        log("pybabel executable not found", "error")
+        return
+    
+    # Compile each locale
+    success_count = 0
+    for po_file in po_files:
+        locale = po_file.parent.parent.name
+        log(f"Compiling {locale}...", "info")
+        
+        cmd = [
+            str(pybabel_exe), "compile",
+            "-d", str(translations_dir),
+            "-l", locale
+        ]
+        
+        result = subprocess.run(
+            cmd,
+            cwd=FRAMEWORK_ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
+        
+        if result.returncode == 0:
+            mo_file = po_file.parent / "messages.mo"
+            if mo_file.exists():
+                log(f"  {locale}: OK", "success")
+                success_count += 1
+            else:
+                log(f"  {locale}: .mo file not created", "warning")
+        else:
+            log(f"  {locale}: FAILED", "error")
+            print(result.stderr)
+    
+    print_header("Compilation Complete!")
+    print(f"  Compiled: {success_count}/{len(po_files)} languages")
+    print("\n  Translations are now ready to use!")
+    print("  Restart your application to load the new translations.\n")
+
+
+def babel_update():
+    """Update existing translations with new strings from code."""
+    print_header("Updating Translations")
+    
+    python_exe = get_python_executable()
+    translations_dir = FRAMEWORK_ROOT / "translations"
+    pot_file = translations_dir / "messages.pot"
+    
+    if not pot_file.exists():
+        log("messages.pot not found", "error")
+        log("Run 'python framework_manager.py babel extract' first", "info")
+        return
+    
+    # Find all existing translations
+    po_files = list(translations_dir.glob("*/LC_MESSAGES/messages.po"))
+    
+    if not po_files:
+        log("No existing translations found", "warning")
+        log("Run 'python framework_manager.py babel init <locale>' first", "info")
+        return
+    
+    log(f"Found {len(po_files)} translation(s) to update...")
+    
+    # Get pybabel executable
+    pybabel_exe = ToolDetector.find_executable("pybabel", [python_exe.parent])
+    if not pybabel_exe:
+        log("pybabel executable not found", "error")
+        return
+    
+    # Update each locale
+    success_count = 0
+    for po_file in po_files:
+        locale = po_file.parent.parent.name
+        log(f"Updating {locale}...", "info")
+        
+        cmd = [
+            str(pybabel_exe), "update",
+            "-i", str(pot_file),
+            "-d", str(translations_dir),
+            "-l", locale
+        ]
+        
+        result = subprocess.run(
+            cmd,
+            cwd=FRAMEWORK_ROOT,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
+        
+        if result.returncode == 0:
+            log(f"  {locale}: OK", "success")
+            success_count += 1
+        else:
+            log(f"  {locale}: FAILED", "error")
+            print(result.stderr)
+    
+    print_header("Update Complete!")
+    print(f"  Updated: {success_count}/{len(po_files)} languages")
+    print("\n  Next steps:")
+    print("    1. Translate new/updated strings in the .po files")
+    print("    2. Run 'python framework_manager.py babel compile' to generate .mo files")
+    print()
+
+
+def babel_status():
+    """Show translation status for all languages."""
+    print_header("Translation Status")
+    
+    translations_dir = FRAMEWORK_ROOT / "translations"
+    pot_file = translations_dir / "messages.pot"
+    
+    # Get total strings from .pot file
+    total_strings = 0
+    if pot_file.exists():
+        with open(pot_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+            total_strings = content.count('msgid "') - 1  # -1 for header
+        print(f"  Total translatable strings: {total_strings}\n")
+    else:
+        log("messages.pot not found", "warning")
+        log("Run 'python framework_manager.py babel extract' first\n", "info")
+    
+    # Find all translations
+    po_files = list(translations_dir.glob("*/LC_MESSAGES/messages.po"))
+    
+    if not po_files:
+        log("No translations found", "warning")
+        log("Run 'python framework_manager.py babel init <locale>' to create one\n", "info")
+        return
+    
+    print(f"  {'Language':<12} {'Translated':<15} {'Fuzzy':<10} {'Untranslated':<15} {'.mo File':<10}")
+    print("  " + "-" * 70)
+    
+    for po_file in sorted(po_files):
+        locale = po_file.parent.parent.name
+        
+        # Parse .po file
+        with open(po_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Count strings
+        translated = 0
+        fuzzy = 0
+        untranslated = 0
+        
+        # Split into entries
+        entries = content.split('\nmsgid ')
+        for entry in entries[1:]:  # Skip header
+            if 'msgstr ""' in entry or 'msgstr ""\n' in entry:
+                # Check if it's actually empty (not just multiline)
+                msgstr_section = entry.split('msgstr ')[1]
+                if msgstr_section.strip().strip('"').strip('\n') == '':
+                    untranslated += 1
+                else:
+                    translated += 1
+            else:
+                translated += 1
+            
+            if '#, fuzzy' in entry:
+                fuzzy += 1
+        
+        # Check for .mo file
+        mo_file = po_file.parent / "messages.mo"
+        mo_status = "✓" if mo_file.exists() else "✗"
+        
+        # Calculate percentage
+        total = translated + untranslated
+        pct = (translated / total * 100) if total > 0 else 0
+        
+        print(f"  {locale:<12} {translated}/{total} ({pct:.0f}%){' ':<5} {fuzzy:<10} {untranslated:<15} {mo_status:<10}")
+    
+    print("\n  Legend:")
+    print("    ✓ = compiled .mo file exists")
+    print("    ✗ = .mo file missing (run 'python framework_manager.py babel compile')\n")
+
+
+def manage_babel_interactive():
+    """Interactive babel management menu."""
+    print_header("Babel Translation Manager")
+    print("  Manage internationalization (i18n) for the framework\n")
+    print("  [E] Extract translatable strings")
+    print("  [I] Initialize new language")
+    print("  [U] Update existing translations")
+    print("  [C] Compile translations to .mo files")
+    print("  [S] Show translation status")
+    print("  [Q] Back to main menu\n")
+    
+    choice = input("Choose action: ").strip().upper()
+    
+    if choice == "E":
+        babel_extract()
+    elif choice == "I":
+        locale = input("Enter locale code (e.g., fr, es, de): ").strip().lower()
+        if locale:
+            babel_init(locale)
+        else:
+            print("Invalid locale code.")
+    elif choice == "U":
+        babel_update()
+    elif choice == "C":
+        babel_compile()
+    elif choice == "S":
+        babel_status()
+    elif choice == "Q":
+        return
+    else:
+        print("Invalid choice.")
+
+
+# ============================================================================
 # Documentation Functions
 # ============================================================================
 
@@ -1156,6 +1545,11 @@ Examples:
   python framework_manager.py diagnose
   python framework_manager.py refactor src/pages/myfile.py
   python framework_manager.py refactor src/pages/myfile.py --json
+  python framework_manager.py babel extract
+  python framework_manager.py babel init fr
+  python framework_manager.py babel compile
+  python framework_manager.py babel update
+  python framework_manager.py babel status
         """
     )
     
@@ -1183,6 +1577,16 @@ Examples:
     refactor_parser.add_argument("file", help="Python file to analyze")
     refactor_parser.add_argument("--json", action="store_true", help="Output in JSON format")
     
+    # Babel i18n commands
+    babel_parser = subparsers.add_parser("babel", help="Manage internationalization (i18n) translations")
+    babel_subparsers = babel_parser.add_subparsers(dest="babel_command", help="Babel command to execute")
+    babel_subparsers.add_parser("extract", help="Extract translatable strings from code")
+    babel_init = babel_subparsers.add_parser("init", help="Initialize new language translation")
+    babel_init.add_argument("locale", help="Locale code (e.g., 'fr', 'es', 'de')")
+    babel_subparsers.add_parser("compile", help="Compile .po files to .mo (binary) files")
+    babel_subparsers.add_parser("update", help="Update existing translations with new strings")
+    babel_subparsers.add_parser("status", help="Show translation status for all languages")
+    
     args = parser.parse_args()
     
     # Interactive mode if no command
@@ -1192,6 +1596,7 @@ Examples:
         print("  [1] Update vendor libraries")
         print("  [2] Manage example website")
         print("  [3] Build documentation")
+        print("  [4] Manage translations (i18n)")
         print("  [Q] Quit\n")
         
         choice = input("Choose action: ").strip().upper()
@@ -1202,6 +1607,8 @@ Examples:
             manage_example_interactive()
         elif choice == "3":
             build_documentation()
+        elif choice == "4":
+            manage_babel_interactive()
         elif choice == "Q":
             sys.exit(0)
         else:
@@ -1232,6 +1639,19 @@ Examples:
             file_path = FRAMEWORK_ROOT / file_path
         output_format = 'json' if args.json else 'text'
         analyze_refactoring(file_path, output_format)
+    elif args.command == "babel":
+        if not args.babel_command:
+            manage_babel_interactive()
+        elif args.babel_command == "extract":
+            babel_extract()
+        elif args.babel_command == "init":
+            babel_init(args.locale)
+        elif args.babel_command == "compile":
+            babel_compile()
+        elif args.babel_command == "update":
+            babel_update()
+        elif args.babel_command == "status":
+            babel_status()
 
 
 def manage_example_interactive():

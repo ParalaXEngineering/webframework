@@ -7,6 +7,13 @@ Extracted from settings.py to separate business logic from presentation layer.
 
 from typing import Any, Dict, List
 
+# Framework modules - i18n
+from ..i18n.messages import (
+    ERROR_LOG_FILE_NOT_FOUND_PARSER,
+    ERROR_READING_LOG_FILE,
+)
+
+# Domain-specific constants
 # Standard log levels (priority order for detection)
 LOG_LEVELS = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'WARN', 'FATAL']
 
@@ -32,9 +39,9 @@ def read_log_file(log_file_path: str, max_lines: int = 100) -> List[str]:
             lines = f.readlines()
             return lines[-max_lines:] if len(lines) > max_lines else lines
     except FileNotFoundError:
-        return [f"Log file not found: {log_file_path}"]
+        return [ERROR_LOG_FILE_NOT_FOUND_PARSER.format(log_file_path=log_file_path)]
     except Exception as e:
-        return [f"Error reading log file: {str(e)}"]
+        return [ERROR_READING_LOG_FILE.format(error=str(e))]
 
 
 def parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:

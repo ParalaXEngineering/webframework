@@ -4,6 +4,12 @@ Module permission registry for action registration.
 
 from typing import Dict, List, Set
 
+# =============================================================================
+# Permission System Constants (Domain-Specific)
+# =============================================================================
+# Default permission action that all modules have implicitly
+PERMISSION_ACTION_VIEW = "view"
+
 
 class PermissionRegistry:
     """
@@ -45,7 +51,7 @@ class PermissionRegistry:
             self._modules[module_name] = set()
         
         # Always include 'view' as the base permission
-        self._modules[module_name].add("view")
+        self._modules[module_name].add(PERMISSION_ACTION_VIEW)
         
         # Add custom actions
         self._modules[module_name].update(actions)

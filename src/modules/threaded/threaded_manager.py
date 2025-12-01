@@ -13,7 +13,42 @@ try:
 except ImportError:
     from log.logger_factory import get_logger
 
-# Constants
+try:
+    from ..i18n.messages import (
+        ERROR_LOCK_TIMEOUT_ADD,
+        ERROR_LOCK_TIMEOUT_DEL,
+        ERROR_LOCK_TIMEOUT_GET_ALL,
+        ERROR_LOCK_TIMEOUT_GET_COMPLETED,
+        ERROR_LOCK_TIMEOUT_GET_ALL_HISTORY,
+        ERROR_LOCK_TIMEOUT_GET_BY_NAME,
+        ERROR_LOCK_TIMEOUT_GET_UNIQUE,
+        ERROR_LOCK_TIMEOUT_GET_NAMES,
+        ERROR_LOCK_TIMEOUT_GET_THREAD,
+        ERROR_LOCK_TIMEOUT_REMOVE_HISTORY,
+        ERROR_LOCK_TIMEOUT_KILL_ALL,
+        ERROR_LOCK_TIMEOUT_COUNT,
+        ERROR_LOCK_TIMEOUT_STATS,
+        ERROR_COULD_NOT_ACQUIRE_LOCK,
+    )
+except ImportError:
+    from i18n.messages import (
+        ERROR_LOCK_TIMEOUT_ADD,
+        ERROR_LOCK_TIMEOUT_DEL,
+        ERROR_LOCK_TIMEOUT_GET_ALL,
+        ERROR_LOCK_TIMEOUT_GET_COMPLETED,
+        ERROR_LOCK_TIMEOUT_GET_ALL_HISTORY,
+        ERROR_LOCK_TIMEOUT_GET_BY_NAME,
+        ERROR_LOCK_TIMEOUT_GET_UNIQUE,
+        ERROR_LOCK_TIMEOUT_GET_NAMES,
+        ERROR_LOCK_TIMEOUT_GET_THREAD,
+        ERROR_LOCK_TIMEOUT_REMOVE_HISTORY,
+        ERROR_LOCK_TIMEOUT_KILL_ALL,
+        ERROR_LOCK_TIMEOUT_COUNT,
+        ERROR_LOCK_TIMEOUT_STATS,
+        ERROR_COULD_NOT_ACQUIRE_LOCK,
+    )
+
+# Domain-specific constants
 DEFAULT_LOCK_TIMEOUT = 2.0
 MAX_HISTORY_SIZE = 50
 DEFAULT_STATS = {
@@ -23,28 +58,6 @@ DEFAULT_STATS = {
     "with_error": 0,
     "unique_names": 0
 }
-
-# Log level constants (for consistency)
-LOG_LEVEL_INFO = "INFO"
-LOG_LEVEL_DEBUG = "DEBUG"
-LOG_LEVEL_WARNING = "WARNING"
-LOG_LEVEL_ERROR = "ERROR"
-
-# Error messages
-ERR_LOCK_TIMEOUT_ADD = "Failed to acquire lock for add_thread (timeout=%ss)"
-ERR_LOCK_TIMEOUT_DEL = "Failed to acquire lock for del_thread (timeout=%ss)"
-ERR_LOCK_TIMEOUT_GET_ALL = "Failed to acquire lock for get_all_threads (timeout=%ss)"
-ERR_LOCK_TIMEOUT_GET_COMPLETED = "Failed to acquire lock for get_completed_threads (timeout=%ss)"
-ERR_LOCK_TIMEOUT_GET_ALL_HISTORY = "Failed to acquire lock for get_all_threads_with_history (timeout=%ss)"
-ERR_LOCK_TIMEOUT_GET_BY_NAME = "Failed to acquire lock for get_threads_by_name (timeout=%ss)"
-ERR_LOCK_TIMEOUT_GET_UNIQUE = "Failed to acquire lock for get_unique_names (timeout=%ss)"
-ERR_LOCK_TIMEOUT_GET_NAMES = "Failed to acquire lock for get_names (timeout=%ss)"
-ERR_LOCK_TIMEOUT_GET_THREAD = "Failed to acquire lock for get_thread (timeout=%ss)"
-ERR_LOCK_TIMEOUT_REMOVE_HISTORY = "Failed to acquire lock for remove_from_history (timeout=%ss)"
-ERR_LOCK_TIMEOUT_KILL_ALL = "Failed to acquire lock for kill_all_threads (timeout=%ss)"
-ERR_LOCK_TIMEOUT_COUNT = "Failed to acquire lock for get_thread_count (timeout=%ss)"
-ERR_LOCK_TIMEOUT_STATS = "Failed to acquire lock for get_thread_stats (timeout=%ss)"
-ERR_COULD_NOT_ACQUIRE = "Could not acquire lock within %ss"
 
 thread_manager_obj = None
 
@@ -75,8 +88,8 @@ class Threaded_manager:
             thread: The thread to add
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_ADD, self.lock_timeout)
-            raise TimeoutError(ERR_COULD_NOT_ACQUIRE % self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_ADD.format(timeout=self.lock_timeout))
+            raise TimeoutError(ERROR_COULD_NOT_ACQUIRE_LOCK.format(timeout=self.lock_timeout))
         
         try:
             if thread in self.m_running_threads:
@@ -112,8 +125,8 @@ class Threaded_manager:
 
         # Remove from pool and add to history
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_DEL, self.lock_timeout)
-            raise TimeoutError(ERR_COULD_NOT_ACQUIRE % self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_DEL.format(timeout=self.lock_timeout))
+            raise TimeoutError(ERROR_COULD_NOT_ACQUIRE_LOCK.format(timeout=self.lock_timeout))
         
         try:
             try:
@@ -137,7 +150,7 @@ class Threaded_manager:
             List of all managed threads
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_ALL, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_GET_ALL.format(timeout=self.lock_timeout))
             return []
         
         try:
@@ -152,7 +165,7 @@ class Threaded_manager:
             List of completed threads
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_COMPLETED, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_GET_COMPLETED.format(timeout=self.lock_timeout))
             return []
         
         try:
@@ -167,7 +180,7 @@ class Threaded_manager:
             Tuple of (running_threads, completed_threads)
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_ALL_HISTORY, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_GET_ALL_HISTORY.format(timeout=self.lock_timeout))
             return ([], [])
         
         try:
@@ -185,7 +198,7 @@ class Threaded_manager:
             List of threads with matching names
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_BY_NAME, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_GET_BY_NAME.format(timeout=self.lock_timeout))
             return []
         
         try:
@@ -202,7 +215,7 @@ class Threaded_manager:
             List of unique thread names
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_UNIQUE, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_GET_UNIQUE.format(timeout=self.lock_timeout))
             return []
         
         try:
@@ -223,7 +236,7 @@ class Threaded_manager:
             List of thread names (may contain duplicates)
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_NAMES, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_GET_NAMES.format(timeout=self.lock_timeout))
             return []
         
         try:
@@ -247,7 +260,7 @@ class Threaded_manager:
             The thread object, or None if not found
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_THREAD, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_GET_THREAD.format(timeout=self.lock_timeout))
             return None
         
         try:
@@ -269,7 +282,7 @@ class Threaded_manager:
             True if removed, False if not found
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_REMOVE_HISTORY, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_REMOVE_HISTORY.format(timeout=self.lock_timeout))
             return False
         
         try:
@@ -287,7 +300,7 @@ class Threaded_manager:
     def kill_all_threads(self):
         """Kill all managed threads (useful for shutdown)"""
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_KILL_ALL, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_KILL_ALL.format(timeout=self.lock_timeout))
             return
         
         try:
@@ -310,7 +323,7 @@ class Threaded_manager:
             Number of threads
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_COUNT, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_COUNT.format(timeout=self.lock_timeout))
             return 0
         
         try:
@@ -325,7 +338,7 @@ class Threaded_manager:
             Dictionary with thread statistics
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(ERR_LOCK_TIMEOUT_STATS, self.lock_timeout)
+            self.m_logger.error(ERROR_LOCK_TIMEOUT_STATS.format(timeout=self.lock_timeout))
             return DEFAULT_STATS
         
         try:

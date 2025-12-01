@@ -1,0 +1,795 @@
+Internationalization (i18n)
+===========================
+
+The ParalaX Web Framework includes comprehensive internationalization (i18n) support using Flask-Babel. This allows you to create multilingual applications with minimal code changes.
+
+.. contents:: Topics
+   :local:
+   :depth: 2
+
+Overview
+--------
+
+The framework's i18n system provides:
+
+* **Automatic Translation**: User-facing strings are automatically translated based on user preferences
+* **TranslatableString Classes**: Type-safe message constants that translate themselves
+* **Multiple Language Support**: Easy management of translations for any number of languages
+* **User Preferences**: Per-user and global language settings
+* **Browser Detection**: Automatic language detection from browser preferences
+
+Architecture
+------------
+
+The i18n system consists of three main components:
+
+1. **TranslatableString Classes** (``src/modules/i18n/messages.py``)
+   - Python classes representing translatable messages
+   - Automatically call ``gettext()`` when converted to string
+   - Centralized message definitions
+
+2. **Babel Configuration** (``babel.cfg``)
+   - Defines where to find translatable strings
+   - Scans Python files and Jinja2 templates
+   - Extraction patterns and options
+
+3. **Translation Files** (``translations/`` directory)
+   - ``.pot`` (Portable Object Template): Master list of all strings
+   - ``.po`` (Portable Object): Human-readable translations for each language
+   - ``.mo`` (Machine Object): Compiled binary files used at runtime
+
+How It Works
+------------
+
+**1. Define Messages as Classes**
+
+In ``src/modules/i18n/messages.py``:
+
+.. code-block:: python
+
+   class MSG_SETTINGS_SAVED(TranslatableString):
+       """User message: settings saved successfully."""
+       en = "Settings saved successfully"
+   
+   class ERROR_NOT_LOGGED_IN(TranslatableString):
+       """Error message: user not logged in."""
+       en = "Not logged in"
+
+**2. Use in Your Code**
+
+.. code-block:: python
+
+   from modules.i18n.messages import MSG_SETTINGS_SAVED, ERROR_NOT_LOGGED_IN
+   from flask import flash
+   
+   @app.route('/settings', methods=['POST'])
+   def save_settings():
+       if not is_logged_in():
+           flash(ERROR_NOT_LOGGED_IN, "error")
+           return redirect('/login')
+       
+       # Save settings...
+       flash(MSG_SETTINGS_SAVED, "success")
+       return redirect('/settings')
+
+The messages automatically translate based on the user's language preference!
+
+**3. Extract Strings**
+
+Run the extract command to scan your code and create the template:
+
+.. code-block:: bash
+
+   python framework_manager.py babel extract
+
+This generates ``translations/messages.pot`` with all translatable strings.
+
+**4. Initialize Languages**
+
+Create translation files for each language you want to support:
+
+.. code-block:: bash
+
+   python framework_manager.py babel init fr   # French
+   python framework_manager.py babel init es   # Spanish
+   python framework_manager.py babel init de   # German
+
+This creates ``translations/<locale>/LC_MESSAGES/messages.po`` files.
+
+**5. Translate Strings**
+
+Edit the ``.po`` files to add translations. For example, ``translations/fr/LC_MESSAGES/messages.po``:
+
+.. code-block:: gettext
+
+   #: src/modules/i18n/messages.py:123
+   msgid "Settings saved successfully"
+   msgstr "Paramètres enregistrés avec succès"
+   
+   #: src/modules/i18n/messages.py:127
+   msgid "Not logged in"
+   msgstr "Non connecté"
+
+**6. Compile Translations**
+
+Compile ``.po`` files to binary ``.mo`` files:
+
+.. code-block:: bash
+
+   python framework_manager.py babel compile
+
+**7. Restart Application**
+
+Restart your application to load the new translations. Users will now see messages in their preferred language!
+
+Workflow Reference
+------------------
+
+Initial Setup
+^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   # 1. Extract all translatable strings from code
+   python framework_manager.py babel extract
+   
+   # 2. Initialize your desired languages
+   python framework_manager.py babel init fr
+   python framework_manager.py babel init es
+   
+   # 3. Translate the strings in .po files
+   # Edit translations/fr/LC_MESSAGES/messages.po
+   # Edit translations/es/LC_MESSAGES/messages.po
+   
+   # 4. Compile to binary .mo files
+   python framework_manager.py babel compile
+   
+   # 5. Restart your application
+
+Adding New Strings
+^^^^^^^^^^^^^^^^^^
+
+When you add new messages to your code:
+
+.. code-block:: bash
+
+   # 1. Extract new strings
+   python framework_manager.py babel extract
+   
+   # 2. Update all existing translations
+   python framework_manager.py babel update
+   
+   # 3. Translate new/updated strings in .po files
+   # Check for "fuzzy" entries that need review
+   
+   # 4. Compile updated translations
+   python framework_manager.py babel compile
+   
+   # 5. Restart your application
+
+Checking Status
+^^^^^^^^^^^^^^^
+
+View translation completion status:
+
+.. code-block:: bash
+
+   python framework_manager.py babel status
+
+Output example:
+
+.. code-block:: text
+
+   =========================================================================
+     Translation Status
+   =========================================================================
+   
+     Total translatable strings: 156
+   
+     Language     Translated      Fuzzy      Untranslated    .mo File
+     ----------------------------------------------------------------------
+     fr           156/156 (100%)  0          0               ✓
+     es           98/156 (63%)    5          53              ✓
+   
+     Legend:
+       ✓ = compiled .mo file exists
+       ✗ = .mo file missing (run 'python framework_manager.py babel compile')
+
+Framework Manager Commands
+--------------------------
+
+All babel commands are available through ``framework_manager.py``:
+
+Extract Strings
+^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   python framework_manager.py babel extract
+
+Scans all Python files (``*.py``) and Jinja2 templates (``*.html``, ``*.j2``) for translatable strings and creates/updates ``translations/messages.pot``.
+
+Initialize Language
+^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   python framework_manager.py babel init <locale>
+
+Creates a new ``.po`` file for the specified language. Examples:
+
+.. code-block:: bash
+
+   python framework_manager.py babel init fr   # French
+   python framework_manager.py babel init es   # Spanish
+   python framework_manager.py babel init de   # German
+   python framework_manager.py babel init ja   # Japanese
+
+Update Translations
+^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   python framework_manager.py babel update
+
+Updates all existing ``.po`` files with new strings from ``messages.pot``. Preserves existing translations and marks changed strings as "fuzzy" for review.
+
+Compile Translations
+^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   python framework_manager.py babel compile
+
+Compiles all ``.po`` files to binary ``.mo`` files. Your application must be restarted after compilation to load the new translations.
+
+Translation Status
+^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   python framework_manager.py babel status
+
+Shows completion status for all languages, including:
+
+* Number of translated strings
+* Number of fuzzy strings (need review)
+* Number of untranslated strings
+* Whether compiled ``.mo`` file exists
+
+Interactive Mode
+^^^^^^^^^^^^^^^^
+
+Run without a subcommand for interactive mode:
+
+.. code-block:: bash
+
+   python framework_manager.py babel
+
+Creating Translatable Strings
+------------------------------
+
+The framework uses a clever pattern for translatable strings:
+
+Base Class
+^^^^^^^^^^
+
+.. code-block:: python
+
+   class TranslatableString:
+       """Base class for translatable string constants.
+       
+       Subclasses define the English text as 'en' class attribute.
+       When converted to string, automatically translates using gettext().
+       """
+       en = ""  # Override in subclass
+       
+       def __str__(self):
+           if BABEL_AVAILABLE:
+               return gettext(self.en)
+           return self.en
+       
+       def format(self, **kwargs):
+           return str(self).format(**kwargs)
+
+Message Definition
+^^^^^^^^^^^^^^^^^^
+
+Define messages by subclassing ``TranslatableString``:
+
+.. code-block:: python
+
+   class TEXT_SETTINGS(TranslatableString):
+       """Navigation text for settings page."""
+       en = "Settings"
+   
+   class MSG_USER_CREATED(TranslatableString):
+       """Success message when user account created."""
+       en = "User '{username}' created successfully"
+   
+   class ERROR_INVALID_EMAIL(TranslatableString):
+       """Error message for invalid email format."""
+       en = "Invalid email address format"
+
+Usage Examples
+^^^^^^^^^^^^^^
+
+**Simple Message:**
+
+.. code-block:: python
+
+   from modules.i18n.messages import TEXT_SETTINGS
+   
+   disp.add_breadcrumb(TEXT_SETTINGS, "/settings")
+
+**Message with Parameters:**
+
+.. code-block:: python
+
+   from modules.i18n.messages import MSG_USER_CREATED
+   
+   flash(MSG_USER_CREATED.format(username="john"), "success")
+
+**In Templates:**
+
+.. code-block:: jinja
+
+   <h1>{{ TEXT_SETTINGS }}</h1>
+   <p>{{ ERROR_INVALID_EMAIL }}</p>
+
+Naming Conventions
+^^^^^^^^^^^^^^^^^^
+
+Follow these naming conventions for message classes:
+
+* ``TEXT_*`` - UI labels, navigation items, headings
+* ``MSG_*`` - User messages (success, info)
+* ``ERROR_*`` - Error messages
+* ``BUTTON_*`` - Button labels
+* ``TOOLTIP_*`` - Tooltip text
+* ``TABLE_HEADER_*`` - Table column headers
+* ``PLACEHOLDER_*`` - Form input placeholders
+
+Language Selection
+------------------
+
+The framework determines the user's language in this priority order:
+
+1. **Session Locale** - Set when user explicitly changes language in settings
+2. **User Override** - Per-user framework_ui.language setting (if authenticated)
+3. **Global Setting** - Global framework_ui.language configuration
+4. **Browser Preference** - Accept-Language header from browser
+5. **Default** - Falls back to English (``en``)
+
+Setting Language in Settings
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Users can change their language preference in the Settings page:
+
+.. code-block:: python
+
+   # In your settings form:
+   language_options = [
+       ("en", "English"),
+       ("fr", "Français"),
+       ("es", "Español"),
+   ]
+   
+   # The setting is stored as framework_ui.language
+   # Can be set globally or per-user override
+
+Programmatic Language Change
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can programmatically set the session language:
+
+.. code-block:: python
+
+   from flask import session
+   
+   @app.route('/change-language/<locale>')
+   def change_language(locale):
+       if locale in ['en', 'fr', 'es']:
+           session['locale'] = locale
+           flash(MSG_LANGUAGE_CHANGED, "success")
+       return redirect(request.referrer or '/')
+
+Configuration
+-------------
+
+Babel Configuration File
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``babel.cfg`` file defines extraction rules:
+
+.. code-block:: ini
+
+   # Babel extraction configuration for ParalaX Web Framework
+   
+   [python: **.py]
+   encoding = utf-8
+   
+   [jinja2: **/templates/**.html]
+   encoding = utf-8
+   
+   [jinja2: **/templates/**.j2]
+   encoding = utf-8
+
+This tells Babel to:
+
+* Extract strings from all ``.py`` files using Python parser
+* Extract strings from all ``.html`` and ``.j2`` template files using Jinja2 parser
+* Use UTF-8 encoding for all files
+
+Application Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Babel is initialized in ``src/modules/i18n/__init__.py``:
+
+.. code-block:: python
+
+   from modules.i18n import init_babel
+   
+   # In your main.py or app setup:
+   app = Flask(__name__)
+   babel = init_babel(app)
+
+The initialization automatically configures:
+
+* Default locale: ``en``
+* Supported locales: ``en``, ``fr`` (add more as needed)
+* Translation directory: ``translations/``
+* Locale selector function
+
+Translation File Structure
+--------------------------
+
+The ``translations/`` directory structure:
+
+.. code-block:: text
+
+   translations/
+   ├── messages.pot           # Template (all strings)
+   ├── fr/                    # French translations
+   │   └── LC_MESSAGES/
+   │       ├── messages.po    # Human-readable
+   │       └── messages.mo    # Compiled binary
+   └── es/                    # Spanish translations
+       └── LC_MESSAGES/
+           ├── messages.po
+           └── messages.mo
+
+.pot File (Template)
+^^^^^^^^^^^^^^^^^^^^
+
+The ``.pot`` file is the master template containing all translatable strings:
+
+.. code-block:: gettext
+
+   # SOME DESCRIPTIVE TITLE.
+   # Copyright (C) YEAR ORGANIZATION
+   # This file is distributed under the same license as the PROJECT project.
+   #
+   msgid ""
+   msgstr ""
+   "Project-Id-Version: PROJECT VERSION\n"
+   "POT-Creation-Date: 2025-12-01 14:36+0100\n"
+   
+   #: src/modules/i18n/messages.py:66
+   msgid "Site configuration not initialized"
+   msgstr ""
+   
+   #: src/modules/i18n/messages.py:67
+   msgid "Authentication system not initialized"
+   msgstr ""
+
+.po Files (Translations)
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each language has a ``.po`` file with translations:
+
+.. code-block:: gettext
+
+   # French translations for PROJECT.
+   # Copyright (C) 2025 ORGANIZATION
+   # This file is distributed under the same license as the PROJECT project.
+   #
+   msgid ""
+   msgstr ""
+   "Project-Id-Version: PROJECT VERSION\n"
+   "Language: fr\n"
+   "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+   
+   #: src/modules/i18n/messages.py:66
+   msgid "Site configuration not initialized"
+   msgstr "Configuration du site non initialisée"
+   
+   #: src/modules/i18n/messages.py:67
+   msgid "Authentication system not initialized"
+   msgstr "Système d'authentification non initialisé"
+
+.mo Files (Binary)
+^^^^^^^^^^^^^^^^^^
+
+The ``.mo`` files are compiled binaries used at runtime. Generated by ``babel compile``.
+
+Never edit these directly - always edit the ``.po`` files and recompile.
+
+Fuzzy Translations
+^^^^^^^^^^^^^^^^^^
+
+When you update translations, changed strings are marked as "fuzzy":
+
+.. code-block:: gettext
+
+   #: src/modules/i18n/messages.py:66
+   #, fuzzy
+   msgid "Site configuration not initialized properly"
+   msgstr "Configuration du site non initialisée"
+
+Fuzzy entries need review:
+
+1. Check if the existing translation still fits
+2. Update the ``msgstr`` if needed
+3. Remove the ``#, fuzzy`` line when done
+
+Best Practices
+--------------
+
+1. **Centralize Messages**
+   
+   Define all user-facing strings in ``src/modules/i18n/messages.py``. Don't hardcode strings in your page code.
+   
+   ❌ Bad:
+   
+   .. code-block:: python
+   
+      flash("Settings saved successfully", "success")
+   
+   ✅ Good:
+   
+   .. code-block:: python
+   
+      from modules.i18n.messages import MSG_SETTINGS_SAVED
+      flash(MSG_SETTINGS_SAVED, "success")
+
+2. **Descriptive Class Names**
+   
+   Use clear, descriptive names that indicate context and usage.
+   
+   ❌ Bad:
+   
+   .. code-block:: python
+   
+      class MSG1(TranslatableString):
+          en = "Error"
+   
+   ✅ Good:
+   
+   .. code-block:: python
+   
+      class ERROR_AUTH_FAILED(TranslatableString):
+          en = "Authentication failed"
+
+3. **Include Context in Docstrings**
+   
+   .. code-block:: python
+   
+      class BUTTON_SAVE_CHANGES(TranslatableString):
+          """Button label for saving form changes."""
+          en = "Save Changes"
+
+4. **Use Placeholders for Dynamic Content**
+   
+   .. code-block:: python
+   
+      class MSG_FILE_UPLOADED(TranslatableString):
+          """Success message after file upload."""
+          en = "File '{filename}' uploaded successfully ({size} bytes)"
+      
+      # Usage:
+      flash(MSG_FILE_UPLOADED.format(filename="report.pdf", size=12345))
+
+5. **Regular Extraction and Updates**
+   
+   Extract and update translations regularly as you develop:
+   
+   .. code-block:: bash
+   
+      # After adding new messages:
+      python framework_manager.py babel extract
+      python framework_manager.py babel update
+      python framework_manager.py babel compile
+
+6. **Test All Languages**
+   
+   Always test your application in all supported languages to ensure:
+   
+   * All strings are translated
+   * Translations fit in the UI
+   * Placeholders work correctly
+   * No encoding issues
+
+7. **Version Control**
+   
+   Commit to git:
+   
+   * ``babel.cfg``
+   * ``translations/messages.pot``
+   * ``translations/*/LC_MESSAGES/*.po``
+   
+   Don't commit:
+   
+   * ``translations/*/LC_MESSAGES/*.mo`` (generated files)
+
+Troubleshooting
+---------------
+
+Translations Not Working
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+**Check translation files exist:**
+
+.. code-block:: bash
+
+   ls -la translations/fr/LC_MESSAGES/
+
+You should see both ``messages.po`` and ``messages.mo``.
+
+**Verify .mo file is up to date:**
+
+.. code-block:: bash
+
+   python framework_manager.py babel compile
+
+**Check locale detection:**
+
+Run the debug script:
+
+.. code-block:: bash
+
+   python debug_i18n.py
+
+This shows which locale is being detected and why.
+
+**Restart application:**
+
+Changes only take effect after restarting the application.
+
+Missing Strings in .pot
+^^^^^^^^^^^^^^^^^^^^^^^
+
+If strings aren't being extracted:
+
+1. Check ``babel.cfg`` includes the file pattern
+2. Verify you're using ``TranslatableString`` classes correctly
+3. Run extract with verbose output:
+
+.. code-block:: bash
+
+   python -m babel extract -F babel.cfg -o translations/messages.pot . -v
+
+Encoding Errors
+^^^^^^^^^^^^^^^
+
+All files should use UTF-8 encoding:
+
+.. code-block:: bash
+
+   # Check file encoding
+   file -I translations/fr/LC_MESSAGES/messages.po
+   
+   # Should show: charset=utf-8
+
+If you get encoding errors, ensure your editor saves as UTF-8.
+
+Wrong Language Displayed
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Check the locale selector priority:
+
+1. Session locale (set explicitly by user)
+2. User settings override
+3. Global language setting
+4. Browser Accept-Language header
+5. Default (en)
+
+Debug with:
+
+.. code-block:: python
+
+   from flask import session
+   print(f"Session locale: {session.get('locale')}")
+   
+   # Check settings
+   from modules.settings import settings_manager
+   lang = settings_manager.get_setting("framework_ui.language")
+   print(f"Global language: {lang}")
+
+Advanced Topics
+---------------
+
+Custom Locale Selector
+^^^^^^^^^^^^^^^^^^^^^^
+
+You can customize the locale selection logic by modifying ``get_locale()`` in ``src/modules/i18n/__init__.py``:
+
+.. code-block:: python
+
+   def get_locale():
+       """Custom locale selection logic."""
+       # Your custom logic here
+       # Must return a locale code like 'en', 'fr', etc.
+       return custom_locale
+
+Context-Specific Translations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Use message context for the same English text with different meanings:
+
+.. code-block:: python
+
+   from flask_babel import pgettext
+   
+   # Verb "close"
+   close_verb = pgettext("verb", "Close")
+   
+   # Adjective "close"
+   close_adj = pgettext("adjective", "Close")
+
+Pluralization
+^^^^^^^^^^^^^
+
+Handle plural forms correctly:
+
+.. code-block:: python
+
+   from flask_babel import ngettext
+   
+   def format_items(count):
+       return ngettext(
+           "%(count)d item",
+           "%(count)d items",
+           count
+       ) % {'count': count}
+
+Date and Number Formatting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Use Babel's formatting functions:
+
+.. code-block:: python
+
+   from flask_babel import format_date, format_number, format_currency
+   from datetime import datetime
+   
+   # Dates
+   formatted_date = format_date(datetime.now(), format='long')
+   
+   # Numbers
+   formatted_number = format_number(12345.67)
+   
+   # Currency
+   formatted_price = format_currency(19.99, 'EUR')
+
+External Resources
+------------------
+
+* `Flask-Babel Documentation <https://python-babel.github.io/flask-babel/>`_
+* `Babel Documentation <http://babel.pocoo.org/>`_
+* `GNU gettext Manual <https://www.gnu.org/software/gettext/manual/>`_
+
+Summary
+-------
+
+The ParalaX Web Framework's i18n system provides a complete solution for multilingual applications:
+
+✅ Simple workflow with ``framework_manager.py babel`` commands
+✅ Type-safe ``TranslatableString`` classes
+✅ Automatic translation based on user preferences
+✅ Easy extraction, translation, and compilation
+✅ Support for unlimited languages
+
+Follow the workflow: **Extract → Initialize → Translate → Compile → Restart**
+
+Now your application speaks multiple languages! 🌍

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-12-01 14:36+0100\n"
+"POT-Creation-Date: 2025-12-01 16:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,600 +17,860 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: src/modules/i18n/messages.py:66
+#: src/modules/i18n/messages.py:96
 msgid "Site configuration not initialized"
 msgstr ""
 
-#: src/modules/i18n/messages.py:67
+#: src/modules/i18n/messages.py:97
 msgid "Authentication system not initialized"
 msgstr ""
 
-#: src/modules/i18n/messages.py:68
+#: src/modules/i18n/messages.py:98
 msgid "Not logged in"
 msgstr ""
 
-#: src/modules/i18n/messages.py:69
+#: src/modules/i18n/messages.py:99 src/modules/i18n/messages.py:194
 msgid "User not found."
 msgstr ""
 
-#: src/modules/i18n/messages.py:70
+#: src/modules/i18n/messages.py:100
 msgid "Invalid folder type"
 msgstr ""
 
-#: src/modules/i18n/messages.py:71
+#: src/modules/i18n/messages.py:101
 msgid "Filename required"
 msgstr ""
 
-#: src/modules/i18n/messages.py:72
+#: src/modules/i18n/messages.py:102
 msgid "Markdown file not found."
 msgstr ""
 
-#: src/modules/i18n/messages.py:77
+#: src/modules/i18n/messages.py:107 src/modules/i18n/messages.py:578
 msgid "Settings manager not initialized"
 msgstr ""
 
-#: src/modules/i18n/messages.py:78
+#: src/modules/i18n/messages.py:108
 msgid "Unknown setting type"
 msgstr ""
 
-#: src/modules/i18n/messages.py:79
+#: src/modules/i18n/messages.py:109
 msgid "Error setting user framework override"
 msgstr ""
 
-#: src/modules/i18n/messages.py:80
+#: src/modules/i18n/messages.py:110
 msgid "Error setting global config value"
 msgstr ""
 
-#: src/modules/i18n/messages.py:81
+#: src/modules/i18n/messages.py:111
 msgid "Error saving settings"
 msgstr ""
 
-#: src/modules/i18n/messages.py:83
+#: src/modules/i18n/messages.py:114
+#, python-brace-format
+msgid "Config file not readable at {path}, using empty config"
+msgstr ""
+
+#: src/modules/i18n/messages.py:115
+#, python-brace-format
+msgid "Invalid key: {key}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:116
+#, python-brace-format
+msgid "Category not found: {category}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:117
+#, python-brace-format
+msgid "Setting not found: {setting}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:118
+msgid "Settings file is empty or not loaded"
+msgstr ""
+
+#: src/modules/i18n/messages.py:119
+#, python-brace-format
+msgid ""
+"Setting not found: {path}\n"
+"Available keys at this level: {available}\n"
+"Please check your config.json file and ensure the setting exists."
+msgstr ""
+
+#: src/modules/i18n/messages.py:121
 msgid "Settings saved successfully!"
 msgstr ""
 
-#: src/modules/i18n/messages.py:84
+#: src/modules/i18n/messages.py:122
 msgid ""
 "No settings are currently configured as user-overridable. Contact your "
 "administrator."
 msgstr ""
 
-#: src/modules/i18n/messages.py:86
+#: src/modules/i18n/messages.py:124 src/modules/i18n/messages.py:929
 msgid "Settings"
 msgstr ""
 
-#: src/modules/i18n/messages.py:87
+#: src/modules/i18n/messages.py:125
 msgid "Configuration Settings"
 msgstr ""
 
-#: src/modules/i18n/messages.py:88
+#: src/modules/i18n/messages.py:126
 msgid "Settings Categories"
 msgstr ""
 
-#: src/modules/i18n/messages.py:89
+#: src/modules/i18n/messages.py:127
 msgid "Category"
 msgstr ""
 
-#: src/modules/i18n/messages.py:90
+#: src/modules/i18n/messages.py:128 src/modules/i18n/messages.py:570
 msgid "Description"
 msgstr ""
 
-#: src/modules/i18n/messages.py:91
+#: src/modules/i18n/messages.py:129
 msgid "Settings Count"
 msgstr ""
 
-#: src/modules/i18n/messages.py:92 src/modules/i18n/messages.py:245
+#: src/modules/i18n/messages.py:130 src/modules/i18n/messages.py:355
+#: src/modules/i18n/messages.py:572
 msgid "Actions"
 msgstr ""
 
-#: src/modules/i18n/messages.py:93
+#: src/modules/i18n/messages.py:131
 msgid "Setting"
 msgstr ""
 
-#: src/modules/i18n/messages.py:94 src/modules/i18n/messages.py:229
+#: src/modules/i18n/messages.py:132 src/modules/i18n/messages.py:339
 msgid "Type"
 msgstr ""
 
-#: src/modules/i18n/messages.py:95
+#: src/modules/i18n/messages.py:133 src/modules/i18n/messages.py:186
 msgid "Value"
 msgstr ""
 
-#: src/modules/i18n/messages.py:96
+#: src/modules/i18n/messages.py:134
 msgid "User Overridable"
 msgstr ""
 
-#: src/modules/i18n/messages.py:97
+#: src/modules/i18n/messages.py:135
 msgid "My Framework Settings"
 msgstr ""
 
-#: src/modules/i18n/messages.py:98
+#: src/modules/i18n/messages.py:136
 msgid "View Settings"
 msgstr ""
 
-#: src/modules/i18n/messages.py:99
+#: src/modules/i18n/messages.py:137
 msgid "Save Settings"
 msgstr ""
 
-#: src/modules/i18n/messages.py:100
+#: src/modules/i18n/messages.py:138
 msgid "Configuration options for"
 msgstr ""
 
-#: src/modules/i18n/messages.py:111
+#: src/modules/i18n/messages.py:150
+msgid "Help"
+msgstr ""
+
+#: src/modules/i18n/messages.py:151
 #, python-brace-format
 msgid "Documentation: {}"
 msgstr ""
 
-#: src/modules/i18n/messages.py:116
+#: src/modules/i18n/messages.py:156
 msgid "Access Restricted"
 msgstr ""
 
-#: src/modules/i18n/messages.py:117
+#: src/modules/i18n/messages.py:157
 msgid "Guest Access"
 msgstr ""
 
-#: src/modules/i18n/messages.py:118
+#: src/modules/i18n/messages.py:158
 msgid "Profile Not Available for Guest Users"
 msgstr ""
 
-#: src/modules/i18n/messages.py:119
+#: src/modules/i18n/messages.py:159
 msgid "Guest users cannot access or modify profile settings."
 msgstr ""
 
-#: src/modules/i18n/messages.py:120
+#: src/modules/i18n/messages.py:160
 msgid "Please log in with a registered account to access your profile."
 msgstr ""
 
-#: src/modules/i18n/messages.py:121
+#: src/modules/i18n/messages.py:161 src/modules/i18n/messages.py:921
 msgid "My Profile"
 msgstr ""
 
-#: src/modules/i18n/messages.py:122
+#: src/modules/i18n/messages.py:162
 msgid "Profile"
 msgstr ""
 
-#: src/modules/i18n/messages.py:123
+#: src/modules/i18n/messages.py:163
 msgid "Profile Information"
 msgstr ""
 
-#: src/modules/i18n/messages.py:124
+#: src/modules/i18n/messages.py:164 src/modules/i18n/messages.py:465
 msgid "Display Name"
 msgstr ""
 
-#: src/modules/i18n/messages.py:125
+#: src/modules/i18n/messages.py:165 src/modules/i18n/messages.py:466
 msgid "Email"
 msgstr ""
 
-#: src/modules/i18n/messages.py:126
+#: src/modules/i18n/messages.py:166
 msgid "Update Profile"
 msgstr ""
 
-#: src/modules/i18n/messages.py:127
+#: src/modules/i18n/messages.py:167
 msgid "Profile Picture"
 msgstr ""
 
-#: src/modules/i18n/messages.py:128
+#: src/modules/i18n/messages.py:168
 msgid "Upload New Avatar"
 msgstr ""
 
-#: src/modules/i18n/messages.py:129
+#: src/modules/i18n/messages.py:169
 msgid ""
 "Allowed: JPEG, PNG, SVG. Max size: 1024x1024 (auto-resized for raster "
 "images)"
 msgstr ""
 
-#: src/modules/i18n/messages.py:130 src/modules/i18n/messages.py:134
+#: src/modules/i18n/messages.py:170 src/modules/i18n/messages.py:174
 msgid "Change Password"
 msgstr ""
 
-#: src/modules/i18n/messages.py:131
+#: src/modules/i18n/messages.py:171
 msgid "Current Password"
 msgstr ""
 
-#: src/modules/i18n/messages.py:132
+#: src/modules/i18n/messages.py:172 src/modules/i18n/messages.py:469
 msgid "New Password"
 msgstr ""
 
-#: src/modules/i18n/messages.py:133
+#: src/modules/i18n/messages.py:173
 msgid "Confirm Password"
 msgstr ""
 
-#: src/modules/i18n/messages.py:135
+#: src/modules/i18n/messages.py:175
 msgid "Password must be at least 5 characters with letters and numbers."
 msgstr ""
 
-#: src/modules/i18n/messages.py:136
+#: src/modules/i18n/messages.py:176
 msgid "This is a passwordless account."
 msgstr ""
 
-#: src/modules/i18n/messages.py:137
+#: src/modules/i18n/messages.py:177
 msgid "Account Information"
 msgstr ""
 
-#: src/modules/i18n/messages.py:138
+#: src/modules/i18n/messages.py:178 src/modules/i18n/messages.py:463
 msgid "Username"
 msgstr ""
 
-#: src/modules/i18n/messages.py:139
+#: src/modules/i18n/messages.py:179 src/modules/i18n/messages.py:450
+#: src/modules/i18n/messages.py:467 src/modules/i18n/messages.py:925
 msgid "Groups"
 msgstr ""
 
-#: src/modules/i18n/messages.py:140
+#: src/modules/i18n/messages.py:180
 msgid "Account Created"
 msgstr ""
 
-#: src/modules/i18n/messages.py:141
+#: src/modules/i18n/messages.py:181
 msgid "Last Login"
 msgstr ""
 
-#: src/modules/i18n/messages.py:142
+#: src/modules/i18n/messages.py:182
 msgid "Unknown"
 msgstr ""
 
-#: src/modules/i18n/messages.py:143
+#: src/modules/i18n/messages.py:183
 msgid "Never"
 msgstr ""
 
-#: src/modules/i18n/messages.py:144
+#: src/modules/i18n/messages.py:184
+msgid "N/A"
+msgstr ""
+
+#: src/modules/i18n/messages.py:185
 msgid "Property"
 msgstr ""
 
-#: src/modules/i18n/messages.py:146
+#: src/modules/i18n/messages.py:188
 msgid "Profile updated successfully!"
 msgstr ""
 
-#: src/modules/i18n/messages.py:147
+#: src/modules/i18n/messages.py:189
 msgid "Display name cannot be empty."
 msgstr ""
 
-#: src/modules/i18n/messages.py:148
+#: src/modules/i18n/messages.py:190
 msgid "Current password is incorrect."
 msgstr ""
 
-#: src/modules/i18n/messages.py:149
+#: src/modules/i18n/messages.py:191
 msgid "New passwords do not match."
 msgstr ""
 
-#: src/modules/i18n/messages.py:150
+#: src/modules/i18n/messages.py:192 src/modules/i18n/messages.py:482
 msgid "Invalid password"
 msgstr ""
 
-#: src/modules/i18n/messages.py:151
+#: src/modules/i18n/messages.py:193
 msgid "Password changed successfully!"
 msgstr ""
 
-#: src/modules/i18n/messages.py:156
+#: src/modules/i18n/messages.py:200
+#, python-brace-format
+msgid "Failed to acquire lock for add_thread (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:201
+#, python-brace-format
+msgid "Failed to acquire lock for del_thread (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:202
+#, python-brace-format
+msgid "Failed to acquire lock for get_all_threads (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:203
+#, python-brace-format
+msgid "Failed to acquire lock for get_completed_threads (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:204
+#, python-brace-format
+msgid ""
+"Failed to acquire lock for get_all_threads_with_history "
+"(timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:205
+#, python-brace-format
+msgid "Failed to acquire lock for get_threads_by_name (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:206
+#, python-brace-format
+msgid "Failed to acquire lock for get_unique_names (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:207
+#, python-brace-format
+msgid "Failed to acquire lock for get_names (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:208
+#, python-brace-format
+msgid "Failed to acquire lock for get_thread (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:209
+#, python-brace-format
+msgid "Failed to acquire lock for remove_from_history (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:210
+#, python-brace-format
+msgid "Failed to acquire lock for kill_all_threads (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:211
+#, python-brace-format
+msgid "Failed to acquire lock for get_thread_count (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:212
+#, python-brace-format
+msgid "Failed to acquire lock for get_thread_stats (timeout={timeout}s)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:213
+#, python-brace-format
+msgid "Could not acquire lock within {timeout}s"
+msgstr ""
+
+#: src/modules/i18n/messages.py:216 src/modules/i18n/messages.py:926
 msgid "Thread Monitor"
 msgstr ""
 
-#: src/modules/i18n/messages.py:157
+#: src/modules/i18n/messages.py:217
 msgid "Threads"
 msgstr ""
 
-#: src/modules/i18n/messages.py:158
+#: src/modules/i18n/messages.py:218
 msgid ""
 "<p class='text-muted text-center'><i class='mdi mdi-loading mdi-"
 "spin'></i> Loading threads...</p>"
 msgstr ""
 
-#: src/modules/i18n/messages.py:159
+#: src/modules/i18n/messages.py:219
 #, python-brace-format
 msgid "✓ Stopped thread: {}"
 msgstr ""
 
-#: src/modules/i18n/messages.py:160 src/modules/i18n/messages.py:162
+#: src/modules/i18n/messages.py:220 src/modules/i18n/messages.py:222
 #, python-brace-format
 msgid "✗ Thread not found: {}"
 msgstr ""
 
-#: src/modules/i18n/messages.py:161
+#: src/modules/i18n/messages.py:221
 #, python-brace-format
 msgid "✓ Force killed thread: {}"
 msgstr ""
 
-#: src/modules/i18n/messages.py:163
+#: src/modules/i18n/messages.py:223
 msgid "Thread manager not initialized"
 msgstr ""
 
-#: src/modules/i18n/messages.py:164
+#: src/modules/i18n/messages.py:224
 msgid "Total Threads"
 msgstr ""
 
-#: src/modules/i18n/messages.py:165
+#: src/modules/i18n/messages.py:225 src/modules/i18n/messages.py:230
 msgid "Running"
 msgstr ""
 
-#: src/modules/i18n/messages.py:166
+#: src/modules/i18n/messages.py:226
 msgid "With Process"
 msgstr ""
 
-#: src/modules/i18n/messages.py:167
+#: src/modules/i18n/messages.py:227
 msgid "With Errors"
 msgstr ""
 
-#: src/modules/i18n/messages.py:173 src/modules/i18n/messages.py:263
+#: src/modules/i18n/messages.py:231
+msgid "Completed"
+msgstr ""
+
+#: src/modules/i18n/messages.py:232
+msgid "Aborted"
+msgstr ""
+
+#: src/modules/i18n/messages.py:233
+msgid "Error"
+msgstr ""
+
+#: src/modules/i18n/messages.py:236
+msgid "No threads currently running. Visit the Threading Demo to start some!"
+msgstr ""
+
+#: src/modules/i18n/messages.py:237
+msgid "No data available"
+msgstr ""
+
+#: src/modules/i18n/messages.py:238
+msgid "Running Threads"
+msgstr ""
+
+#: src/modules/i18n/messages.py:239
+msgid "Completed Threads History"
+msgstr ""
+
+#: src/modules/i18n/messages.py:240
+msgid "Last 10"
+msgstr ""
+
+#: src/modules/i18n/messages.py:243
+msgid "Console"
+msgstr ""
+
+#: src/modules/i18n/messages.py:244 src/modules/i18n/messages.py:688
+msgid "Logs"
+msgstr ""
+
+#: src/modules/i18n/messages.py:245
+msgid "Info"
+msgstr ""
+
+#: src/modules/i18n/messages.py:248
+msgid "Thread Name:"
+msgstr ""
+
+#: src/modules/i18n/messages.py:249
+msgid "Status:"
+msgstr ""
+
+#: src/modules/i18n/messages.py:250
+msgid "Progress:"
+msgstr ""
+
+#: src/modules/i18n/messages.py:256 src/modules/i18n/messages.py:373
+#: src/modules/i18n/messages.py:395
 msgid "File manager not initialized"
 msgstr ""
 
-#: src/modules/i18n/messages.py:174
+#: src/modules/i18n/messages.py:257
 msgid "File Not Found"
 msgstr ""
 
-#: src/modules/i18n/messages.py:175
+#: src/modules/i18n/messages.py:258
 msgid "The requested file could not be found."
 msgstr ""
 
-#: src/modules/i18n/messages.py:176
+#: src/modules/i18n/messages.py:259
 msgid "Update Failed"
 msgstr ""
 
-#: src/modules/i18n/messages.py:177
+#: src/modules/i18n/messages.py:260
 msgid "Error Loading Files"
 msgstr ""
 
-#: src/modules/i18n/messages.py:178
+#: src/modules/i18n/messages.py:261
 msgid "Error Loading Version History"
 msgstr ""
 
-#: src/modules/i18n/messages.py:181 src/modules/i18n/messages.py:190
+#: src/modules/i18n/messages.py:264 src/modules/i18n/messages.py:396
+msgid "No file provided"
+msgstr ""
+
+#: src/modules/i18n/messages.py:265
+#, python-brace-format
+msgid "File type '{ext}' not allowed. Allowed types: {allowed_types}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:266
+#, python-brace-format
+msgid "File too large ({actual_mb:.1f}MB). Maximum allowed: {max_mb:.0f}MB"
+msgstr ""
+
+#: src/modules/i18n/messages.py:267
+msgid "File is empty"
+msgstr ""
+
+#: src/modules/i18n/messages.py:268
+msgid "Filename is required"
+msgstr ""
+
+#: src/modules/i18n/messages.py:269
+#, python-brace-format
+msgid "Invalid filename: '{original_filename}'"
+msgstr ""
+
+#: src/modules/i18n/messages.py:270
+#, python-brace-format
+msgid "Invalid tags: {invalid_tags}. Valid tags are: {valid_tags}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:271
+#, python-brace-format
+msgid "Invalid category: '{category}'. Valid categories are: {valid_categories}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:272
+msgid "File version not found"
+msgstr ""
+
+#: src/modules/i18n/messages.py:273
+msgid "Cannot restore from different file"
+msgstr ""
+
+#: src/modules/i18n/messages.py:276
+msgid "Either file_id or file_metadata must be provided"
+msgstr ""
+
+#: src/modules/i18n/messages.py:279
+msgid "Failed to store file"
+msgstr ""
+
+#: src/modules/i18n/messages.py:280
+#, python-brace-format
+msgid "File not found in storage: {storage_path}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:281
+#, python-brace-format
+msgid "File with checksum {checksum} not found"
+msgstr ""
+
+#: src/modules/i18n/messages.py:284
+#, python-brace-format
+msgid "Initialized content-addressable storage at {storage_path}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:285
+#, python-brace-format
+msgid "File already exists (deduplication): {checksum_prefix}..."
+msgstr ""
+
+#: src/modules/i18n/messages.py:286
+#, python-brace-format
+msgid "Stored new file: {checksum_prefix}..."
+msgstr ""
+
+#: src/modules/i18n/messages.py:287
+#, python-brace-format
+msgid "Deleted file: {storage_path}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:288
+#, python-brace-format
+msgid "Attempted to delete non-existent file: {storage_path}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:291 src/modules/i18n/messages.py:300
+#: src/modules/i18n/messages.py:932
 msgid "File Manager"
 msgstr ""
 
-#: src/modules/i18n/messages.py:182
+#: src/modules/i18n/messages.py:292
 msgid "File Manager - Browse Files"
 msgstr ""
 
-#: src/modules/i18n/messages.py:183
+#: src/modules/i18n/messages.py:293
 msgid "Edit File Metadata"
 msgstr ""
 
-#: src/modules/i18n/messages.py:184 src/modules/i18n/messages.py:192
+#: src/modules/i18n/messages.py:294 src/modules/i18n/messages.py:302
 msgid "Confirm Delete"
 msgstr ""
 
-#: src/modules/i18n/messages.py:185 src/modules/i18n/messages.py:193
+#: src/modules/i18n/messages.py:295 src/modules/i18n/messages.py:303
 msgid "Deletion Complete"
 msgstr ""
 
-#: src/modules/i18n/messages.py:186 src/modules/i18n/messages.py:194
+#: src/modules/i18n/messages.py:296 src/modules/i18n/messages.py:304
 msgid "Version History"
 msgstr ""
 
-#: src/modules/i18n/messages.py:187
+#: src/modules/i18n/messages.py:297
 #, python-brace-format
 msgid "Version History: {filename}"
 msgstr ""
 
-#: src/modules/i18n/messages.py:191
+#: src/modules/i18n/messages.py:301
 msgid "Edit File"
 msgstr ""
 
-#: src/modules/i18n/messages.py:197
+#: src/modules/i18n/messages.py:307
 msgid "Delete Selected"
 msgstr ""
 
-#: src/modules/i18n/messages.py:198
+#: src/modules/i18n/messages.py:308
 msgid "Save Changes"
 msgstr ""
 
-#: src/modules/i18n/messages.py:199
+#: src/modules/i18n/messages.py:309
 msgid "Cancel"
 msgstr ""
 
-#: src/modules/i18n/messages.py:200
+#: src/modules/i18n/messages.py:310
 msgid "Yes, Delete"
 msgstr ""
 
-#: src/modules/i18n/messages.py:201
+#: src/modules/i18n/messages.py:311
 msgid "Return to File Manager"
 msgstr ""
 
-#: src/modules/i18n/messages.py:202
+#: src/modules/i18n/messages.py:312
 msgid "Back to File Manager"
 msgstr ""
 
-#: src/modules/i18n/messages.py:205
+#: src/modules/i18n/messages.py:315 src/modules/i18n/messages.py:604
 msgid "Download"
 msgstr ""
 
-#: src/modules/i18n/messages.py:206 src/modules/i18n/messages.py:223
+#: src/modules/i18n/messages.py:316 src/modules/i18n/messages.py:333
 msgid "Edit Metadata"
 msgstr ""
 
-#: src/modules/i18n/messages.py:207
+#: src/modules/i18n/messages.py:317
 msgid "View History"
 msgstr ""
 
-#: src/modules/i18n/messages.py:208
+#: src/modules/i18n/messages.py:318
 msgid "Delete"
 msgstr ""
 
-#: src/modules/i18n/messages.py:209
+#: src/modules/i18n/messages.py:319
 msgid "Download this version"
 msgstr ""
 
-#: src/modules/i18n/messages.py:210
+#: src/modules/i18n/messages.py:320
 #, python-brace-format
 msgid "Restore v{version} as current"
 msgstr ""
 
-#: src/modules/i18n/messages.py:211
+#: src/modules/i18n/messages.py:321
 #, python-brace-format
 msgid "Delete v{version} only"
 msgstr ""
 
-#: src/modules/i18n/messages.py:214
+#: src/modules/i18n/messages.py:324
 msgid "Missing"
 msgstr ""
 
-#: src/modules/i18n/messages.py:215
+#: src/modules/i18n/messages.py:325
 msgid "Corrupted"
 msgstr ""
 
-#: src/modules/i18n/messages.py:216
+#: src/modules/i18n/messages.py:326
 msgid "Not Found"
 msgstr ""
 
-#: src/modules/i18n/messages.py:217
+#: src/modules/i18n/messages.py:327
 msgid "Current"
 msgstr ""
 
-#: src/modules/i18n/messages.py:218
+#: src/modules/i18n/messages.py:328
 msgid "Archived"
 msgstr ""
 
-#: src/modules/i18n/messages.py:219
+#: src/modules/i18n/messages.py:329
 #, python-brace-format
 msgid "v{version}"
 msgstr ""
 
-#: src/modules/i18n/messages.py:222
+#: src/modules/i18n/messages.py:332
 msgid "File Information"
 msgstr ""
 
-#: src/modules/i18n/messages.py:224
+#: src/modules/i18n/messages.py:334
 msgid "Files to Delete"
 msgstr ""
 
-#: src/modules/i18n/messages.py:225
+#: src/modules/i18n/messages.py:335
 msgid "All Versions"
 msgstr ""
 
-#: src/modules/i18n/messages.py:226 src/modules/i18n/messages.py:239
+#: src/modules/i18n/messages.py:336 src/modules/i18n/messages.py:349
 msgid "Group ID"
 msgstr ""
 
-#: src/modules/i18n/messages.py:227 src/modules/i18n/messages.py:240
+#: src/modules/i18n/messages.py:337 src/modules/i18n/messages.py:350
 msgid "Tags"
 msgstr ""
 
-#: src/modules/i18n/messages.py:228 src/modules/i18n/messages.py:242
+#: src/modules/i18n/messages.py:338 src/modules/i18n/messages.py:352
 msgid "Size"
 msgstr ""
 
-#: src/modules/i18n/messages.py:230 src/modules/i18n/messages.py:243
+#: src/modules/i18n/messages.py:340 src/modules/i18n/messages.py:353
 msgid "Uploaded"
 msgstr ""
 
-#: src/modules/i18n/messages.py:231 src/modules/i18n/messages.py:241
+#: src/modules/i18n/messages.py:341 src/modules/i18n/messages.py:351
 msgid "Version"
 msgstr ""
 
-#: src/modules/i18n/messages.py:232 src/modules/i18n/messages.py:247
+#: src/modules/i18n/messages.py:342 src/modules/i18n/messages.py:357
 msgid "Checksum"
 msgstr ""
 
-#: src/modules/i18n/messages.py:233
+#: src/modules/i18n/messages.py:343
 msgid "Uploaded By"
 msgstr ""
 
-#: src/modules/i18n/messages.py:236
+#: src/modules/i18n/messages.py:346
 msgid "Select"
 msgstr ""
 
-#: src/modules/i18n/messages.py:237
+#: src/modules/i18n/messages.py:347
 msgid "Preview"
 msgstr ""
 
-#: src/modules/i18n/messages.py:238
+#: src/modules/i18n/messages.py:348
 msgid "Filename"
 msgstr ""
 
-#: src/modules/i18n/messages.py:244
+#: src/modules/i18n/messages.py:354
 msgid "Integrity"
 msgstr ""
 
-#: src/modules/i18n/messages.py:246
+#: src/modules/i18n/messages.py:356 src/modules/i18n/messages.py:568
 msgid "Status"
 msgstr ""
 
-#: src/modules/i18n/messages.py:250
+#: src/modules/i18n/messages.py:360
 msgid "No files found. Upload files to get started!"
 msgstr ""
 
-#: src/modules/i18n/messages.py:251
+#: src/modules/i18n/messages.py:361
 msgid ""
 "No files found. You need 'upload' permission to add files. Contact your "
 "administrator."
 msgstr ""
 
-#: src/modules/i18n/messages.py:252
+#: src/modules/i18n/messages.py:362
 msgid "You need 'delete' permission to remove files. Contact your administrator."
 msgstr ""
 
-#: src/modules/i18n/messages.py:253
+#: src/modules/i18n/messages.py:363
 msgid ""
 "Group ID for versioning. Files with the same group_id and filename are "
 "treated as versions of the same file."
 msgstr ""
 
-#: src/modules/i18n/messages.py:254
+#: src/modules/i18n/messages.py:364
 msgid "Organize files with tags for easy searching and filtering."
 msgstr ""
 
-#: src/modules/i18n/messages.py:255
+#: src/modules/i18n/messages.py:365
 msgid ""
 "Files with version history will have <strong>all versions</strong> "
 "deleted."
 msgstr ""
 
-#: src/modules/i18n/messages.py:258
+#: src/modules/i18n/messages.py:368
 msgid "No files selected for deletion."
 msgstr ""
 
-#: src/modules/i18n/messages.py:259
+#: src/modules/i18n/messages.py:369
 #, python-brace-format
 msgid "Metadata for '{filename}' updated successfully."
 msgstr ""
 
-#: src/modules/i18n/messages.py:260
+#: src/modules/i18n/messages.py:370
 msgid "Version restored successfully! A new version has been created."
 msgstr ""
 
-#: src/modules/i18n/messages.py:261
+#: src/modules/i18n/messages.py:371
 msgid "Version deleted successfully."
 msgstr ""
 
-#: src/modules/i18n/messages.py:262
+#: src/modules/i18n/messages.py:372
 msgid "All versions deleted. File no longer exists."
 msgstr ""
 
-#: src/modules/i18n/messages.py:264
+#: src/modules/i18n/messages.py:374
 msgid "Target version not found"
 msgstr ""
 
-#: src/modules/i18n/messages.py:265
+#: src/modules/i18n/messages.py:375
 msgid "Current version not found"
 msgstr ""
 
-#: src/modules/i18n/messages.py:266
+#: src/modules/i18n/messages.py:376
 msgid "Failed to delete version."
 msgstr ""
 
-#: src/modules/i18n/messages.py:267
+#: src/modules/i18n/messages.py:377
 #, python-brace-format
 msgid "Failed to delete version: {error}"
 msgstr ""
 
-#: src/modules/i18n/messages.py:268
+#: src/modules/i18n/messages.py:378
 #, python-brace-format
 msgid "Failed to restore version: {error}"
 msgstr ""
 
-#: src/modules/i18n/messages.py:271
+#: src/modules/i18n/messages.py:381
 #, python-brace-format
 msgid ""
 "You are about to permanently delete the following file: "
 "<strong>{filename}</strong><br><br>This action cannot be undone."
 msgstr ""
 
-#: src/modules/i18n/messages.py:272
+#: src/modules/i18n/messages.py:382
 #, python-brace-format
 msgid ""
 "You are about to permanently delete <strong>{count} "
 "files</strong><br><br>This action cannot be undone."
 msgstr ""
 
-#: src/modules/i18n/messages.py:273
+#: src/modules/i18n/messages.py:383
 #, python-brace-format
 msgid ""
 "<p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>\n"
@@ -618,20 +878,1359 @@ msgid ""
 "delete.</p>"
 msgstr ""
 
-#: src/modules/i18n/messages.py:274
+#: src/modules/i18n/messages.py:384
 #, python-brace-format
 msgid "<p><strong>{deleted_count}</strong> file(s) deleted successfully.</p>"
 msgstr ""
 
-#: src/modules/i18n/messages.py:277
+#: src/modules/i18n/messages.py:387
 msgid "Confirm Deletion"
 msgstr ""
 
-#: src/modules/i18n/messages.py:278
+#: src/modules/i18n/messages.py:388
 msgid "Partially Complete"
 msgstr ""
 
-#: src/modules/i18n/messages.py:279
+#: src/modules/i18n/messages.py:389
 msgid "Success"
+msgstr ""
+
+#: src/modules/i18n/messages.py:397
+msgid "No file selected"
+msgstr ""
+
+#: src/modules/i18n/messages.py:398
+msgid "Invalid upload path"
+msgstr ""
+
+#: src/modules/i18n/messages.py:399
+msgid "Failed to save file"
+msgstr ""
+
+#: src/modules/i18n/messages.py:400
+msgid ""
+"Permission denied: You need 'upload' permission for FileManager. Contact "
+"your administrator."
+msgstr ""
+
+#: src/modules/i18n/messages.py:401
+msgid ""
+"Permission denied: You need 'download' permission for FileManager. "
+"Contact your administrator."
+msgstr ""
+
+#: src/modules/i18n/messages.py:402
+msgid ""
+"Permission denied: You need 'delete' permission for FileManager. Contact "
+"your administrator."
+msgstr ""
+
+#: src/modules/i18n/messages.py:403
+msgid ""
+"Permission denied: You need 'view' permission for FileManager. Contact "
+"your administrator."
+msgstr ""
+
+#: src/modules/i18n/messages.py:404
+msgid "File not found"
+msgstr ""
+
+#: src/modules/i18n/messages.py:405
+msgid "Thumbnail not found"
+msgstr ""
+
+#: src/modules/i18n/messages.py:406
+msgid "File not found on disk"
+msgstr ""
+
+#: src/modules/i18n/messages.py:407
+msgid "Internal server error"
+msgstr ""
+
+#: src/modules/i18n/messages.py:410
+msgid "File deleted successfully"
+msgstr ""
+
+#: src/modules/i18n/messages.py:411
+msgid "File too large"
+msgstr ""
+
+#: src/modules/i18n/messages.py:418
+#, python-brace-format
+msgid "Password must be at least {min_length} characters long"
+msgstr ""
+
+#: src/modules/i18n/messages.py:419
+msgid "Password must contain at least one letter"
+msgstr ""
+
+#: src/modules/i18n/messages.py:420
+msgid "Password must contain at least one number"
+msgstr ""
+
+#: src/modules/i18n/messages.py:423
+#, python-brace-format
+msgid "Username must be at least {min_length} characters long"
+msgstr ""
+
+#: src/modules/i18n/messages.py:424
+#, python-brace-format
+msgid "Username cannot exceed {max_length} characters"
+msgstr ""
+
+#: src/modules/i18n/messages.py:425
+msgid ""
+"Username must start with letter/number and contain only letters, numbers,"
+" underscore, or hyphen"
+msgstr ""
+
+#: src/modules/i18n/messages.py:431 src/modules/i18n/messages.py:913
+msgid "User Management"
+msgstr ""
+
+#: src/modules/i18n/messages.py:432
+msgid "Permission Management"
+msgstr ""
+
+#: src/modules/i18n/messages.py:433
+msgid "Group Management"
+msgstr ""
+
+#: src/modules/i18n/messages.py:434
+msgid "Module Permissions"
+msgstr ""
+
+#: src/modules/i18n/messages.py:435
+msgid "Current Users"
+msgstr ""
+
+#: src/modules/i18n/messages.py:436
+msgid "Create New User"
+msgstr ""
+
+#: src/modules/i18n/messages.py:437
+msgid "Update User Groups"
+msgstr ""
+
+#: src/modules/i18n/messages.py:438
+msgid "Reset User Password"
+msgstr ""
+
+#: src/modules/i18n/messages.py:439 src/modules/i18n/messages.py:454
+msgid "Delete User"
+msgstr ""
+
+#: src/modules/i18n/messages.py:440
+msgid "Current Groups"
+msgstr ""
+
+#: src/modules/i18n/messages.py:441
+msgid "Create New Group"
+msgstr ""
+
+#: src/modules/i18n/messages.py:442
+msgid "Rename Group"
+msgstr ""
+
+#: src/modules/i18n/messages.py:443 src/modules/i18n/messages.py:459
+msgid "Delete Group"
+msgstr ""
+
+#: src/modules/i18n/messages.py:444
+msgid "Module Permission Matrix"
+msgstr ""
+
+#: src/modules/i18n/messages.py:447 src/modules/i18n/messages.py:915
+msgid "Admin"
+msgstr ""
+
+#: src/modules/i18n/messages.py:448 src/modules/i18n/messages.py:923
+msgid "Users"
+msgstr ""
+
+#: src/modules/i18n/messages.py:449 src/modules/i18n/messages.py:924
+msgid "Permissions"
+msgstr ""
+
+#: src/modules/i18n/messages.py:453
+msgid "Create User"
+msgstr ""
+
+#: src/modules/i18n/messages.py:455
+msgid "Update"
+msgstr ""
+
+#: src/modules/i18n/messages.py:456
+msgid "Reset"
+msgstr ""
+
+#: src/modules/i18n/messages.py:457
+msgid "Create Group"
+msgstr ""
+
+#: src/modules/i18n/messages.py:458
+msgid "Rename"
+msgstr ""
+
+#: src/modules/i18n/messages.py:460
+msgid "Save All Permissions"
+msgstr ""
+
+#: src/modules/i18n/messages.py:464
+msgid "Password (empty for passwordless)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:468
+msgid "Select User"
+msgstr ""
+
+#: src/modules/i18n/messages.py:470 src/modules/i18n/messages.py:476
+msgid "Group Name"
+msgstr ""
+
+#: src/modules/i18n/messages.py:471
+msgid "Select Group"
+msgstr ""
+
+#: src/modules/i18n/messages.py:472
+msgid "New Group Name"
+msgstr ""
+
+#: src/modules/i18n/messages.py:473
+msgid "Action"
+msgstr ""
+
+#: src/modules/i18n/messages.py:477
+msgid "# Users"
+msgstr ""
+
+#: src/modules/i18n/messages.py:480
+msgid "Invalid username"
+msgstr ""
+
+#: src/modules/i18n/messages.py:481
+msgid "Username already exists."
+msgstr ""
+
+#: src/modules/i18n/messages.py:483
+msgid "Cannot delete admin or GUEST users."
+msgstr ""
+
+#: src/modules/i18n/messages.py:484
+msgid "Group name cannot be empty."
+msgstr ""
+
+#: src/modules/i18n/messages.py:485
+#, python-brace-format
+msgid "Group '{group_name}' already exists."
+msgstr ""
+
+#: src/modules/i18n/messages.py:486
+msgid "Cannot rename system groups (admin, guest)."
+msgstr ""
+
+#: src/modules/i18n/messages.py:487
+msgid "Cannot delete system groups (admin, guest)."
+msgstr ""
+
+#: src/modules/i18n/messages.py:490
+#, python-brace-format
+msgid "User '{username}' created successfully!"
+msgstr ""
+
+#: src/modules/i18n/messages.py:491
+#, python-brace-format
+msgid "Passwordless user '{username}' created successfully!"
+msgstr ""
+
+#: src/modules/i18n/messages.py:492
+#, python-brace-format
+msgid "User '{username}' deleted."
+msgstr ""
+
+#: src/modules/i18n/messages.py:493
+#, python-brace-format
+msgid "Groups updated for '{username}'."
+msgstr ""
+
+#: src/modules/i18n/messages.py:494
+#, python-brace-format
+msgid "Password reset for '{username}'."
+msgstr ""
+
+#: src/modules/i18n/messages.py:495
+msgid "Permissions saved successfully!"
+msgstr ""
+
+#: src/modules/i18n/messages.py:496
+#, python-brace-format
+msgid "Group '{group_name}' created successfully!"
+msgstr ""
+
+#: src/modules/i18n/messages.py:497
+#, python-brace-format
+msgid "Group '{old_name}' renamed to '{new_name}'."
+msgstr ""
+
+#: src/modules/i18n/messages.py:498
+#, python-brace-format
+msgid "Group '{group_name}' deleted."
+msgstr ""
+
+#: src/modules/i18n/messages.py:501
+msgid ""
+"<div class='alert alert-warning'>No modules have registered permissions "
+"yet. Modules must call <code>permission_registry.register_module()</code>"
+" to appear here.</div>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:502
+msgid ""
+"<p>Check boxes to grant permissions to groups for each module "
+"action.</p><div class='alert alert-info'><i class='mdi mdi-"
+"information'></i> The <strong>admin</strong> group has full access to all"
+" modules and is not shown here.</div>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:503
+msgid ""
+"<div class='alert alert-warning'>Deleting a group removes it from all "
+"users and permissions.</div>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:504
+msgid ""
+"<div class='alert alert-info mt-5'><strong>Note:</strong> Groups are "
+"created automatically when you assign them to users or in the permissions"
+" matrix.</div>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:507
+msgid "(no deletable users)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:508
+msgid "(no custom groups)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:511
+msgid "<h3>Current Users</h3>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:512
+msgid "<h3 class='mt-5'>Create New User</h3>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:513
+msgid "<h3 class='mt-5'>Update User Groups</h3>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:514
+msgid "<h3 class='mt-5'>Reset User Password</h3>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:515
+msgid "<h3 class='mt-5'>Delete User</h3>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:516
+msgid "<h3>Module Permission Matrix</h3>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:517
+msgid "<h3>Current Groups</h3>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:518
+msgid "<h3 class='mt-5'>Create New Group</h3>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:519
+msgid "<h3 class='mt-5'>Rename Group</h3>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:520
+msgid "<h3 class='mt-5'>Delete Group</h3>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:526
+#, python-brace-format
+msgid "Account locked. Try again in {minutes}m {seconds}s"
+msgstr ""
+
+#: src/modules/i18n/messages.py:527
+msgid "User does not exist"
+msgstr ""
+
+#: src/modules/i18n/messages.py:528
+#, python-brace-format
+msgid "Too many failed attempts. Account locked for {lockout_minutes} minutes."
+msgstr ""
+
+#: src/modules/i18n/messages.py:529
+#, python-brace-format
+msgid "Bad password ({attempts_left} attempts remaining)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:535
+#, python-brace-format
+msgid "Issue #{issue_id} was not found in Redmine."
+msgstr ""
+
+#: src/modules/i18n/messages.py:536
+#, python-brace-format
+msgid "Error connecting to Redmine: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:537
+msgid "Invalid form submission"
+msgstr ""
+
+#: src/modules/i18n/messages.py:538
+msgid "Please provide a meaningful description"
+msgstr ""
+
+#: src/modules/i18n/messages.py:539
+msgid "Please provide a meaningful subject"
+msgstr ""
+
+#: src/modules/i18n/messages.py:540
+#, python-brace-format
+msgid ""
+"Project '{project_id}' was not found in Redmine. Please check the Project"
+" ID in Settings > Redmine Configuration."
+msgstr ""
+
+#: src/modules/i18n/messages.py:541
+#, python-brace-format
+msgid "Error fetching project data from Redmine: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:542
+#, python-brace-format
+msgid "Redmine connection failed with the following message: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:543
+msgid ""
+"Redmine project ID is not configured. Please set it in Settings > Redmine"
+" Configuration > Project ID."
+msgstr ""
+
+#: src/modules/i18n/messages.py:544
+#, python-brace-format
+msgid "Issue update failed: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:545
+#, python-brace-format
+msgid "Issue creation failed with the following message: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:546
+#, python-brace-format
+msgid "Failed to create version '{version_name}' in Redmine: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:549 src/modules/i18n/messages.py:928
+msgid "Bug Tracker"
+msgstr ""
+
+#: src/modules/i18n/messages.py:550 src/modules/i18n/messages.py:560
+#, python-brace-format
+msgid "Edit Issue ID: {issue_id}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:551
+msgid "Edit Issue"
+msgstr ""
+
+#: src/modules/i18n/messages.py:552
+msgid "Create a new issue"
+msgstr ""
+
+#: src/modules/i18n/messages.py:553
+msgid "Current issues"
+msgstr ""
+
+#: src/modules/i18n/messages.py:554
+msgid "Closed issues"
+msgstr ""
+
+#: src/modules/i18n/messages.py:555
+msgid "Rejected issues"
+msgstr ""
+
+#: src/modules/i18n/messages.py:556 src/modules/i18n/messages.py:569
+msgid "Subject"
+msgstr ""
+
+#: src/modules/i18n/messages.py:557
+msgid "Description (supports rich text and images)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:558
+msgid "Enter subject"
+msgstr ""
+
+#: src/modules/i18n/messages.py:559
+msgid "Enter Description (supports rich text and images)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:563
+msgid "Update Issue"
+msgstr ""
+
+#: src/modules/i18n/messages.py:564
+msgid "Submit"
+msgstr ""
+
+#: src/modules/i18n/messages.py:567
+msgid "#"
+msgstr ""
+
+#: src/modules/i18n/messages.py:571
+msgid "Updated Time"
+msgstr ""
+
+#: src/modules/i18n/messages.py:579
+msgid "Settings manager not initialized after reload"
+msgstr ""
+
+#: src/modules/i18n/messages.py:580
+msgid "Invalid settings format after reload"
+msgstr ""
+
+#: src/modules/i18n/messages.py:581 src/modules/i18n/messages.py:659
+msgid "Failed to get upload config from settings"
+msgstr ""
+
+#: src/modules/i18n/messages.py:582 src/modules/i18n/messages.py:662
+msgid "Configuration error"
+msgstr ""
+
+#: src/modules/i18n/messages.py:583 src/modules/i18n/messages.py:658
+msgid "Failed to get SFTP config from settings"
+msgstr ""
+
+#: src/modules/i18n/messages.py:586
+msgid "Applying update"
+msgstr ""
+
+#: src/modules/i18n/messages.py:587
+msgid "Uploading updates, this might take a while"
+msgstr ""
+
+#: src/modules/i18n/messages.py:588
+msgid "Downloading archive, this might take a while"
+msgstr ""
+
+#: src/modules/i18n/messages.py:591
+msgid "Create a new update with installer"
+msgstr ""
+
+#: src/modules/i18n/messages.py:592
+msgid "Upload the latested update"
+msgstr ""
+
+#: src/modules/i18n/messages.py:593 src/modules/i18n/messages.py:635
+msgid "Select a package to download"
+msgstr ""
+
+#: src/modules/i18n/messages.py:594
+msgid "Apply update"
+msgstr ""
+
+#: src/modules/i18n/messages.py:595
+msgid "Load package from file"
+msgstr ""
+
+#: src/modules/i18n/messages.py:598
+msgid "Update Creation"
+msgstr ""
+
+#: src/modules/i18n/messages.py:599
+msgid "Update Deployment"
+msgstr ""
+
+#: src/modules/i18n/messages.py:602
+msgid "Create"
+msgstr ""
+
+#: src/modules/i18n/messages.py:603
+msgid "Upload"
+msgstr ""
+
+#: src/modules/i18n/messages.py:605
+msgid "Apply"
+msgstr ""
+
+#: src/modules/i18n/messages.py:608
+msgid "Windows"
+msgstr ""
+
+#: src/modules/i18n/messages.py:609
+msgid "Linux"
+msgstr ""
+
+#: src/modules/i18n/messages.py:612
+msgid "Select Update Package"
+msgstr ""
+
+#: src/modules/i18n/messages.py:615
+msgid "Configured update folder doesn't exists"
+msgstr ""
+
+#: src/modules/i18n/messages.py:616 src/modules/i18n/messages.py:672
+msgid ""
+"FTP server not accessible, please check your connection, use a zip file "
+"or use a local folder"
+msgstr ""
+
+#: src/modules/i18n/messages.py:619
+msgid "Application will restart, you can close this tab"
+msgstr ""
+
+#: src/modules/i18n/messages.py:620
+msgid "Please restart application"
+msgstr ""
+
+#: src/modules/i18n/messages.py:626
+msgid "Binaries Package Manager"
+msgstr ""
+
+#: src/modules/i18n/messages.py:629 src/modules/i18n/messages.py:639
+msgid "Package creation"
+msgstr ""
+
+#: src/modules/i18n/messages.py:630
+msgid "Package restoration"
+msgstr ""
+
+#: src/modules/i18n/messages.py:633
+msgid "Create a new package"
+msgstr ""
+
+#: src/modules/i18n/messages.py:634
+msgid "Upload package"
+msgstr ""
+
+#: src/modules/i18n/messages.py:636
+msgid "Package available localy"
+msgstr ""
+
+#: src/modules/i18n/messages.py:640
+msgid "Package upload"
+msgstr ""
+
+#: src/modules/i18n/messages.py:641
+msgid "Install Package"
+msgstr ""
+
+#: src/modules/i18n/messages.py:642
+msgid "Install package"
+msgstr ""
+
+#: src/modules/i18n/messages.py:643
+msgid "Unpack"
+msgstr ""
+
+#: src/modules/i18n/messages.py:646
+msgid "Files to upload"
+msgstr ""
+
+#: src/modules/i18n/messages.py:647
+msgid "Package to unpack"
+msgstr ""
+
+#: src/modules/i18n/messages.py:650
+msgid "Creating archive, this might take a while"
+msgstr ""
+
+#: src/modules/i18n/messages.py:651
+msgid "Uploading package, this might take a while"
+msgstr ""
+
+#: src/modules/i18n/messages.py:652
+msgid "Downloading package, this might take a while"
+msgstr ""
+
+#: src/modules/i18n/messages.py:653
+msgid "Deleting old tar.gz content"
+msgstr ""
+
+#: src/modules/i18n/messages.py:654
+msgid "Unpacking archive, this might take a while"
+msgstr ""
+
+#: src/modules/i18n/messages.py:655
+msgid "Unpacking archive success"
+msgstr ""
+
+#: src/modules/i18n/messages.py:660
+msgid "Failed to get download config from settings"
+msgstr ""
+
+#: src/modules/i18n/messages.py:661
+msgid "Package must be a .zip"
+msgstr ""
+
+#: src/modules/i18n/messages.py:663
+msgid "Unpacking failed: "
+msgstr ""
+
+#: src/modules/i18n/messages.py:664
+msgid "Package uploading failed: "
+msgstr ""
+
+#: src/modules/i18n/messages.py:665
+msgid "Download package failed: "
+msgstr ""
+
+#: src/modules/i18n/messages.py:666
+msgid "Skipping file with too long path: "
+msgstr ""
+
+#: src/modules/i18n/messages.py:667
+msgid "Package creation failed: "
+msgstr ""
+
+#: src/modules/i18n/messages.py:668
+msgid "Error in creating the archive: "
+msgstr ""
+
+#: src/modules/i18n/messages.py:671
+msgid "Configured package folder doesn't exists"
+msgstr ""
+
+#: src/modules/i18n/messages.py:673
+msgid "Unkown FTP error: "
+msgstr ""
+
+#: src/modules/i18n/messages.py:676
+msgid ""
+"<meta http-equiv='refresh' content='5'><p>Unpacking completed "
+"successfully. The page will reload shortly.</p>"
+msgstr ""
+
+#: src/modules/i18n/messages.py:682
+msgid "Invalid log file name"
+msgstr ""
+
+#: src/modules/i18n/messages.py:683
+msgid "Log file not found"
+msgstr ""
+
+#: src/modules/i18n/messages.py:684 src/modules/i18n/messages.py:695
+msgid "Logs directory not found"
+msgstr ""
+
+#: src/modules/i18n/messages.py:687 src/modules/i18n/messages.py:927
+msgid "Log Viewer"
+msgstr ""
+
+#: src/modules/i18n/messages.py:691
+msgid "Log Files"
+msgstr ""
+
+#: src/modules/i18n/messages.py:692
+msgid "Total Size"
+msgstr ""
+
+#: src/modules/i18n/messages.py:693
+msgid "KB"
+msgstr ""
+
+#: src/modules/i18n/messages.py:694
+msgid "Directory"
+msgstr ""
+
+#: src/modules/i18n/messages.py:696
+msgid "Error reading logs directory"
+msgstr ""
+
+#: src/modules/i18n/messages.py:697
+msgid "No log files found in"
+msgstr ""
+
+#: src/modules/i18n/messages.py:703
+msgid "Authentication system not enabled - skipping permission validation"
+msgstr ""
+
+#: src/modules/i18n/messages.py:704
+msgid "No modules registered with permission_registry - this may be intentional"
+msgstr ""
+
+#: src/modules/i18n/messages.py:705
+#, python-format
+msgid "Validating permissions for %d registered modules..."
+msgstr ""
+
+#: src/modules/i18n/messages.py:706
+#, python-brace-format
+msgid "Module '{module_name}': guest group has no permissions (explicitly denied)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:707
+#, python-brace-format
+msgid "✓ Permission validation passed for all {count} modules"
+msgstr ""
+
+#: src/modules/i18n/messages.py:708
+#, python-brace-format
+msgid ""
+"Permission validation complete: {errors} errors, {warnings} warnings, "
+"{count} modules checked"
+msgstr ""
+
+#: src/modules/i18n/messages.py:711
+#, python-brace-format
+msgid ""
+"Module '{module_name}' registered but has NO permissions configured! Add "
+"it to permissions.json with appropriate group permissions."
+msgstr ""
+
+#: src/modules/i18n/messages.py:712
+#, python-brace-format
+msgid "PERMISSION ERROR: {message}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:715
+#, python-brace-format
+msgid ""
+"Module '{module_name}' uses old CRUD action names: {old_actions}. "
+"Consider using 'view' (implicit) instead."
+msgstr ""
+
+#: src/modules/i18n/messages.py:716
+#, python-brace-format
+msgid ""
+"Module '{module_name}', group '{group}' has unregistered actions: "
+"{invalid_actions}. These may be from old configuration. Registered "
+"actions: {registered_actions}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:717
+#, python-brace-format
+msgid "PERMISSION WARNING: {message}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:720
+msgid "Starting Permission System Validation"
+msgstr ""
+
+#: src/modules/i18n/messages.py:721
+msgid "Permission Validation Complete"
+msgstr ""
+
+#: src/modules/i18n/messages.py:724
+msgid "CRITICAL PERMISSION ERRORS DETECTED:"
+msgstr ""
+
+#: src/modules/i18n/messages.py:725
+msgid ""
+"\n"
+"Please fix these issues before proceeding to production!"
+msgstr ""
+
+#: src/modules/i18n/messages.py:726
+msgid "See logs for full details."
+msgstr ""
+
+#: src/modules/i18n/messages.py:732 src/modules/threaded/threaded_action.py:60
+msgid "Aborted by user"
+msgstr ""
+
+#: src/modules/i18n/messages.py:733 src/modules/threaded/threaded_action.py:61
+msgid "Thread ID not found - cannot force stop"
+msgstr ""
+
+#: src/modules/i18n/messages.py:734 src/modules/threaded/threaded_action.py:62
+msgid "Failed to force stop thread"
+msgstr ""
+
+#: src/modules/i18n/messages.py:735 src/modules/threaded/threaded_action.py:63
+#, python-brace-format
+msgid "Error stopping subprocess: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:736 src/modules/threaded/threaded_action.py:64
+#, python-brace-format
+msgid "Error force-stopping thread: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:737 src/modules/threaded/threaded_action.py:65
+#, python-brace-format
+msgid "Error reading stderr: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:738 src/modules/threaded/threaded_action.py:66
+#, python-brace-format
+msgid "Error reading stdout: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:739 src/modules/threaded/threaded_action.py:67
+#, python-brace-format
+msgid "Failed to start process: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:740 src/modules/threaded/threaded_action.py:68
+#, python-brace-format
+msgid "Thread failed: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:743 src/modules/threaded/threaded_action.py:69
+#, python-brace-format
+msgid "Thread renamed to: {name}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:744 src/modules/threaded/threaded_action.py:70
+msgid "Thread deletion requested"
+msgstr ""
+
+#: src/modules/i18n/messages.py:745 src/modules/threaded/threaded_action.py:71
+msgid "Terminating subprocess..."
+msgstr ""
+
+#: src/modules/i18n/messages.py:746 src/modules/threaded/threaded_action.py:72
+msgid "Subprocess forcefully killed"
+msgstr ""
+
+#: src/modules/i18n/messages.py:747 src/modules/threaded/threaded_action.py:73
+msgid "Force-stopping thread execution..."
+msgstr ""
+
+#: src/modules/i18n/messages.py:748 src/modules/threaded/threaded_action.py:74
+msgid "Thread execution forcefully stopped"
+msgstr ""
+
+#: src/modules/i18n/messages.py:749 src/modules/threaded/threaded_action.py:75
+msgid "Thread aborted by user"
+msgstr ""
+
+#: src/modules/i18n/messages.py:750 src/modules/threaded/threaded_action.py:76
+#, python-brace-format
+msgid "Executing process: {command}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:751 src/modules/threaded/threaded_action.py:77
+#, python-brace-format
+msgid "Process started (PID: {pid})"
+msgstr ""
+
+#: src/modules/i18n/messages.py:752 src/modules/threaded/threaded_action.py:78
+#, python-brace-format
+msgid "Killing process (PID: {pid})"
+msgstr ""
+
+#: src/modules/i18n/messages.py:753 src/modules/threaded/threaded_action.py:79
+msgid "Process completed"
+msgstr ""
+
+#: src/modules/i18n/messages.py:754 src/modules/threaded/threaded_action.py:80
+#, python-brace-format
+msgid "Process wait timeout after {timeout}s"
+msgstr ""
+
+#: src/modules/i18n/messages.py:755 src/modules/threaded/threaded_action.py:81
+#, python-brace-format
+msgid "Thread '{name}' started"
+msgstr ""
+
+#: src/modules/i18n/messages.py:756 src/modules/threaded/threaded_action.py:82
+#, python-brace-format
+msgid "Thread '{name}' completed successfully"
+msgstr ""
+
+#: src/modules/i18n/messages.py:757 src/modules/threaded/threaded_action.py:83
+#, python-brace-format
+msgid "Starting thread '{name}' for user '{username}'"
+msgstr ""
+
+#: src/modules/i18n/messages.py:760 src/modules/threaded/threaded_action.py:84
+msgid "Default action - override this method"
+msgstr ""
+
+#: src/modules/i18n/messages.py:766
+msgid "You must be logged in to access this module."
+msgstr ""
+
+#: src/modules/i18n/messages.py:767
+#, python-brace-format
+msgid ""
+"You need '{required_action}' permission for '{required_permission}' "
+"module."
+msgstr ""
+
+#: src/modules/i18n/messages.py:773
+msgid "GRID layout requires grid_config parameter"
+msgstr ""
+
+#: src/modules/i18n/messages.py:774
+msgid ""
+"Cannot specify both 'responsive' and 'datatable_config'. Use "
+"'datatable_config' only."
+msgstr ""
+
+#: src/modules/i18n/messages.py:775
+msgid "grid_config must be a dictionary"
+msgstr ""
+
+#: src/modules/i18n/messages.py:776
+msgid "grid_config must contain 'items' key"
+msgstr ""
+
+#: src/modules/i18n/messages.py:777
+msgid "grid_config['items'] must be a list"
+msgstr ""
+
+#: src/modules/i18n/messages.py:778
+#, python-brace-format
+msgid "Item {idx} must be a dictionary"
+msgstr ""
+
+#: src/modules/i18n/messages.py:779
+#, python-brace-format
+msgid "Item {idx} missing required key: {key}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:780
+#, python-brace-format
+msgid "Item {idx} width (w) must be between 1 and 12"
+msgstr ""
+
+#: src/modules/i18n/messages.py:781
+#, python-brace-format
+msgid "Item {idx} x position must be between 0 and 11"
+msgstr ""
+
+#: src/modules/i18n/messages.py:782
+#, python-brace-format
+msgid "Item {idx} exceeds grid bounds (x + w > 12)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:785
+msgid ""
+"Parameter 'responsive' is deprecated and will be removed in v2.0. Use "
+"'datatable_config' instead with TableMode enum."
+msgstr ""
+
+#: src/modules/i18n/messages.py:791
+#, python-brace-format
+msgid "[QUEUE] Added {msg_type} message for user '{username}'"
+msgstr ""
+
+#: src/modules/i18n/messages.py:792
+#, python-brace-format
+msgid "[QUEUE] Added {msg_type} broadcast message"
+msgstr ""
+
+#: src/modules/i18n/messages.py:798
+#, python-brace-format
+msgid "Error executing function {func_name}: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:799
+msgid "LT Scheduler stopped"
+msgstr ""
+
+#: src/modules/i18n/messages.py:800
+msgid "LT Scheduler started"
+msgstr ""
+
+#: src/modules/i18n/messages.py:801
+msgid "Scheduler started"
+msgstr ""
+
+#: src/modules/i18n/messages.py:802
+#, python-brace-format
+msgid ""
+"Collected messages - Status: {status_count}, Popups: {popup_count}, "
+"Results: {result_count}, Buttons: {button_count}, Reloads: {reload_count}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:808
+#, python-brace-format
+msgid "Log file not found: {log_file_path}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:809
+#, python-brace-format
+msgid "Error reading log file: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:815
+msgid "Custom Module"
+msgstr ""
+
+#: src/modules/i18n/messages.py:821
+#, python-brace-format
+msgid ""
+"Configuration key not found in config.json. Please configure the required"
+" settings in the Settings page (/settings).\n"
+"Missing key: {key}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:827
+#, python-brace-format
+msgid "SFTP connection failed for {host}:{port} - {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:828
+#, python-brace-format
+msgid "Remote directory not found: {remote_path}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:829
+#, python-brace-format
+msgid "Failed to download {remote_path}: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:830
+#, python-brace-format
+msgid "Failed to upload {local_path} to {remote_path}: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:831
+#, python-brace-format
+msgid "Cannot create directory (may already exist): {remote_path}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:832
+#, python-brace-format
+msgid "Failed to check existence of {remote_path}: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:838
+msgid "Network configuration applied successfully"
+msgstr ""
+
+#: src/modules/i18n/messages.py:841
+msgid "IP address and subnet mask are required for static configuration"
+msgstr ""
+
+#: src/modules/i18n/messages.py:842
+#, python-brace-format
+msgid "Configuration error: {}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:843
+#, python-brace-format
+msgid "Command failed: {}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:849
+msgid "Framework UI Configuration"
+msgstr ""
+
+#: src/modules/i18n/messages.py:850
+msgid "Language / Langue"
+msgstr ""
+
+#: src/modules/i18n/messages.py:851
+msgid "Show Thread Status in Topbar"
+msgstr ""
+
+#: src/modules/i18n/messages.py:852
+msgid "Thread Status Position in Topbar"
+msgstr ""
+
+#: src/modules/i18n/messages.py:853
+msgid "Thread Status Icon"
+msgstr ""
+
+#: src/modules/i18n/messages.py:854
+msgid "Log Viewer Max Lines to Display"
+msgstr ""
+
+#: src/modules/i18n/messages.py:855
+msgid "Log Viewer Refresh Interval (seconds)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:858
+msgid "Redmine Configuration"
+msgstr ""
+
+#: src/modules/i18n/messages.py:859
+msgid "User"
+msgstr ""
+
+#: src/modules/i18n/messages.py:860
+msgid "Password"
+msgstr ""
+
+#: src/modules/i18n/messages.py:861
+msgid "Server Address"
+msgstr ""
+
+#: src/modules/i18n/messages.py:862
+msgid "Project ID"
+msgstr ""
+
+#: src/modules/i18n/messages.py:865
+msgid "Maintenance server configuration"
+msgstr ""
+
+#: src/modules/i18n/messages.py:866
+msgid "Source"
+msgstr ""
+
+#: src/modules/i18n/messages.py:867
+msgid "Local folder"
+msgstr ""
+
+#: src/modules/i18n/messages.py:868
+msgid "FTP Address"
+msgstr ""
+
+#: src/modules/i18n/messages.py:869
+msgid "FTP Remote path"
+msgstr ""
+
+#: src/modules/i18n/messages.py:870
+msgid "FTP User"
+msgstr ""
+
+#: src/modules/i18n/messages.py:871
+msgid "FTP Password"
+msgstr ""
+
+#: src/modules/i18n/messages.py:874
+msgid "File Storage Settings"
+msgstr ""
+
+#: src/modules/i18n/messages.py:875
+msgid "HashFS Storage Directory"
+msgstr ""
+
+#: src/modules/i18n/messages.py:876
+msgid "Max File Size (MB)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:877
+msgid "Allowed Extensions"
+msgstr ""
+
+#: src/modules/i18n/messages.py:878
+msgid "File Categories"
+msgstr ""
+
+#: src/modules/i18n/messages.py:879
+msgid "Available Group IDs"
+msgstr ""
+
+#: src/modules/i18n/messages.py:880
+msgid "Generate Thumbnails"
+msgstr ""
+
+#: src/modules/i18n/messages.py:881
+msgid "Thumbnail Sizes (WxH)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:882
+msgid "Image Compression Quality (1-100)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:883
+msgid "Remove EXIF Metadata from Images"
+msgstr ""
+
+#: src/modules/i18n/messages.py:884
+msgid "Available File Tags"
+msgstr ""
+
+#: src/modules/i18n/messages.py:890
+msgid "Previous"
+msgstr ""
+
+#: src/modules/i18n/messages.py:891
+msgid "Next"
+msgstr ""
+
+#: src/modules/i18n/messages.py:892
+msgid "Skip"
+msgstr ""
+
+#: src/modules/i18n/messages.py:893
+msgid "Finish"
+msgstr ""
+
+#: src/modules/i18n/messages.py:894
+msgid "Processing..."
+msgstr ""
+
+#: src/modules/i18n/messages.py:895
+msgid "Redo Last Step"
+msgstr ""
+
+#: src/modules/i18n/messages.py:896
+msgid "🔄 Redo"
+msgstr ""
+
+#: src/modules/i18n/messages.py:899
+#, python-brace-format
+msgid "Error displaying step: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:900
+msgid "No current step available"
+msgstr ""
+
+#: src/modules/i18n/messages.py:901
+#, python-brace-format
+msgid "Invalid target step index: {target_step_index}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:902
+#, python-brace-format
+msgid "Step action failed: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:903
+#, python-brace-format
+msgid "Step skip failed: {error}"
+msgstr ""
+
+#: src/modules/i18n/messages.py:906
+#, python-brace-format, python-format
+msgid ""
+"<strong>Step {visible_idx} of {total_visible}</strong> ({progress}% "
+"complete)"
+msgstr ""
+
+#: src/modules/i18n/messages.py:912
+msgid "System"
+msgstr ""
+
+#: src/modules/i18n/messages.py:914
+msgid "Account"
+msgstr ""
+
+#: src/modules/i18n/messages.py:916
+msgid "Monitoring"
+msgstr ""
+
+#: src/modules/i18n/messages.py:917
+msgid "Tools"
+msgstr ""
+
+#: src/modules/i18n/messages.py:918
+msgid "Deployment"
+msgstr ""
+
+#: src/modules/i18n/messages.py:922
+msgid "Framework Preferences"
+msgstr ""
+
+#: src/modules/i18n/messages.py:930
+msgid "Updater"
+msgstr ""
+
+#: src/modules/i18n/messages.py:931
+msgid "Packager"
+msgstr ""
+
+#: src/modules/i18n/messages.py:935
+msgid "Welcome to the ESD framework default page"
 msgstr ""
 

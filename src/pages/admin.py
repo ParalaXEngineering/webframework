@@ -10,11 +10,55 @@ from flask import Blueprint, render_template, request, flash
 from ..modules.auth import require_admin, auth_manager
 from ..modules.auth.auth_utils import validate_username, validate_password_strength
 from ..modules.auth.permission_registry import permission_registry
+from ..modules.constants import STATUS_SERVER_ERROR
 from ..modules.displayer import (
     BSstyle, Displayer, DisplayerItemButton, DisplayerItemInputBox,
     DisplayerItemInputMultiSelect, DisplayerItemInputPassword,
     DisplayerItemInputSelect, DisplayerItemInputString, DisplayerItemText,
     DisplayerLayout, Layouts, TableMode
+)
+from ..modules.i18n.messages import (
+    # Page Titles and Headings
+    TEXT_USER_MANAGEMENT, TEXT_PERMISSION_MANAGEMENT, TEXT_GROUP_MANAGEMENT,
+    TEXT_MODULE_PERMISSIONS, TEXT_CURRENT_USERS, TEXT_CREATE_NEW_USER,
+    TEXT_UPDATE_USER_GROUPS, TEXT_RESET_USER_PASSWORD, TEXT_DELETE_USER,
+    TEXT_CURRENT_GROUPS, TEXT_CREATE_NEW_GROUP, TEXT_RENAME_GROUP,
+    TEXT_DELETE_GROUP, TEXT_MODULE_PERMISSION_MATRIX,
+    # Breadcrumbs
+    TEXT_BREADCRUMB_ADMIN, TEXT_BREADCRUMB_USERS, TEXT_BREADCRUMB_PERMISSIONS,
+    TEXT_BREADCRUMB_GROUPS,
+    # Buttons
+    BUTTON_CREATE_USER, BUTTON_DELETE_USER, BUTTON_UPDATE, BUTTON_RESET,
+    BUTTON_CREATE_GROUP, BUTTON_RENAME, BUTTON_DELETE_GROUP,
+    BUTTON_SAVE_ALL_PERMISSIONS,
+    # Input Labels
+    LABEL_USERNAME, LABEL_PASSWORD, LABEL_DISPLAY_NAME, LABEL_EMAIL,
+    LABEL_GROUPS_ADMIN, LABEL_SELECT_USER, LABEL_NEW_PASSWORD,
+    LABEL_GROUP_NAME, LABEL_SELECT_GROUP, LABEL_NEW_GROUP_NAME,
+    LABEL_ACTION,
+    # Table Headers and Column Names
+    TABLE_HEADER_GROUP_NAME, TABLE_HEADER_NUM_USERS,
+    TEXT_USERNAME, TEXT_DISPLAY_NAME, TEXT_GROUPS, TEXT_EMAIL, TEXT_LAST_LOGIN,
+    TEXT_NA, TEXT_NEVER,
+    # Flash Messages - Errors
+    ERROR_INVALID_USERNAME, ERROR_USERNAME_EXISTS, ERROR_INVALID_PASSWORD,
+    ERROR_CANNOT_DELETE_SYSTEM_USERS, ERROR_GROUP_NAME_EMPTY, ERROR_GROUP_EXISTS,
+    ERROR_CANNOT_RENAME_SYSTEM_GROUPS, ERROR_CANNOT_DELETE_SYSTEM_GROUPS,
+    ERROR_AUTH_NOT_INIT,
+    # Flash Messages - Success
+    MSG_USER_CREATED, MSG_PASSWORDLESS_USER_CREATED, MSG_USER_DELETED,
+    MSG_GROUPS_UPDATED, MSG_PASSWORD_RESET, MSG_PERMISSIONS_SAVED,
+    MSG_GROUP_CREATED, MSG_GROUP_RENAMED, MSG_GROUP_DELETED,
+    # Info Messages
+    INFO_NO_MODULES_REGISTERED, INFO_PERMISSION_MATRIX_HELP,
+    INFO_DELETE_GROUP_WARNING, INFO_GROUP_AUTO_CREATE,
+    # Default/Placeholder values
+    TEXT_NO_DELETABLE_USERS, TEXT_NO_CUSTOM_GROUPS,
+    # HTML Section Headers
+    HTML_CURRENT_USERS, HTML_CREATE_NEW_USER, HTML_UPDATE_USER_GROUPS,
+    HTML_RESET_USER_PASSWORD, HTML_DELETE_USER, HTML_MODULE_PERMISSION_MATRIX,
+    HTML_CURRENT_GROUPS, HTML_CREATE_NEW_GROUP, HTML_RENAME_GROUP,
+    HTML_DELETE_GROUP,
 )
 from ..modules.log.logger_factory import get_logger
 from ..modules import utilities
@@ -52,18 +96,18 @@ def manage_users():
     """User management page - CRUD operations."""
     
     if not auth_manager:
-        return "Authentication system not initialized", 500
+        return ERROR_AUTH_NOT_INIT, STATUS_SERVER_ERROR
     
     disp = Displayer()
-    disp.add_generic("User Management")
-    disp.add_breadcrumb("Admin", "admin_auth.manage_users", [])
-    disp.add_breadcrumb("Users", "admin_auth.manage_users", [])
+    disp.add_generic(TEXT_USER_MANAGEMENT)
+    disp.add_breadcrumb(TEXT_BREADCRUMB_ADMIN, "admin_auth.manage_users", [])
+    disp.add_breadcrumb(TEXT_BREADCRUMB_USERS, "admin_auth.manage_users", [])
     
     if request.method == 'POST':
         data_in = utilities.util_post_to_json(request.form.to_dict())
         
-        if "User Management" in data_in:
-            module_data = data_in["User Management"]
+        if str(TEXT_USER_MANAGEMENT) in data_in:
+            module_data = data_in[str(TEXT_USER_MANAGEMENT)]
             
             # Create new user
             if BTN_CREATE_USER in module_data:
@@ -82,29 +126,29 @@ def manage_users():
                 # Validate
                 is_valid_username, error_msg = validate_username(username)
                 if not is_valid_username:
-                    flash(error_msg or "Invalid username", "danger")
+                    flash(error_msg or ERROR_INVALID_USERNAME, "danger")
                 elif auth_manager.get_user(username):
-                    flash("Username already exists.", "danger")
+                    flash(ERROR_USERNAME_EXISTS, "danger")
                 elif password:
                     is_valid_password, error_msg = validate_password_strength(password)
                     if not is_valid_password:
-                        flash(error_msg or "Invalid password", "danger")
+                        flash(error_msg or ERROR_INVALID_PASSWORD, "danger")
                     else:
                         auth_manager.create_user(username, password, groups, display_name or None, email or None)
-                        flash(f"User '{username}' created successfully!", "success")
+                        flash(MSG_USER_CREATED.format(username=username), "success")
                 else:
                     # Passwordless user
                     auth_manager.create_user(username, "", groups, display_name or None, email or None)
-                    flash(f"Passwordless user '{username}' created successfully!", "success")
+                    flash(MSG_PASSWORDLESS_USER_CREATED.format(username=username), "success")
             
             # Delete user
             elif BTN_DELETE_USER in module_data:
                 username = module_data.get("select_user_to_delete", "")
                 if username and username not in RESERVED_USERS:
                     auth_manager.delete_user(username)
-                    flash(f"User '{username}' deleted.", "success")
+                    flash(MSG_USER_DELETED.format(username=username), "success")
                 else:
-                    flash("Cannot delete admin or GUEST users.", "danger")
+                    flash(ERROR_CANNOT_DELETE_SYSTEM_USERS, "danger")
             
             # Update user groups
             elif BTN_UPDATE_GROUPS in module_data:
@@ -119,7 +163,7 @@ def manage_users():
                 
                 if username:
                     auth_manager.update_user_groups(username, groups)
-                    flash(f"Groups updated for '{username}'.", "success")
+                    flash(MSG_GROUPS_UPDATED.format(username=username), "success")
             
             # Reset password
             elif BTN_RESET_PASSWORD in module_data:
@@ -129,10 +173,10 @@ def manage_users():
                 if username and new_password:
                     is_valid, error_msg = validate_password_strength(new_password)
                     if not is_valid:
-                        flash(error_msg or "Invalid password", "danger")
+                        flash(error_msg or ERROR_INVALID_PASSWORD, "danger")
                     else:
                         auth_manager.update_user_password(username, new_password)
-                        flash(f"Password reset for '{username}'.", "success")
+                        flash(MSG_PASSWORD_RESET.format(username=username), "success")
     
     # User List Table
     users = auth_manager.get_all_users()
@@ -142,16 +186,16 @@ def manage_users():
             "Username": user.username,
             "Display Name": user.display_name,
             "Groups": ", ".join(user.groups),
-            "Email": user.email or "N/A",
-            "Last Login": user.last_login or "Never"
+            "Email": user.email or TEXT_NA,
+            "Last Login": user.last_login or TEXT_NEVER
         })
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3>Current Users</h3>"), column=0)
+    disp.add_display_item(DisplayerItemText(HTML_CURRENT_USERS), column=0)
     
     disp.add_master_layout(DisplayerLayout(
         Layouts.TABLE,
-        columns=["Username", "Display Name", "Groups", "Email", "Last Login"],
+        columns=[TEXT_USERNAME, TEXT_DISPLAY_NAME, TEXT_GROUPS, TEXT_EMAIL, TEXT_LAST_LOGIN],
         datatable_config={
             "table_id": "users_table",
             "mode": TableMode.BULK_DATA,
@@ -169,27 +213,27 @@ def manage_users():
     
     # Create User Form
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Create New User</h3>"), column=0)
+    disp.add_display_item(DisplayerItemText(HTML_CREATE_NEW_USER), column=0)
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [3, 3, 3, 3]))
-    disp.add_display_item(DisplayerItemInputString("input_username", "Username"), column=0)
-    disp.add_display_item(DisplayerItemInputPassword("input_password", "Password (empty for passwordless)"), column=1)
-    disp.add_display_item(DisplayerItemInputString("input_display_name", "Display Name"), column=2)
-    disp.add_display_item(DisplayerItemInputString("input_email", "Email"), column=3)
+    disp.add_display_item(DisplayerItemInputString("input_username", LABEL_USERNAME), column=0)
+    disp.add_display_item(DisplayerItemInputPassword("input_password", LABEL_PASSWORD), column=1)
+    disp.add_display_item(DisplayerItemInputString("input_display_name", LABEL_DISPLAY_NAME), column=2)
+    disp.add_display_item(DisplayerItemInputString("input_email", LABEL_EMAIL), column=3)
     
     all_groups = auth_manager.get_all_groups()
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [8, 4]))
     disp.add_display_item(DisplayerItemInputMultiSelect(
         "input_groups",
-        "Groups",
+        LABEL_GROUPS_ADMIN,
         value=["guest"],
         choices=all_groups
     ), column=0)
-    disp.add_display_item(DisplayerItemButton(BTN_CREATE_USER, "Create User", color=BSstyle.SUCCESS), column=1)
+    disp.add_display_item(DisplayerItemButton(BTN_CREATE_USER, BUTTON_CREATE_USER, color=BSstyle.SUCCESS), column=1)
     
     # Update User Groups
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Update User Groups</h3>"), column=0)
+    disp.add_display_item(DisplayerItemText(HTML_UPDATE_USER_GROUPS), column=0)
     
     usernames = [u.username for u in users]  # type: ignore
     first_user_groups = users[0].groups if users else []
@@ -197,45 +241,45 @@ def manage_users():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [4, 6, 2]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_user_to_update",
-        "Select User",
+        LABEL_SELECT_USER,
         value=usernames[0] if usernames else None,
         choices=usernames
     ), column=0)
     disp.add_display_item(DisplayerItemInputMultiSelect(
         "input_update_groups",
-        "Groups",
+        LABEL_GROUPS_ADMIN,
         value=first_user_groups,
         choices=all_groups
     ), column=1)
-    disp.add_display_item(DisplayerItemButton(BTN_UPDATE_GROUPS, "Update", color=BSstyle.PRIMARY), column=2)
+    disp.add_display_item(DisplayerItemButton(BTN_UPDATE_GROUPS, BUTTON_UPDATE, color=BSstyle.PRIMARY), column=2)
     
     # Reset Password
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Reset User Password</h3>"), column=0)
+    disp.add_display_item(DisplayerItemText(HTML_RESET_USER_PASSWORD), column=0)
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [4, 6, 2]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_user_to_reset",
-        "Select User",
+        LABEL_SELECT_USER,
         value=usernames[0] if usernames else None,
         choices=usernames
     ), column=0)
-    disp.add_display_item(DisplayerItemInputPassword("input_reset_password", "New Password"), column=1)
-    disp.add_display_item(DisplayerItemButton(BTN_RESET_PASSWORD, "Reset", color=BSstyle.WARNING), column=2)
+    disp.add_display_item(DisplayerItemInputPassword("input_reset_password", LABEL_NEW_PASSWORD), column=1)
+    disp.add_display_item(DisplayerItemButton(BTN_RESET_PASSWORD, BUTTON_RESET, color=BSstyle.WARNING), column=2)
     
     # Delete User
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Delete User</h3>"), column=0)
+    disp.add_display_item(DisplayerItemText(HTML_DELETE_USER), column=0)
     
     deletable_users = [u.username for u in users if u.username not in RESERVED_USERS]  # type: ignore
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6, 6]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_user_to_delete",
-        "Select User",
+        LABEL_SELECT_USER,
         value=deletable_users[0] if deletable_users else None,
-        choices=deletable_users if deletable_users else ["(no deletable users)"]
+        choices=deletable_users if deletable_users else [TEXT_NO_DELETABLE_USERS]
     ), column=0)
-    disp.add_display_item(DisplayerItemButton(BTN_DELETE_USER, "Delete User", color=BSstyle.ERROR), column=1)
+    disp.add_display_item(DisplayerItemButton(BTN_DELETE_USER, BUTTON_DELETE_USER, color=BSstyle.ERROR), column=1)
     
     return render_template("base_content.j2", content=disp.display(), target="admin_auth.manage_users")
 
@@ -246,19 +290,19 @@ def manage_permissions():
     """Module permissions matrix management."""
     
     if not auth_manager:
-        return "Authentication system not initialized", 500
+        return ERROR_AUTH_NOT_INIT, STATUS_SERVER_ERROR
     
     disp = Displayer()
-    disp.add_generic("Permission Management")
-    disp.set_title("Module Permissions")
-    disp.add_breadcrumb("Admin", "admin_auth.manage_users", [])
-    disp.add_breadcrumb("Permissions", "admin_auth.manage_permissions", [])
+    disp.add_generic(TEXT_PERMISSION_MANAGEMENT)
+    disp.set_title(TEXT_MODULE_PERMISSIONS)
+    disp.add_breadcrumb(TEXT_BREADCRUMB_ADMIN, "admin_auth.manage_users", [])
+    disp.add_breadcrumb(TEXT_BREADCRUMB_PERMISSIONS, "admin_auth.manage_permissions", [])
     
     if request.method == 'POST':
         data_in = utilities.util_post_to_json(request.form.to_dict())
         
-        if "Permission Management" in data_in:
-            module_data = data_in["Permission Management"]
+        if str(TEXT_PERMISSION_MANAGEMENT) in data_in:
+            module_data = data_in[str(TEXT_PERMISSION_MANAGEMENT)]
             
             if BTN_SAVE_PERMISSIONS in module_data:
                 logger.debug("Received form data for permission save")
@@ -294,7 +338,7 @@ def manage_permissions():
                     for group, actions in group_perms.items():
                         auth_manager.set_module_permissions(module_name, group, actions)
                 
-                flash("Permissions saved successfully!", "success")
+                flash(MSG_PERMISSIONS_SAVED, "success")
     
     # Get all modules and groups (excluding admin)
     all_modules = permission_registry.get_all_modules()
@@ -302,20 +346,13 @@ def manage_permissions():
     
     if not all_modules:
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-        disp.add_display_item(DisplayerItemText(
-            "<div class='alert alert-warning'>No modules have registered permissions yet. "
-            "Modules must call <code>permission_registry.register_module()</code> to appear here.</div>"
-        ), column=0)
+        disp.add_display_item(DisplayerItemText(INFO_NO_MODULES_REGISTERED), column=0)
         return render_template("base_content.j2", content=disp.display(), target="admin_auth.manage_permissions")
     
     # Permission Matrix
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3>Module Permission Matrix</h3>"), column=0)
-    disp.add_display_item(DisplayerItemText(
-        "<p>Check boxes to grant permissions to groups for each module action.</p>"
-        "<div class='alert alert-info'><i class='mdi mdi-information'></i> "
-        "The <strong>admin</strong> group has full access to all modules and is not shown here.</div>"
-    ), column=0)
+    disp.add_display_item(DisplayerItemText(HTML_MODULE_PERMISSION_MATRIX), column=0)
+    disp.add_display_item(DisplayerItemText(INFO_PERMISSION_MATRIX_HELP), column=0)
     
     # Create table with modules as rows
     for module_name in all_modules:
@@ -326,11 +363,11 @@ def manage_permissions():
         current_perms = auth_manager.get_module_permissions(module_name)
         
         # Create table: rows=actions, cols=groups
-        header = ["Action"] + all_groups
+        header = [LABEL_ACTION] + all_groups
         layout_id = disp.add_master_layout(DisplayerLayout(Layouts.TABLE, header))
         
         for action_idx, action in enumerate(actions):
-            row: list = [DisplayerItemText(f"<strong>{action}</strong>")]
+            row: list = [DisplayerItemText("<strong>{}</strong>".format(action))]
             
             for group in all_groups:
                 # Check if group has this action
@@ -350,7 +387,7 @@ def manage_permissions():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemButton(
         BTN_SAVE_PERMISSIONS,
-        "Save All Permissions",
+        BUTTON_SAVE_ALL_PERMISSIONS,
         color=BSstyle.PRIMARY
     ), column=0)
     
@@ -363,31 +400,31 @@ def manage_groups():
     """Group management page."""
     
     if not auth_manager:
-        return "Authentication system not initialized", 500
+        return ERROR_AUTH_NOT_INIT, STATUS_SERVER_ERROR
     
     disp = Displayer()
-    disp.add_generic("Group Management")
-    disp.set_title("Group Management")
-    disp.add_breadcrumb("Admin", "admin_auth.manage_users", [])
-    disp.add_breadcrumb("Groups", "admin_auth.manage_groups", [])
+    disp.add_generic(TEXT_GROUP_MANAGEMENT)
+    disp.set_title(TEXT_GROUP_MANAGEMENT)
+    disp.add_breadcrumb(TEXT_BREADCRUMB_ADMIN, "admin_auth.manage_users", [])
+    disp.add_breadcrumb(TEXT_BREADCRUMB_GROUPS, "admin_auth.manage_groups", [])
     
     if request.method == 'POST':
         data_in = utilities.util_post_to_json(request.form.to_dict())
         
-        if "Group Management" in data_in:
-            module_data = data_in["Group Management"]
+        if str(TEXT_GROUP_MANAGEMENT) in data_in:
+            module_data = data_in[str(TEXT_GROUP_MANAGEMENT)]
             
             # Create new group
             if BTN_CREATE_GROUP in module_data:
                 group_name = module_data.get("input_new_group", "").strip()
                 
                 if not group_name:
-                    flash("Group name cannot be empty.", "danger")
+                    flash(ERROR_GROUP_NAME_EMPTY, "danger")
                 elif group_name in auth_manager.get_all_groups():
-                    flash(f"Group '{group_name}' already exists.", "danger")
+                    flash(ERROR_GROUP_EXISTS.format(group_name=group_name), "danger")
                 else:
                     auth_manager.create_group(group_name)
-                    flash(f"Group '{group_name}' created successfully!", "success")
+                    flash(MSG_GROUP_CREATED.format(group_name=group_name), "success")
             
             # Rename group
             elif BTN_RENAME_GROUP in module_data:
@@ -396,30 +433,30 @@ def manage_groups():
                 
                 if old_name and new_name:
                     if old_name in RESERVED_GROUPS:
-                        flash("Cannot rename system groups (admin, guest).", "danger")
+                        flash(ERROR_CANNOT_RENAME_SYSTEM_GROUPS, "danger")
                     elif new_name in auth_manager.get_all_groups():
-                        flash(f"Group '{new_name}' already exists.", "danger")
+                        flash(ERROR_GROUP_EXISTS.format(group_name=new_name), "danger")
                     else:
                         auth_manager.rename_group(old_name, new_name)
-                        flash(f"Group '{old_name}' renamed to '{new_name}'.", "success")
+                        flash(MSG_GROUP_RENAMED.format(old_name=old_name, new_name=new_name), "success")
             
             # Delete group
             elif BTN_DELETE_GROUP in module_data:
                 group_name = module_data.get("select_group_to_delete", "")
                 
                 if group_name in RESERVED_GROUPS:
-                    flash("Cannot delete system groups (admin, guest).", "danger")
+                    flash(ERROR_CANNOT_DELETE_SYSTEM_GROUPS, "danger")
                 elif group_name:
                     auth_manager.delete_group(group_name)
-                    flash(f"Group '{group_name}' deleted.", "success")
+                    flash(MSG_GROUP_DELETED.format(group_name=group_name), "success")
     
     # Current Groups
     groups = auth_manager.get_all_groups()
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3>Current Groups</h3>"), column=0)
+    disp.add_display_item(DisplayerItemText(HTML_CURRENT_GROUPS), column=0)
     
-    layout_id = disp.add_master_layout(DisplayerLayout(Layouts.TABLE, ["Group Name", "# Users"]))
+    layout_id = disp.add_master_layout(DisplayerLayout(Layouts.TABLE, [TABLE_HEADER_GROUP_NAME, TABLE_HEADER_NUM_USERS]))
     users = auth_manager.get_all_users()
     for line_idx, group in enumerate(groups):
         user_count = sum(1 for u in users if group in u.groups)  # type: ignore
@@ -428,49 +465,44 @@ def manage_groups():
     
     # Create New Group
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Create New Group</h3>"), column=0)
+    disp.add_display_item(DisplayerItemText(HTML_CREATE_NEW_GROUP), column=0)
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [8, 4]))
-    disp.add_display_item(DisplayerItemInputString("input_new_group", "Group Name"), column=0)
-    disp.add_display_item(DisplayerItemButton(BTN_CREATE_GROUP, "Create Group", color=BSstyle.SUCCESS), column=1)
+    disp.add_display_item(DisplayerItemInputString("input_new_group", LABEL_GROUP_NAME), column=0)
+    disp.add_display_item(DisplayerItemButton(BTN_CREATE_GROUP, BUTTON_CREATE_GROUP, color=BSstyle.SUCCESS), column=1)
     
     # Rename Group
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Rename Group</h3>"), column=0)
+    disp.add_display_item(DisplayerItemText(HTML_RENAME_GROUP), column=0)
     
     renameable_groups = [g for g in groups if g not in RESERVED_GROUPS]  # type: ignore
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [4, 6, 2]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_group_to_rename",
-        "Select Group",
+        LABEL_SELECT_GROUP,
         value=renameable_groups[0] if renameable_groups else None,
-        choices=renameable_groups if renameable_groups else ["(no custom groups)"]
+        choices=renameable_groups if renameable_groups else [TEXT_NO_CUSTOM_GROUPS]
     ), column=0)
-    disp.add_display_item(DisplayerItemInputString("input_new_group_name", "New Group Name"), column=1)
-    disp.add_display_item(DisplayerItemButton(BTN_RENAME_GROUP, "Rename", color=BSstyle.PRIMARY), column=2)
+    disp.add_display_item(DisplayerItemInputString("input_new_group_name", LABEL_NEW_GROUP_NAME), column=1)
+    disp.add_display_item(DisplayerItemButton(BTN_RENAME_GROUP, BUTTON_RENAME, color=BSstyle.PRIMARY), column=2)
     
     # Delete Group
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText("<h3 class='mt-5'>Delete Group</h3>"), column=0)
-    disp.add_display_item(DisplayerItemText(
-        "<div class='alert alert-warning'>Deleting a group removes it from all users and permissions.</div>"
-    ), column=0)
+    disp.add_display_item(DisplayerItemText(HTML_DELETE_GROUP), column=0)
+    disp.add_display_item(DisplayerItemText(INFO_DELETE_GROUP_WARNING), column=0)
     
     deletable_groups = [g for g in groups if g not in RESERVED_GROUPS]  # type: ignore
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6, 6]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_group_to_delete",
-        "Select Group",
+        LABEL_SELECT_GROUP,
         value=deletable_groups[0] if deletable_groups else None,
-        choices=deletable_groups if deletable_groups else ["(no custom groups)"]
+        choices=deletable_groups if deletable_groups else [TEXT_NO_CUSTOM_GROUPS]
     ), column=0)
-    disp.add_display_item(DisplayerItemButton(BTN_DELETE_GROUP, "Delete Group", color=BSstyle.ERROR), column=1)
+    disp.add_display_item(DisplayerItemButton(BTN_DELETE_GROUP, BUTTON_DELETE_GROUP, color=BSstyle.ERROR), column=1)
     
     # Info about creating groups
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
-    disp.add_display_item(DisplayerItemText(
-        "<div class='alert alert-info mt-5'><strong>Note:</strong> Groups are created automatically when "
-        "you assign them to users or in the permissions matrix.</div>"
-    ), column=0)
+    disp.add_display_item(DisplayerItemText(INFO_GROUP_AUTO_CREATE), column=0)
     
     return render_template("base_content.j2", content=disp.display(), target="admin_auth.manage_groups")

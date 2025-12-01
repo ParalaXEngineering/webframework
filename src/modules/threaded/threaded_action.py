@@ -22,10 +22,66 @@ try:
     from . import threaded_manager
     from .. import scheduler
     from ..log.logger_factory import get_logger
+    from ..i18n.messages import (
+        ERROR_THREAD_ABORT_BY_USER,
+        ERROR_THREAD_NOT_FOUND,
+        ERROR_THREAD_FAILED_FORCE_STOP,
+        ERROR_THREAD_STOPPING_SUBPROCESS,
+        ERROR_THREAD_FORCE_STOPPING,
+        ERROR_THREAD_READING_STDERR,
+        ERROR_THREAD_READING_STDOUT,
+        ERROR_THREAD_FAILED_START_PROCESS,
+        ERROR_THREAD_FAILED,
+        STATUS_THREAD_RENAMED,
+        STATUS_THREAD_DELETION_REQUESTED,
+        STATUS_THREAD_TERMINATING_SUBPROCESS,
+        STATUS_THREAD_SUBPROCESS_KILLED,
+        STATUS_THREAD_FORCE_STOPPING,
+        STATUS_THREAD_EXECUTION_STOPPED,
+        STATUS_THREAD_ABORTED,
+        STATUS_THREAD_EXECUTING_PROCESS,
+        STATUS_THREAD_PROCESS_STARTED,
+        STATUS_THREAD_KILLING_PROCESS,
+        STATUS_THREAD_PROCESS_COMPLETED,
+        STATUS_THREAD_PROCESS_TIMEOUT,
+        STATUS_THREAD_STARTED,
+        STATUS_THREAD_COMPLETED,
+        STATUS_THREAD_STARTING_FOR_USER,
+        WARNING_THREAD_DEFAULT_ACTION,
+    )
 except ImportError:
     import threaded_manager
     import scheduler
     from log.logger_factory import get_logger
+    # Fallback for standalone usage
+    class TranslatableString(str):
+        def format(self, *args, **kwargs):
+            return str(self).format(*args, **kwargs)
+    ERROR_THREAD_ABORT_BY_USER = TranslatableString("Aborted by user")
+    ERROR_THREAD_NOT_FOUND = TranslatableString("Thread ID not found - cannot force stop")
+    ERROR_THREAD_FAILED_FORCE_STOP = TranslatableString("Failed to force stop thread")
+    ERROR_THREAD_STOPPING_SUBPROCESS = TranslatableString("Error stopping subprocess: {error}")
+    ERROR_THREAD_FORCE_STOPPING = TranslatableString("Error force-stopping thread: {error}")
+    ERROR_THREAD_READING_STDERR = TranslatableString("Error reading stderr: {error}")
+    ERROR_THREAD_READING_STDOUT = TranslatableString("Error reading stdout: {error}")
+    ERROR_THREAD_FAILED_START_PROCESS = TranslatableString("Failed to start process: {error}")
+    ERROR_THREAD_FAILED = TranslatableString("Thread failed: {error}")
+    STATUS_THREAD_RENAMED = TranslatableString("Thread renamed to: {name}")
+    STATUS_THREAD_DELETION_REQUESTED = TranslatableString("Thread deletion requested")
+    STATUS_THREAD_TERMINATING_SUBPROCESS = TranslatableString("Terminating subprocess...")
+    STATUS_THREAD_SUBPROCESS_KILLED = TranslatableString("Subprocess forcefully killed")
+    STATUS_THREAD_FORCE_STOPPING = TranslatableString("Force-stopping thread execution...")
+    STATUS_THREAD_EXECUTION_STOPPED = TranslatableString("Thread execution forcefully stopped")
+    STATUS_THREAD_ABORTED = TranslatableString("Thread aborted by user")
+    STATUS_THREAD_EXECUTING_PROCESS = TranslatableString("Executing process: {command}")
+    STATUS_THREAD_PROCESS_STARTED = TranslatableString("Process started (PID: {pid})")
+    STATUS_THREAD_KILLING_PROCESS = TranslatableString("Killing process (PID: {pid})")
+    STATUS_THREAD_PROCESS_COMPLETED = TranslatableString("Process completed")
+    STATUS_THREAD_PROCESS_TIMEOUT = TranslatableString("Process wait timeout after {timeout}s")
+    STATUS_THREAD_STARTED = TranslatableString("Thread '{name}' started")
+    STATUS_THREAD_COMPLETED = TranslatableString("Thread '{name}' completed successfully")
+    STATUS_THREAD_STARTING_FOR_USER = TranslatableString("Starting thread '{name}' for user '{username}'")
+    WARNING_THREAD_DEFAULT_ACTION = TranslatableString("Default action - override this method")
 
 
 # Constants
@@ -35,16 +91,11 @@ PROGRESS_INDETERMINATE = -1
 PROCESS_SLEEP_INTERVAL = 0.1
 PROCESS_KILL_DELAY = 0.1
 
-# Log level constants
+# Log level constants (domain-specific for this module's logging)
 LOG_LEVEL_DEBUG = "DEBUG"
 LOG_LEVEL_INFO = "INFO"
 LOG_LEVEL_WARNING = "WARNING"
 LOG_LEVEL_ERROR = "ERROR"
-
-# Error messages
-ERR_ABORT_BY_USER = "Aborted by user"
-ERR_THREAD_NOT_FOUND = "Thread ID not found - cannot force stop"
-ERR_FAILED_FORCE_STOP = "Failed to force stop thread"
 
 
 class Threaded_action:
@@ -374,7 +425,7 @@ class Threaded_action:
             name: The new name
         """
         self.m_name = name
-        self.console_write(f"Thread renamed to: {name}", "INFO")
+        self.console_write(STATUS_THREAD_RENAMED.format(name=name), "INFO")
 
     def delete(self):
         """Delete the thread and unregister it from the thread manager.
@@ -386,23 +437,23 @@ class Threaded_action:
         4. Marking as aborted if it was running
         5. Unregistering from thread manager
         """
-        self.console_write("Thread deletion requested", LOG_LEVEL_WARNING)
+        self.console_write(STATUS_THREAD_DELETION_REQUESTED, LOG_LEVEL_WARNING)
         was_running = self.m_running
         self.m_running = False
 
         # Try to kill any running subprocess
         try:
             if hasattr(self, 'm_process') and self.m_process:
-                self.console_write("Terminating subprocess...", LOG_LEVEL_WARNING)
+                self.console_write(STATUS_THREAD_TERMINATING_SUBPROCESS, LOG_LEVEL_WARNING)
                 self.m_process.terminate()
                 # Give it a moment to terminate gracefully
                 time.sleep(PROCESS_KILL_DELAY)
                 # Force kill if still alive
                 if self.m_process.poll() is None:
                     self.m_process.kill()
-                    self.console_write("Subprocess forcefully killed", LOG_LEVEL_WARNING)
+                    self.console_write(STATUS_THREAD_SUBPROCESS_KILLED, LOG_LEVEL_WARNING)
         except Exception as e:
-            self.console_write(f"Error stopping subprocess: {e}", LOG_LEVEL_ERROR)
+            self.console_write(ERROR_THREAD_STOPPING_SUBPROCESS.format(error=e), LOG_LEVEL_ERROR)
 
         # Force stop the Python thread using ctypes (raises SystemExit in thread)
         if self.m_thread_action and self.m_thread_action.is_alive():
@@ -410,27 +461,27 @@ class Threaded_action:
                 import ctypes
                 thread_id = self.m_thread_action.ident
                 if thread_id:
-                    self.console_write("Force-stopping thread execution...", LOG_LEVEL_WARNING)
+                    self.console_write(STATUS_THREAD_FORCE_STOPPING, LOG_LEVEL_WARNING)
                     # Raise SystemExit exception in the thread
                     res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
                         ctypes.c_long(thread_id),
                         ctypes.py_object(SystemExit)
                     )
                     if res == 0:
-                        self.console_write(ERR_THREAD_NOT_FOUND, LOG_LEVEL_ERROR)
+                        self.console_write(ERROR_THREAD_NOT_FOUND, LOG_LEVEL_ERROR)
                     elif res > 1:
                         # If it returns more than 1, we need to revert the exception
                         ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), None)
-                        self.console_write(ERR_FAILED_FORCE_STOP, LOG_LEVEL_ERROR)
+                        self.console_write(ERROR_THREAD_FAILED_FORCE_STOP, LOG_LEVEL_ERROR)
                     else:
-                        self.console_write("Thread execution forcefully stopped", LOG_LEVEL_WARNING)
+                        self.console_write(STATUS_THREAD_EXECUTION_STOPPED, LOG_LEVEL_WARNING)
             except Exception as e:
-                self.console_write(f"Error force-stopping thread: {e}", LOG_LEVEL_ERROR)
+                self.console_write(ERROR_THREAD_FORCE_STOPPING.format(error=e), LOG_LEVEL_ERROR)
 
         # Mark as aborted if it was still running
         if was_running and not self.m_error:
-            self.m_error = ERR_ABORT_BY_USER
-            self.console_write("Thread aborted by user", LOG_LEVEL_ERROR)
+            self.m_error = ERROR_THREAD_ABORT_BY_USER
+            self.console_write(STATUS_THREAD_ABORTED, LOG_LEVEL_ERROR)
 
         if threaded_manager.thread_manager_obj:
             threaded_manager.thread_manager_obj.del_thread(self)
@@ -450,7 +501,7 @@ class Threaded_action:
             shell: The shell argument of subprocess
             inputs: A list with detection of specific string and how to react
         """
-        self.console_write(f"Executing process: {' '.join(command)}", LOG_LEVEL_INFO)
+        self.console_write(STATUS_THREAD_EXECUTING_PROCESS.format(command=' '.join(command)), LOG_LEVEL_INFO)
 
         try:
             self.m_process = subprocess.Popen(
@@ -475,16 +526,16 @@ class Threaded_action:
             )
             self.m_thread_process_stderr.start()
 
-            self.console_write(f"Process started (PID: {self.m_process.pid})", LOG_LEVEL_INFO)
+            self.console_write(STATUS_THREAD_PROCESS_STARTED.format(pid=self.m_process.pid), LOG_LEVEL_INFO)
         except Exception as e:
-            self.console_write(f"Failed to start process: {e}", LOG_LEVEL_ERROR)
+            self.console_write(ERROR_THREAD_FAILED_START_PROCESS.format(error=e), LOG_LEVEL_ERROR)
             if self.m_logger:
                 self.m_logger.error("Process execution failed: %s", e)
 
     def process_close(self):
         """Kill and close the local process"""
         if self.m_process:
-            self.console_write(f"Killing process (PID: {self.m_process.pid})", LOG_LEVEL_WARNING)
+            self.console_write(STATUS_THREAD_KILLING_PROCESS.format(pid=self.m_process.pid), LOG_LEVEL_WARNING)
             self.m_process.kill()
             self.m_process = None
             self.m_process_running = False
@@ -515,7 +566,7 @@ class Threaded_action:
                         self.m_process_results.append(line)
                         self.console_write_raw(f"[STDERR] {line.strip()}")
             except Exception as e:
-                self.console_write(f"Error reading stderr: {e}", LOG_LEVEL_ERROR)
+                self.console_write(ERROR_THREAD_READING_STDERR.format(error=e), LOG_LEVEL_ERROR)
                 self.m_process_running = False
             time.sleep(PROCESS_SLEEP_INTERVAL)
 
@@ -543,7 +594,7 @@ class Threaded_action:
                         self.m_process_results.append(line)
                         self.console_write_raw(f"[STDOUT] {line.strip()}")
             except Exception as e:
-                self.console_write(f"Error reading stdout: {e}", LOG_LEVEL_ERROR)
+                self.console_write(ERROR_THREAD_READING_STDOUT.format(error=e), LOG_LEVEL_ERROR)
                 self.m_process_running = False
             time.sleep(PROCESS_SLEEP_INTERVAL)
 
@@ -568,10 +619,10 @@ class Threaded_action:
         while True:
             time.sleep(0.3)
             if not self.m_process_running:
-                self.console_write("Process completed", LOG_LEVEL_INFO)
+                self.console_write(STATUS_THREAD_PROCESS_COMPLETED, LOG_LEVEL_INFO)
                 return
             if timeout and (time.time() - start_time) >= timeout:
-                self.console_write(f"Process wait timeout after {timeout}s", LOG_LEVEL_WARNING)
+                self.console_write(STATUS_THREAD_PROCESS_TIMEOUT.format(timeout=timeout), LOG_LEVEL_WARNING)
                 return
 
     def process_read_results(self):
@@ -599,20 +650,20 @@ class Threaded_action:
 
     def action(self):
         """Main function of this thread - Override this in child classes"""
-        self.console_write("Default action - override this method", "WARNING")
+        self.console_write(WARNING_THREAD_DEFAULT_ACTION, "WARNING")
         return
 
     def thread_process(self):
         """Thread function wrapper with error handling"""
         self.m_running = True
-        self.console_write(f"Thread '{self.get_name()}' started", LOG_LEVEL_INFO)
+        self.console_write(STATUS_THREAD_STARTED.format(name=self.get_name()), LOG_LEVEL_INFO)
 
         try:
             self.action()
-            self.console_write(f"Thread '{self.get_name()}' completed successfully", LOG_LEVEL_INFO)
+            self.console_write(STATUS_THREAD_COMPLETED.format(name=self.get_name()), LOG_LEVEL_INFO)
         except Exception as e:
             traceback_str = traceback.format_exc()
-            self.console_write(f"Thread failed: {e}", LOG_LEVEL_ERROR)
+            self.console_write(ERROR_THREAD_FAILED.format(error=e), LOG_LEVEL_ERROR)
             if self.m_logger:
                 self.m_logger.warning("Thread '%s' failed: %s", self.get_name(), e)
                 self.m_logger.debug("Traceback: %s", traceback_str)
@@ -644,7 +695,7 @@ class Threaded_action:
             self.username = 'system'
             self.user_session_id = 'system'
         
-        self.console_write(f"Starting thread '{self.get_name()}' for user '{self.username}'", "INFO")
+        self.console_write(STATUS_THREAD_STARTING_FOR_USER.format(name=self.get_name(), username=self.username), "INFO")
         self.m_thread_action = threading.Thread(target=self.thread_process, daemon=True)
         self.m_thread_action.start()
         return

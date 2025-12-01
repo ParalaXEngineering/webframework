@@ -15,7 +15,7 @@ Main exports:
 """
 
 from .manager import FileManager
-from .models import Base, FileGroup, FileVersion, FileTag
+from .models import Base, FileGroup, FileVersion, FileTag, THUMB_DIR, THUMB_SIZE_SMALL, THUMB_SIZE_MEDIUM, THUMB_SUFFIX
 from .storage import ContentAddressableStorage
 
 __all__ = [
@@ -24,5 +24,9 @@ __all__ = [
     'FileVersion',
     'FileTag',
     'ContentAddressableStorage',
-    'Base'
+    'Base',
+    'THUMB_DIR',
+    'THUMB_SIZE_SMALL',
+    'THUMB_SIZE_MEDIUM',
+    'THUMB_SUFFIX'
 ]

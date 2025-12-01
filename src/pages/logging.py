@@ -16,6 +16,19 @@ from flask import Blueprint, render_template, request, jsonify
 # Local modules
 from ..modules import displayer
 from ..modules.auth import require_admin
+from ..modules.i18n.messages import (
+    ERROR_INVALID_LOG_FILE,
+    ERROR_LOG_FILE_NOT_FOUND,
+    TEXT_LOG_VIEWER,
+    TEXT_LOGS,
+    TEXT_LOG_FILES,
+    TEXT_TOTAL_SIZE,
+    TEXT_SIZE_KB,
+    TEXT_DIRECTORY,
+    TEXT_NO_LOGS_DIR,
+    TEXT_ERROR_READING_LOGS,
+    TEXT_NO_LOG_FILES,
+)
 
 # Constants - Blueprint and URL routing
 BLUEPRINT_NAME = "logging"
@@ -40,16 +53,7 @@ LOG_PATTERN_FALLBACK = r'^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2},\d{3})\s*-\s*(D
 LOG_FILE_EXTENSION = '.log'
 TEXT_NA = 'N/A'
 
-# Constants - UI text and labels
-TEXT_LOG_VIEWER = "Log Viewer"
-TEXT_LOGS = "Logs"
-TEXT_LOG_FILES = "Log Files"
-TEXT_TOTAL_SIZE = "Total Size"
-TEXT_SIZE_KB = "KB"
-TEXT_DIRECTORY = "Directory"
-TEXT_NO_LOGS_DIR = "Logs directory not found"
-TEXT_ERROR_READING_LOGS = "Error reading logs directory"
-TEXT_NO_LOG_FILES = "No log files found in"
+
 
 # Constants - Table configuration
 TABLE_COLUMNS_LOG = ["#", "Timestamp", "Level", "File", "Line", "Message"]
@@ -87,9 +91,7 @@ SEARCHPANES_COL_MAPPING = {
     'Line': 'line'
 }
 
-# Constants - HTTP error messages
-ERROR_INVALID_LOG_FILE = "Invalid log file name"
-ERROR_LOG_FILE_NOT_FOUND = "Log file not found"
+
 
 # Constants - Security and validation
 INVALID_PATH_CHARS = ['..', '/']

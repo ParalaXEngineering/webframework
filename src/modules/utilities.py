@@ -11,6 +11,9 @@ import tarfile
 import zlib
 from typing import TYPE_CHECKING, Callable, Optional
 
+# Framework modules - i18n
+from .i18n.messages import ERROR_CONFIG_KEY_NOT_FOUND
+
 if TYPE_CHECKING:
     from . import displayer
 
@@ -69,8 +72,6 @@ UNDERSCORE = "_"
 # Constants for file size formatting
 FILE_SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB']
 FILE_SIZE_THRESHOLD = 1024.0
-
-CONFIG_GLOBAL = {}
 
 # Template type constants
 TEMPLATE_TYPE_SELECT = "select"
@@ -740,11 +741,7 @@ def get_config_or_error(settings_manager, *config_paths):
         
     except KeyError as e:
         from flask import render_template
-        error_message = (
-            f"Configuration key not found in config.json. "
-            f"Please configure the required settings in the Settings page (/settings).\n"
-            f"Missing key: {str(e)}"
-        )
+        error_message = ERROR_CONFIG_KEY_NOT_FOUND.format(key=str(e))
         return None, render_template("error.j2", traceback=error_message)
 
 

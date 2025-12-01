@@ -9,16 +9,18 @@ import platform
 import subprocess
 from typing import Optional, Tuple
 
-# Configuration constants
+# Framework modules - i18n
+from .i18n.messages import (
+    MSG_NETWORK_CONFIG_SUCCESS,
+    ERROR_NETWORK_VALIDATION,
+    ERROR_NETWORK_CONFIG,
+    ERROR_NETWORK_CMD_FAILED,
+)
+
+# Domain-specific constants
 IP_TYPE_STATIC = "Static"
 IP_TYPE_DHCP = "DHCP"
 PLATFORM_WINDOWS = "Windows"
-
-# Status and error messages
-MSG_CONFIG_SUCCESS = "Network configuration applied successfully"
-MSG_VALIDATION_ERROR = "IP address and subnet mask are required for static configuration"
-MSG_CONFIG_ERROR = "Configuration error: {}"
-MSG_CMD_FAILED = "Command failed: {}"
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +50,7 @@ def apply_network_config(interface: str, ip_type: str, ip_address: Optional[str]
          return _apply_linux_config(interface, ip_type, ip_address, subnet_mask, gateway, dns)
      except Exception as e:
          logger.exception("Failed to apply network configuration for interface %s", interface)
-         return False, MSG_CONFIG_ERROR.format(str(e))
+         return False, ERROR_NETWORK_CONFIG.format(str(e))
 
 
 def _apply_windows_config(interface: str, ip_type: str, ip_address: Optional[str] = None,
@@ -63,7 +65,7 @@ def _apply_windows_config(interface: str, ip_type: str, ip_address: Optional[str
      elif ip_type == IP_TYPE_STATIC:
          if not ip_address or not subnet_mask:
              logger.warning("Static config missing required parameters for interface %s", interface)
-             return False, MSG_VALIDATION_ERROR
+             return False, ERROR_NETWORK_VALIDATION
          
          cmd = f'netsh interface ip set address name="{interface}" static {ip_address} {subnet_mask}'
          if gateway:
@@ -77,10 +79,10 @@ def _apply_windows_config(interface: str, ip_type: str, ip_address: Optional[str
          result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
          if result.returncode != 0:
              logger.error("Windows netsh command failed: %s", result.stderr)
-             return False, MSG_CMD_FAILED.format(result.stderr)
+             return False, ERROR_NETWORK_CMD_FAILED.format(result.stderr)
      
      logger.info("Network configuration applied successfully on Windows for %s", interface)
-     return True, MSG_CONFIG_SUCCESS
+     return True, MSG_NETWORK_CONFIG_SUCCESS
 
 
 def _apply_linux_config(interface: str, ip_type: str, ip_address: Optional[str] = None,
@@ -94,7 +96,7 @@ def _apply_linux_config(interface: str, ip_type: str, ip_address: Optional[str] 
      elif ip_type == IP_TYPE_STATIC:
          if not ip_address or not subnet_mask:
              logger.warning("Static config missing required parameters for interface %s", interface)
-             return False, MSG_VALIDATION_ERROR
+             return False, ERROR_NETWORK_VALIDATION
          
          commands.append(f'ip addr flush dev {interface}')
          commands.append(f'ip addr add {ip_address}/{subnet_mask} dev {interface}')
@@ -109,7 +111,7 @@ def _apply_linux_config(interface: str, ip_type: str, ip_address: Optional[str] 
          result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
          if result.returncode != 0:
              logger.error("Linux command failed: %s", result.stderr)
-             return False, MSG_CMD_FAILED.format(result.stderr)
+             return False, ERROR_NETWORK_CMD_FAILED.format(result.stderr)
      
      logger.info("Network configuration applied successfully on Linux for %s", interface)
-     return True, MSG_CONFIG_SUCCESS
+     return True, MSG_NETWORK_CONFIG_SUCCESS

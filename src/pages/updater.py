@@ -20,6 +20,35 @@ from ..modules.auth import auth_manager
 from ..modules.log.logger_factory import get_logger
 from ..modules.threaded.threaded_action import Threaded_action
 from ..modules.utilities import get_config_or_error
+from ..modules.i18n.messages import (
+    ERROR_UPDATER_SETTINGS_NOT_INIT,
+    ERROR_UPDATER_SETTINGS_RELOAD,
+    ERROR_UPDATER_INVALID_SETTINGS,
+    ERROR_UPDATER_UPLOAD_CONFIG,
+    ERROR_UPDATER_CONFIG,
+    ERROR_UPDATER_SFTP_CONFIG,
+    STATUS_UPDATER_APPLYING,
+    STATUS_UPDATER_UPLOADING,
+    STATUS_UPDATER_DOWNLOADING,
+    TEXT_UPDATER_CREATE_UPDATE,
+    TEXT_UPDATER_UPLOAD_UPDATE,
+    TEXT_UPDATER_SELECT_DOWNLOAD,
+    TEXT_UPDATER_APPLY_UPDATE,
+    TEXT_UPDATER_LOAD_UPDATE,
+    SUBTITLE_UPDATER_CREATION,
+    SUBTITLE_UPDATER_DEPLOYMENT,
+    BUTTON_UPDATER_CREATE,
+    BUTTON_UPDATER_UPLOAD,
+    BUTTON_UPDATER_DOWNLOAD,
+    BUTTON_UPDATER_APPLY,
+    DISTRIB_UPDATER_WINDOWS,
+    DISTRIB_UPDATER_LINUX,
+    LABEL_UPDATER_FILE_UPLOAD,
+    INFO_UPDATER_FOLDER_NOT_EXISTS,
+    INFO_UPDATER_FTP_ERROR,
+    MSG_UPDATER_APP_RESTART,
+    MSG_UPDATER_PLEASE_RESTART,
+)
 
 logger = get_logger(__name__)
 
@@ -41,19 +70,6 @@ FILE_BOOTLOADER_LINUX = "BTL.sh"
 # Constants - Archive formats
 ARCHIVE_FORMAT_TAR_GZ = "r:gz"
 PLATFORM_WINDOWS = "windows"
-PLATFORM_LINUX = "linux"
-
-# Constants - Status messages
-STATUS_APPLYING_UPDATE = "Applying update"
-STATUS_CREATING_UPDATE = "Creating update"
-STATUS_UPLOADING_UPDATE = "Uploading updates, this might take a while"
-STATUS_DOWNLOADING_UPDATE = "Downloading archive, this might take a while"
-STATUS_ERROR_SETTINGS = "Settings manager not initialized"
-STATUS_ERROR_SETTINGS_RELOAD = "Settings manager not initialized after reload"
-STATUS_ERROR_INVALID_SETTINGS = "Invalid settings format after reload"
-STATUS_ERROR_UPLOAD_CONFIG = "Failed to get upload config from settings"
-STATUS_ERROR_CONFIG = "Configuration error"
-STATUS_ERROR_SFTP_CONFIG = "Failed to get SFTP config from settings"
 
 # Constants - Progress percentages
 PROGRESS_START = 103
@@ -65,26 +81,15 @@ PROGRESS_PROCESSING = 103
 SOURCE_FOLDER = "Folder"
 SOURCE_FTP = "FTP"
 
-# Constants - UI/Display
-SUBTITLE_UPDATE_CREATION = "Update Creation"
-SUBTITLE_UPDATE_DEPLOYMENT = "Update Deployment"
-TEXT_CREATE_UPDATE = "Create a new update with installer"
-TEXT_UPLOAD_UPDATE = "Upload the latested update"
-TEXT_SELECT_DOWNLOAD = "Select a package to download"
-TEXT_APPLY_UPDATE = "Apply update"
-TEXT_LOAD_UPDATE = "Load package from file"
-BUTTON_CREATE = "Create"
-BUTTON_UPLOAD = "Upload"
-BUTTON_DOWNLOAD = "Download"
-BUTTON_APPLY = "Apply"
-DISTRIB_WINDOWS = "Windows"
-DISTRIB_LINUX = "Linux"
-LABEL_FILE_UPLOAD = "Select Update Package"
+# Constants - File types
 ACCEPT_TYPES = [".zip", ".7z", ".rar"]
-INFO_FOLDER_NOT_EXISTS = "Configured update folder doesn't exists"
-INFO_FTP_ERROR = "FTP server not accessible, please check your connection, use a zip file or use a local folder"
-MSG_APP_RESTART_CLOSE_TAB = "Application will restart, you can close this tab"
-MSG_PLEASE_RESTART = "Please restart application"
+
+# Constants - Form button IDs
+BTN_ACTION_CREATE = "create"
+BTN_ACTION_UPLOAD = "upload"
+BTN_ACTION_APPLY = "apply"
+BTN_ACTION_DOWNLOAD = "download"
+BTN_ACTION_UNPACK = "unpack"
 
 
 def get_settings_manager():
@@ -139,7 +144,7 @@ class SETUP_Updater(Threaded_action):
                                              CONFIG_UPDATES_PASSWORD)
         if error:
             if self.m_logger:
-                self.m_logger.error(STATUS_ERROR_SFTP_CONFIG)
+                self.m_logger.error(str(ERROR_UPDATER_SFTP_CONFIG))
             return
         
         # Type guard: configs is dict when error is None
@@ -155,11 +160,11 @@ class SETUP_Updater(Threaded_action):
 
         if self.m_action in ("update", "load_update_file"):
             if self.m_scheduler:
-                self.m_scheduler.emit_status(self.get_name(), STATUS_APPLYING_UPDATE, PROGRESS_START)
+                self.m_scheduler.emit_status(self.get_name(), STATUS_UPDATER_APPLYING, PROGRESS_START)
             settings_manager_inst = get_settings_manager()
             if not settings_manager_inst:
                 if self.m_logger:
-                    self.m_logger.error(STATUS_ERROR_SETTINGS)
+                    self.m_logger.error(ERROR_UPDATER_SETTINGS_NOT_INIT)
                 return
             current_param = settings_manager_inst.get_all_settings()
 
@@ -187,7 +192,7 @@ class SETUP_Updater(Threaded_action):
             settings_mgr = get_settings_manager()
             if not settings_mgr:
                 if self.m_logger:
-                    self.m_logger.error(STATUS_ERROR_SETTINGS_RELOAD)
+                    self.m_logger.error(ERROR_UPDATER_SETTINGS_RELOAD)
                 return
             settings_mgr.load()
             new_param = settings_mgr.get_all_settings()
@@ -195,7 +200,7 @@ class SETUP_Updater(Threaded_action):
             # Type guard: ensure new_param is dict
             if not isinstance(new_param, dict):
                 if self.m_logger:
-                    self.m_logger.error(STATUS_ERROR_INVALID_SETTINGS)
+                    self.m_logger.error(ERROR_UPDATER_INVALID_SETTINGS)
                 return
 
             # --- MERGE new_param -> current_param ---
@@ -285,18 +290,18 @@ class SETUP_Updater(Threaded_action):
                 logger.exception(f"Error launching bootloader: {e}")
 
             if self.m_scheduler:
-                self.m_scheduler.emit_status(self.get_name(), STATUS_APPLYING_UPDATE, PROGRESS_SUCCESS)
+                self.m_scheduler.emit_status(self.get_name(), STATUS_UPDATER_APPLYING, PROGRESS_SUCCESS)
             if "distribution" in self.m_file:
                 if self.m_scheduler:
                     self.m_scheduler.emit_status(
                         self.get_name(),
-                        MSG_APP_RESTART_CLOSE_TAB,
+                        MSG_UPDATER_APP_RESTART,
                         102,
                     )
             else:
                 if self.m_scheduler:
                     self.m_scheduler.emit_status(
-                        self.get_name(), MSG_PLEASE_RESTART, 102
+                        self.get_name(), MSG_UPDATER_PLEASE_RESTART, 102
                     )
 
         elif self.m_action == "download":
@@ -319,7 +324,7 @@ class SETUP_Updater(Threaded_action):
             # Folder mode
             if self.m_scheduler:
                 self.m_scheduler.emit_status(
-                    self.get_name(), STATUS_DOWNLOADING_UPDATE, PROGRESS_PROCESSING
+                    self.get_name(), STATUS_UPDATER_DOWNLOADING, PROGRESS_PROCESSING
                 )
             if source == SOURCE_FOLDER:
                 folder_value, error = get_config_or_error(get_settings_manager(), CONFIG_UPDATES_FOLDER)
@@ -378,13 +383,13 @@ class SETUP_Updater(Threaded_action):
                     if self.m_scheduler:
                         self.m_scheduler.emit_status(
                             self.get_name(),
-                            STATUS_DOWNLOADING_UPDATE,
+                            STATUS_UPDATER_DOWNLOADING,
                             PROGRESS_ERROR,
                         )
 
             if self.m_scheduler:
                 self.m_scheduler.emit_status(
-                    self.get_name(), STATUS_DOWNLOADING_UPDATE, PROGRESS_SUCCESS
+                    self.get_name(), STATUS_UPDATER_DOWNLOADING, PROGRESS_SUCCESS
                 )
 
             # Relist the package availables
@@ -451,7 +456,7 @@ class SETUP_Updater(Threaded_action):
             directories = [os.path.join("updater", self.m_distribution, "dist")]
             if site_conf_obj:
                 version = site_conf_obj.m_app["version"].split("_")[0]
-                if (self.m_distribution == DISTRIB_WINDOWS):
+                if (self.m_distribution == DISTRIB_UPDATER_WINDOWS):
                     with zipfile.ZipFile(
                         os.path.join(
                             DIR_UPDATES,
@@ -486,11 +491,11 @@ class SETUP_Updater(Threaded_action):
 
             if not files_to_upload:
                 if self.m_scheduler:
-                    self.m_scheduler.emit_status(self.get_name(), STATUS_UPLOADING_UPDATE, PROGRESS_ERROR)
+                    self.m_scheduler.emit_status(self.get_name(), STATUS_UPDATER_UPLOADING, PROGRESS_ERROR)
                 return
 
             if self.m_scheduler:
-                self.m_scheduler.emit_status(self.get_name(), STATUS_UPLOADING_UPDATE, PROGRESS_PROCESSING)
+                self.m_scheduler.emit_status(self.get_name(), STATUS_UPDATER_UPLOADING, PROGRESS_PROCESSING)
 
             # Get configuration for upload
             configs, error = get_config_or_error(get_settings_manager(),
@@ -499,9 +504,9 @@ class SETUP_Updater(Threaded_action):
                                                  CONFIG_UPDATES_PATH)
             if error:
                 if self.m_logger:
-                    self.m_logger.error(STATUS_ERROR_UPLOAD_CONFIG)
+                    self.m_logger.error(ERROR_UPDATER_UPLOAD_CONFIG)
                 if self.m_scheduler:
-                    self.m_scheduler.emit_status(self.get_name(), STATUS_ERROR_CONFIG, PROGRESS_ERROR)
+                    self.m_scheduler.emit_status(self.get_name(), ERROR_UPDATER_CONFIG, PROGRESS_ERROR)
                 return
             
             # Type guard: configs is dict when error is None
@@ -562,13 +567,13 @@ class SETUP_Updater(Threaded_action):
                     if self.m_scheduler:
                         self.m_scheduler.emit_status(
                             self.get_name(),
-                            STATUS_UPLOADING_UPDATE,
+                            STATUS_UPDATER_UPLOADING,
                             PROGRESS_ERROR, str(e)
                         )
 
             if self.m_scheduler:
                 self.m_scheduler.emit_status(
-                    self.get_name(), STATUS_UPLOADING_UPDATE, PROGRESS_SUCCESS
+                    self.get_name(), STATUS_UPDATER_UPLOADING, PROGRESS_SUCCESS
                 )
 
 
@@ -584,26 +589,26 @@ def update():
         data_in = utilities.util_post_to_json(request.form.to_dict())
         data_in = data_in[SETUP_Updater.m_default_name]
 
-        if "create" in data_in:
+        if BTN_ACTION_CREATE in data_in:
             packager = SETUP_Updater()
             packager.set_action("create")
             packager.set_distribution(data_in["distrib"])
             packager.start()
-        elif "upload" in data_in:
+        elif BTN_ACTION_UPLOAD in data_in:
             packager = SETUP_Updater()
             packager.set_action("upload")
             packager.start()
-        elif "apply" in data_in:
+        elif BTN_ACTION_APPLY in data_in:
             packager = SETUP_Updater()
             packager.set_action("update")
             packager.set_file(data_in["update_package"])
             packager.start()
-        elif "download" in data_in:
+        elif BTN_ACTION_DOWNLOAD in data_in:
             packager = SETUP_Updater()
             packager.set_action("download")
             packager.set_file(data_in["download_package"])
             packager.start()
-        elif "unpack" in data_in:
+        elif BTN_ACTION_UNPACK in data_in:
             try:
                 f = request.files[".load_update_file"]
                 try:
@@ -652,7 +657,7 @@ def update():
             displayer.DisplayerLayout(
                 displayer.Layouts.VERTICAL,
                 [3, 6, 3],
-                subtitle=SUBTITLE_UPDATE_CREATION,
+                subtitle=SUBTITLE_UPDATER_CREATION,
                 alignment=[
                     displayer.BSalign.L,
                     displayer.BSalign.L,
@@ -661,9 +666,9 @@ def update():
             )
         )
 
-        disp.add_display_item(displayer.DisplayerItemText(TEXT_CREATE_UPDATE), 0)
-        disp.add_display_item(displayer.DisplayerItemInputSelect("distrib", None, None, [DISTRIB_WINDOWS, DISTRIB_LINUX]), 1)
-        disp.add_display_item(displayer.DisplayerItemButton("create", BUTTON_CREATE), 2)
+        disp.add_display_item(displayer.DisplayerItemText(TEXT_UPDATER_CREATE_UPDATE), 0)
+        disp.add_display_item(displayer.DisplayerItemInputSelect("distrib", None, None, [DISTRIB_UPDATER_WINDOWS, DISTRIB_UPDATER_LINUX]), 1)
+        disp.add_display_item(displayer.DisplayerItemButton(BTN_ACTION_CREATE, BUTTON_UPDATER_CREATE), 2)
 
         disp.add_master_layout(
             displayer.DisplayerLayout(
@@ -678,16 +683,16 @@ def update():
             )
         )
         disp.add_display_item(
-            displayer.DisplayerItemText(TEXT_UPLOAD_UPDATE), 0
+            displayer.DisplayerItemText(TEXT_UPDATER_UPLOAD_UPDATE), 0
         )
-        disp.add_display_item(displayer.DisplayerItemButton("upload", BUTTON_UPLOAD), 2)
+        disp.add_display_item(displayer.DisplayerItemButton(BTN_ACTION_UPLOAD, BUTTON_UPDATER_UPLOAD), 2)
 
     to_apply = utilities.util_dir_structure(os.path.join(DIR_UPDATES), [".zip"])
     disp.add_master_layout(
         displayer.DisplayerLayout(
             displayer.Layouts.VERTICAL,
             [3, 6, 3],
-            subtitle=SUBTITLE_UPDATE_DEPLOYMENT,
+            subtitle=SUBTITLE_UPDATER_DEPLOYMENT,
             alignment=[displayer.BSalign.L, displayer.BSalign.L, displayer.BSalign.R],
         )
     )
@@ -695,11 +700,11 @@ def update():
     content = to_apply.values()
     content = [item for item in content if platform.system() in item]
 
-    disp.add_display_item(displayer.DisplayerItemText(TEXT_APPLY_UPDATE), 0)
+    disp.add_display_item(displayer.DisplayerItemText(TEXT_UPDATER_APPLY_UPDATE), 0)
     disp.add_display_item(
         displayer.DisplayerItemInputSelect("update_package", None, None, list(content)), 1
     )
-    disp.add_display_item(displayer.DisplayerItemButton("apply", BUTTON_APPLY), 2)
+    disp.add_display_item(displayer.DisplayerItemButton(BTN_ACTION_APPLY, BUTTON_UPDATER_APPLY), 2)
 
     # Folder mode
     if configs[CONFIG_UPDATES_SOURCE] == SOURCE_FOLDER:
@@ -713,7 +718,7 @@ def update():
                 )
             )
             disp.add_display_item(
-                displayer.DisplayerItemAlert(INFO_FOLDER_NOT_EXISTS, displayer.BSstyle.INFO), 0
+                displayer.DisplayerItemAlert(INFO_UPDATER_FOLDER_NOT_EXISTS, displayer.BSstyle.INFO), 0
             )
         else:
             if site_conf_obj:
@@ -740,7 +745,7 @@ def update():
                 )
             )
             disp.add_display_item(
-                displayer.DisplayerItemText(TEXT_SELECT_DOWNLOAD), 0
+                displayer.DisplayerItemText(TEXT_UPDATER_SELECT_DOWNLOAD), 0
             )
             disp.add_display_item(
                 displayer.DisplayerItemInputSelect(
@@ -749,7 +754,7 @@ def update():
                 1,
             )
             disp.add_display_item(
-                displayer.DisplayerItemButton("download", BUTTON_DOWNLOAD), 2
+                displayer.DisplayerItemButton(BTN_ACTION_DOWNLOAD, BUTTON_UPDATER_DOWNLOAD), 2
             )
 
     # FTP mode
@@ -793,7 +798,7 @@ def update():
                 )
             )
             disp.add_display_item(
-                displayer.DisplayerItemAlert(INFO_FTP_ERROR, displayer.BSstyle.INFO), 0
+                displayer.DisplayerItemAlert(INFO_UPDATER_FTP_ERROR, displayer.BSstyle.INFO), 0
             )
 
         disp.add_master_layout(
@@ -809,7 +814,7 @@ def update():
             )
         )
         disp.add_display_item(
-            displayer.DisplayerItemText(TEXT_SELECT_DOWNLOAD), 0
+            displayer.DisplayerItemText(TEXT_UPDATER_SELECT_DOWNLOAD), 0
         )
         disp.add_display_item(
             displayer.DisplayerItemInputSelect(
@@ -818,7 +823,7 @@ def update():
             1,
         )
         disp.add_display_item(
-            displayer.DisplayerItemButton("download", BUTTON_DOWNLOAD), 2
+            displayer.DisplayerItemButton(BTN_ACTION_DOWNLOAD, BUTTON_UPDATER_DOWNLOAD), 2
         )
 
     disp.add_master_layout(
@@ -829,10 +834,10 @@ def update():
             alignment=[displayer.BSalign.L, displayer.BSalign.L, displayer.BSalign.R],
         )
     )
-    disp.add_display_item(displayer.DisplayerItemText(TEXT_LOAD_UPDATE), 0)
+    disp.add_display_item(displayer.DisplayerItemText(TEXT_UPDATER_LOAD_UPDATE), 0)
     disp.add_display_item(displayer.DisplayerItemFileUpload(
         "load_update_file",
-        LABEL_FILE_UPLOAD,
+        LABEL_UPDATER_FILE_UPLOAD,
         category="updates",
         accept_types=ACCEPT_TYPES
     ), 1)

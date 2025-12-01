@@ -19,11 +19,41 @@ try:
     from . import displayer
     from .threaded import Threaded_action
     from .log.logger_factory import get_logger
+    from .i18n.messages import (
+        BUTTON_WORKFLOW_PREVIOUS,
+        BUTTON_WORKFLOW_NEXT,
+        BUTTON_WORKFLOW_SKIP,
+        BUTTON_WORKFLOW_FINISH,
+        BUTTON_WORKFLOW_PROCESSING,
+        BUTTON_WORKFLOW_REDO_LAST,
+        BUTTON_WORKFLOW_REDO,
+        ERROR_WORKFLOW_DISPLAY_FAILED,
+        ERROR_WORKFLOW_NO_CURRENT_STEP,
+        ERROR_WORKFLOW_INVALID_TARGET_STEP,
+        ERROR_WORKFLOW_ACTION_FAILED,
+        ERROR_WORKFLOW_SKIP_FAILED,
+        MSG_WORKFLOW_STEP_PROGRESS,
+    )
 except ImportError:
     import scheduler
     import displayer
     from threaded import Threaded_action
     from log.logger_factory import get_logger
+    from i18n.messages import (
+        BUTTON_WORKFLOW_PREVIOUS,
+        BUTTON_WORKFLOW_NEXT,
+        BUTTON_WORKFLOW_SKIP,
+        BUTTON_WORKFLOW_FINISH,
+        BUTTON_WORKFLOW_PROCESSING,
+        BUTTON_WORKFLOW_REDO_LAST,
+        BUTTON_WORKFLOW_REDO,
+        ERROR_WORKFLOW_DISPLAY_FAILED,
+        ERROR_WORKFLOW_NO_CURRENT_STEP,
+        ERROR_WORKFLOW_INVALID_TARGET_STEP,
+        ERROR_WORKFLOW_ACTION_FAILED,
+        ERROR_WORKFLOW_SKIP_FAILED,
+        MSG_WORKFLOW_STEP_PROGRESS,
+    )
 
 
 # ============================================================================
@@ -42,14 +72,6 @@ FIELD_REDO_TARGET_STEP = "redo_target_step"
 
 # Thread tracking prefix
 THREAD_FLAG_PREFIX = "_thread_on_step_"
-
-# Button labels
-BUTTON_LABEL_PREVIOUS = "Previous"
-BUTTON_LABEL_NEXT = "Next"
-BUTTON_LABEL_SKIP = "Skip"
-BUTTON_LABEL_FINISH = "Finish"
-BUTTON_LABEL_PROCESSING = "Processing..."
-BUTTON_LABEL_REDO_LAST = "Redo Last Step"
 
 
 class StepActionType(Enum):
@@ -471,11 +493,11 @@ class Workflow:
                 current_step.execute_action(self, form_data)
             except Exception as e:
                 from .log.logger_factory import format_exception_html
-                self.m_logger.error(f"Step action failed: {format_exception_html(e)}")
+                self.m_logger.error(ERROR_WORKFLOW_ACTION_FAILED.format(error=format_exception_html(e)))
                 if scheduler.scheduler_obj:
                     scheduler.scheduler_obj.emit_popup(
                         scheduler.logLevel.error,
-                        f"Step action failed: {e}"
+                        ERROR_WORKFLOW_ACTION_FAILED.format(error=e)
                     )
     
     def _execute_skip(self, form_data: Dict) -> None:
@@ -491,7 +513,7 @@ class Workflow:
                 current_step.execute_skip(self, form_data)
             except Exception as e:
                 from .log.logger_factory import format_exception_html
-                self.m_logger.error(f"Step skip failed: {format_exception_html(e)}")
+                self.m_logger.error(ERROR_WORKFLOW_SKIP_FAILED.format(error=format_exception_html(e)))
     
     def _go_next(self) -> None:
         """Move to the next visible step."""
@@ -647,7 +669,7 @@ class Workflow:
                 )
         """
         if target_step_index < 0 or target_step_index >= len(self.m_steps):
-            self.m_logger.error(f"Invalid target step index: {target_step_index}")
+            self.m_logger.error(ERROR_WORKFLOW_INVALID_TARGET_STEP.format(target_step_index=target_step_index))
             return
         
         # Update workflow data if provided
@@ -687,7 +709,7 @@ class Workflow:
         
         current_step = self.get_current_step()
         if not current_step:
-            self.m_logger.error("No current step available")
+            self.m_logger.error(str(ERROR_WORKFLOW_NO_CURRENT_STEP))
             return disp
         
         # Add breadcrumbs BEFORE add_module (they're part of page structure)
@@ -704,13 +726,13 @@ class Workflow:
             disp = current_step.display_func(disp, self.m_workflow_data)
         except Exception as e:
             from .log.logger_factory import format_exception_html
-            self.m_logger.error(f"Display function failed: {format_exception_html(e)}")
+            self.m_logger.error(ERROR_WORKFLOW_DISPLAY_FAILED.format(error=format_exception_html(e)))
             disp.add_master_layout(
                 displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12])
             )
             disp.add_display_item(
                 displayer.DisplayerItemAlert(
-                    f"Error displaying step: {e}",
+                    ERROR_WORKFLOW_DISPLAY_FAILED.format(error=e),
                     displayer.BSstyle.ERROR
                 ),
                 0
@@ -749,9 +771,13 @@ class Workflow:
         )
         
         # Progress info
-        info_text = f"<strong>Step {visible_idx} of {total_visible}</strong> ({progress}% complete)"
+        info_text = MSG_WORKFLOW_STEP_PROGRESS.format(
+            visible_idx=visible_idx,
+            total_visible=total_visible,
+            progress=progress
+        )
         disp.add_display_item(
-            displayer.DisplayerItemText(info_text),
+            displayer.DisplayerItemText(str(info_text)),
             0
         )
         
@@ -799,7 +825,7 @@ class Workflow:
         # Navigation buttons
         if not self.is_first_step():
             disp.add_display_item(
-                displayer.DisplayerItemButton(FIELD_WORKFLOW_PREV, BUTTON_LABEL_PREVIOUS),
+                displayer.DisplayerItemButton(FIELD_WORKFLOW_PREV, str(BUTTON_WORKFLOW_PREVIOUS)),
                 0,
                 disabled=thread_running,  # Disable during thread
             )
@@ -808,7 +834,7 @@ class Workflow:
             current_step = self.get_current_step()
             
             # Determine button label based on thread state
-            next_label = BUTTON_LABEL_PROCESSING if thread_running else BUTTON_LABEL_NEXT
+            next_label = str(BUTTON_WORKFLOW_PROCESSING) if thread_running else str(BUTTON_WORKFLOW_NEXT)
             
             skip_enabled = current_step and current_step.skip_func is not None
             
@@ -821,7 +847,7 @@ class Workflow:
             
             if skip_enabled:
                 disp.add_display_item(
-                    displayer.DisplayerItemButton(FIELD_WORKFLOW_SKIP, BUTTON_LABEL_SKIP),
+                    displayer.DisplayerItemButton(FIELD_WORKFLOW_SKIP, str(BUTTON_WORKFLOW_SKIP)),
                     0,
                     disabled=thread_running,  # Disable during thread
                 )
@@ -832,14 +858,14 @@ class Workflow:
             # Show redo button first if enabled
             if current_step and current_step.allow_redo:
                 disp.add_display_item(
-                    displayer.DisplayerItemButton(FIELD_WORKFLOW_REDO_LAST, BUTTON_LABEL_REDO_LAST),
+                    displayer.DisplayerItemButton(FIELD_WORKFLOW_REDO_LAST, str(BUTTON_WORKFLOW_REDO_LAST)),
                     0,
                     disabled=False,
                 )
             
             # Then show finish button
             disp.add_display_item(
-                displayer.DisplayerItemButton(FIELD_WORKFLOW_NEXT, BUTTON_LABEL_FINISH),
+                displayer.DisplayerItemButton(FIELD_WORKFLOW_NEXT, str(BUTTON_WORKFLOW_FINISH)),
                 0,
                 disabled=False,
             )

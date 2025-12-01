@@ -14,7 +14,7 @@ from flask import session, redirect, url_for, render_template
 
 from .auth_manager import AuthManager
 from .auth_models import User
-from .permission_registry import PermissionRegistry
+from .permission_registry import PermissionRegistry, PERMISSION_ACTION_VIEW
 
 __all__ = [
     'AuthManager', 'PermissionRegistry', 'User', 'auth_manager',
@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 # Constants
-DEFAULT_ACTION = "view"
+DEFAULT_ACTION = PERMISSION_ACTION_VIEW  # Default permission action for all modules
 ADMIN_GROUP = "admin"
 ROUTE_LOGIN = 'common.login'
 SESSION_USER_KEY = 'user'

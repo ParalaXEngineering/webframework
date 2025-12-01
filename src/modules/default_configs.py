@@ -11,13 +11,46 @@ Configuration sections:
 - FEATURE_CONFIGS: Mapping of feature flags to their configuration dictionaries
 """
 
+from .i18n.messages import (
+    CONFIG_FRAMEWORK_UI,
+    CONFIG_LANGUAGE,
+    CONFIG_THREAD_STATUS_ENABLED,
+    CONFIG_THREAD_STATUS_POSITION,
+    CONFIG_THREAD_STATUS_ICON,
+    CONFIG_LOG_VIEWER_MAX_LINES,
+    CONFIG_LOG_VIEWER_REFRESH_INTERVAL,
+    CONFIG_REDMINE,
+    CONFIG_REDMINE_USER,
+    CONFIG_REDMINE_PASSWORD,
+    CONFIG_REDMINE_ADDRESS,
+    CONFIG_REDMINE_PROJECT_ID,
+    CONFIG_UPDATES,
+    CONFIG_UPDATES_SOURCE,
+    CONFIG_UPDATES_FOLDER,
+    CONFIG_UPDATES_FTP_ADDRESS,
+    CONFIG_UPDATES_FTP_PATH,
+    CONFIG_UPDATES_FTP_USER,
+    CONFIG_UPDATES_FTP_PASSWORD,
+    CONFIG_FILE_STORAGE,
+    CONFIG_HASHFS_PATH,
+    CONFIG_MAX_FILE_SIZE_MB,
+    CONFIG_ALLOWED_EXTENSIONS,
+    CONFIG_CATEGORIES,
+    CONFIG_GROUP_IDS,
+    CONFIG_GENERATE_THUMBNAILS,
+    CONFIG_THUMBNAIL_SIZES,
+    CONFIG_IMAGE_QUALITY,
+    CONFIG_STRIP_EXIF,
+    CONFIG_TAGS,
+)
+
 # Default configuration for Framework UI settings
 FRAMEWORK_UI_CONFIG = {
     "framework_ui": {
-        "friendly": "Framework UI Configuration",
+        "friendly": str(CONFIG_FRAMEWORK_UI),
         
         "language": {
-            "friendly": "Language / Langue",
+            "friendly": str(CONFIG_LANGUAGE),
             "type": "select",
             "value": "en",
             "options": ["en", "fr"],
@@ -26,7 +59,7 @@ FRAMEWORK_UI_CONFIG = {
         },
         
         "thread_status_enabled": {
-            "friendly": "Show Thread Status in Topbar",
+            "friendly": str(CONFIG_THREAD_STATUS_ENABLED),
             "type": "bool",
             "value": True,
             "persistent": True,
@@ -34,7 +67,7 @@ FRAMEWORK_UI_CONFIG = {
         },
         
         "thread_status_position": {
-            "friendly": "Thread Status Position in Topbar",
+            "friendly": str(CONFIG_THREAD_STATUS_POSITION),
             "type": "select",
             "value": "right",
             "options": ["left", "center", "right"],
@@ -43,7 +76,7 @@ FRAMEWORK_UI_CONFIG = {
         },
         
         "thread_status_icon": {
-            "friendly": "Thread Status Icon",
+            "friendly": str(CONFIG_THREAD_STATUS_ICON),
             "type": "icon",
             "value": "cog-sync",
             "persistent": True,
@@ -51,7 +84,7 @@ FRAMEWORK_UI_CONFIG = {
         },
         
         "log_viewer_max_lines": {
-            "friendly": "Log Viewer Max Lines to Display",
+            "friendly": str(CONFIG_LOG_VIEWER_MAX_LINES),
             "type": "int",
             "value": 1000,
             "persistent": True,
@@ -59,7 +92,7 @@ FRAMEWORK_UI_CONFIG = {
         },
         
         "log_viewer_refresh_interval": {
-            "friendly": "Log Viewer Refresh Interval (seconds)",
+            "friendly": str(CONFIG_LOG_VIEWER_REFRESH_INTERVAL),
             "type": "int",
             "value": 2,
             "persistent": True,
@@ -71,28 +104,28 @@ FRAMEWORK_UI_CONFIG = {
 # Default configuration for Redmine integration
 REDMINE_CONFIG = {
     "redmine": {
-        "friendly": "Redmine Configuration",
+        "friendly": str(CONFIG_REDMINE),
         "user": {
             "type": "string",
-            "friendly": "User",
+            "friendly": str(CONFIG_REDMINE_USER),
             "value": "",
             "persistent": True
         },
         "password": {
             "type": "string",
-            "friendly": "Password",
+            "friendly": str(CONFIG_REDMINE_PASSWORD),
             "value": "",
             "persistent": True
         },
         "address": {
             "type": "string",
-            "friendly": "Server Address",
+            "friendly": str(CONFIG_REDMINE_ADDRESS),
             "value": "https://redmine.example.com/",
             "persistent": True
         },
         "project_id": {
             "type": "string",
-            "friendly": "Project ID",
+            "friendly": str(CONFIG_REDMINE_PROJECT_ID),
             "value": "",
             "persistent": True
         }
@@ -102,10 +135,10 @@ REDMINE_CONFIG = {
 # Default configuration for updates/maintenance
 UPDATES_CONFIG = {
     "updates": {
-        "friendly": "Maintenance server configuration",
+        "friendly": str(CONFIG_UPDATES),
         "source": {
             "type": "select",
-            "friendly": "Source",
+            "friendly": str(CONFIG_UPDATES_SOURCE),
             "value": "FTP",
             "options": [
                 "FTP",
@@ -115,31 +148,31 @@ UPDATES_CONFIG = {
         },
         "folder": {
             "type": "string",
-            "friendly": "Local folder",
+            "friendly": str(CONFIG_UPDATES_FOLDER),
             "value": "",
             "persistent": False
         },
         "address": {
             "type": "string",
-            "friendly": "FTP Address",
+            "friendly": str(CONFIG_UPDATES_FTP_ADDRESS),
             "value": "",
             "persistent": True
         },
         "path": {
             "type": "string",
-            "friendly": "FTP Remote path",
+            "friendly": str(CONFIG_UPDATES_FTP_PATH),
             "value": "",
             "persistent": True
         },
         "user": {
             "type": "string",
-            "friendly": "FTP User",
+            "friendly": str(CONFIG_UPDATES_FTP_USER),
             "value": "",
             "persistent": True
         },
         "password": {
             "type": "string",
-            "friendly": "FTP Password",
+            "friendly": str(CONFIG_UPDATES_FTP_PASSWORD),
             "value": "",
             "persistent": True
         }
@@ -149,25 +182,25 @@ UPDATES_CONFIG = {
 # Default configuration for file storage/management
 FILE_STORAGE_CONFIG = {
     "file_storage": {
-        "friendly": "File Storage Settings",
+        "friendly": str(CONFIG_FILE_STORAGE),
         
         "hashfs_path": {
             "type": "path",
-            "friendly": "HashFS Storage Directory",
+            "friendly": str(CONFIG_HASHFS_PATH),
             "value": "resources/hashfs_storage",
             "persistent": True
         },
         
         "max_file_size_mb": {
             "type": "int",
-            "friendly": "Max File Size (MB)",
+            "friendly": str(CONFIG_MAX_FILE_SIZE_MB),
             "value": 50,
             "persistent": True
         },
         
         "allowed_extensions": {
             "type": "array",
-            "friendly": "Allowed Extensions",
+            "friendly": str(CONFIG_ALLOWED_EXTENSIONS),
             "value": [
                 ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
                 ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
@@ -178,7 +211,7 @@ FILE_STORAGE_CONFIG = {
         
         "categories": {
             "type": "array",
-            "friendly": "File Categories",
+            "friendly": str(CONFIG_CATEGORIES),
             "value": [
                 "general",
                 "documents",
@@ -191,7 +224,7 @@ FILE_STORAGE_CONFIG = {
         
         "group_ids": {
             "type": "array",
-            "friendly": "Available Group IDs",
+            "friendly": str(CONFIG_GROUP_IDS),
             "value": [
                 "invoice_group",
                 "contract_group",
@@ -203,35 +236,35 @@ FILE_STORAGE_CONFIG = {
         
         "generate_thumbnails": {
             "type": "bool",
-            "friendly": "Generate Thumbnails",
+            "friendly": str(CONFIG_GENERATE_THUMBNAILS),
             "value": True,
             "persistent": True
         },
         
         "thumbnail_sizes": {
             "type": "array",
-            "friendly": "Thumbnail Sizes (WxH)",
+            "friendly": str(CONFIG_THUMBNAIL_SIZES),
             "value": ["150x150", "300x300"],
             "persistent": True
         },
         
         "image_quality": {
             "type": "int",
-            "friendly": "Image Compression Quality (1-100)",
+            "friendly": str(CONFIG_IMAGE_QUALITY),
             "value": 85,
             "persistent": True
         },
         
         "strip_exif": {
             "type": "bool",
-            "friendly": "Remove EXIF Metadata from Images",
+            "friendly": str(CONFIG_STRIP_EXIF),
             "value": True,
             "persistent": True
         },
         
         "tags": {
             "type": "array",
-            "friendly": "Available File Tags",
+            "friendly": str(CONFIG_TAGS),
             "value": [
                 "invoice",
                 "contract",

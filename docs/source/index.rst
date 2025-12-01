@@ -151,6 +151,7 @@ Contents
    getting_started
    framework
    file_manager
+   i18n
    tutorials
    examples
    

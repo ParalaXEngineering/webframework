@@ -21,6 +21,17 @@ except ImportError:
     from log.logger_factory import get_logger
 
 try:
+    from ..i18n.messages import (
+        ERROR_DISPLAYER_NOT_LOGGED_IN,
+        ERROR_DISPLAYER_PERMISSION_DENIED,
+    )
+except ImportError:
+    from i18n.messages import (
+        ERROR_DISPLAYER_NOT_LOGGED_IN,
+        ERROR_DISPLAYER_PERMISSION_DENIED,
+    )
+
+try:
     from flask import session
 except ImportError:
     # For testing without Flask
@@ -128,7 +139,7 @@ class Displayer:
             
             if not current_username:
                 access_denied = True
-                denied_reason = "You must be logged in to access this module."
+                denied_reason = str(ERROR_DISPLAYER_NOT_LOGGED_IN)
             else:
                 # Check if user is GUEST (for informational purposes)
                 is_guest = current_username.upper() == 'GUEST'
@@ -139,7 +150,10 @@ class Displayer:
                 
                 if not has_perm:
                     access_denied = True
-                    denied_reason = f"You need '{required_action}' permission for '{required_permission}' module."
+                    denied_reason = ERROR_DISPLAYER_PERMISSION_DENIED.format(
+                        required_action=required_action,
+                        required_permission=required_permission
+                    )
                 else:
                     # Get all user permissions for this module
                     user_permissions = auth_manager.get_user_permissions(current_username, required_permission)
