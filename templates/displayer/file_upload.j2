@@ -19,12 +19,14 @@
         existing_values: List of existing file dicts to pre-populate hidden field
 #}
 
-{% macro fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups, existing_values) %}
-<div class="file-upload-widget mb-3" id="{{ id }}_widget">
+{% macro fileupload(id, text, category, subcategory, group_id, tags, accept_types, multiple, file_manager, existing_groups, existing_values, simple=false, upload_path=none, rename_to=none) %}
+<div class="file-upload-widget mb-3" id="{{ id }}_widget" data-simple="{{ 'true' if simple else 'false' }}">
     {% if text %}
     <label class="form-label">{{ text }}</label>
     {% endif %}
     
+    {# Only show metadata fields in non-simple mode #}
+    {% if not simple %}
     {# Category selector (shown only if category is None) - NOT submitted with form #}
     {% if category is none and file_manager %}
     <div class="mb-2">
@@ -37,8 +39,8 @@
     </div>
     {% endif %}
     
-    {# Subcategory input (shown only if subcategory is None) - NOT submitted with form #}
-    {% if subcategory is none %}
+    {# Subcategory input (shown only if BOTH category and subcategory are None) - NOT submitted with form #}
+    {% if category is none and subcategory is none %}
     <div class="mb-2">
         <label for="{{ id }}_upload_subcategory" class="form-label">Subcategory (Optional)</label>
         <input type="text" class="form-control" id="{{ id }}_upload_subcategory" data-upload-metadata
@@ -46,8 +48,8 @@
     </div>
     {% endif %}
     
-    {# Group ID selector (shown only if group_id is None) - NOT submitted with form #}
-    {% if group_id is none and file_manager %}
+    {# Group ID selector (shown only if BOTH category and group_id are None) - NOT submitted with form #}
+    {% if category is none and group_id is none and file_manager %}
     <div class="mb-2">
         <label for="{{ id }}_upload_group_id" class="form-label">Group ID (Optional - for versioning)</label>
         <input type="text" class="form-control" id="{{ id }}_upload_group_id" data-upload-metadata
@@ -72,6 +74,7 @@
         </select>
         <div class="form-text">Hold Ctrl/Cmd to select multiple tags</div>
     </div>
+    {% endif %}
     {% endif %}
     
     {# FilePond file input - NOT submitted with form (FilePond handles upload) #}
@@ -101,9 +104,6 @@
     
     {# Upload result message area #}
     <div id="{{ id }}_result" class="mt-2"></div>
-    
-    {# Debug info #}
-    <div class="form-text text-muted">Field ID: {{ id }} (only this field with file ID will be submitted)</div>
 </div>
 
 <script>
@@ -280,47 +280,62 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     console.log('[FileUpload {{ id }}] Preparing upload for:', file.name);
                     
-                    // Add category (from visible field or pre-filled value)
-                    const categoryField = document.getElementById('{{ id }}_upload_category');
-                    const category = categoryField ? categoryField.value : '{{ category if category else "" }}';
-                    if (category) {
-                        formData.append('category', category);
-                        console.log('[FileUpload {{ id }}] Category:', category);
-                    }
+                    // Determine upload endpoint based on simple mode
+                    const isSimpleMode = {{ 'true' if simple else 'false' }};
+                    let uploadUrl = '/files/upload';
                     
-                    // Add subcategory (from visible field or pre-filled value)
-                    const subcategoryField = document.getElementById('{{ id }}_upload_subcategory');
-                    const subcategory = subcategoryField ? subcategoryField.value : '{{ subcategory if subcategory else "" }}';
-                    if (subcategory) {
-                        formData.append('subcategory', subcategory);
-                        console.log('[FileUpload {{ id }}] Subcategory:', subcategory);
-                    }
-                    
-                    // Add group_id (from visible field or pre-filled value)
-                    const groupIdField = document.getElementById('{{ id }}_upload_group_id');
-                    const group_id = groupIdField ? groupIdField.value : '{{ group_id if group_id else "" }}';
-                    if (group_id) {
-                        formData.append('group_id', group_id);
-                        console.log('[FileUpload {{ id }}] Group ID:', group_id);
-                    }
-                    
-                    // Add tags (from visible field or pre-filled value)
-                    const tagsField = document.getElementById('{{ id }}_upload_tags');
-                    let tags = [];
-                    if (tagsField) {
-                        tags = Array.from(tagsField.selectedOptions).map(opt => opt.value);
+                    if (isSimpleMode) {
+                        // Simple mode - filesystem upload, no FileManager
+                        uploadUrl = '/files/simple-upload';
+                        formData.append('upload_path', '{{ upload_path if upload_path else "" }}');
+                        formData.append('rename_to', '{{ rename_to if rename_to else "" }}');
+                        console.log('[FileUpload {{ id }}] Simple mode - upload_path:', '{{ upload_path if upload_path else "" }}');
+                        console.log('[FileUpload {{ id }}] Simple mode - rename_to:', '{{ rename_to if rename_to else "" }}');
                     } else {
-                        // Pre-filled tags
-                        tags = {{ tags|tojson if tags else '[]' }};
-                    }
-                    if (tags.length > 0) {
-                        formData.append('tags', tags.join(','));
-                        console.log('[FileUpload {{ id }}] Tags:', tags);
+                        // FileManager mode - add metadata
+                        // Add category (from visible field or pre-filled value)
+                        const categoryField = document.getElementById('{{ id }}_upload_category');
+                        const category = categoryField ? categoryField.value : '{{ category if category else "" }}';
+                        if (category) {
+                            formData.append('category', category);
+                            console.log('[FileUpload {{ id }}] Category:', category);
+                        }
+                        
+                        // Add subcategory (from visible field or pre-filled value)
+                        const subcategoryField = document.getElementById('{{ id }}_upload_subcategory');
+                        const subcategory = subcategoryField ? subcategoryField.value : '{{ subcategory if subcategory else "" }}';
+                        if (subcategory) {
+                            formData.append('subcategory', subcategory);
+                            console.log('[FileUpload {{ id }}] Subcategory:', subcategory);
+                        }
+                        
+                        // Add group_id (from visible field or pre-filled value)
+                        const groupIdField = document.getElementById('{{ id }}_upload_group_id');
+                        const group_id = groupIdField ? groupIdField.value : '{{ group_id if group_id else "" }}';
+                        if (group_id) {
+                            formData.append('group_id', group_id);
+                            console.log('[FileUpload {{ id }}] Group ID:', group_id);
+                        }
+                        
+                        // Add tags (from visible field or pre-filled value)
+                        const tagsField = document.getElementById('{{ id }}_upload_tags');
+                        let tags = [];
+                        if (tagsField) {
+                            tags = Array.from(tagsField.selectedOptions).map(opt => opt.value);
+                        } else {
+                            // Pre-filled tags
+                            tags = {{ tags|tojson if tags else '[]' }};
+                        }
+                        if (tags.length > 0) {
+                            formData.append('tags', tags.join(','));
+                            console.log('[FileUpload {{ id }}] Tags:', tags);
+                        }
                     }
                     
                     // Upload with fetch
                     const request = new XMLHttpRequest();
-                    request.open('POST', '/files/upload');
+                    request.open('POST', uploadUrl);
+                    console.log('[FileUpload {{ id }}] Uploading to:', uploadUrl);
                     
                     request.upload.onprogress = (e) => {
                         progress(e.lengthComputable, e.loaded, e.total);
@@ -335,9 +350,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             const data = JSON.parse(request.responseText);
                             console.log('[FileUpload {{ id }}] Upload response:', data);
                             if (data.success) {
-                                // Store versioned file reference as JSON string for form submission
                                 const hiddenField = document.getElementById('{{ id }}');
                                 if (hiddenField) {
+                                    {% if simple %}
+                                    // Simple mode: store the file path
+                                    hiddenField.value = data.path || data.filename;
+                                    console.log('[FileUpload {{ id }}] ✓ Simple mode - stored path:', hiddenField.value);
+                                    // Return path as serverId for FilePond tracking
+                                    load(data.path || data.filename);
+                                    {% else %}
+                                    // FileManager mode: store versioned file reference
                                     const versionedRef = JSON.stringify({
                                         file_id: data.file.id,
                                         version: data.file.version || 1
@@ -359,14 +381,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                     console.log('[FileUpload {{ id }}] ✓ Stored versioned file reference in hidden field "{{ id }}":', versionedRef);
                                     console.log('[FileUpload {{ id }}] Hidden field will be submitted as: {{ id }}=' + versionedRef);
                                     {% endif %}
+                                    // Return file_id as string to FilePond (becomes serverId)
+                                    console.log('[FileUpload {{ id }}] Returning serverId to FilePond:', data.file.id);
+                                    load(String(data.file.id));
+                                    {% endif %}
                                 } else {
                                     console.error('[FileUpload {{ id }}] ✗ Hidden field "{{ id }}" not found!');
                                 }
-                                
-                                // Return file_id as string to FilePond (becomes serverId)
-                                // This allows FilePond to track the file and call onremovefile with serverId
-                                console.log('[FileUpload {{ id }}] Returning serverId to FilePond:', data.file.id);
-                                load(String(data.file.id));
                             } else {
                                 // Upload failed but returned 200 - extract error message
                                 const errorMsg = data.error || data.message || 'Upload failed';

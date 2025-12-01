@@ -25,7 +25,7 @@ from playwright.sync_api import sync_playwright, Browser, Page, Playwright
 # ============================================================================
 
 # Set to True to watch tests run visually with pauses between actions
-HUMAN_MODE = True  # Set to False for headless mode
+HUMAN_MODE = False  # Set to False for headless mode
 
 # Test configuration
 BASE_URL = "http://localhost:5001"

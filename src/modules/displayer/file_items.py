@@ -29,7 +29,10 @@ class DisplayerItemFileUpload(DisplayerItem):
         tags: Optional[List[str]] = None,
         accept_types: Optional[List[str]] = None,
         multiple: bool = False,
-        existing_values: Optional[List[dict]] = None
+        existing_values: Optional[List[dict]] = None,
+        simple: bool = False,
+        upload_path: Optional[str] = None,
+        rename_to: Optional[str] = None
     ) -> None:
         """Initialize a complete file upload widget with FilePond.
         
@@ -42,9 +45,13 @@ class DisplayerItemFileUpload(DisplayerItem):
             tags: Fixed tags list (hidden if set, shown if None)
             accept_types: Accepted file types (e.g., ["image/*", ".pdf"])
             multiple: Allow multiple file uploads
+            existing_values: Pre-existing file references
+            simple: If True, use simple filesystem upload (no FileManager, no permissions)
+            upload_path: For simple mode - relative path under website/assets/ (e.g., "images/users")
+            rename_to: For simple mode - rename pattern (e.g., "{username}" uses session user)
         
         Examples:
-            # Full control - user selects everything
+            # Full control - user selects everything (FileManager mode)
             >>> upload = DisplayerItemFileUpload("my_upload", "Select File")
             
             # Fixed category - user selects tags and group
@@ -54,23 +61,14 @@ class DisplayerItemFileUpload(DisplayerItem):
             ...     category="documents"
             ... )
             
-            # Everything fixed - just file selection
+            # Simple mode for avatar (filesystem, permissionless)
             >>> upload = DisplayerItemFileUpload(
-            ...     "profile_pic",
-            ...     "Upload Profile Picture",
-            ...     category="images",
-            ...     subcategory="profiles",
-            ...     tags=["profile", "avatar"],
-            ...     group_id="user_profiles"
-            ... )
-            
-            # Images only with auto-categorization
-            >>> upload = DisplayerItemFileUpload(
-            ...     "photo_upload",
-            ...     "Upload Photo",
-            ...     category="images",
-            ...     accept_types=["image/*"],
-            ...     multiple=True
+            ...     "file_avatar",
+            ...     "Upload Avatar",
+            ...     simple=True,
+            ...     upload_path="images/users",
+            ...     rename_to="{username}",
+            ...     accept_types=["image/*"]
             ... )
         """
         super().__init__(DisplayerItems.FILEUPLOAD)
@@ -83,6 +81,9 @@ class DisplayerItemFileUpload(DisplayerItem):
         self.m_accept_types = accept_types
         self.m_multiple = multiple
         self.m_existing_values = existing_values if existing_values is not None else []
+        self.m_simple = simple
+        self.m_upload_path = upload_path
+        self.m_rename_to = rename_to
     
     @classmethod
     def get_required_resources(cls) -> list:
@@ -134,7 +135,10 @@ class DisplayerItemFileUpload(DisplayerItem):
             "multiple": self.m_multiple,
             "existing_values": self.m_existing_values,
             "file_manager": file_manager,
-            "existing_groups": existing_groups
+            "existing_groups": existing_groups,
+            "simple": self.m_simple,
+            "upload_path": self.m_upload_path,
+            "rename_to": self.m_rename_to
         }
         
         container.append(item)

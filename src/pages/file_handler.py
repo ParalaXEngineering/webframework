@@ -137,6 +137,118 @@ def upload():
         return jsonify({"error": "Internal server error"}), 500
 
 
+@bp.route("/simple-upload", methods=["POST"])
+def simple_upload():
+    """Simple filesystem upload - no FileManager, no permissions required.
+    
+    This endpoint is for simple file uploads that don't need versioning,
+    metadata, or permission checks. Files are saved directly to filesystem.
+    
+    Expected POST data:
+        - file: The file to upload (multipart/form-data)
+        - upload_path: Relative path under website/assets/ (e.g., "images/users")
+        - rename_to: Optional rename pattern (e.g., "{username}" uses session user)
+    
+    Returns:
+        JSON response with file path or error
+    """
+    import os
+    import re
+    from PIL import Image
+    from ..modules import site_conf
+    
+    # Get file from request
+    if 'file' not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+    
+    file = request.files['file']
+    if not file or not file.filename:
+        return jsonify({"error": "No file selected"}), 400
+    
+    # Get parameters
+    upload_path = request.form.get('upload_path', 'uploads')
+    rename_to = request.form.get('rename_to', '')
+    
+    # Security: validate upload_path (no directory traversal)
+    if '..' in upload_path or upload_path.startswith('/') or upload_path.startswith('\\'):
+        logger.warning(f"Simple upload rejected - invalid path: {upload_path}")
+        return jsonify({"error": "Invalid upload path"}), 400
+    
+    # Normalize path separators
+    upload_path = upload_path.replace('\\', '/')
+    
+    # Get file extension from original filename
+    original_filename = file.filename
+    file_ext = ''
+    if '.' in original_filename:
+        file_ext = original_filename.rsplit('.', 1)[1].lower()
+    
+    # Determine final filename
+    if rename_to:
+        # Replace patterns in rename_to
+        current_user = session.get('user', 'anonymous')
+        final_name = rename_to.replace('{username}', current_user)
+        final_name = final_name.replace('{user}', current_user)
+        # Add extension if not present
+        if file_ext and not final_name.endswith(f'.{file_ext}'):
+            final_name = f"{final_name}.{file_ext}"
+        # Sanitize filename
+        final_name = re.sub(r'[^\w\-.]', '_', final_name)
+    else:
+        # Use original filename (sanitized)
+        final_name = re.sub(r'[^\w\-.]', '_', original_filename)
+    
+    # Build destination path
+    app_path = site_conf.site_conf_app_path or os.getcwd()
+    dest_dir = os.path.join(app_path, 'website', 'assets', upload_path)
+    os.makedirs(dest_dir, exist_ok=True)
+    dest_path = os.path.join(dest_dir, final_name)
+    
+    try:
+        # Save file
+        file.save(dest_path)
+        
+        # For images, optionally resize (max 1024x1024)
+        if file_ext in ('jpg', 'jpeg', 'png', 'gif', 'webp'):
+            try:
+                with Image.open(dest_path) as img:
+                    # Only resize if larger than 1024x1024
+                    if img.width > 1024 or img.height > 1024:
+                        img.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+                        # Convert to RGB for JPEG (removes alpha channel)
+                        if file_ext in ('jpg', 'jpeg') and img.mode in ('RGBA', 'P'):
+                            img = img.convert('RGB')
+                        img.save(dest_path)
+                        logger.info(f"Resized image to fit 1024x1024: {final_name}")
+            except Exception as e:
+                logger.warning(f"Could not process image {final_name}: {e}")
+        
+        # Build relative path and URL
+        relative_path = f"{upload_path}/{final_name}"
+        # URL for serving the file
+        url = f"/common/assets/{upload_path.split('/')[0]}/?filename={'/'.join(upload_path.split('/')[1:])}/{final_name}" if '/' in upload_path else f"/common/assets/{upload_path}/?filename={final_name}"
+        
+        current_user = session.get('user', 'GUEST')
+        logger.info(f"Simple file upload by {current_user}: {relative_path}")
+        
+        return jsonify({
+            "success": True,
+            "path": relative_path,
+            "filename": final_name,
+            "url": url
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Simple upload error: {e}", exc_info=True)
+        # Clean up on error
+        if os.path.exists(dest_path):
+            try:
+                os.remove(dest_path)
+            except:
+                pass
+        return jsonify({"error": f"Failed to save file: {str(e)}"}), 500
+
+
 @bp.route("/download/<path:filepath>", methods=["GET"])
 def download(filepath):
     """Serve a file for download from HashFS storage.

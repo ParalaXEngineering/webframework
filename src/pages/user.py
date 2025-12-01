@@ -128,51 +128,8 @@ def profile():
                         auth_manager.update_user_password(current_user, new_password)
                         flash("Password changed successfully!", "success")
             
-            # Upload avatar
-            elif "btn_upload_avatar" in module_data:
-                if 'User Profile.file_avatar' not in request.files:
-                    flash("No file uploaded.", "danger")
-                else:
-                    file = request.files['User Profile.file_avatar']
-                    if not file or not file.filename:
-                        flash("No file selected.", "danger")
-                    else:
-                        # Validate file type - support SVG, PNG, and JPEG
-                        allowed_extensions = {'jpg', 'jpeg', 'png', 'svg'}
-                        file_ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
-                        
-                        if file_ext not in allowed_extensions:
-                            flash("Only JPEG, PNG, and SVG images are allowed.", "danger")
-                        else:
-                            # Determine file extension to use (preserve SVG, convert others to JPG)
-                            if file_ext == 'svg':
-                                filename = f"{current_user}.svg"
-                            else:
-                                filename = f"{current_user}.jpg"
-                            
-                            # Get proper path using site_conf
-                            try:
-                                from ..modules import site_conf
-                            except ImportError:
-                                from modules import site_conf
-                            
-                            app_path = site_conf.site_conf_app_path or os.getcwd()
-                            avatar_dir = os.path.join(app_path, 'website', 'assets', 'images', 'users')
-                            os.makedirs(avatar_dir, exist_ok=True)
-                            filepath = os.path.join(avatar_dir, filename)
-                            
-                            # Save and optionally resize
-                            try:
-                                file.save(filepath)
-                                # Only resize raster images (not SVG)
-                                if file_ext != 'svg':
-                                    resize_image(filepath, max_size=(1024, 1024))
-                                auth_manager.update_user_avatar(current_user, filename)
-                                flash("Avatar updated successfully!", "success")
-                            except Exception as e:
-                                flash(f"Error processing image: {str(e)}", "danger")
-                                if os.path.exists(filepath):
-                                    os.remove(filepath)
+            # Note: Avatar upload is now handled by simple-upload endpoint via FilePond
+            # The file is saved directly to website/assets/images/users/{username}.ext
         
         # Reload user data
         user = auth_manager.get_user(current_user)
@@ -228,7 +185,9 @@ def profile():
     disp.add_display_item(DisplayerItemFileUpload(
         "file_avatar",
         "Upload New Avatar",
-        category="avatars",
+        simple=True,
+        upload_path="images/users",
+        rename_to="{username}",
         accept_types=["image/*"],
         multiple=False
     ), column=1)

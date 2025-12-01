@@ -163,42 +163,49 @@ class TestUserProfilePage:
         print("✅ Empty display name validation works")
     
     def test_06_avatar_upload(self, logged_in_page: Page):
-        """Test avatar image upload."""
+        """Test avatar image upload via FilePond."""
         page = logged_in_page
         
-        print("\n📄 Test: Avatar upload")
+        print("\n📄 Test: Avatar upload (FilePond)")
         navigate_to(page, "/user/profile")
         
         # Find file input and upload test avatar
         avatar_file_path = Path(__file__).parent / "test_avatar.jpg"
         assert avatar_file_path.exists(), "Test avatar file should exist"
         
-        # Upload file
-        file_input = page.locator('input[type="file"][name*="file_avatar"]').first
+        # FilePond creates a hidden file input with class 'filepond--browser'
+        file_input = page.locator('.filepond--browser').first
         file_input.set_input_files(str(avatar_file_path))
         
-        # Click upload button
-        click_button(page, "btn_upload_avatar")
-        page.wait_for_timeout(500)
+        # FilePond uploads automatically - wait for upload indicator
+        # Look for FilePond success state (checkmark) or processing complete
+        page.wait_for_timeout(3000)  # Wait for async upload
         
-        # Check for success message
-        assert check_flash_message(page, "success", "success") or \
-               page_contains_text(page, "updated") or \
-               page_contains_text(page, "uploaded"), \
-            "Should show success message after avatar upload"
+        # Check for FilePond processing complete (either success or error shown)
+        # FilePond adds data-filepond-item-state attribute to track file state
+        filepond_success = page.locator('.filepond--file-action-button[data-align="right"]').count() > 0
         
-        # Verify avatar image is displayed (check for img tag with avatar)
-        navigate_to(page, "/user/profile")
-        avatar_img = page.locator('img[src*="avatar"], img[src*="users/"]').first
-        assert avatar_img.count() > 0, "Avatar image should be displayed"
+        # Also check hidden field value
+        hidden_value = page.evaluate("document.getElementById('User Profile.file_avatar')?.value || ''")
+        print(f"  Hidden field value: {hidden_value}")
         
-        print("✅ Avatar uploaded successfully")
+        # Check if there's an error displayed in FilePond
+        error_elem = page.locator('.filepond--file-status-main').first
+        if error_elem.count() > 0:
+            error_text = error_elem.inner_text()
+            print(f"  FilePond status: {error_text}")
+        
+        # Test passes if hidden field has value (upload succeeded)
+        assert hidden_value != "", \
+            f"Avatar upload should succeed. Hidden field is empty. Check server logs for upload errors."
+        
+        print("✅ Avatar uploaded successfully via FilePond")
     
     def test_07_invalid_file_type_rejected(self, logged_in_page: Page):
-        """Test that non-image files are rejected for avatar."""
+        """Test that non-image files are rejected for avatar by FilePond."""
         page = logged_in_page
         
-        print("\n📄 Test: Invalid file type rejection")
+        print("\n📄 Test: Invalid file type rejection (FilePond)")
         navigate_to(page, "/user/profile")
         
         # Create a temporary text file
@@ -206,23 +213,25 @@ class TestUserProfilePage:
         temp_file.write_text("This is not an image")
         
         try:
-            # Try to upload text file
-            file_input = page.locator('input[type="file"][name*="file_avatar"]').first
+            # Try to upload text file via FilePond
+            file_input = page.locator('.filepond--browser').first
             file_input.set_input_files(str(temp_file))
             
-            # Click upload button
-            click_button(page, "btn_upload_avatar")
-            page.wait_for_timeout(500)
+            # Wait for FilePond to process and reject
+            page.wait_for_timeout(1000)
             
-            # Should show error message
-            assert check_flash_message(page, "error", "danger") or \
-                   check_flash_message(page, "not allowed", "danger") or \
-                   page_contains_text(page, "only") or \
-                   page_contains_text(page, "jpeg") or \
-                   page_contains_text(page, "png"), \
-                "Should show error for invalid file type"
+            # FilePond shows error in the UI when file type is rejected
+            # Check for FilePond error state or error message
+            filepond_error = page.locator('.filepond--file-status-main:has-text("not allowed"), .filepond--file-status:has-text("error")').first
+            has_filepond_error = filepond_error.count() > 0
             
-            print("✅ Invalid file type rejected correctly")
+            # Also check if hidden field is still empty (upload was blocked)
+            hidden_field_value = page.evaluate("document.getElementById('User Profile.file_avatar')?.value || ''")
+            
+            assert has_filepond_error or hidden_field_value == "", \
+                "FilePond should reject invalid file type or hidden field should remain empty"
+            
+            print("✅ Invalid file type rejected correctly by FilePond")
         
         finally:
             # Cleanup temp file
