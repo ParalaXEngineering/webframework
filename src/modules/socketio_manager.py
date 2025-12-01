@@ -11,14 +11,22 @@ Usage:
     socketio_manager.emit_to_user('event_name', data, username='user1')
 """
 
+from typing import Any, Dict, Optional, Set
+
 from flask import session
 from flask_socketio import join_room, leave_room
-from typing import Dict, Set, Optional, Any
 
 try:
     from .log.logger_factory import get_logger
 except ImportError:
     from log.logger_factory import get_logger
+
+# Session and room naming constants
+SESSION_USER_KEY = 'user'
+SESSION_ID_KEY = '_id'
+DEFAULT_USERNAME = 'anonymous'
+DEFAULT_SESSION_ID = 'unknown'
+ROOM_FORMAT = "user_{username}_{sid}"
 
 
 class SocketIOManager:
@@ -63,11 +71,11 @@ class SocketIOManager:
             Room identifier string
         """
         if username is None:
-            username = session.get('user', 'anonymous')
+            username = session.get(SESSION_USER_KEY, DEFAULT_USERNAME)
         if sid is None:
-            sid = session.get('_id', 'unknown')
+            sid = session.get(SESSION_ID_KEY, DEFAULT_SESSION_ID)
         
-        return f"user_{username}_{sid}"
+        return ROOM_FORMAT.format(username=username, sid=sid)
     
     def join_user_room(self, username: Optional[str] = None, sid: Optional[str] = None) -> str:
         """
@@ -82,9 +90,9 @@ class SocketIOManager:
         """
         # Ensure we have valid username and sid - never None
         if username is None:
-            username = session.get('user') or 'anonymous'
+            username = session.get(SESSION_USER_KEY) or DEFAULT_USERNAME
         if sid is None:
-            sid = session.get('_id') or 'unknown'
+            sid = session.get(SESSION_ID_KEY) or DEFAULT_SESSION_ID
         
         # At this point, both are guaranteed to be str, not None
         assert isinstance(username, str), "username must be a string"
@@ -99,7 +107,7 @@ class SocketIOManager:
         self._user_rooms[username].add(room)
         self._room_to_user[room] = username
         
-        self.logger.debug(f"User '{username}' joined room '{room}'")
+        self.logger.debug("User '%s' joined room '%s'", username, room)
         return room
     
     def leave_user_room(self, username: Optional[str] = None, sid: Optional[str] = None):
@@ -112,9 +120,9 @@ class SocketIOManager:
         """
         # Ensure we have valid username and sid - never None
         if username is None:
-            username = session.get('user') or 'anonymous'
+            username = session.get(SESSION_USER_KEY) or DEFAULT_USERNAME
         if sid is None:
-            sid = session.get('_id') or 'unknown'
+            sid = session.get(SESSION_ID_KEY) or DEFAULT_SESSION_ID
         
         # At this point, both are guaranteed to be str, not None
         assert isinstance(username, str), "username must be a string"
@@ -132,7 +140,7 @@ class SocketIOManager:
         if room in self._room_to_user:
             del self._room_to_user[room]
         
-        self.logger.info(f"User '{username}' left room '{room}'")
+        self.logger.debug("User '%s' left room '%s'", username, room)
     
     def emit_to_user(self, event: str, data: Any, username: Optional[str] = None, 
                      namespace: str = '/'):
@@ -149,11 +157,11 @@ class SocketIOManager:
             namespace: SocketIO namespace (default: '/')
         """
         if self.socketio is None:
-            self.logger.warning("SocketIO not configured, cannot emit")
+            self.logger.warning("SocketIO not configured, cannot emit event '%s'", event)
             return
         
         if username is None:
-            username = session.get('user') or 'anonymous'
+            username = session.get(SESSION_USER_KEY) or DEFAULT_USERNAME
         
         # At this point, username is guaranteed to be str, not None
         assert isinstance(username, str), "username must be a string"
@@ -163,11 +171,10 @@ class SocketIOManager:
             for room in self._user_rooms[username]:
                 try:
                     self.socketio.emit(event, data, room=room, namespace=namespace)
-                    # Removed DEBUG logging to reduce spam
                 except Exception as e:
-                    self.logger.error(f"Error emitting to room '{room}': {e}")
+                    self.logger.error("Error emitting to room '%s': %s", room, e)
         else:
-            self.logger.warning(f"No active rooms found for user '{username}'")
+            self.logger.debug("No active rooms found for user '%s'", username)
     
     def emit_to_current_user(self, event: str, data: Any, namespace: str = '/'):
         """
@@ -195,14 +202,13 @@ class SocketIOManager:
             namespace: SocketIO namespace (default: '/')
         """
         if self.socketio is None:
-            self.logger.warning("SocketIO not configured, cannot emit")
+            self.logger.warning("SocketIO not configured, cannot broadcast event '%s'", event)
             return
         
         try:
             self.socketio.emit(event, data, namespace=namespace)
-            # Removed DEBUG logging to reduce spam
         except Exception as e:
-            self.logger.error(f"Error broadcasting: {e}")
+            self.logger.error("Error broadcasting event '%s': %s", event, e)
     
     def get_active_users(self) -> Set[str]:
         """
@@ -235,7 +241,7 @@ class SocketIOManager:
         Returns:
             True if user has at least one active session
         """
-        return username in self._user_rooms and len(self._user_rooms[username]) > 0
+        return username in self._user_rooms and bool(self._user_rooms[username])
     
     def cleanup_stale_rooms(self):
         """
@@ -252,7 +258,7 @@ class SocketIOManager:
             del self._user_rooms[username]
         
         if users_to_remove:
-            self.logger.info(f"Cleaned up {len(users_to_remove)} stale user entries")
+            self.logger.info("Cleaned up %d stale user entries", len(users_to_remove))
     
     def get_stats(self) -> Dict[str, Any]:
         """

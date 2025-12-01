@@ -1,5 +1,6 @@
-"""
-Entry point for running the ParalaX Web Framework via: python -m paralax_webframework
+"""Entry point for running ParalaX Web Framework via: python -m src
+
+Enables framework execution as a module: python -m src
 """
 
 from .main import run_app

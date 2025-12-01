@@ -5,7 +5,10 @@ Handles reading and parsing of log files.
 Extracted from settings.py to separate business logic from presentation layer.
 """
 
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
+# Standard log levels (priority order for detection)
+LOG_LEVELS = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'WARN', 'FATAL']
 
 
 def read_log_file(log_file_path: str, max_lines: int = 100) -> List[str]:
@@ -81,24 +84,22 @@ def parse_log_lines(lines: List[str]) -> List[Dict[str, Any]]:
 
 
 def _extract_log_level(line: str) -> str:
-    """
-    Extract log level from a log line.
-    
-    Args:
-        line: Raw log line
-        
-    Returns:
-        Log level (INFO, WARNING, ERROR, DEBUG) or UNKNOWN
-    """
-    line_upper = line.upper()
-    
-    levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'WARN', 'FATAL']
-    
-    for level in levels:
-        if level in line_upper:
-            return level
-    
-    return 'UNKNOWN'
+     """
+     Extract log level from a log line.
+     
+     Args:
+         line: Raw log line
+         
+     Returns:
+         Log level (INFO, WARNING, ERROR, DEBUG, etc.) or UNKNOWN
+     """
+     line_upper = line.upper()
+     
+     for level in LOG_LEVELS:
+         if level in line_upper:
+             return level
+     
+     return 'UNKNOWN'
 
 
 def filter_logs_by_level(parsed_logs: List[Dict[str, Any]], level: str) -> List[Dict[str, Any]]:

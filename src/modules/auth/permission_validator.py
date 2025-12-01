@@ -4,12 +4,12 @@ Permission System Startup Validation
 This module validates permission configuration at startup and warns about common issues.
 """
 
+import logging
 from typing import List, Tuple
-from modules.auth.permission_registry import permission_registry
-from modules.auth.auth_manager import auth_manager
-from modules.log.logger_factory import get_logger
 
-logger = get_logger("permission_validator")
+from .permission_registry import permission_registry
+
+logger = logging.getLogger("permission_validator")
 
 
 def validate_permissions() -> List[Tuple[str, str]]:
@@ -20,6 +20,12 @@ def validate_permissions() -> List[Tuple[str, str]]:
         List of (severity, message) tuples where severity is 'WARNING', 'ERROR', or 'INFO'
     """
     issues = []
+    
+    # Import auth_manager here to avoid circular imports
+    try:
+        from .auth_manager import auth_manager
+    except ImportError:
+        from auth_manager import auth_manager
     
     if not auth_manager:
         issues.append(("INFO", "Authentication system not enabled - skipping permission validation"))
@@ -32,7 +38,7 @@ def validate_permissions() -> List[Tuple[str, str]]:
         issues.append(("WARNING", "No modules registered with permission_registry - this may be intentional"))
         return issues
     
-    logger.info(f"Validating permissions for {len(registered_modules)} registered modules...")
+    logger.info("Validating permissions for %d registered modules...", len(registered_modules))
     
     # Check each registered module
     for module_name in registered_modules:
@@ -106,9 +112,10 @@ def log_validation_results(issues: List[Tuple[str, str]]):
 
 def validate_and_log():
     """Run validation and log results. Call this at application startup."""
-    logger.info("=" * 70)
+    separator = "=" * 70
+    logger.info(separator)
     logger.info("Starting Permission System Validation")
-    logger.info("=" * 70)
+    logger.info(separator)
     
     issues = validate_permissions()
     log_validation_results(issues)
@@ -116,15 +123,16 @@ def validate_and_log():
     # Print critical errors to console
     errors = [msg for sev, msg in issues if sev == "ERROR"]
     if errors:
-        print("\n" + "!" * 70)
+        error_separator = "!" * 70
+        print("\n" + error_separator)
         print("CRITICAL PERMISSION ERRORS DETECTED:")
-        print("!" * 70)
+        print(error_separator)
         for error in errors:
             print(f"  ✗ {error}")
         print("\nPlease fix these issues before proceeding to production!")
         print("See logs for full details.")
-        print("!" * 70 + "\n")
+        print(error_separator + "\n")
     
-    logger.info("=" * 70)
+    logger.info(separator)
     logger.info("Permission Validation Complete")
-    logger.info("=" * 70)
+    logger.info(separator)

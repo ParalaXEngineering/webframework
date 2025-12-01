@@ -1,11 +1,16 @@
-"""
-Settings Manager - Business logic layer for settings management.
-
-Simple wrapper around SettingsStorage with convenience methods.
-"""
+"""Settings Manager: Business logic layer for settings management."""
 
 from typing import Any, Dict, List, Optional
+
 from .storage import SettingsStorage
+
+# Constants for settings structure keys
+FRIENDLY_KEY = "friendly"
+VALUE_KEY = "value"
+TYPE_KEY = "type"
+OPTIONS_KEY = "options"
+OVERRIDABLE_KEY = "overridable_by_user"
+DEFAULT_VALUE_KEY = "default_value"
 
 
 class SettingsManager:
@@ -15,6 +20,11 @@ class SettingsManager:
         """Initialize manager with config file path."""
         self.storage = SettingsStorage(config_path)
         self._settings: Optional[Dict[str, Any]] = None
+    
+    def _ensure_loaded(self) -> None:
+        """Ensure settings are loaded, loading from storage if needed."""
+        if self._settings is None:
+            self.load()
     
     def load(self) -> None:
         """Load settings from storage."""
@@ -47,8 +57,7 @@ class SettingsManager:
         if len(parts) < 2:
             return
         
-        if self._settings is None:
-            self.load()
+        self._ensure_loaded()
         
         if self._settings is None:
             return
@@ -71,10 +80,9 @@ class SettingsManager:
     
     def get_category_friendly(self, category: str) -> str:
         """Get friendly name for a category."""
-        if self._settings is None:
-            self.load()
+        self._ensure_loaded()
         if self._settings:
-            return self._settings.get(category, {}).get('friendly', category)
+            return self._settings.get(category, {}).get(FRIENDLY_KEY, category)
         return category
     
     def list_categories(self) -> List[str]:
@@ -135,8 +143,7 @@ class SettingsManager:
             # If default_configs doesn't exist, skip merging
             return
         
-        if self._settings is None:
-            self.load()
+        self._ensure_loaded()
         
         if self._settings is None:
             return
@@ -189,8 +196,7 @@ class SettingsManager:
         Returns:
             Dict mapping "category.setting_key" to setting data (including default value)
         """
-        if self._settings is None:
-            self.load()
+        self._ensure_loaded()
         
         overridable = {}
         if self._settings:
@@ -199,19 +205,19 @@ class SettingsManager:
                     continue
                 
                 for key, setting in category_data.items():
-                    if key == "friendly" or not isinstance(setting, dict):
+                    if key == FRIENDLY_KEY or not isinstance(setting, dict):
                         continue
                     
-                    if setting.get("overridable_by_user", False):
+                    if setting.get(OVERRIDABLE_KEY, False):
                         full_key = f"{category}.{key}"
                         overridable[full_key] = {
                             "category": category,
                             "key": key,
-                            "friendly": setting.get("friendly", key),
-                            "category_friendly": category_data.get("friendly", category),
-                            "type": setting.get("type", "string"),
-                            "default_value": setting.get("value"),
-                            "options": setting.get("options", [])
+                            FRIENDLY_KEY: setting.get(FRIENDLY_KEY, key),
+                            "category_friendly": category_data.get(FRIENDLY_KEY, category),
+                            TYPE_KEY: setting.get(TYPE_KEY, "string"),
+                            DEFAULT_VALUE_KEY: setting.get(VALUE_KEY),
+                            OPTIONS_KEY: setting.get(OPTIONS_KEY, [])
                         }
         
         return overridable

@@ -1,7 +1,8 @@
-"""
-ParalaX Web Framework
+"""ParalaX Web Framework - A robust Flask-based web framework.
 
-A robust Flask-based web framework for display and management applications.
+A comprehensive framework for building display and management applications
+with integrated authentication, file management, scheduling, and real-time
+thread monitoring via SocketIO.
 """
 
 __version__ = "1.0.0"
@@ -13,7 +14,7 @@ try:
     from .main import app, setup_app
     __all__ = ['app', 'setup_app']
 except (ImportError, FileNotFoundError):
-    # During testing or when dependencies are missing
+    # During testing or when dependencies are missing, gracefully degrade
     app = None
     setup_app = None
     __all__ = []

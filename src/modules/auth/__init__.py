@@ -9,19 +9,29 @@ This module provides:
 """
 
 from functools import wraps
+
 from flask import session, redirect, url_for, render_template
 
 from .auth_manager import AuthManager
-from .permission_registry import PermissionRegistry
 from .auth_models import User
+from .permission_registry import PermissionRegistry
 
-__all__ = ['AuthManager', 'PermissionRegistry', 'User', 'auth_manager', 'require_permission', 'require_admin', 'require_login']
+__all__ = [
+    'AuthManager', 'PermissionRegistry', 'User', 'auth_manager',
+    'require_permission', 'require_admin', 'require_login'
+]
+
+# Constants
+DEFAULT_ACTION = "view"
+ADMIN_GROUP = "admin"
+ROUTE_LOGIN = 'common.login'
+SESSION_USER_KEY = 'user'
 
 # Global auth_manager instance (initialized by main.py when auth is enabled)
 auth_manager = None
 
 
-def require_permission(module: str, action: str = "view"):
+def require_permission(module: str, action: str = DEFAULT_ACTION):
     """
     Decorator that checks permissions if auth is enabled, otherwise allows access.
     
@@ -54,24 +64,32 @@ def require_permission(module: str, action: str = "view"):
                 return f(*args, **kwargs)
             
             # Auth is enabled - check permission
-            current_user = session.get('user')
+            current_user = session.get(SESSION_USER_KEY)
             if not current_user:
-                return redirect(url_for('common.login'))
+                return redirect(url_for(ROUTE_LOGIN))
             
-            if not auth_manager.has_permission(current_user, module, action):  # type: ignore[attr-defined]
+            if not auth_manager.has_permission(current_user, module, action):
                 # User is logged in but lacks permission - show access denied
-                from submodules.framework.src.modules import displayer
-                disp = displayer.Displayer()
+                try:
+                    from modules.displayer import (
+                        Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, BSstyle
+                    )
+                except ImportError:
+                    from submodules.framework.src.modules.displayer import (
+                        Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, BSstyle
+                    )
+                disp = Displayer()
                 disp.add_generic("Access Denied")
-                disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+                disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
                 disp.add_display_item(
-                    displayer.DisplayerItemAlert(
-                        f"<p>You don't have permission to access <strong>{module}</strong> with action <strong>{action}</strong>.</p>"
+                    DisplayerItemAlert(
+                        f"<p>You don't have permission to access <strong>{module}</strong> "
+                        f"with action <strong>{action}</strong>.</p>"
                         f"<p>Current user: <strong>{current_user}</strong></p>"
                         f"<p>Please contact an administrator to request access.</p>",
-                        displayer.BSstyle.ERROR,
-                        title = "Access Denied",
-                        icon = "shield-alert"
+                        BSstyle.ERROR,
+                        title="Access Denied",
+                        icon="shield-alert"
                     ),
                     column=0
                 )
@@ -111,20 +129,20 @@ def require_admin():
                 return f(*args, **kwargs)
             
             # Auth is enabled - check admin group
-            current_user = session.get('user')
+            current_user = session.get(SESSION_USER_KEY)
             if not current_user:
-                return redirect(url_for('common.login'))
+                return redirect(url_for(ROUTE_LOGIN))
             
             # Check if user is in admin group
-            user_obj = auth_manager.get_user(current_user)  # type: ignore[attr-defined]
-            if not user_obj or 'admin' not in user_obj.groups:
+            user_obj = auth_manager.get_user(current_user)
+            if not user_obj or ADMIN_GROUP not in user_obj.groups:
                 # User is logged in but not admin - show access denied
                 try:
-                    from .displayer import (
+                    from modules.displayer import (
                         Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, BSstyle
                     )
                 except ImportError:
-                    from modules.displayer import (
+                    from submodules.framework.src.modules.displayer import (
                         Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, BSstyle
                     )
                 disp = Displayer()
@@ -132,12 +150,12 @@ def require_admin():
                 disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
                 disp.add_display_item(
                     DisplayerItemAlert(
-                        f"<p>This page require admin privilege.</p>"
+                        f"<p>This page requires admin privilege.</p>"
                         f"<p>Current user: <strong>{current_user}</strong></p>"
                         f"<p>Please contact an administrator to request access.</p>",
                         BSstyle.ERROR,
-                        title = "Admin access required",
-                        icon = "shield-alert"
+                        title="Admin access required",
+                        icon="shield-alert"
                     ),
                     column=0
                 )
@@ -177,9 +195,9 @@ def require_login():
                 return f(*args, **kwargs)
             
             # Auth is enabled - check if user is logged in
-            current_user = session.get('user')
+            current_user = session.get(SESSION_USER_KEY)
             if not current_user:
-                return redirect(url_for('common.login'))
+                return redirect(url_for(ROUTE_LOGIN))
             
             # User is logged in - allow access
             return f(*args, **kwargs)

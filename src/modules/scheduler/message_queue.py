@@ -81,9 +81,9 @@ class MessageQueue:
             message = QueuedMessage(data=data, username=username)
             self._queues[msg_type].append(message)
             if username:
-                self._logger.info(f"[QUEUE] Added {msg_type.name} message for user '{username}': {data}")
+                self._logger.debug("[QUEUE] Added %s message for user '%s'", msg_type.name, username)
             else:
-                self._logger.info(f"[QUEUE] Added {msg_type.name} broadcast message: {data}")
+                self._logger.debug("[QUEUE] Added %s broadcast message", msg_type.name)
     
     def get_all(self, msg_type: MessageType) -> List[QueuedMessage]:
         """

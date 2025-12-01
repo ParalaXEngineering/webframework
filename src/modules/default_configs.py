@@ -1,8 +1,14 @@
-"""
-Default configuration definitions for optional framework features.
+"""Default configuration definitions for optional framework features.
 
-Each configuration section can be enabled in site_conf and will be automatically
-merged into the main config.json if enabled.
+Each configuration section can be enabled in site_conf.py and will be automatically
+merged into the main config.json if the corresponding feature is enabled.
+
+Configuration sections:
+- FRAMEWORK_UI_CONFIG: UI settings for threads, logs, status displays
+- REDMINE_CONFIG: Bug tracker integration with Redmine
+- UPDATES_CONFIG: Update/maintenance server configuration (FTP or local)
+- FILE_STORAGE_CONFIG: File manager storage, thumbnails, and metadata settings
+- FEATURE_CONFIGS: Mapping of feature flags to their configuration dictionaries
 """
 
 # Default configuration for Framework UI settings

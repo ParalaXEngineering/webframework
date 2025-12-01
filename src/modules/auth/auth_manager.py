@@ -3,14 +3,12 @@ Main authentication and authorization manager.
 """
 
 import json
-from pathlib import Path
-from typing import Optional, List, Dict, Set
 from datetime import datetime
-from functools import wraps
-from flask import session, redirect, url_for, flash, render_template
+from pathlib import Path
+from typing import Dict, List, Optional, Set
 
-from .auth_models import User, ModulePermission
-from .auth_utils import hash_password, verify_password, get_default_user_prefs
+from .auth_models import ModulePermission, User
+from .auth_utils import get_default_user_prefs, hash_password, verify_password
 from .security_utils import FailedLoginManager
 
 try:
@@ -20,6 +18,27 @@ except ImportError:
 
 logger = get_logger("auth.auth_manager")
 
+# Constants
+DEFAULT_AUTH_DIR = "website/auth"
+USERS_FILE = "users.json"
+PERMISSIONS_FILE = "permissions.json"
+GROUPS_FILE = "groups.json"
+FAILED_LOGINS_FILE = "failed_logins.json"
+USER_PREFS_DIR = "user_prefs"
+
+DEFAULT_ADMIN_USER = "admin"
+DEFAULT_GUEST_USER = "guest"
+DEFAULT_AVATAR = "default.jpg"
+ADMIN_GROUP = "admin"
+GUEST_GROUP = "guest"
+
+DEFAULT_MAX_LOGIN_ATTEMPTS = 5
+DEFAULT_LOCKOUT_MINUTES = 5
+
+DEFAULT_ADMIN_ACTIONS = ["view", "edit", "delete", "execute"]
+DEFAULT_PAGES_KEY = "pages"
+DEFAULT_MODULES_KEY = "modules"
+
 
 class AuthManager:
     """
@@ -28,7 +47,7 @@ class AuthManager:
     Replaces the old access_manager with a cleaner, more granular approach.
     """
     
-    def __init__(self, auth_dir: str = "website/auth"):
+    def __init__(self, auth_dir: str = DEFAULT_AUTH_DIR):
         """
         Initialize AuthManager.
         
@@ -36,10 +55,10 @@ class AuthManager:
             auth_dir: Directory containing auth data files
         """
         self.auth_dir = Path(auth_dir)
-        self.users_file = self.auth_dir / "users.json"
-        self.permissions_file = self.auth_dir / "permissions.json"
-        self.groups_file = self.auth_dir / "groups.json"
-        self.user_prefs_dir = self.auth_dir / "user_prefs"
+        self.users_file = self.auth_dir / USERS_FILE
+        self.permissions_file = self.auth_dir / PERMISSIONS_FILE
+        self.groups_file = self.auth_dir / GROUPS_FILE
+        self.user_prefs_dir = self.auth_dir / USER_PREFS_DIR
         
         # In-memory cache
         self._users: Dict[str, User] = {}
@@ -48,9 +67,9 @@ class AuthManager:
         
         # Security: Failed login attempt manager
         self.failed_login_manager = FailedLoginManager(
-            lockout_file=str(self.auth_dir / "failed_logins.json"),
-            max_attempts=5,
-            lockout_minutes=5
+            lockout_file=str(self.auth_dir / FAILED_LOGINS_FILE),
+            max_attempts=DEFAULT_MAX_LOGIN_ATTEMPTS,
+            lockout_minutes=DEFAULT_LOCKOUT_MINUTES
         )
         
         # Create directories if needed
@@ -67,21 +86,21 @@ class AuthManager:
         """Create default users and permissions if files don't exist."""
         if not self.users_file.exists():
             default_users = {
-                "admin": {
-                    "password_hash": hash_password("admin"),
-                    "groups": ["admin"],
+                DEFAULT_ADMIN_USER: {
+                    "password_hash": hash_password(DEFAULT_ADMIN_USER),
+                    "groups": [ADMIN_GROUP],
                     "display_name": "Administrator",
                     "email": None,
-                    "avatar": "default.jpg",
+                    "avatar": DEFAULT_AVATAR,
                     "created_at": datetime.now().isoformat(),
                     "last_login": None
                 },
-                "guest": {
+                DEFAULT_GUEST_USER: {
                     "password_hash": "",  # Passwordless
-                    "groups": ["guest"],
+                    "groups": [GUEST_GROUP],
                     "display_name": "Guest",
                     "email": None,
-                    "avatar": "default.jpg",
+                    "avatar": DEFAULT_AVATAR,
                     "created_at": datetime.now().isoformat(),
                     "last_login": None
                 }
@@ -90,21 +109,21 @@ class AuthManager:
         
         if not self.permissions_file.exists():
             default_permissions = {
-                "modules": {},
-                "pages": {
-                    "admin_auth.manage_users": ["admin"],
-                    "admin_auth.manage_permissions": ["admin"],
-                    "admin_auth.manage_groups": ["admin"]
+                DEFAULT_MODULES_KEY: {},
+                DEFAULT_PAGES_KEY: {
+                    "admin_auth.manage_users": [ADMIN_GROUP],
+                    "admin_auth.manage_permissions": [ADMIN_GROUP],
+                    "admin_auth.manage_groups": [ADMIN_GROUP]
                 }
             }
             self._save_json(self.permissions_file, default_permissions)
         
         if not self.groups_file.exists():
-            default_groups = ["admin", "guest"]
+            default_groups = [ADMIN_GROUP, GUEST_GROUP]
             self._save_json(self.groups_file, {"groups": default_groups})
         
         # Create default user preferences
-        for username in ["admin", "guest"]:
+        for username in [DEFAULT_ADMIN_USER, DEFAULT_GUEST_USER]:
             prefs_file = self.user_prefs_dir / f"{username}.json"
             if not prefs_file.exists():
                 self._save_json(prefs_file, get_default_user_prefs())
@@ -128,7 +147,7 @@ class AuthManager:
         self._permissions.clear()
         if self.permissions_file.exists():
             data = self._load_json(self.permissions_file)
-            modules = data.get("modules", {})
+            modules = data.get(DEFAULT_MODULES_KEY, {})
             for module_name, module_data in modules.items():
                 self._permissions[module_name] = ModulePermission.from_dict(module_name, module_data)
     
@@ -140,8 +159,8 @@ class AuthManager:
     def _save_permissions(self):
         """Save permissions to JSON file."""
         data = {
-            "modules": {name: perm.to_dict() for name, perm in self._permissions.items()},
-            "pages": self._get_page_permissions()
+            DEFAULT_MODULES_KEY: {name: perm.to_dict() for name, perm in self._permissions.items()},
+            DEFAULT_PAGES_KEY: self._get_page_permissions()
         }
         self._save_json(self.permissions_file, data)
     
@@ -163,7 +182,7 @@ class AuthManager:
         """Get page-level permissions from permissions file."""
         if self.permissions_file.exists():
             data = self._load_json(self.permissions_file)
-            return data.get("pages", {})
+            return data.get(DEFAULT_PAGES_KEY, {})
         return {}
     
     def _load_json(self, filepath: Path) -> dict:
@@ -172,7 +191,7 @@ class AuthManager:
             with open(filepath, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            logger.error(f"Error loading {filepath}: {e}")
+            logger.error("Error loading %s: %s", filepath, e)
             return {}
     
     def _save_json(self, filepath: Path, data: dict):
@@ -181,7 +200,7 @@ class AuthManager:
             with open(filepath, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            logger.error(f"Error saving {filepath}: {e}")
+            logger.error("Error saving %s: %s", filepath, e)
     
     # ==================== User Management ====================
     
@@ -230,7 +249,7 @@ class AuthManager:
             groups=groups,
             display_name=display_name or username,
             email=email,
-            avatar="default.jpg",
+            avatar=DEFAULT_AVATAR,
             created_at=datetime.now().isoformat(),
             last_login=None
         )
@@ -447,9 +466,9 @@ class AuthManager:
             count = self.failed_login_manager.increment_attempts(username)
             attempts_left = self.failed_login_manager.get_remaining_attempts(username)
             
-            if count >= 5:
+            if count >= DEFAULT_MAX_LOGIN_ATTEMPTS:
                 # Account is now locked
-                error_message = "Too many failed attempts. Account locked for 5 minutes."
+                error_message = f"Too many failed attempts. Account locked for {DEFAULT_LOCKOUT_MINUTES} minutes."
             else:
                 error_message = f"Bad password ({attempts_left} attempts remaining)"
             
@@ -497,7 +516,7 @@ class AuthManager:
             return False
         
         # Admin group has access to everything
-        if 'admin' in user.groups:
+        if ADMIN_GROUP in user.groups:
             return True
         
         # Get module permissions
@@ -529,16 +548,16 @@ class AuthManager:
             return []
         
         # Admin group has all permissions
-        if 'admin' in user.groups:
+        if ADMIN_GROUP in user.groups:
             module_perm = self._permissions.get(module_name)
             if module_perm:
                 # Return all possible actions for this module
                 all_actions = set()
                 for group_actions in module_perm.groups.values():
                     all_actions.update(group_actions)
-                return sorted(all_actions) if all_actions else ['view', 'edit', 'delete', 'execute']
+                return sorted(all_actions) if all_actions else DEFAULT_ADMIN_ACTIONS
             # If module has no permissions defined, return default admin actions
-            return ['view', 'edit', 'delete', 'execute']
+            return DEFAULT_ADMIN_ACTIONS
         
         module_perm = self._permissions.get(module_name)
         if not module_perm:
@@ -802,6 +821,3 @@ class AuthManager:
 # module-level functions in __init__.py for consistency with framework patterns.
 # They work with or without auth enabled, making them more flexible than instance methods.
 
-
-# Global singleton instance (created by setup_app)
-auth_manager: Optional[AuthManager] = None

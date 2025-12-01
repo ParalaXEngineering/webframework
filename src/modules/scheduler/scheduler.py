@@ -1,18 +1,26 @@
-import time
+"""
+Scheduler Module
+
+Provides periodic task scheduling for real-time UI updates via SocketIO.
+Handles message queueing, per-user message tracking, and background task execution.
+"""
+import logging
 import threading
+import time
+from collections import defaultdict
 from enum import Enum
-from typing import Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 try:
-    from ..threaded import threaded_manager
     from ..log.logger_factory import get_logger
-    from .message_queue import MessageQueue, MessageType
+    from ..threaded import threaded_manager
     from .emitter import MessageEmitter
+    from .message_queue import MessageQueue, MessageType
 except ImportError:
-    from threaded import threaded_manager
     from log.logger_factory import get_logger
-    from message_queue import MessageQueue, MessageType
+    from threaded import threaded_manager
     from emitter import MessageEmitter
+    from message_queue import MessageQueue, MessageType
 
 
 class logLevel(Enum):
@@ -48,19 +56,16 @@ class Scheduler_LongTerm:
         self.m_logger = get_logger("scheduler_longterm")
 
     def register_function(self, function, period: int) -> None:
-        """Register a nex function
+        """Register a new function to execute at specified interval.
 
-        :param function: The function to register
-        :type function: Function
-        :param period: The period, in minutes, to execute this function
-        :type period: int
+        Args:
+            function: The function to register
+            period: The period in minutes to execute this function
         """
         self.functions.append((function, period, time.time()))
 
     def run(self):
-        """
-        Main execution loop
-        """
+        """Main execution loop for periodic task execution."""
         self.running = True
         while self.running:
             current_time = time.time()
@@ -69,7 +74,7 @@ class Scheduler_LongTerm:
                     try:
                         func()
                     except Exception as e:
-                        self.m_logger.error(f"Error executing function {func.__name__}: {e}")
+                        self.m_logger.error("Error executing function %s: %s", func.__name__, e)
                     
                     # Update last execution time
                     self.functions = [(f, p, (current_time if f is func else last_run)) for f, p, last_run in self.functions]
@@ -79,9 +84,7 @@ class Scheduler_LongTerm:
         self.m_logger.info("LT Scheduler stopped")
 
     def start(self):
-        """"
-        Start the scheduler in its thread
-        """
+        """Start the scheduler in its thread."""
         if not self.running:
             self.m_logger.info("LT Scheduler started")
             self.thread.start()
@@ -94,9 +97,10 @@ class Scheduler_LongTerm:
 
 
 class Scheduler:
-    """Basic scheduler class, which has the responsability to handle periodic tasks.
-    This is the base class, which generate the messages to the website and handle the special buttons, if any.
-
+    """Basic scheduler class for handling periodic tasks.
+    
+    Generates messages to the website and handles special buttons.
+    Supports dependency injection for testing and flexible configuration.
     """
 
     socket_obj = None
@@ -108,9 +112,10 @@ class Scheduler:
     def __init__(self, socket_obj=None, message_queue=None, message_emitter=None):
         """Initialize the scheduler with optional dependency injection.
         
-        :param socket_obj: The socketio object for real-time communication
-        :param message_queue: Optional MessageQueue instance (created if not provided)
-        :param message_emitter: Optional MessageEmitter instance (created if not provided)
+        Args:
+            socket_obj: The socketio object for real-time communication
+            message_queue: Optional MessageQueue instance (created if not provided)
+            message_emitter: Optional MessageEmitter instance (created if not provided)
         """
         self.socket_obj = socket_obj
         self._queue = message_queue if message_queue is not None else MessageQueue()
@@ -129,12 +134,8 @@ class Scheduler:
         Returns:
             Username if called from a threaded action, None for broadcast
         """
-        import threading
-        from typing import cast, List, Any
-        
         # Try to find the Threaded_action instance that owns this thread
         try:
-            from ..threaded import threaded_manager
             if threaded_manager.thread_manager_obj:
                 current_thread = threading.current_thread()
                 # Search for the Threaded_action whose m_thread_action matches current thread
@@ -158,11 +159,17 @@ class Scheduler:
         # No username found - this will broadcast to all users
         return None
     def user_before(self):
-        """Function to be overwritten by specific website, ut is executed at the begning of a scheduler cycle"""
+        """Hook executed at the beginning of each scheduler cycle.
+        
+        Intended to be overridden by specific implementations for custom setup.
+        """
         return
 
     def user_after(self):
-        """Function to be overwritten by specific website, ut is executed at the end of a scheduler cycle"""
+        """Hook executed at the end of each scheduler cycle.
+        
+        Intended to be overridden by specific implementations for custom cleanup.
+        """
         return
 
     def emit_reload(self, content: list):
@@ -274,7 +281,7 @@ class Scheduler:
         self._queue.add(MessageType.MODAL, data, username=username) 
 
     def start(self):
-        """Start the scheduler"""
+        """Start the scheduler."""
         self.m_logger = get_logger("scheduler")
         self.m_logger.info("Scheduler started")
         
@@ -282,7 +289,7 @@ class Scheduler:
         if self._emitter is not None and hasattr(self._emitter, 'logger'):
             self._emitter.logger = self.m_logger
 
-        while 1:
+        while True:
             if not self.m_user_connected:
                 time.sleep(1)
                 continue
@@ -301,14 +308,11 @@ class Scheduler:
 
             # Debug: Log what we collected
             if any([buttons, popups, status, results, modals, reloads, button_disable, button_enable]):
-                self.m_logger.info(f"[SCHEDULER] Collected messages - Status: {len(status)}, Popups: {len(popups)}, Results: {len(results)}, Buttons: {len(buttons)}, Reloads: {len(reloads)}")
+                self.m_logger.debug("Collected messages - Status: %d, Popups: %d, Results: %d, Buttons: %d, Reloads: %d",
+                    len(status), len(popups), len(results), len(buttons), len(reloads))
 
             # Emit using emitter (handles filtering and errors)
             if self._emitter is not None:
-                # Group messages by username
-                from collections import defaultdict
-                from typing import Dict, List
-                
                 # Create dictionaries to group messages by username
                 user_messages: Dict[str, Dict[str, List]] = defaultdict(lambda: {
                     'buttons': [],

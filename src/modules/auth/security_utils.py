@@ -8,16 +8,12 @@ Provides security features including:
 """
 
 import json
-from pathlib import Path
+import logging
 from datetime import datetime, timedelta
-from typing import Tuple, Dict, Optional
+from pathlib import Path
+from typing import Dict, Optional, Tuple
 
-try:
-    from ..log.logger_factory import get_logger
-except ImportError:
-    from log.logger_factory import get_logger
-
-logger = get_logger("security_utils")
+logger = logging.getLogger(__name__)
 
 
 class FailedLoginManager:
@@ -63,7 +59,10 @@ class FailedLoginManager:
         self.max_attempts = max_attempts
         self.lockout_minutes = lockout_minutes
         self.attempts: Dict[str, Dict] = self._load_attempts()
-        logger.info(f"FailedLoginManager initialized (max_attempts={max_attempts}, lockout={lockout_minutes}m, file={lockout_file})")
+        logger.info(
+            "FailedLoginManager initialized (max_attempts=%s, lockout=%sm, file=%s)",
+            max_attempts, lockout_minutes, lockout_file
+        )
     
     def _load_attempts(self) -> Dict[str, Dict]:
         """
@@ -73,7 +72,7 @@ class FailedLoginManager:
             Dictionary of {username: {'count': int, 'locked_until': datetime|None}}
         """
         if not self.lockout_file.exists():
-            logger.debug(f"Lockout file {self.lockout_file} does not exist yet")
+            logger.debug("Lockout file %s does not exist yet", self.lockout_file)
             return {}
         
         try:
@@ -87,14 +86,14 @@ class FailedLoginManager:
                         data[username]['locked_until']
                     )
             
-            logger.info(f"Loaded {len(data)} user(s) from lockout file")
+            logger.info("Loaded %s user(s) from lockout file", len(data))
             return data
             
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse lockout file {self.lockout_file}: {e}")
+            logger.error("Failed to parse lockout file %s: %s", self.lockout_file, e)
             return {}
         except Exception as e:
-            logger.error(f"Error loading failed login attempts from {self.lockout_file}: {e}")
+            logger.error("Error loading failed login attempts from %s: %s", self.lockout_file, e)
             return {}
     
     def _save_attempts(self) -> None:
@@ -117,10 +116,10 @@ class FailedLoginManager:
             with open(self.lockout_file, 'w') as f:
                 json.dump(data, f, indent=4)
                 
-            logger.debug(f"Saved {len(data)} user(s) to lockout file")
+            logger.debug("Saved %s user(s) to lockout file", len(data))
             
         except Exception as e:
-            logger.error(f"Error saving failed login attempts to {self.lockout_file}: {e}")
+            logger.error("Error saving failed login attempts to %s: %s", self.lockout_file, e)
     
     def get_user_status(self, username: str) -> Dict:
         """
@@ -154,7 +153,7 @@ class FailedLoginManager:
             return True, locked_until
         elif locked_until and datetime.now() >= locked_until:
             # Lock has expired - auto reset
-            logger.info(f"Auto-unlocking user '{username}' - lockout expired")
+            logger.info("Auto-unlocking user '%s' - lockout expired", username)
             self.reset_attempts(username)
             return False, None
         
@@ -178,12 +177,14 @@ class FailedLoginManager:
             # Lock the account
             status['locked_until'] = datetime.now() + timedelta(minutes=self.lockout_minutes)
             logger.warning(
-                f"Account '{username}' LOCKED for {self.lockout_minutes} minutes "
-                f"(until {status['locked_until'].strftime('%Y-%m-%d %H:%M:%S')}) "
-                f"after {status['count']} failed attempts"
+                "Account '%s' LOCKED for %s minutes (until %s) after %s failed attempts",
+                username,
+                self.lockout_minutes,
+                status['locked_until'].strftime('%Y-%m-%d %H:%M:%S'),
+                status['count']
             )
         else:
-            logger.info(f"Failed login attempt #{status['count']} for user '{username}'")
+            logger.info("Failed login attempt #%s for user '%s'", status['count'], username)
         
         self._save_attempts()
         return status['count']
@@ -196,7 +197,7 @@ class FailedLoginManager:
             username: Username to reset
         """
         if username in self.attempts and self.attempts[username]['count'] > 0:
-            logger.info(f"Resetting failed login attempts for user '{username}'")
+            logger.info("Resetting failed login attempts for user '%s'", username)
         
         self.attempts[username] = {'count': 0, 'locked_until': None}
         self._save_attempts()

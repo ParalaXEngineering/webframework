@@ -5,11 +5,6 @@ Handles emission of messages via SocketIO with error handling.
 Decoupled from message queueing for better testability.
 """
 from typing import List, Dict, Any
-try:
-    from typing import Protocol
-except ImportError:
-    # Python < 3.8: Protocol not available, use ABC
-    from abc import ABC as Protocol  # type: ignore
 
 try:
     from ..log.logger_factory import get_logger
@@ -17,6 +12,12 @@ try:
 except ImportError:
     from log.logger_factory import get_logger
     from socketio_manager import socketio_manager
+
+try:
+    from typing import Protocol
+except ImportError:
+    # Python < 3.8: Protocol not available, use ABC
+    from abc import ABC as Protocol  # type: ignore
 
 
 class SocketIOProtocol(Protocol):
@@ -62,7 +63,7 @@ class MessageEmitter:
         if not statuses:
             return
         
-        self.logger.info(f"[EMITTER] emit_status: {len(statuses)} status messages to process for user {username}")
+        self.logger.debug("[EMITTER] emit_status: %d status messages to process for user %s", len(statuses), username)
         
         # Filter duplicates - keep last occurrence of each unique string
         seen = {}
@@ -74,10 +75,10 @@ class MessageEmitter:
         for category, string, status, supplement in reversed(seen.values()):
             try:
                 data = {category: [string, status, supplement]}
-                self.logger.info(f"[EMITTER] Emitting status to user {username}: {data}")
+                self.logger.debug("[EMITTER] Emitting status to user %s", username)
                 socketio_manager.emit_to_user("action_status", data, username)
             except Exception as e:
-                self.logger.error(f"Error emitting status to user {username}: {e}")
+                self.logger.error("Error emitting status to user %s: %s", username, e)
     
     def emit_popups(self, popups: List[List], username: str) -> None:
         """
@@ -88,17 +89,16 @@ class MessageEmitter:
             username: Username to emit to
         """
         if popups:
-            self.logger.info(f"[EMITTER] emit_popups: {len(popups)} popup messages for user {username}")
+            self.logger.debug("[EMITTER] emit_popups: %d popup messages for user %s", len(popups), username)
         
         for item in popups:
             try:
                 level = item[0].name if hasattr(item[0], 'name') else str(item[0])
                 data = {level: item[1]}
-                # Use repr() to avoid encoding issues with emojis in logs
-                self.logger.info(f"[EMITTER] Emitting popup to user {username}: level={level}, length={len(item[1])} chars")
+                self.logger.debug("[EMITTER] Emitting popup to user %s: level=%s, length=%d chars", username, level, len(item[1]))
                 socketio_manager.emit_to_user("popup", data, username)
             except Exception as e:
-                self.logger.error(f"Error emitting popup to user {username}: {e}")
+                self.logger.error("Error emitting popup to user %s: %s", username, e)
     
     def emit_results(self, results: List[List], username: str) -> None:
         """
@@ -159,17 +159,17 @@ class MessageEmitter:
             username: Username to emit to
         """
         if reloads:
-            self.logger.info(f"[EMITTER] emit_reloads: {len(reloads)} reload messages for user {username}")
+            self.logger.debug("[EMITTER] emit_reloads: %d reload messages for user %s", len(reloads), username)
         
         for item_id, content in reloads:
             try:
-                self.logger.info(f"[EMITTER] Emitting reload to user {username} for ID: {item_id}, content length: {len(content)} chars")
+                self.logger.debug("[EMITTER] Emitting reload to user %s for ID: %s, content length: %d chars", username, item_id, len(content))
                 socketio_manager.emit_to_user("reload", {
                     "id": item_id,
                     "content": content
                 }, username)
             except Exception as e:
-                self.logger.error(f"Error emitting reload to user {username}: {e}")
+                self.logger.error("Error emitting reload to user %s: %s", username, e)
     
     def emit_button_states(self, disable_list: List[str], enable_list: List[str], username: str) -> None:
         """

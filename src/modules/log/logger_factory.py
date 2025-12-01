@@ -6,12 +6,12 @@ created lazily when `get_logger` is first called to avoid import-time
 side-effects.
 """
 
+import html
 import logging
-from logging.handlers import RotatingFileHandler
-from pathlib import Path
 import threading
 import traceback
-import html
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 LOG_DIR = "logs"
 # Lock to guard logger creation/configuration across threads

@@ -2,9 +2,20 @@
 Authentication utilities: password hashing, validation, etc.
 """
 
-import bcrypt
 import re
 from typing import Optional, Tuple
+
+import bcrypt
+
+# Constants for password validation
+MIN_PASSWORD_LENGTH = 5
+MIN_USERNAME_LENGTH = 3
+MAX_USERNAME_LENGTH = 32
+
+# Regex patterns for validation
+USERNAME_PATTERN = r'^[a-zA-Z0-9][a-zA-Z0-9_-]*$'
+LETTER_PATTERN = r'[a-zA-Z]'
+DIGIT_PATTERN = r'\d'
 
 
 def hash_password(password: str) -> str:
@@ -64,13 +75,13 @@ def validate_password_strength(password: str) -> Tuple[bool, Optional[str]]:
     Returns:
         (is_valid, error_message)
     """
-    if len(password) < 5:
-        return False, "Password must be at least 5 characters long"
+    if len(password) < MIN_PASSWORD_LENGTH:
+        return False, f"Password must be at least {MIN_PASSWORD_LENGTH} characters long"
     
-    if not re.search(r'[a-zA-Z]', password):
+    if not re.search(LETTER_PATTERN, password):
         return False, "Password must contain at least one letter"
     
-    if not re.search(r'\d', password):
+    if not re.search(DIGIT_PATTERN, password):
         return False, "Password must contain at least one number"
     
     return True, None
@@ -91,13 +102,13 @@ def validate_username(username: str) -> Tuple[bool, Optional[str]]:
     Returns:
         (is_valid, error_message)
     """
-    if len(username) < 3:
-        return False, "Username must be at least 3 characters long"
+    if len(username) < MIN_USERNAME_LENGTH:
+        return False, f"Username must be at least {MIN_USERNAME_LENGTH} characters long"
     
-    if len(username) > 32:
-        return False, "Username cannot exceed 32 characters"
+    if len(username) > MAX_USERNAME_LENGTH:
+        return False, f"Username cannot exceed {MAX_USERNAME_LENGTH} characters"
     
-    if not re.match(r'^[a-zA-Z0-9][a-zA-Z0-9_-]*$', username):
+    if not re.match(USERNAME_PATTERN, username):
         return False, "Username must start with letter/number and contain only letters, numbers, underscore, or hyphen"
     
     return True, None

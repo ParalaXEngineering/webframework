@@ -1,42 +1,75 @@
+"""ParalaX Web Framework - Main application initialization and routing.
+
+Handles Flask app setup, blueprint registration, feature flag initialization,
+SocketIO setup for real-time features, and context processors for templates.
+"""
+
+import importlib
+import os
+import shutil
+import sys
+import threading
+import time
+import traceback
+import uuid
+import webbrowser
+
 try:
-    from flask import Flask, render_template, session, request, g
+    from flask import Flask, g, render_template, request, session
     from flask_session import Session
     from flask_socketio import SocketIO
     FLASK_AVAILABLE = True
 except ImportError:
     # Flask not available - create dummy classes for import testing
     Flask = None  # type: ignore
-    render_template = None  # type: ignore
-    session = None  # type: ignore
-    request = None  # type: ignore
     g = None  # type: ignore
+    render_template = None  # type: ignore
+    request = None  # type: ignore
+    session = None  # type: ignore
     Session = None  # type: ignore
     SocketIO = None  # type: ignore
     FLASK_AVAILABLE = False
 
-import time
-import os
-import webbrowser
-import uuid
-import shutil
-
-import importlib
-import sys
-import threading
-import traceback
-
 try:
     from .modules import scheduler
-    from .modules.threaded import threaded_manager
     from .modules import site_conf
-    from .modules.log.logger_factory import get_logger, format_exception_html
+    from .modules.log.logger_factory import format_exception_html, get_logger
     from .modules.socketio_manager import initialize_socketio_manager
+    from .modules.threaded import threaded_manager
 except ImportError:
     from modules import scheduler
-    from modules.threaded import threaded_manager
     from modules import site_conf
-    from modules.log.logger_factory import get_logger, format_exception_html
+    from modules.log.logger_factory import format_exception_html, get_logger
     from modules.socketio_manager import initialize_socketio_manager
+    from modules.threaded import threaded_manager
+
+# Constants
+DEFAULT_SECRET_KEY = "super secret key"
+COOKIE_SAMESITE = "Lax"
+SESSION_TYPE = "filesystem"
+DEFAULT_HOST = "0.0.0.0"
+DEFAULT_PORT = 5000
+DEFAULT_USER = "GUEST"
+ANONYMOUS_USER = "anonymous"
+STARTUP_URL = "http://127.0.0.1:5000/common/login"
+PAGES_DIR_NAME = "pages"
+WEBSITE_PAGES_PATH = "website/pages"
+WEBSITE_AUTH_PATH = "website/auth"
+WEBSITE_CONFIG_PATH = "website/config.json"
+WEBSITE_SCHEDULER_PATH = "website/scheduler.py"
+WEBSITE_SITE_CONF_PATH = "website.site_conf"
+LOGS_DIR_NAME = "logs"
+FAVICON_INSTANCE_PATH = "website/assets/images/logo/favicon.png"
+FAVICON_FRAMEWORK_PATH = "webengine/assets/images/logo/favicon.png"
+DEFAULT_AVATAR_INSTANCE_PATH = "website/assets/images/users/default.svg"
+DEFAULT_AVATAR_FRAMEWORK_PATH = "webengine/assets/images/users/default.svg"
+IGNORED_404_PATHS = [
+    "/.well-known/appspecific/com.chrome.devtools.json",
+    "/favicon.ico",
+    "/.well-known/",
+]
+LOG_EMITTER_INTERVAL = 2.0
+THREAD_EMITTER_INTERVAL = 0.5
 
 # Module-level auth_manager variable (initialized in setup_app)
 auth_manager = None
@@ -44,11 +77,11 @@ auth_manager = None
 # Create Flask app only if Flask is available
 if FLASK_AVAILABLE:
     app = Flask(  # type: ignore
-            __name__,
-            instance_relative_config=True,
-            static_folder=os.path.join("..", "webengine", "assets"),
-            template_folder=os.path.join("..", "templates")
-        )
+        __name__,
+        instance_relative_config=True,
+        static_folder=os.path.join("..", "webengine", "assets"),
+        template_folder=os.path.join("..", "templates")
+    )
 else:
     app = None  # Placeholder when Flask is not available
 
@@ -72,13 +105,13 @@ def _ensure_default_assets(app_path, framework_root, logger):
     # Define required assets: (instance_path, framework_source_path, description)
     required_assets = [
         (
-            os.path.join(app_path, "website", "assets", "images", "logo", "favicon.png"),
-            os.path.join(framework_root, "webengine", "assets", "images", "logo", "favicon.png"),
+            os.path.join(app_path, FAVICON_INSTANCE_PATH),
+            os.path.join(framework_root, FAVICON_FRAMEWORK_PATH),
             "favicon"
         ),
         (
-            os.path.join(app_path, "website", "assets", "images", "users", "default.svg"),
-            os.path.join(framework_root, "webengine", "assets", "images", "users", "default.svg"),
+            os.path.join(app_path, DEFAULT_AVATAR_INSTANCE_PATH),
+            os.path.join(framework_root, DEFAULT_AVATAR_FRAMEWORK_PATH),
             "default user avatar"
         ),
     ]
@@ -86,26 +119,26 @@ def _ensure_default_assets(app_path, framework_root, logger):
     for instance_path, framework_path, description in required_assets:
         # Skip if already exists in instance
         if os.path.exists(instance_path):
-            logger.debug(f"{description.capitalize()} already exists: {instance_path}")
+            logger.debug("%s already exists: %s", description.capitalize(), instance_path)
             continue
         
         # Check if framework default exists
         if not os.path.exists(framework_path):
-            logger.warning(f"Framework default {description} not found: {framework_path}")
+            logger.warning("Framework default %s not found: %s", description, framework_path)
             continue
         
         # Create directory if needed
         instance_dir = os.path.dirname(instance_path)
         if not os.path.exists(instance_dir):
             os.makedirs(instance_dir)
-            logger.info(f"Created directory: {instance_dir}")
+            logger.debug("Created directory: %s", instance_dir)
         
         # Copy from framework to instance
         try:
             shutil.copy2(framework_path, instance_path)
-            logger.info(f"Copied {description} from framework defaults: {os.path.basename(instance_path)}")
+            logger.debug("Copied %s from framework defaults: %s", description, os.path.basename(instance_path))
         except Exception as e:
-            logger.error(f"Failed to copy {description}: {e}")
+            logger.error("Failed to copy %s: %s", description, e)
 
 
 def setup_app(app):
@@ -113,12 +146,12 @@ def setup_app(app):
     if not FLASK_AVAILABLE:
         return None
     
-    app.config["SESSION_TYPE"] = "filesystem"  # type: ignore
+    app.config["SESSION_TYPE"] = SESSION_TYPE  # type: ignore
     app.config['TEMPLATES_AUTO_RELOAD'] = False  # type: ignore
-    app.config["SECRET_KEY"] = "super secret key"  # type: ignore
+    app.config["SECRET_KEY"] = DEFAULT_SECRET_KEY  # type: ignore
     app.config["PROPAGATE_EXCEPTIONS"] = False  # type: ignore
     app.config["SESSION_PERMANENT"] = True  # type: ignore
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"  # type: ignore
+    app.config["SESSION_COOKIE_SAMESITE"] = COOKIE_SAMESITE  # type: ignore
     app.config.from_object(__name__)  # type: ignore
     Session(app)  # type: ignore
 
@@ -145,8 +178,8 @@ def setup_app(app):
     instance_path = site_conf.site_conf_app_path if site_conf.site_conf_app_path else app_path
     _ensure_default_assets(instance_path, app_path, logger)
 
-    # Get all Python files in the "pages" directory (if it exists)
-    website_pages_path = os.path.join(app_path, "website", "pages")
+    # Get all Python files in the website pages directory (if it exists)
+    website_pages_path = os.path.join(app_path, WEBSITE_PAGES_PATH)
     if os.path.exists(website_pages_path):
         files = [f for f in os.listdir(website_pages_path) if f.endswith(".py") and not f.startswith("__")]
         
@@ -161,24 +194,24 @@ def setup_app(app):
                 # Register the blueprint if it exists
                 if hasattr(page_module, 'bp'):
                     app.register_blueprint(page_module.bp)
-                    logger.info(f"Registered website page blueprint: {module_name}")
+                    logger.debug("Registered website page blueprint: %s", module_name)
             except ImportError as e:
-                logger.warning(f"Failed to import website page {module_name}: {e}")
+                logger.debug("Failed to import website page %s: %s", module_name, e)
             except Exception as e:
-                logger.warning(f"Failed to register blueprint for {module_name}: {e}")
+                logger.debug("Failed to register blueprint for %s: %s", module_name, e)
 
     # Import site_conf FIRST (before any feature-dependent initialization)
     # Only set if not already configured (e.g., by test setup)
     if site_conf.site_conf_obj is None:
         try:
-            site_conf.site_conf_obj = importlib.import_module("website.site_conf").ExampleSiteConf()
+            site_conf.site_conf_obj = importlib.import_module(WEBSITE_SITE_CONF_PATH).ExampleSiteConf()
             site_conf.site_conf_app_path = app_path
-            logger.info("Loaded website.site_conf")
+            logger.debug("Loaded website.site_conf")
         except (ModuleNotFoundError, AttributeError) as e:
-            logger.info(f"No website.site_conf found - using default Site_conf: {e}")
+            logger.debug("No website.site_conf found - using default Site_conf: %s", e)
             site_conf.site_conf_obj = site_conf.Site_conf()
     else:
-        logger.info(f"Using pre-configured site_conf: {type(site_conf.site_conf_obj).__name__}")
+        logger.debug("Using pre-configured site_conf: %s", type(site_conf.site_conf_obj).__name__)
     
     # Get site configuration for feature flags
     site_config = site_conf.site_conf_obj
@@ -218,7 +251,7 @@ def setup_app(app):
         required_feature = PAGE_FEATURE_REQUIREMENTS.get(page_name)
         if required_feature:
             if not getattr(site_config, required_feature, False):
-                logger.info(f"Skipping framework page '{page_name}' - feature '{required_feature}' is disabled")
+                logger.debug("Skipping framework page '%s' - feature '%s' is disabled", page_name, required_feature)
                 continue
         
         try:
@@ -232,11 +265,11 @@ def setup_app(app):
             # Register the blueprint if it exists
             if hasattr(page_module, 'bp'):
                 app.register_blueprint(page_module.bp)
-                logger.info(f"Registered framework page blueprint: {page_name}")
+                logger.debug("Registered framework page blueprint: %s", page_name)
         except ImportError as e:
-            logger.warning(f"Failed to import framework page {page_name}: {e}")
+            logger.debug("Failed to import framework page %s: %s", page_name, e)
         except Exception as e:
-            logger.warning(f"Failed to register blueprint for {page_name}: {e}")
+            logger.debug("Failed to register blueprint for %s: %s", page_name, e)
 
     # Initialize auth manager conditionally based on feature flag
     # Import the auth module (not the auth_manager variable)
@@ -252,21 +285,21 @@ def setup_app(app):
         if auth_manager_module.auth_manager is None:
             # Use site_conf_app_path if set, otherwise fall back to app_path
             auth_base_path = site_conf.site_conf_app_path if site_conf.site_conf_app_path else app_path
-            auth_manager_instance = AuthManager(auth_dir=os.path.join(auth_base_path, "website", "auth"))
+            auth_manager_instance = AuthManager(auth_dir=os.path.join(auth_base_path, WEBSITE_AUTH_PATH))
             auth_manager_module.auth_manager = auth_manager_instance
             
             # Also update the local module reference so the inject_endpoint function can access it
             globals()['auth_manager'] = auth_manager_instance
             
-            logger.info("Auth manager initialized")
+            logger.debug("Auth manager initialized")
         else:
             # Auth manager was pre-configured by calling application
             globals()['auth_manager'] = auth_manager_module.auth_manager
-            logger.info("Auth manager already configured, using existing instance")
+            logger.debug("Auth manager already configured, using existing instance")
     else:
         auth_manager_module.auth_manager = None
         globals()['auth_manager'] = None
-        logger.info("Auth manager disabled")
+        logger.debug("Auth manager disabled")
     
     # Initialize settings manager (always enabled, needed for framework config)
     try:
@@ -278,7 +311,7 @@ def setup_app(app):
     
     # Use site_conf_app_path if set, otherwise fall back to local app_path
     config_base_path = site_conf.site_conf_app_path if site_conf.site_conf_app_path else app_path
-    config_path = os.path.join(config_base_path, "website", "config.json")
+    config_path = os.path.join(config_base_path, WEBSITE_CONFIG_PATH)
     settings_manager_instance = SettingsManager(config_path)
     settings_manager_instance.load()
     
@@ -288,7 +321,7 @@ def setup_app(app):
     
     settings_module.settings_manager = settings_manager_instance
     globals()['settings_manager'] = settings_manager_instance
-    logger.info(f"Settings manager initialized with config: {config_path}")
+    logger.debug("Settings manager initialized with config: %s", config_path)
 
     # Conditionally initialize file manager based on feature flag
     if site_config.m_enable_file_manager:
@@ -305,13 +338,13 @@ def setup_app(app):
         if site_config.m_file_manager_admin:
             file_manager_admin.file_manager = file_manager_instance
         
-        logger.info("File manager initialized")
+        logger.debug("File manager initialized")
     else:
-        logger.info("File manager disabled")
+        logger.debug("File manager disabled")
 
     # Conditionally initialize scheduler based on feature flag
     if site_config.m_enable_scheduler:
-        if os.path.isfile(os.path.join(app_path, "website", "scheduler.py")):
+        if os.path.isfile(os.path.join(app_path, WEBSITE_SCHEDULER_PATH)):
             scheduler_obj = importlib.import_module("website.scheduler").Scheduler(socket_obj=socketio_obj)
         else:
             scheduler_obj = scheduler.Scheduler(socket_obj=socketio_obj)
@@ -320,28 +353,28 @@ def setup_app(app):
         scheduler_thread.start()
 
         scheduler.scheduler_obj = scheduler_obj
-        logger.info("Scheduler initialized")
+        logger.debug("Scheduler initialized")
     else:
         scheduler.scheduler_obj = None
-        logger.info("Scheduler disabled")
+        logger.debug("Scheduler disabled")
 
     # Conditionally initialize long term scheduler based on feature flag
     if site_config.m_enable_long_term_scheduler:
         scheduler_lt = scheduler.Scheduler_LongTerm()
         scheduler_lt.start()
         scheduler.scheduler_ltobj = scheduler_lt
-        logger.info("Long-term scheduler initialized")
+        logger.debug("Long-term scheduler initialized")
     else:
         scheduler.scheduler_ltobj = None
-        logger.info("Long-term scheduler disabled")
+        logger.debug("Long-term scheduler disabled")
 
     # Conditionally initialize thread manager based on feature flag
     if site_config.m_enable_threads:
         threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
-        logger.info("Thread manager initialized")
+        logger.debug("Thread manager initialized")
     else:
         threaded_manager.thread_manager_obj = None
-        logger.info("Thread manager disabled")
+        logger.debug("Thread manager disabled")
 
     # Conditionally initialize log emitter for real-time log viewing
     if site_config.m_enable_log_viewer:
@@ -350,11 +383,11 @@ def setup_app(app):
         except ImportError:
             from modules.log import log_emitter
         
-        logs_dir = os.path.join(app_path, 'logs')
-        log_emitter.initialize_log_emitter(socketio_obj, logs_dir, interval=2.0)
-        logger.info("Log emitter initialized")
+        logs_dir = os.path.join(app_path, LOGS_DIR_NAME)
+        log_emitter.initialize_log_emitter(socketio_obj, logs_dir, interval=LOG_EMITTER_INTERVAL)
+        logger.debug("Log emitter initialized")
     else:
-        logger.info("Log emitter disabled")
+        logger.debug("Log emitter disabled")
 
     # Conditionally initialize thread emitter for real-time thread updates
     if site_config.m_enable_threads:
@@ -363,11 +396,11 @@ def setup_app(app):
         except ImportError:
             from modules.threaded import thread_emitter
         
-        thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=0.5)
+        thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=THREAD_EMITTER_INTERVAL)
         thread_emitter.thread_emitter_obj.start()
-        logger.info("Thread emitter initialized")
+        logger.debug("Thread emitter initialized")
     else:
-        logger.info("Thread emitter disabled")
+        logger.debug("Thread emitter disabled")
 
     # Register SocketIO connection handlers for user rooms
     @socketio_obj.on("connect")  # type: ignore
@@ -375,20 +408,20 @@ def setup_app(app):
         """Handle client connection - join user-specific room"""
         try:
             room = socketio_manager_obj.join_user_room()
-            username = session.get('user', 'anonymous')  # type: ignore
-            logger.debug(f"Client connected: {username} in room {room}")
+            username = session.get('user', ANONYMOUS_USER)  # type: ignore
+            logger.debug("Client connected: %s in room %s", username, room)
         except Exception as e:
-            logger.error(f"Error in handle_connect: {e}")
+            logger.error("Error in handle_connect: %s", e)
     
     @socketio_obj.on("disconnect")  # type: ignore
     def handle_disconnect():
         """Handle client disconnection - leave user room"""
         try:
-            username = session.get('user', 'anonymous')  # type: ignore
+            username = session.get('user', ANONYMOUS_USER)  # type: ignore
             socketio_manager_obj.leave_user_room()
-            logger.debug(f"Client disconnected: {username}")
+            logger.debug("Client disconnected: %s", username)
         except Exception as e:
-            logger.error(f"Error in handle_disconnect: {e}")
+            logger.error("Error in handle_disconnect: %s", e)
 
     # Register user_connected handler (conditionally based on scheduler)
     if site_config.m_enable_scheduler:
@@ -594,22 +627,11 @@ def setup_app(app):
             requested_url = request.path  # type: ignore
             query_parameters = request.args.to_dict()  # type: ignore
             
-            # Suppress Chrome DevTools and other browser-specific requests
-            ignored_paths = [
-                '/.well-known/appspecific/com.chrome.devtools.json',
-                '/favicon.ico',
-                '/.well-known/',
-            ]
-            
             # Check if this is a path we should ignore
-            should_log = True
-            for ignored_path in ignored_paths:
-                if requested_url.startswith(ignored_path):
-                    should_log = False
-                    break
+            should_log = not any(requested_url.startswith(path) for path in IGNORED_404_PATHS)
             
             if should_log:
-                logger.error(f"A 404 was generated at the following path: {requested_url}. Get arguments: {query_parameters}")
+                logger.error("A 404 was generated at the following path: %s. Get arguments: %s", requested_url, query_parameters)
             
             return render_template("404.j2", requested=requested_url)  # type: ignore
 
@@ -648,7 +670,7 @@ def setup_app(app):
         }
         
         # Log as single-line HTML for log viewer
-        logger.error(f"An error occurred: {format_exception_html(e)}")
+        logger.error("An error occurred: %s", format_exception_html(e))
         return render_template("error.j2", **error_context)  # type: ignore
 
     @app.before_request  # type: ignore
@@ -673,25 +695,25 @@ def setup_app(app):
                 if site_conf.site_conf_obj and hasattr(site_conf.site_conf_obj, 'm_topbar'):
                     if site_conf.site_conf_obj.m_topbar.get('login', False):
                         # Login enabled: default to GUEST if not logged in
-                        session['user'] = 'GUEST'
+                        session['user'] = DEFAULT_USER
                     else:
                         # No login: use anonymous (all users share same session)
-                        session['user'] = 'anonymous'
+                        session['user'] = ANONYMOUS_USER
                 else:
                     # Fallback if site_conf not available
-                    session['user'] = 'GUEST'
+                    session['user'] = DEFAULT_USER
 
         # Note: config reading migrated to settings engine in src/modules/settings
         
         inject_bar()
 
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-        webbrowser.open("http://127.0.0.1:5000/common/login")
+        webbrowser.open(STARTUP_URL)
     
     return socketio_obj
 
 
-def run_app(host: str = "0.0.0.0", port: int = 5000, debug: bool = False) -> None:
+def run_app(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT, debug: bool = False) -> None:
     """
     Run the ParalaX Web Framework application.
     

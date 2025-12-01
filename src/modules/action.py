@@ -1,8 +1,9 @@
 class Action:
     """Base class to execute immediate action.
-    This module is a simplified version of the thraded_action,
+    
+    This module is a simplified version of the threaded_action,
     which provides the minimum in order to successfully
-    integrate with web display engine
+    integrate with web display engine.
     """
 
     m_default_name = "Default"
@@ -23,9 +24,12 @@ class Action:
     _is_guest = False
     _is_readonly = True
 
-    def start(self):
-        """Main function"""
-        return
+    def start(self) -> None:
+        """Execute the action.
+        
+        This is the main entry point for the action. Subclasses should override
+        this method to implement their specific action logic.
+        """
     
     def get_current_user(self):
         """
@@ -66,8 +70,7 @@ class Action:
         return self._is_readonly
     
     def has_permission(self, action):
-        """
-        Check if the current user has a specific permission for this module.
+        """Check if the current user has a specific permission for this module.
         
         Args:
             action: Permission to check (e.g., 'write', 'edit', 'execute')
@@ -75,15 +78,20 @@ class Action:
         Returns:
             True if user has the permission
         """
-        return action in self._user_permissions if self._user_permissions else False
+        return action in self._user_permissions
 
     def get_name(self) -> str:
-        """Return the name of the instance
-
-        :return: The name of the instance
-        :rtype: str
+        """Return the name of the instance.
+        
+        Returns the custom instance name if set, otherwise returns the default name.
+        
+        Args:
+            None
+        
+        Returns:
+            The name of the instance as a string.
         """
-        if hasattr(self, 'm_name') and self.m_name:  # type: ignore
-            return self.m_name  # type: ignore
+        if hasattr(self, 'm_name') and self.m_name:
+            return self.m_name
 
         return self.m_default_name

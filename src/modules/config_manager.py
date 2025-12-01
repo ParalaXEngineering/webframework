@@ -1,98 +1,115 @@
-"""
-Configuration Manager Module
+"""Configuration Manager Module
 
-Handles configuration file operations and network interface management.
+Handles network interface configuration for Windows and Linux systems.
 Extracted from settings.py to separate business logic from presentation layer.
 """
 
-import subprocess
+import logging
 import platform
-from typing import Tuple, Optional
+import subprocess
+from typing import Optional, Tuple
+
+# Configuration constants
+IP_TYPE_STATIC = "Static"
+IP_TYPE_DHCP = "DHCP"
+PLATFORM_WINDOWS = "Windows"
+
+# Status and error messages
+MSG_CONFIG_SUCCESS = "Network configuration applied successfully"
+MSG_VALIDATION_ERROR = "IP address and subnet mask are required for static configuration"
+MSG_CONFIG_ERROR = "Configuration error: {}"
+MSG_CMD_FAILED = "Command failed: {}"
+
+logger = logging.getLogger(__name__)
 
 
 def apply_network_config(interface: str, ip_type: str, ip_address: Optional[str] = None, 
-                        subnet_mask: Optional[str] = None, gateway: Optional[str] = None, 
-                        dns: Optional[str] = None) -> Tuple[bool, str]:
-    """
-    Apply network configuration to a network interface.
-    
-    Args:
-        interface: Network interface name
-        ip_type: Either "Static" or "DHCP"
-        ip_address: Static IP address (required for Static)
-        subnet_mask: Subnet mask (required for Static)
-        gateway: Default gateway (optional)
-        dns: DNS server (optional)
-        
-    Returns:
-        Tuple of (success: bool, message: str)
-        
-    Example:
-        >>> success, msg = apply_network_config("eth0", "Static", "192.168.1.100", "255.255.255.0")
-    """
-    try:
-        if platform.system() == "Windows":
-            return _apply_windows_config(interface, ip_type, ip_address, subnet_mask, gateway, dns)
-        else:
-            return _apply_linux_config(interface, ip_type, ip_address, subnet_mask, gateway, dns)
-    except Exception as e:
-        return False, f"Configuration error: {str(e)}"
+                         subnet_mask: Optional[str] = None, gateway: Optional[str] = None, 
+                         dns: Optional[str] = None) -> Tuple[bool, str]:
+     """Apply network configuration to a network interface.
+     
+     Args:
+         interface: Network interface name.
+         ip_type: Either "Static" (IP_TYPE_STATIC) or "DHCP" (IP_TYPE_DHCP).
+         ip_address: Static IP address (required for Static configuration).
+         subnet_mask: Subnet mask (required for Static configuration).
+         gateway: Default gateway (optional).
+         dns: DNS server (optional).
+         
+     Returns:
+         Tuple of (success: bool, message: str).
+         
+     Example:
+         >>> success, msg = apply_network_config("eth0", "Static", "192.168.1.100", "255.255.255.0")
+     """
+     try:
+         if platform.system() == PLATFORM_WINDOWS:
+             return _apply_windows_config(interface, ip_type, ip_address, subnet_mask, gateway, dns)
+         return _apply_linux_config(interface, ip_type, ip_address, subnet_mask, gateway, dns)
+     except Exception as e:
+         logger.exception("Failed to apply network configuration for interface %s", interface)
+         return False, MSG_CONFIG_ERROR.format(str(e))
 
 
 def _apply_windows_config(interface: str, ip_type: str, ip_address: Optional[str] = None,
                           subnet_mask: Optional[str] = None, gateway: Optional[str] = None, 
                           dns: Optional[str] = None) -> Tuple[bool, str]:
-    """Apply network configuration on Windows systems."""
-    commands = []
-    
-    if ip_type == "DHCP":
-        commands.append(f'netsh interface ip set address name="{interface}" dhcp')
-        commands.append(f'netsh interface ip set dns name="{interface}" dhcp')
-    else:  # Static
-        if not ip_address or not subnet_mask:
-            return False, "IP address and subnet mask are required for static configuration"
-        
-        cmd = f'netsh interface ip set address name="{interface}" static {ip_address} {subnet_mask}'
-        if gateway:
-            cmd += f' {gateway}'
-        commands.append(cmd)
-        
-        if dns:
-            commands.append(f'netsh interface ip set dns name="{interface}" static {dns}')
-    
-    for cmd in commands:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        if result.returncode != 0:
-            return False, f"Command failed: {result.stderr}"
-    
-    return True, "Network configuration applied successfully"
+     """Apply network configuration on Windows systems using netsh commands."""
+     commands = []
+     
+     if ip_type == IP_TYPE_DHCP:
+         commands.append(f'netsh interface ip set address name="{interface}" dhcp')
+         commands.append(f'netsh interface ip set dns name="{interface}" dhcp')
+     elif ip_type == IP_TYPE_STATIC:
+         if not ip_address or not subnet_mask:
+             logger.warning("Static config missing required parameters for interface %s", interface)
+             return False, MSG_VALIDATION_ERROR
+         
+         cmd = f'netsh interface ip set address name="{interface}" static {ip_address} {subnet_mask}'
+         if gateway:
+             cmd += f' {gateway}'
+         commands.append(cmd)
+         
+         if dns:
+             commands.append(f'netsh interface ip set dns name="{interface}" static {dns}')
+     
+     for cmd in commands:
+         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+         if result.returncode != 0:
+             logger.error("Windows netsh command failed: %s", result.stderr)
+             return False, MSG_CMD_FAILED.format(result.stderr)
+     
+     logger.info("Network configuration applied successfully on Windows for %s", interface)
+     return True, MSG_CONFIG_SUCCESS
 
 
 def _apply_linux_config(interface: str, ip_type: str, ip_address: Optional[str] = None,
-                       subnet_mask: Optional[str] = None, gateway: Optional[str] = None, 
-                       dns: Optional[str] = None) -> Tuple[bool, str]:
-    """Apply network configuration on Linux systems."""
-    commands = []
-    
-    if ip_type == "DHCP":
-        commands.append(f'dhclient {interface}')
-    else:  # Static
-        if not ip_address or not subnet_mask:
-            return False, "IP address and subnet mask are required for static configuration"
-        
-        commands.append(f'ip addr flush dev {interface}')
-        commands.append(f'ip addr add {ip_address}/{subnet_mask} dev {interface}')
-        
-        if gateway:
-            commands.append(f'ip route add default via {gateway}')
-        
-        if dns:
-            with open('/etc/resolv.conf', 'w') as f:
-                f.write(f'nameserver {dns}\n')
-    
-    for cmd in commands:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        if result.returncode != 0:
-            return False, f"Command failed: {result.stderr}"
-    
-    return True, "Network configuration applied successfully"
+                        subnet_mask: Optional[str] = None, gateway: Optional[str] = None, 
+                        dns: Optional[str] = None) -> Tuple[bool, str]:
+     """Apply network configuration on Linux systems using ip and dhclient commands."""
+     commands = []
+     
+     if ip_type == IP_TYPE_DHCP:
+         commands.append(f'dhclient {interface}')
+     elif ip_type == IP_TYPE_STATIC:
+         if not ip_address or not subnet_mask:
+             logger.warning("Static config missing required parameters for interface %s", interface)
+             return False, MSG_VALIDATION_ERROR
+         
+         commands.append(f'ip addr flush dev {interface}')
+         commands.append(f'ip addr add {ip_address}/{subnet_mask} dev {interface}')
+         
+         if gateway:
+             commands.append(f'ip route add default via {gateway}')
+         
+         if dns:
+             commands.append(f'echo "nameserver {dns}" > /etc/resolv.conf')
+     
+     for cmd in commands:
+         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+         if result.returncode != 0:
+             logger.error("Linux command failed: %s", result.stderr)
+             return False, MSG_CMD_FAILED.format(result.stderr)
+     
+     logger.info("Network configuration applied successfully on Linux for %s", interface)
+     return True, MSG_CONFIG_SUCCESS

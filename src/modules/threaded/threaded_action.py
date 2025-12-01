@@ -1,5 +1,4 @@
-"""
-Threaded Action - Base class for long-running threaded operations.
+"""Threaded action - Base class for long-running threaded operations.
 
 This module provides a base class for executing long-term actions with:
 - Thread lifecycle management
@@ -8,19 +7,16 @@ This module provides a base class for executing long-term actions with:
 - Progress tracking
 - Communication with local processes
 """
-
-import threading
-import time
 import copy
 import subprocess
-from typing import TYPE_CHECKING, Optional
+import threading
+import time
+import traceback
+from collections import deque
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..scheduler.scheduler import Scheduler
-import traceback
-from collections import deque
-from typing import List, Dict, Any
-
 
 try:
     from . import threaded_manager
@@ -30,6 +26,25 @@ except ImportError:
     import threaded_manager
     import scheduler
     from log.logger_factory import get_logger
+
+
+# Constants
+DEFAULT_CONSOLE_MAX_LEN = 1000
+DEFAULT_LOGS_MAX_LEN = 500
+PROGRESS_INDETERMINATE = -1
+PROCESS_SLEEP_INTERVAL = 0.1
+PROCESS_KILL_DELAY = 0.1
+
+# Log level constants
+LOG_LEVEL_DEBUG = "DEBUG"
+LOG_LEVEL_INFO = "INFO"
+LOG_LEVEL_WARNING = "WARNING"
+LOG_LEVEL_ERROR = "ERROR"
+
+# Error messages
+ERR_ABORT_BY_USER = "Aborted by user"
+ERR_THREAD_NOT_FOUND = "Thread ID not found - cannot force stop"
+ERR_FAILED_FORCE_STOP = "Failed to force stop thread"
 
 
 class Threaded_action:
@@ -52,60 +67,60 @@ class Threaded_action:
     m_type = "threaded_action"
     """The type of the module"""
 
-    m_error = None
+    m_error: Optional[str] = None
     """A possible error that can be appended to the module for display option"""
-    
-    m_required_permission = None
+
+    m_required_permission: Optional[str] = None
     """The permission module name required to access this module (e.g., 'Demo_Threading'). None means no permission check."""
-    
+
     m_required_action = 'view'
     """The action required to access this module (e.g., 'view', 'execute', 'edit'). Default is 'view'."""
-    
+
     # User context - set by framework when module is loaded
-    _current_user = None
-    _user_permissions = []
+    _current_user: Optional[str] = None
+    _user_permissions: List[str] = []
     _is_guest = False
     _is_readonly = True
-    
-    def __init__(self):       
+
+    def __init__(self):
         """Constructor - Initializes thread, console, logging, and process management"""
-        self.m_name = None
+        self.m_name: Optional[str] = None
 
         # Thread management
-        self.m_thread_action = None
-        self.m_thread_command = None
-        self.m_thread_process_stdout = None
-        self.m_thread_process_stderr = None
+        self.m_thread_action: Optional[threading.Thread] = None
+        self.m_thread_command: Optional[threading.Thread] = None
+        self.m_thread_process_stdout: Optional[threading.Thread] = None
+        self.m_thread_process_stderr: Optional[threading.Thread] = None
 
         # Running state
         self.m_running = False
-        self.m_running_state = -1  # -1 indicates a task running without percentage info
+        self.m_running_state = PROGRESS_INDETERMINATE  # -1 indicates a task running without percentage info
 
         # Process management
         self.m_process: Optional[subprocess.Popen] = None
         self.m_process_running = False
-        self.m_process_results = []
-        self.m_stderr = None
-        self.m_stdout = None
-        self.m_process_input = []
+        self.m_process_results: List[str] = []
+        self.m_stderr: Optional[str] = None
+        self.m_stdout: Optional[str] = None
+        self.m_process_input: List[str] = []
 
-        # Console management - NEW FEATURE
+        # Console management
         self._console_lock = threading.Lock()
-        self._console_output = deque(maxlen=1000)  # Last 1000 lines
-        self._console_logs = deque(maxlen=500)     # Last 500 log entries
-        
+        self._console_output: deque = deque(maxlen=DEFAULT_CONSOLE_MAX_LEN)
+        self._console_logs: deque = deque(maxlen=DEFAULT_LOGS_MAX_LEN)
+
         # Background flag
         self.m_background = False
 
-        # User preferences - NEW FEATURE
-        self.m_user_prefs = {}  # Injected by route handler
-        
+        # User preferences
+        self.m_user_prefs: Dict[str, Any] = {}  # Injected by route handler
+
         # Thread ownership - for multi-user isolation
-        self.username = None  # Set in start() method from session
-        self.user_session_id = None  # Set in start() method from session
+        self.username: Optional[str] = None  # Set in start() method from session
+        self.user_session_id: Optional[str] = None  # Set in start() method from session
 
         # Logger initialization
-        self.m_logger = None
+        self.m_logger: Optional[Any] = None
         self._init_logger()
 
         # Register the thread
@@ -117,12 +132,12 @@ class Threaded_action:
     def _init_logger(self):
         """Initialize logger with custom handler for console capture"""
         self.m_logger = get_logger("threaded_action")
-        self.m_logger.info(f"Threaded action '{self.get_name()}' initialized")
+        self.m_logger.debug("Threaded action '%s' initialized", self.get_name())
 
     def __del__(self):
         """Destructor"""
         if self.m_logger:
-            self.m_logger.info(f"Threaded action '{self.get_name()}' destroyed")
+            self.m_logger.debug("Threaded action '%s' destroyed", self.get_name())
 
     # ============================================================================
     # USER CONTEXT API - NEW FUNCTIONALITY
@@ -182,12 +197,12 @@ class Threaded_action:
     # CONSOLE MANAGEMENT - NEW FUNCTIONALITY
     # ============================================================================
 
-    def console_write(self, message: str, level: str = "INFO"):
+    def console_write(self, message: str, level: str = LOG_LEVEL_INFO):
         """Write a message to the thread's console output.
-        
+
         This is the main method for modules to write to their own console.
         Messages are stored and can be retrieved for display in the web UI.
-        
+
         Args:
             message: The message to write
             level: Log level (INFO, WARNING, ERROR, DEBUG)
@@ -196,14 +211,14 @@ class Threaded_action:
             timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
             formatted_msg = f"[{timestamp}] [{level}] {message}"
             self._console_output.append(formatted_msg)
-            
+
             # Also log it
             if self.m_logger:
-                if level == "ERROR":
+                if level == LOG_LEVEL_ERROR:
                     self.m_logger.error(message)
-                elif level == "WARNING":
+                elif level == LOG_LEVEL_WARNING:
                     self.m_logger.warning(message)
-                elif level == "DEBUG":
+                elif level == LOG_LEVEL_DEBUG:
                     self.m_logger.debug(message)
                 else:
                     self.m_logger.info(message)
@@ -237,11 +252,11 @@ class Threaded_action:
         with self._console_lock:
             self._console_output.clear()
 
-    def log_write(self, message: str, level: str = "INFO"):
+    def log_write(self, message: str, level: str = LOG_LEVEL_INFO):
         """Write a log entry (separate from console output).
-        
+
         This stores logs separately for the "logs" tab in the UI.
-        
+
         Args:
             message: The log message
             level: Log level (INFO, WARNING, ERROR, DEBUG)
@@ -363,7 +378,7 @@ class Threaded_action:
 
     def delete(self):
         """Delete the thread and unregister it from the thread manager.
-        
+
         This stops the thread by:
         1. Setting m_running = False (threads should check this in their action())
         2. Killing any running subprocess
@@ -371,52 +386,52 @@ class Threaded_action:
         4. Marking as aborted if it was running
         5. Unregistering from thread manager
         """
-        self.console_write("Thread deletion requested", "WARNING")
+        self.console_write("Thread deletion requested", LOG_LEVEL_WARNING)
         was_running = self.m_running
         self.m_running = False
-        
+
         # Try to kill any running subprocess
         try:
             if hasattr(self, 'm_process') and self.m_process:
-                self.console_write("Terminating subprocess...", "WARNING")
+                self.console_write("Terminating subprocess...", LOG_LEVEL_WARNING)
                 self.m_process.terminate()
                 # Give it a moment to terminate gracefully
-                time.sleep(0.1)
+                time.sleep(PROCESS_KILL_DELAY)
                 # Force kill if still alive
                 if self.m_process.poll() is None:
                     self.m_process.kill()
-                    self.console_write("Subprocess forcefully killed", "WARNING")
+                    self.console_write("Subprocess forcefully killed", LOG_LEVEL_WARNING)
         except Exception as e:
-            self.console_write(f"Error stopping subprocess: {e}", "ERROR")
-        
+            self.console_write(f"Error stopping subprocess: {e}", LOG_LEVEL_ERROR)
+
         # Force stop the Python thread using ctypes (raises SystemExit in thread)
         if self.m_thread_action and self.m_thread_action.is_alive():
             try:
                 import ctypes
                 thread_id = self.m_thread_action.ident
                 if thread_id:
-                    self.console_write("Force-stopping thread execution...", "WARNING")
+                    self.console_write("Force-stopping thread execution...", LOG_LEVEL_WARNING)
                     # Raise SystemExit exception in the thread
                     res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
                         ctypes.c_long(thread_id),
                         ctypes.py_object(SystemExit)
                     )
                     if res == 0:
-                        self.console_write("Thread ID not found - cannot force stop", "ERROR")
+                        self.console_write(ERR_THREAD_NOT_FOUND, LOG_LEVEL_ERROR)
                     elif res > 1:
                         # If it returns more than 1, we need to revert the exception
                         ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), None)
-                        self.console_write("Failed to force stop thread", "ERROR")
+                        self.console_write(ERR_FAILED_FORCE_STOP, LOG_LEVEL_ERROR)
                     else:
-                        self.console_write("Thread execution forcefully stopped", "WARNING")
+                        self.console_write("Thread execution forcefully stopped", LOG_LEVEL_WARNING)
             except Exception as e:
-                self.console_write(f"Error force-stopping thread: {e}", "ERROR")
-        
+                self.console_write(f"Error force-stopping thread: {e}", LOG_LEVEL_ERROR)
+
         # Mark as aborted if it was still running
         if was_running and not self.m_error:
-            self.m_error = "Aborted by user"
-            self.console_write("Thread aborted by user", "ERROR")
-        
+            self.m_error = ERR_ABORT_BY_USER
+            self.console_write("Thread aborted by user", LOG_LEVEL_ERROR)
+
         if threaded_manager.thread_manager_obj:
             threaded_manager.thread_manager_obj.del_thread(self)
 
@@ -424,19 +439,19 @@ class Threaded_action:
     # PROCESS MANAGEMENT
     # ============================================================================
 
-    def process_exec(self, command: list, source_folder: str, shell=True, inputs=None):
+    def process_exec(self, command: list, source_folder: str, shell: bool = True, inputs: Optional[list] = None):
         """Execute a local process command (non-blocking).
-        
+
         This function returns immediately. Use process_wait() to wait for completion.
-        
+
         Args:
             command: The command to execute
             source_folder: The relative path of execution
             shell: The shell argument of subprocess
             inputs: A list with detection of specific string and how to react
         """
-        self.console_write(f"Executing process: {' '.join(command)}", "INFO")
-        
+        self.console_write(f"Executing process: {' '.join(command)}", LOG_LEVEL_INFO)
+
         try:
             self.m_process = subprocess.Popen(
                 command,
@@ -454,22 +469,22 @@ class Threaded_action:
                 target=self.process_read_stdout, daemon=True
             )
             self.m_thread_process_stdout.start()
-            
+
             self.m_thread_process_stderr = threading.Thread(
                 target=self.process_read_stderr, daemon=True
             )
             self.m_thread_process_stderr.start()
-            
-            self.console_write(f"Process started (PID: {self.m_process.pid})", "INFO")
+
+            self.console_write(f"Process started (PID: {self.m_process.pid})", LOG_LEVEL_INFO)
         except Exception as e:
-            self.console_write(f"Failed to start process: {e}", "ERROR")
+            self.console_write(f"Failed to start process: {e}", LOG_LEVEL_ERROR)
             if self.m_logger:
-                self.m_logger.error(f"Process execution failed: {e}")
+                self.m_logger.error("Process execution failed: %s", e)
 
     def process_close(self):
         """Kill and close the local process"""
         if self.m_process:
-            self.console_write(f"Killing process (PID: {self.m_process.pid})", "WARNING")
+            self.console_write(f"Killing process (PID: {self.m_process.pid})", LOG_LEVEL_WARNING)
             self.m_process.kill()
             self.m_process = None
             self.m_process_running = False
@@ -500,9 +515,9 @@ class Threaded_action:
                         self.m_process_results.append(line)
                         self.console_write_raw(f"[STDERR] {line.strip()}")
             except Exception as e:
-                self.console_write(f"Error reading stderr: {e}", "ERROR")
+                self.console_write(f"Error reading stderr: {e}", LOG_LEVEL_ERROR)
                 self.m_process_running = False
-            time.sleep(0.1)
+            time.sleep(PROCESS_SLEEP_INTERVAL)
 
         # Process is done, read any remaining lines
         if self.m_process and self.m_process.stderr:
@@ -514,7 +529,6 @@ class Threaded_action:
                 self.m_process_running = False
             except Exception:
                 self.m_process_running = False
-        return
 
     def process_read_stdout(self):
         """Read thread for the standard output of the currently executing local process"""
@@ -529,9 +543,9 @@ class Threaded_action:
                         self.m_process_results.append(line)
                         self.console_write_raw(f"[STDOUT] {line.strip()}")
             except Exception as e:
-                self.console_write(f"Error reading stdout: {e}", "ERROR")
+                self.console_write(f"Error reading stdout: {e}", LOG_LEVEL_ERROR)
                 self.m_process_running = False
-            time.sleep(0.1)
+            time.sleep(PROCESS_SLEEP_INTERVAL)
 
         # Process is done, read any remaining lines
         if self.m_process and self.m_process.stdout:
@@ -543,11 +557,10 @@ class Threaded_action:
                 self.m_process_running = False
             except Exception:
                 self.m_process_running = False
-        return
 
     def process_wait(self, timeout: Optional[float] = None):
         """Wait for the currently executing local process to finish.
-        
+
         Args:
             timeout: Maximum time to wait in seconds (None = wait forever)
         """
@@ -555,10 +568,10 @@ class Threaded_action:
         while True:
             time.sleep(0.3)
             if not self.m_process_running:
-                self.console_write("Process completed", "INFO")
+                self.console_write("Process completed", LOG_LEVEL_INFO)
                 return
             if timeout and (time.time() - start_time) >= timeout:
-                self.console_write(f"Process wait timeout after {timeout}s", "WARNING")
+                self.console_write(f"Process wait timeout after {timeout}s", LOG_LEVEL_WARNING)
                 return
 
     def process_read_results(self):
@@ -592,30 +605,29 @@ class Threaded_action:
     def thread_process(self):
         """Thread function wrapper with error handling"""
         self.m_running = True
-        self.console_write(f"Thread '{self.get_name()}' started", "INFO")
-        
+        self.console_write(f"Thread '{self.get_name()}' started", LOG_LEVEL_INFO)
+
         try:
             self.action()
-            self.console_write(f"Thread '{self.get_name()}' completed successfully", "INFO")
+            self.console_write(f"Thread '{self.get_name()}' completed successfully", LOG_LEVEL_INFO)
         except Exception as e:
             traceback_str = traceback.format_exc()
-            self.console_write(f"Thread failed: {e}", "ERROR")
+            self.console_write(f"Thread failed: {e}", LOG_LEVEL_ERROR)
             if self.m_logger:
-                self.m_logger.warning(f"Thread '{self.get_name()}' failed: {e}")
-                self.m_logger.info(f"Traceback: {traceback_str}")
+                self.m_logger.warning("Thread '%s' failed: %s", self.get_name(), e)
+                self.m_logger.debug("Traceback: %s", traceback_str)
             self.m_error = str(e)
-            
+
         self.m_running = False
-        
+
         # Clean up and unregister from thread manager
         if not self.m_background:
             # Small delay to allow reading threads to finish
             time.sleep(0.5)
-            
+
             # Unregister from thread manager (but don't force-stop ourselves)
             if threaded_manager.thread_manager_obj:
                 threaded_manager.thread_manager_obj.del_thread(self)
-        return
 
     def start(self):
         """Start the thread and capture user context for isolation"""

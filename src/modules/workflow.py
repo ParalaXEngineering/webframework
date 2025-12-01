@@ -26,6 +26,32 @@ except ImportError:
     from log.logger_factory import get_logger
 
 
+# ============================================================================
+# Constants
+# ============================================================================
+
+# Form field names for workflow control
+FIELD_WORKFLOW_STATE = "workflow_state"
+FIELD_CURRENT_STEP = "current_step"
+FIELD_WORKFLOW_NEXT = "workflow_next"
+FIELD_WORKFLOW_PREV = "workflow_prev"
+FIELD_WORKFLOW_SKIP = "workflow_skip"
+FIELD_WORKFLOW_REDO = "workflow_redo"
+FIELD_WORKFLOW_REDO_LAST = "workflow_redo_last"
+FIELD_REDO_TARGET_STEP = "redo_target_step"
+
+# Thread tracking prefix
+THREAD_FLAG_PREFIX = "_thread_on_step_"
+
+# Button labels
+BUTTON_LABEL_PREVIOUS = "Previous"
+BUTTON_LABEL_NEXT = "Next"
+BUTTON_LABEL_SKIP = "Skip"
+BUTTON_LABEL_FINISH = "Finish"
+BUTTON_LABEL_PROCESSING = "Processing..."
+BUTTON_LABEL_REDO_LAST = "Redo Last Step"
+
+
 class StepActionType(Enum):
     """Type of action to execute for a workflow step"""
     NONE = "none"  # No action
@@ -263,6 +289,18 @@ class Workflow:
             return self.m_steps[self.m_current_step_index]
         return None
     
+    def _get_thread_flag(self, step_index: int) -> str:
+        """
+        Get the thread flag key for a given step index.
+        
+        Args:
+            step_index: The step index
+            
+        Returns:
+            Thread flag key string
+        """
+        return f"{THREAD_FLAG_PREFIX}{step_index}"
+    
     def prepare_workflow(self, data_in: Optional[Dict]) -> bool:
         """
         Process incoming POST data and determine next step.
@@ -285,22 +323,21 @@ class Workflow:
         
         workflow_data = data_in[self.m_name]
         
-        # DEBUG: Log what we received
-        self.m_logger.info(f"POST received for workflow. Keys in workflow_data: {list(workflow_data.keys())}")
+        self.m_logger.debug(f"POST received for workflow. Keys in workflow_data: {list(workflow_data.keys())}")
         
         # Restore workflow state
-        if "workflow_state" in workflow_data:
+        if FIELD_WORKFLOW_STATE in workflow_data:
             try:
-                state_json = workflow_data["workflow_state"]
+                state_json = workflow_data[FIELD_WORKFLOW_STATE]
                 self.m_logger.debug(f"Raw workflow_state received: {repr(state_json)[:200]}")
                 self.m_workflow_data = json.loads(state_json)
                 self.m_logger.debug(f"Restored workflow state: {len(self.m_workflow_data)} keys")
             except Exception as e:
                 self.m_logger.error(f"Failed to restore workflow state: {e}")
-                self.m_logger.error(f"Invalid JSON was: {repr(workflow_data.get('workflow_state', ''))[:200]}")
+                self.m_logger.error(f"Invalid JSON was: {repr(workflow_data.get(FIELD_WORKFLOW_STATE, ''))[:200]}")
         
-        if "current_step" in workflow_data:
-            self.m_current_step_index = int(workflow_data["current_step"])
+        if FIELD_CURRENT_STEP in workflow_data:
+            self.m_current_step_index = int(workflow_data[FIELD_CURRENT_STEP])
         
         # Compute visible steps based on current data
         self.m_visible_steps = self._compute_visible_steps()
@@ -309,14 +346,14 @@ class Workflow:
         self._restore_thread_reference()
         
         # Handle button actions
-        if "workflow_prev" in workflow_data:
+        if FIELD_WORKFLOW_PREV in workflow_data:
             self._go_previous()
             return True
-        elif "workflow_skip" in workflow_data:
+        elif FIELD_WORKFLOW_SKIP in workflow_data:
             self._execute_skip(workflow_data)
             self._go_next()
             return True
-        elif "workflow_redo_last" in workflow_data:
+        elif FIELD_WORKFLOW_REDO_LAST in workflow_data:
             # Redo last step button clicked - go back to previous step and preserve data
             # First save the form data (which may include new scan input)
             self._save_step_data(workflow_data)
@@ -330,33 +367,33 @@ class Workflow:
                 
                 # If a thread was created, mark it
                 if self.m_active_thread:
-                    thread_step_flag = f'_thread_on_step_{self.m_current_step_index}'
+                    thread_step_flag = self._get_thread_flag(self.m_current_step_index)
                     self.m_workflow_data[thread_step_flag] = True
                     self.m_logger.info(f"Thread created on redo, staying on step {self.m_current_step_index}")
             
             return True
-        elif "workflow_redo" in workflow_data:
+        elif FIELD_WORKFLOW_REDO in workflow_data:
             # Redo button clicked - handle redo with workflow data
             # Redo configuration should be in workflow_data as:
             # - redo_target_step: which step to jump back to
             # - other fields: new data to update
-            target_step = int(workflow_data.get("redo_target_step", 0))
+            target_step = int(workflow_data.get(FIELD_REDO_TARGET_STEP, 0))
             
             # Extract data to update (exclude workflow control fields)
-            exclude_keys = {"workflow_redo", "workflow_state", "current_step", "redo_target_step"}
+            exclude_keys = {FIELD_WORKFLOW_REDO, FIELD_WORKFLOW_STATE, FIELD_CURRENT_STEP, FIELD_REDO_TARGET_STEP}
             update_data = {k: v for k, v in workflow_data.items() if k not in exclude_keys}
             
             self.redo(target_step, update_data)
             return True
-        elif "workflow_next" in workflow_data:
+        elif FIELD_WORKFLOW_NEXT in workflow_data:
             self._save_step_data(workflow_data)
             
             # Get current step info before potential navigation
             current_step = self.get_current_step()
-            thread_step_flag = f'_thread_on_step_{self.m_current_step_index}'
+            thread_step_flag = self._get_thread_flag(self.m_current_step_index)
             thread_was_started = self.m_workflow_data.get(thread_step_flag, False)
             
-            self.m_logger.info(f"Current step: {self.m_current_step_index}, Thread flag: {thread_was_started}, Active thread: {self.m_active_thread is not None}")
+            self.m_logger.debug(f"Current step: {self.m_current_step_index}, Thread flag: {thread_was_started}, Active thread: {self.m_active_thread is not None}")
             
             # Check if current step has a THREADED action
             is_threaded_step = current_step and current_step.action_type == StepActionType.THREADED
@@ -365,10 +402,10 @@ class Workflow:
                 # Thread was already started on this THREADED step
                 if self.m_active_thread and self.m_active_thread.is_running():
                     # Thread still running - stay on step
-                    self.m_logger.info(f"Thread still running on step {self.m_current_step_index}, staying")
+                    self.m_logger.debug(f"Thread still running on step {self.m_current_step_index}, staying")
                 else:
                     # Thread completed (or lost reference) - advance to next step
-                    self.m_logger.info(f"Thread completed/finished on step {self.m_current_step_index}, advancing")
+                    self.m_logger.info(f"Thread completed on step {self.m_current_step_index}, advancing")
                     self.m_workflow_data.pop(thread_step_flag, None)
                     self.m_active_thread = None
                     self._go_next()
@@ -378,17 +415,17 @@ class Workflow:
                 self._execute_action(workflow_data)
                 if self.m_active_thread:
                     self.m_workflow_data[thread_step_flag] = True
-                    self.m_logger.info(f"Thread created on step {self.m_current_step_index}, staying")
+                    self.m_logger.debug(f"Thread created on step {self.m_current_step_index}, staying")
             else:
                 # Non-threaded step - execute action (if any) and advance
-                self.m_logger.info(f"Non-threaded step {self.m_current_step_index}, executing action and advancing")
+                self.m_logger.debug(f"Non-threaded step {self.m_current_step_index}, executing action and advancing")
                 self._execute_action(workflow_data)
                 self._go_next()
                 
                 # Check if we landed on a THREADED step after advancing
                 new_step = self.get_current_step()
                 if new_step and new_step.action_type == StepActionType.THREADED:
-                    new_thread_flag = f'_thread_on_step_{self.m_current_step_index}'
+                    new_thread_flag = self._get_thread_flag(self.m_current_step_index)
                     if not self.m_workflow_data.get(new_thread_flag, False):
                         # Auto-start thread on the new THREADED step
                         self.m_logger.info(f"Auto-starting thread on new THREADED step {self.m_current_step_index}")
@@ -412,8 +449,8 @@ class Workflow:
             return
         
         # Save all form data except workflow control fields
-        exclude_keys = {"workflow_next", "workflow_prev", "workflow_skip", 
-                       "workflow_state", "current_step"}
+        exclude_keys = {FIELD_WORKFLOW_NEXT, FIELD_WORKFLOW_PREV, FIELD_WORKFLOW_SKIP, 
+                       FIELD_WORKFLOW_STATE, FIELD_CURRENT_STEP}
         
         for key, value in form_data.items():
             if key not in exclude_keys:
@@ -422,7 +459,12 @@ class Workflow:
         self.m_logger.debug(f"Saved step data: {list(form_data.keys())}")
     
     def _execute_action(self, form_data: Dict) -> None:
-        """Execute the current step's action."""
+        """
+        Execute the current step's action.
+        
+        Args:
+            form_data: Data from the current step's form
+        """
         current_step = self.get_current_step()
         if current_step:
             try:
@@ -437,7 +479,12 @@ class Workflow:
                     )
     
     def _execute_skip(self, form_data: Dict) -> None:
-        """Execute the current step's skip logic."""
+        """
+        Execute the current step's skip logic.
+        
+        Args:
+            form_data: Data from the current step's form
+        """
         current_step = self.get_current_step()
         if current_step:
             try:
@@ -464,7 +511,7 @@ class Workflow:
     def _go_previous(self) -> None:
         """Move to the previous visible step."""
         # Clear thread flag for current step when going back
-        thread_step_flag = f'_thread_on_step_{self.m_current_step_index}'
+        thread_step_flag = self._get_thread_flag(self.m_current_step_index)
         self.m_workflow_data.pop(thread_step_flag, None)
         self.m_active_thread = None
         
@@ -487,7 +534,7 @@ class Workflow:
         for i in range(self.m_current_step_index - 1, -1, -1):
             if i in self.m_visible_steps:
                 # Clear only the thread flag for the target step to allow re-execution
-                target_thread_flag = f'_thread_on_step_{i}'
+                target_thread_flag = self._get_thread_flag(i)
                 self.m_workflow_data.pop(target_thread_flag, None)
                 
                 self.m_current_step_index = i
@@ -499,7 +546,7 @@ class Workflow:
     
     def _clear_all_thread_flags(self) -> None:
         """Clear all thread flags from workflow data."""
-        keys_to_remove = [k for k in self.m_workflow_data.keys() if k.startswith('_thread_on_step_')]
+        keys_to_remove = [k for k in self.m_workflow_data.keys() if k.startswith(THREAD_FLAG_PREFIX)]
         for key in keys_to_remove:
             self.m_workflow_data.pop(key, None)
         self.m_logger.debug(f"Cleared {len(keys_to_remove)} thread flags")
@@ -512,7 +559,7 @@ class Workflow:
         If a thread was started on the current step, we try to find it
         in the thread manager to restore the reference.
         """
-        thread_step_flag = f'_thread_on_step_{self.m_current_step_index}'
+        thread_step_flag = self._get_thread_flag(self.m_current_step_index)
         if not self.m_workflow_data.get(thread_step_flag, False):
             # No thread flag for this step
             return
@@ -737,13 +784,13 @@ class Workflow:
         
         # Hidden fields for state management
         disp.add_display_item(
-            displayer.DisplayerItemHidden("current_step", str(self.m_current_step_index))
+            displayer.DisplayerItemHidden(FIELD_CURRENT_STEP, str(self.m_current_step_index))
         )
         
         # Serialize workflow data to JSON and store in hidden field
         workflow_state_json = json.dumps(self.m_workflow_data)
         disp.add_display_item(
-            displayer.DisplayerItemHidden("workflow_state", workflow_state_json)
+            displayer.DisplayerItemHidden(FIELD_WORKFLOW_STATE, workflow_state_json)
         )
         
         # Check if there's an active thread running
@@ -752,7 +799,7 @@ class Workflow:
         # Navigation buttons
         if not self.is_first_step():
             disp.add_display_item(
-                displayer.DisplayerItemButton("workflow_prev", "Previous"),
+                displayer.DisplayerItemButton(FIELD_WORKFLOW_PREV, BUTTON_LABEL_PREVIOUS),
                 0,
                 disabled=thread_running,  # Disable during thread
             )
@@ -761,23 +808,20 @@ class Workflow:
             current_step = self.get_current_step()
             
             # Determine button label based on thread state
-            if thread_running:
-                next_label = "Processing..."
-            else:
-                next_label = "Next"
+            next_label = BUTTON_LABEL_PROCESSING if thread_running else BUTTON_LABEL_NEXT
             
             skip_enabled = current_step and current_step.skip_func is not None
             
             # Always show Next button, disabled during thread execution
             disp.add_display_item(
-                displayer.DisplayerItemButton("workflow_next", next_label),
+                displayer.DisplayerItemButton(FIELD_WORKFLOW_NEXT, next_label),
                 0,
                 disabled=thread_running,
             )
             
             if skip_enabled:
                 disp.add_display_item(
-                    displayer.DisplayerItemButton("workflow_skip", "Skip"),
+                    displayer.DisplayerItemButton(FIELD_WORKFLOW_SKIP, BUTTON_LABEL_SKIP),
                     0,
                     disabled=thread_running,  # Disable during thread
                 )
@@ -788,14 +832,14 @@ class Workflow:
             # Show redo button first if enabled
             if current_step and current_step.allow_redo:
                 disp.add_display_item(
-                    displayer.DisplayerItemButton("workflow_redo_last", "Redo Last Step"),
+                    displayer.DisplayerItemButton(FIELD_WORKFLOW_REDO_LAST, BUTTON_LABEL_REDO_LAST),
                     0,
                     disabled=False,
                 )
             
             # Then show finish button
             disp.add_display_item(
-                displayer.DisplayerItemButton("workflow_next", "Finish"),
+                displayer.DisplayerItemButton(FIELD_WORKFLOW_NEXT, BUTTON_LABEL_FINISH),
                 0,
                 disabled=False,
             )
@@ -849,12 +893,3 @@ class Workflow:
         )
         
         self.m_logger.debug(f"Added redo button targeting step {target_step_index}")
-    
-    def prepare_worker(self) -> None:
-        """
-        Legacy method for compatibility.
-        
-        In the new system, actions are executed immediately in prepare_workflow.
-        This method is kept for compatibility but does nothing.
-        """
-        pass

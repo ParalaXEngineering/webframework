@@ -1,10 +1,15 @@
-import os
-import sys
+"""Utility functions for ParalaX web framework.
+
+Provides common helpers for form data processing, file management, serialization,
+breadcrumb navigation, and template rendering.
+"""
 import glob
-import zlib
-import tarfile
+import os
 import re
-from typing import TYPE_CHECKING, Optional, Callable
+import sys
+import tarfile
+import zlib
+from typing import TYPE_CHECKING, Callable, Optional
 
 if TYPE_CHECKING:
     from . import displayer
@@ -36,54 +41,88 @@ if not TYPE_CHECKING:
         except ImportError:
             displayer = None  # type: ignore
 
+# Constants for HTML rendering
+HTML_LIST_CLASS = "list-group list-group-flush"
+HTML_LIST_ITEM_CLASS = "list-group-item"
+
+# Constants for platform detection
+PLATFORM_WINDOWS = "win"
+PLATFORM_LINUX = "linux"
+PLATFORM_CYGWIN = "cygwin"
+PLATFORM_DARWIN = "darwin"
+
+# Constants for mapping field patterns
+MAP_LEFT_PREFIX = "mapleft"
+MAP_RIGHT_PREFIX = "mapright"
+MAP_A_LEFT_PREFIX = "mapAleft"
+MAP_A_RIGHT_PREFIX = "mapAright"
+MAP_B_LEFT_PREFIX = "mapBleft"
+MAP_B_RIGHT_PREFIX = "mapBright"
+
+# Constants for form data processing
+FORM_VALUE_ON = "on"
+FORM_FIELD_SEPARATOR = "."
+FORM_ID_SEPARATOR = "#"
+LIST_PATTERN = re.compile(r'^[a-zA-Z]*list\d+$')
+UNDERSCORE = "_"
+
+# Constants for file size formatting
+FILE_SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB']
+FILE_SIZE_THRESHOLD = 1024.0
+
 CONFIG_GLOBAL = {}
-LAST_ACCESS_CONFIG = None
+
+# Template type constants
+TEMPLATE_TYPE_SELECT = "select"
+TEMPLATE_TYPE_TEXT = "text"
+TEMPLATE_TYPE_SLIDER = "slider"
+TEMPLATE_TYPE_INT = "int"
+TEMPLATE_TYPE_SELECT_TEXT = "select-text"
+TEMPLATE_TYPE_TEXT_TEXT = "text-text"
+TEMPLATE_TYPE_LIST_SELECT = "list-select"
+TEMPLATE_TYPE_LIST_TEXT = "list-text"
+
+
 
 def get_breadcrumbs():
-    """
-    Return the breadcrumbs from session.
+    """Return the breadcrumbs from session.
     
     Returns:
-        List of breadcrumb dictionaries
+        List of breadcrumb dictionaries or empty list if session unavailable.
     """
-    if session:
-        breadcrumbs = session.get('breadcrumbs', [])
-        return breadcrumbs
-    return []
+    if not session:
+        return []
+    return session.get('breadcrumbs', [])
 
 def update_breadcrumbs(disp, level, title, endpoint, params=None, style=None):
-    """
-    Manage the breadcrumb trail in session and render via disp.
+    """Manage the breadcrumb trail in session and render via displayer.
     
     Args:
-        disp: Displayer instance to render breadcrumbs
-        level: Integer breadcrumb depth (0-based)
-        title: Label for the crumb
-        endpoint: Flask endpoint name for URL generation
-        params: List of query-string fragments like 'key=value'
-        style: A bootstrap style
+        disp: Displayer instance to render breadcrumbs.
+        level: Integer breadcrumb depth (0-based), or -1 to append to end.
+        title: Label for the breadcrumb.
+        endpoint: Flask endpoint name for URL generation.
+        params: List of query-string fragments like 'key=value', defaults to None.
+        style: Bootstrap style class, defaults to None.
     """
     if not session:
         return
     
-    # initialize or retrieve existing trail
     breadcrumbs = session.get('breadcrumbs', [])
     new = {'title': title, 'endpoint': endpoint, 'params': params, 'style': style}
 
     if level == -1:
         level = len(breadcrumbs)
-    # maintain or truncate trail
+    
+    # Maintain or truncate trail
     if len(breadcrumbs) > level:
-        if breadcrumbs[level] == new:
-            breadcrumbs = breadcrumbs[:level + 1]
-        else:
-            breadcrumbs = breadcrumbs[:level] + [new]
-    elif len(breadcrumbs) == level:
-        breadcrumbs.append(new)
+        breadcrumbs = breadcrumbs[:level + 1] if breadcrumbs[level] == new else breadcrumbs[:level] + [new]
     else:
         breadcrumbs.append(new)
+    
     session['breadcrumbs'] = breadcrumbs
-    # render breadcrumbs
+    
+    # Render breadcrumbs
     for crumb in breadcrumbs:
         disp.add_breadcrumb(crumb['title'], crumb['endpoint'], crumb['params'], crumb['style'])
 
@@ -124,44 +163,49 @@ def util_drill_dict(input: dict) -> str:
     return current
 
 def util_list_to_html(input_list):
-    """
-    Transforms a Python list into an HTML unordered list.
+    """Transform a Python list into an HTML unordered list.
     
-    :param input_list: List of strings or nested lists to convert.
-    :return: A string containing the HTML unordered list.
+    Args:
+        input_list: List of strings or nested lists to convert.
+        
+    Returns:
+        HTML string containing the unordered list.
+        
+    Raises:
+        ValueError: If input_list is not a list.
     """
     if not isinstance(input_list, list):
         raise ValueError("Input must be a list.")
     
     def create_list(items):
-        html = '<ul class="list-group list-group-flush">'
+        html = f'<ul class="{HTML_LIST_CLASS}">'
         for item in items:
             if isinstance(item, list):
-                # Recursively create nested lists
-                html += f'<li class="list-group-item">{create_list(item)}</li>'
+                html += f'<li class="{HTML_LIST_ITEM_CLASS}">{create_list(item)}</li>'
             else:
-                html += f'<li class="list-group-item">{item}</li>'
+                html += f'<li class="{HTML_LIST_ITEM_CLASS}">{item}</li>'
         html += "</ul>"
         return html
     
     return create_list(input_list)
 
 def util_list_serial() -> list:
-    """Return the list of the serial ports on the machine
-
-    :raises EnvironmentError: Unsupported platform
-    :return: The serial ports on the machine
-    :rtype: list
+    """Return the list of available serial ports on the machine.
+    
+    Returns:
+        List of serial port names available on the system.
+        
+    Raises:
+        EnvironmentError: If platform is unsupported.
     """
     if not serial:
         return []
     
-    if sys.platform.startswith("win"):
+    if sys.platform.startswith(PLATFORM_WINDOWS):
         ports = [f"COM{i + 1}" for i in range(256)]
-    elif sys.platform.startswith("linux") or sys.platform.startswith("cygwin"):
-        # this excludes your current terminal "/dev/tty"
+    elif sys.platform.startswith(PLATFORM_LINUX) or sys.platform.startswith(PLATFORM_CYGWIN):
         ports = glob.glob("/dev/tty[A-Za-z]*")
-    elif sys.platform.startswith("darwin"):
+    elif sys.platform.startswith(PLATFORM_DARWIN):
         ports = glob.glob("/dev/tty.*")
     else:
         raise EnvironmentError("Unsupported platform")
@@ -180,176 +224,133 @@ def util_list_serial() -> list:
 
 
 def util_post_unmap(data: dict) -> dict:
-    """Parse the mapping fields in order to transform them in a more user friendly structure.
-    As a result, a simple map will transform from:
-    {"mapright0": "val0", "mapleft0": "val1", ...}
-    to
-    {"val0": "val1"}
-
-    and a dualmap will transform from:
-    {"mapAright0": "val0", "mapAleft0": "val1", "mapBright0": "val2", "mapBleft0": "val3"}
-    to
-    [{"val0": "val1", "val2": "val3"}]
-
-    :param data: The json data to parse
-    :type data: dict
-    :return: A dictionnary with the mapping correctly transformed
-    :rtype: dict
+    """Parse mapping fields to transform into a more user-friendly structure.
+    
+    Transforms simple maps from {"mapright0": "val0", "mapleft0": "val1", ...}
+    to {"val0": "val1"}.
+    
+    Transforms dual maps from {"mapAright0": "val0", "mapAleft0": "val1", ...}
+    to [{"val0": "val1", "val2": "val3"}].
+    
+    Args:
+        data: The JSON data to parse containing map fields.
+        
+    Returns:
+        Dictionary with mapping fields correctly transformed.
     """
-    # Take care of the mappings
     for module in data:
         if isinstance(data[module], str):
             continue
         for item in data[module]:
             for cat in data[module][item]:
-                if isinstance(data[module][item][cat], (list, dict)):
-                    # We need enough levels
-                    if not isinstance(data[module][item][cat], dict):
-                        continue
+                if not isinstance(data[module][item][cat], dict):
+                    continue
 
-                    # Simple map
-                    if "mapleft0" in data[module][item][cat]:
-                        i = 0
-                        map_to_find = "mapleft" + str(i)
-                        new_map = {}
-                        while map_to_find in data[module][item][cat]:
-                            new_map[data[module][item][cat]["mapleft" + str(i)]] = data[
-                                module
-                            ][item][cat]["mapright" + str(i)]
-                            i += 1
-                            map_to_find = "mapleft" + str(i)
-                        data[module][item][cat] = new_map
+                # Simple map
+                if f"{MAP_LEFT_PREFIX}0" in data[module][item][cat]:
+                    i = 0
+                    map_to_find = f"{MAP_LEFT_PREFIX}{i}"
+                    new_map = {}
+                    while map_to_find in data[module][item][cat]:
+                        new_map[data[module][item][cat][f"{MAP_LEFT_PREFIX}{i}"]] = data[module][item][cat][f"{MAP_RIGHT_PREFIX}{i}"]
+                        i += 1
+                        map_to_find = f"{MAP_LEFT_PREFIX}{i}"
+                    data[module][item][cat] = new_map
 
-                    # Dual map
-                    if "mapAleft0" in data[module][item][cat]:
-                        i = 0
-                        map_to_find = "mapAleft" + str(i)
-                        new_map = []
-                        while map_to_find in data[module][item][cat]:
-                            new_map.append(
-                                {
-                                    data[module][item][cat]["mapAleft" + str(i)]: data[
-                                        module
-                                    ][item][cat]["mapAright" + str(i)],
-                                    data[module][item][cat]["mapBleft" + str(i)]: data[
-                                        module
-                                    ][item][cat]["mapBright" + str(i)],
-                                }
-                            )
-                            i += 1
-                            map_to_find = "mapAleft" + str(i)
+                # Dual map
+                if f"{MAP_A_LEFT_PREFIX}0" in data[module][item][cat]:
+                    i = 0
+                    map_to_find = f"{MAP_A_LEFT_PREFIX}{i}"
+                    new_map = []
+                    while map_to_find in data[module][item][cat]:
+                        new_map.append({
+                            data[module][item][cat][f"{MAP_A_LEFT_PREFIX}{i}"]: data[module][item][cat][f"{MAP_A_RIGHT_PREFIX}{i}"],
+                            data[module][item][cat][f"{MAP_B_LEFT_PREFIX}{i}"]: data[module][item][cat][f"{MAP_B_RIGHT_PREFIX}{i}"],
+                        })
+                        i += 1
+                        map_to_find = f"{MAP_A_LEFT_PREFIX}{i}"
 
-                        data[module][item][cat] = new_map
+                    data[module][item][cat] = new_map
 
     return data
 
 
 def util_post_to_json(data: dict) -> dict:
-    """Transform an html datastructure into a easy to manipulate json.
-    The html datastructure should be in the following form:
-    {
-    level0a.level1a = a
-    level0a.level1b = b
-    level0b.levelx = x
-    }
-    for the following result:
-    {
-    level0a = {
-    level1a = a
-    level1b = b
-    };
-    level0b = {
-    levelx = x
-    }
-    }
-
-    :param data:  The html post data
-    :type data: dict
-    :return: A json representation of the data
-    :rtype: dict
+    """Transform an HTML form data structure into a nested JSON object.
+    
+    Converts flat form data with dot-separated keys into nested dictionaries.
+    Example:
+        Input: {"level0a.level1a": "a", "level0a.level1b": "b"}
+        Output: {"level0a": {"level1a": "a", "level1b": "b"}}
+    
+    Args:
+        data: The HTML form post data with dot-separated keys.
+        
+    Returns:
+        A nested dictionary representation of the form data.
     """
     formated = {}
-    list_pattern = re.compile(r'^[a-zA-Z]*list\d+$')
 
     # For each item given, we will parse level by level
     for item in data:
         current = formated
 
         # First, we split the data in order to have an array with each level
-        item_split = item.split(".")
-        if item[-1] == ".":
+        item_split = item.split(FORM_FIELD_SEPARATOR)
+        if item_split and item[-1] == FORM_FIELD_SEPARATOR:
             item_split = [item_split[0]]
-        if item[0] == ".":
+        if item_split and item[0] == FORM_FIELD_SEPARATOR:
             item_split = [item_split[1]]
 
         # For each level
-        while len(item_split) > 0:
+        while item_split:
             # Adding new level
             if item_split[0] not in current:
                 # Final element
                 if len(item_split) == 1:
-                    # Multichoice will be in the format item_choice: on
-                    if data[item] == "on":
-                        multichoice = item_split[0].split("_")
-
-                        # We see this choice for the first time
+                    if data[item] == FORM_VALUE_ON:
+                        multichoice = item_split[0].split(UNDERSCORE)
                         if multichoice[0] not in current:
                             current[multichoice[0]] = [multichoice[1]]
                         else:
                             current[multichoice[0]].append(multichoice[1])
                     else:
-                        if "#" in item_split[0]:
-                            item_split[0] = item_split[0].split("#")[1]
-
-                        if not list_pattern.match(item_split[0]):
+                        if FORM_ID_SEPARATOR in item_split[0]:
+                            item_split[0] = item_split[0].split(FORM_ID_SEPARATOR)[1]
+                        if not LIST_PATTERN.match(item_split[0]):
                             current[item_split[0]] = data[item]
                         elif isinstance(current, list):
                             current.append(data[item])
-
                 # Prepare for next level
                 else:
-                    # Next item is a list, we need to add it.
-                    # This is implemented in list-select.j2.
-                    # However, lists are alwayis acompagned with a prefix and a number after, so filter with that.
-                    # We don't want to misinterpret user input.
-
-                    # Regular expression pattern to match strings like "xxxxlistnn" where "xxxx" is any characters and "nn" is a number.
-                    
-                    if list_pattern.match(item_split[1]):
+                    if LIST_PATTERN.match(item_split[1]):
                         if item_split[0] not in current:
                             current[item_split[0]] = []
-                        # Create only the list, the "final element" par will add the next items
-                        # else:
-                        # current[item_split[0]].append(data[item])
                     else:
                         current[item_split[0]] = {}
             # Father already exists
             else:
                 # Final element
                 if len(item_split) == 1 or item_split[1] == "":
-                    # Multichoice will be in the format item_choice: on
-                    if data[item] == "on":
-                        multichoice = item_split[0].split("_")
-
-                        # We see this choice for the first time
+                    if data[item] == FORM_VALUE_ON:
+                        multichoice = item_split[0].split(UNDERSCORE)
                         if multichoice[0] not in current:
                             current[multichoice[0]] = [multichoice[1]]
                         else:
                             current[multichoice[0]].append(multichoice[1])
                     else:
-                        if "#" in item_split[0]:
-                            item_split[0] = item_split[0].split("#")[1]
-
-                        if not list_pattern.match(item_split[0]):
+                        if FORM_ID_SEPARATOR in item_split[0]:
+                            item_split[0] = item_split[0].split(FORM_ID_SEPARATOR)[1]
+                        if not LIST_PATTERN.match(item_split[0]):
                             current[item_split[0]] = data[item]
                         elif isinstance(current, list):
                             current.append(data[item])
 
             # Now that we have added the element, go to the next level
-            if data[item] == "on":
-                current = current[item_split[0].split("_")[0]]
+            if data[item] == FORM_VALUE_ON:
+                current = current[item_split[0].split(UNDERSCORE)[0]]
             else:
-                if not list_pattern.match(item_split[0]):
+                if not LIST_PATTERN.match(item_split[0]):
                     current = current[item_split[0]]
                 else:
                     current = [data[item]]
@@ -358,69 +359,62 @@ def util_post_to_json(data: dict) -> dict:
     return formated
 
 def util_view_reload_displayer(id: str, disp: "displayer.Displayer") -> list:
-    """Reload a multi-user input with new data while using a displayer as input
-
-    :param id: The id of the div text
-    :type id: str
-    :param input: The new text to display
-    :type input: str
-    :return: The object that can be passed for rendering
-    :rtype: dict
+    """Reload a multi-user input with new data while using a displayer as input.
+    
+    Args:
+        id: The id of the div element to reload.
+        disp: The displayer containing content to render.
+        
+    Returns:
+        List with reload object for rendering, or empty list on error.
     """
-    # And update display
     try:
         from flask import render_template
         reloader = render_template("base_content_reloader.j2", content=disp.display(True))
-        to_render = [{"id": id, "content": reloader}]
-        return to_render
+        return [{"id": id, "content": reloader}]
     except Exception:
         return []
 
 
 def util_view_reload_text(index: str, content: str) -> list:
-    """Reload a multi-user input with new data
-
-    :param index: The id of the div text
-    :type index: str
-    :param content: The new text to display
-    :type content: str
-    :return: The object that can be passed for rendering
-    :rtype: dict
+    """Reload a multi-user input with new text content.
+    
+    Args:
+        index: The id of the div element to reload.
+        content: The new text to display.
+        
+    Returns:
+        List with reload object for rendering.
     """
-    to_render = [{"id": index, "content": content}]
-    return to_render
+    return [{"id": index, "content": content}]
 
 
 def util_view_create_modal(index: str, modal_displayer: "displayer.Displayer", base_displayer: "displayer.Displayer", header: Optional[str] = None) -> str:
-    """Add the content of a displayer as a modal in a second displayer. Return the link to use to access the modal
-
-    :param index: The id of the modal to use
-    :type index: str
-    :param modal_displaer: The displayer that contains the information to show in the modal
-    :type modal_displayer: displayer
-    :param base_displayer: The displayer where the modal is inserted
-    :type base_displayer: displayer
-    :param header: A string for the header text
-    :type header: str
-    :return: The link to access the modal
-    :rtype: dict
+    """Add content from a displayer as a modal in another displayer.
+    
+    Args:
+        index: The id of the modal to use.
+        modal_displayer: The displayer containing information to show in modal.
+        base_displayer: The displayer where the modal is inserted.
+        header: Header text for modal, defaults to None.
+        
+    Returns:
+        Sanitized index string for modal access.
     """
-    index = index.replace(" ", "_").replace(".", "_").replace('/', '_')
-    base_displayer.add_modal("modal_" + index, modal_displayer.display(True), header or "")  # type: ignore
-
+    index = index.replace(" ", UNDERSCORE).replace(".", UNDERSCORE).replace('/', UNDERSCORE)
+    base_displayer.add_modal(f"modal_{index}", modal_displayer.display(True), header or "")  # type: ignore
     return index
 
 
 def util_view_reload_multi_input(index: str, inputs: dict) -> list:
-    """Reload a multi-user input with new data
-
-    :param index: The id of the form
-    :type index: str
-    :param inputs: a list of dictionnary representing the inputs in the form
-    :param [{id: index, type: "text, number, select", value: "", label: ""}]
-    :type inputs: dict
-    :return: The rendered form to be displayed
-    :rtype: dict
+    """Reload a multi-user input with new data.
+    
+    Args:
+        index: The id of the form.
+        inputs: List of dictionaries representing form inputs.
+        
+    Returns:
+        List of rendered input elements for display.
     """
     try:
         from flask import render_template
@@ -429,41 +423,41 @@ def util_view_reload_multi_input(index: str, inputs: dict) -> list:
     
     to_render = []
     for processing in inputs:
-        if processing["type"] == "select":
+        if processing["type"] == TEMPLATE_TYPE_SELECT:
             content = render_template("reload/select.j2",
-                name=processing["id"] + "." + index,
+                name=processing["id"] + FORM_FIELD_SEPARATOR + index,
                 options=processing["data"],
                 selected=processing["value"]
             )
             to_render.append({
-                "id": index + "." + processing["id"],
+                "id": index + FORM_FIELD_SEPARATOR + processing["id"],
                 "content": content
             })
 
-        elif processing["type"] == "text":
+        elif processing["type"] == TEMPLATE_TYPE_TEXT:
             content = render_template("reload/text.j2",
-                name=processing["id"] + "." + index,
+                name=processing["id"] + FORM_FIELD_SEPARATOR + index,
                 default=processing["value"]
             )
-            to_render.append({"id": index + "." + processing["id"], "content": content})
+            to_render.append({"id": index + FORM_FIELD_SEPARATOR + processing["id"], "content": content})
 
-        elif processing["type"] == "slider":
+        elif processing["type"] == TEMPLATE_TYPE_SLIDER:
             content = render_template("reload/slider.j2",
-                name=processing["id"] + "." + index,
+                name=processing["id"] + FORM_FIELD_SEPARATOR + index,
                 default=processing["value"],
                 min=processing["range"][0],
                 max=processing["range"][1]
             )
-            to_render.append({"id": index + "." + processing["id"], "content": content})
+            to_render.append({"id": index + FORM_FIELD_SEPARATOR + processing["id"], "content": content})
 
-        elif processing["type"] == "int":
+        elif processing["type"] == TEMPLATE_TYPE_INT:
             content = render_template("reload/int.j2",
-                name=processing["id"] + "." + index,
+                name=processing["id"] + FORM_FIELD_SEPARATOR + index,
                 default=processing["value"]
             )
-            to_render.append({"id": index + "." + processing["id"], "content": content})
+            to_render.append({"id": index + FORM_FIELD_SEPARATOR + processing["id"], "content": content})
 
-        elif processing["type"] == "select-text":
+        elif processing["type"] == TEMPLATE_TYPE_SELECT_TEXT:
             content = render_template("reload/select-text.j2",
                 item={"id": index},
                 current={
@@ -472,16 +466,16 @@ def util_view_reload_multi_input(index: str, inputs: dict) -> list:
                     "select": processing["select"]
                 }
             )
-            to_render.append({"id": index + "." + processing["id"] + ".div", "content": content})
+            to_render.append({"id": index + FORM_FIELD_SEPARATOR + processing["id"] + ".div", "content": content})
 
-        elif processing["type"] == "text-text":
+        elif processing["type"] == TEMPLATE_TYPE_TEXT_TEXT:
             content = render_template("reload/text-text.j2",
                 item={"id": index},
                 current={"id": processing["id"], "value": processing["value"]}
             )
-            to_render.append({"id": index + "." + processing["id"] + ".div", "content": content})
+            to_render.append({"id": index + FORM_FIELD_SEPARATOR + processing["id"] + ".div", "content": content})
 
-        elif processing["type"] == "list-select":
+        elif processing["type"] == TEMPLATE_TYPE_LIST_SELECT:
             content = render_template("reload/list-select.j2",
                 item={"id": index},
                 current={
@@ -490,14 +484,14 @@ def util_view_reload_multi_input(index: str, inputs: dict) -> list:
                     "select": processing["select"]
                 }
             )
-            to_render.append({"id": index + "." + processing["id"] + ".div", "content": content})
+            to_render.append({"id": index + FORM_FIELD_SEPARATOR + processing["id"] + ".div", "content": content})
 
-        elif processing["type"] == "list-text":
+        elif processing["type"] == TEMPLATE_TYPE_LIST_TEXT:
             content = render_template("reload/list-text.j2",
                 item={"id": index},
                 current={"id": processing["id"], "value": processing["value"]}
             )
-            to_render.append({"id": index + "." + processing["id"] + ".div", "content": content})
+            to_render.append({"id": index + FORM_FIELD_SEPARATOR + processing["id"] + ".div", "content": content})
 
     return to_render
 
@@ -505,36 +499,37 @@ def util_view_reload_multi_input(index: str, inputs: dict) -> list:
 def util_view_reload_input_file_manager(
     name: str,
     index: str,
-    files: list = [],
-    title: list = [],
-    icons: list = [],
-    classes: list = [],
-    hiddens: list = [],
+    files: Optional[list] = None,
+    title: Optional[list] = None,
+    icons: Optional[list] = None,
+    classes: Optional[list] = None,
+    hiddens: Optional[list] = None,
 ) -> list:
-    """Create the content necessary to reload a given input file manager
-
-    :param name: The name of the calling module
-    :type name: str
-    :param index: The id of the form
-    :type index: str
-    :param files: A list of the files that should be already in the file manager, defaults to []
-    :type files: list, optional
-    :param title: A list of the titles of the file explorers, defaults to []
-    :type title: list, optional
-    :param icons: A list of the icons (the mdi project names) of the file explorers, defaults to []
-    :type icons: list, optional
-    :param classes: A list of the classes (the bootsrap classes such as danger, success or primary) used in the file explorers, defaults to []
-    :type classes: list, optional
-    :param hiddens: A list of true / false to indicate if a file explorer has a button to collapse the content, defaults to []
-    :type hiddens: list, optional
-    :return: The rendered html code to display
-    :rtype: dict
-
+    """Create the content necessary to reload a given input file manager.
+    
+    Args:
+        name: The name of the calling module.
+        index: The id of the form.
+        files: List of files that should be in the file manager, defaults to None.
+        title: List of titles for file explorers, defaults to None.
+        icons: List of MDI icon names for file explorers, defaults to None.
+        classes: List of Bootstrap classes for file explorers, defaults to None.
+        hiddens: List of booleans for file explorer collapse buttons, defaults to None.
+        
+    Returns:
+        List of rendered file manager HTML elements.
     """
     try:
         from flask import render_template
     except ImportError:
         return []
+    
+    # Use empty lists as defaults if None provided
+    files = files or []
+    title = title or []
+    icons = icons or []
+    classes = classes or []
+    hiddens = hiddens or []
     
     to_render = []
     for i, file in enumerate(files):
@@ -548,38 +543,36 @@ def util_view_reload_input_file_manager(
             hidden=hiddens[i]
         )
         to_render.append({
-            "id": f"{name.replace(' ', '_')}_{index}_files{i}",
+            "id": f"{name.replace(' ', UNDERSCORE)}_{index}_files{i}",
             "content": content
         })
     return to_render
 
 
 def util_dir_list(root: str, inclusion: Optional[list] = None, modifier: Optional[Callable] = None) -> list:
-    """Scan a directory, without it's children and return a list of the file that have the inclusion information given by the user
-
-    :param root: The root folder
-    :type root: str
-    :param inclusion: A list of inclusion, that is part of the file name or extension that must be present in the files listed, defaults to None
-    :type inclusion: list, optional
-    :param modifier: A function that change the name (parsing for instance), defaults to None
-    :type modifier: str, optional
-    :return: A list of the corresponding files
-    :rtype: list
-
+    """Scan a directory (without children) and return files matching inclusion criteria.
+    
+    Args:
+        root: The root folder to scan.
+        inclusion: List of strings that must be present in filenames, defaults to None.
+        modifier: Function to transform filenames, defaults to None.
+        
+    Returns:
+        List of filenames matching the criteria.
     """
     results = []
     try:
         current_files = os.listdir(root)
     except Exception:
         return results
+    
     for item in current_files:
-        if inclusion:
-            for inclu in inclusion:
-                if inclu in item:
-                    if modifier:
-                        results.append(modifier(item))
-                    else:
-                        results.append(item)
+        if inclusion and not any(inclu in item for inclu in inclusion):
+            continue
+        if modifier:
+            results.append(modifier(item))
+        else:
+            results.append(item)
 
     return results
 
@@ -611,27 +604,16 @@ def util_find_files(root: str, inclusion: Optional[list] = None) -> list:
 def util_dir_structure(
     root: str, inclusion: Optional[list] = None, modifier: Optional[Callable] = None, clean: bool = True
 ) -> dict:
-    """Create the directory structure (all the directories and subfiles) recursively from a root folder
-
-    :param root: The root folder
-    :type root: str
-    :param inclusion: A list of inclusion, that is part of the file name or extension that must be present in the files listed, defaults to None
-    :type inclusion: list, optional
-    :param modifier:  A function that change the name (parsing for instance), defaults to None
-    :type modifier: _type_, optional
-    :param clean: Clean all empty folder from the results, defaults to True
-    :type clean: bool, optional
-    :return: A dictionnary with the file structure in the form:
-
-    code-block::
-
-        {
-        dir:
-            { dir: {...}, file, file}, file
-        }
-
-    :rtype: dict
-
+    """Create the directory structure (all directories and subfiles) recursively from a root folder.
+    
+    Args:
+        root: The root folder to scan.
+        inclusion: List of strings that must be present in filenames to include, defaults to None.
+        modifier: Function to transform filenames, defaults to None.
+        clean: Clean all empty folders from results, defaults to True.
+        
+    Returns:
+        Dictionary with nested structure: {"dir": {"file": path, ...}, ...}
     """
     current_dir = {}
     try:
@@ -641,21 +623,17 @@ def util_dir_structure(
 
     for item in items:
         if os.path.isfile(os.path.join(root, item)):
-            if inclusion:
-                for inclu in inclusion:
-                    if inclu in item:
-                        if modifier:
-                            current_dir[modifier(item)] = os.path.join(root, item)
-                        else:
-                            current_dir[item] = os.path.join(root, item)
+            if inclusion and not any(inclu in item for inclu in inclusion):
+                continue
+            if modifier:
+                current_dir[modifier(item)] = os.path.join(root, item)
+            else:
+                current_dir[item] = os.path.join(root, item)
         else:
             directory = util_dir_structure(
                 os.path.join(root, item), inclusion=inclusion, modifier=modifier
             )
-            if clean:
-                if len(directory) > 0:
-                    current_dir[item] = directory
-            else:
+            if not clean or directory:
                 current_dir[item] = directory
 
     return current_dir
@@ -776,10 +754,10 @@ def util_format_file_size(bytes_size: int) -> str:
     Converts byte values to appropriate units (B, KB, MB, GB, TB) with 2 decimal places.
     
     Args:
-        bytes_size: File size in bytes
+        bytes_size: File size in bytes.
         
     Returns:
-        Formatted string with size and unit (e.g., "1.50 MB")
+        Formatted string with size and unit (e.g., "1.50 MB").
         
     Examples:
         >>> util_format_file_size(0)
@@ -794,10 +772,10 @@ def util_format_file_size(bytes_size: int) -> str:
         '1.00 GB'
     """
     size_float = float(bytes_size)
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if size_float < 1024.0:
+    for unit in FILE_SIZE_UNITS:
+        if size_float < FILE_SIZE_THRESHOLD:
             return f"{size_float:.2f} {unit}"
-        size_float /= 1024.0
+        size_float /= FILE_SIZE_THRESHOLD
     return f"{size_float:.2f} PB"
 
 
@@ -839,10 +817,10 @@ def util_get_file_icon(filename: str) -> str:
     Supports common document, media, archive, and code file types.
     
     Args:
-        filename: Name of the file (with or without path)
+        filename: Name of the file (with or without path).
         
     Returns:
-        MDI icon class name (e.g., "mdi-file-pdf-box")
+        MDI icon class name (e.g., "mdi-file-pdf-box").
         
     Examples:
         >>> util_get_file_icon('document.pdf')
@@ -856,7 +834,6 @@ def util_get_file_icon(filename: str) -> str:
         >>> util_get_file_icon('unknown.xyz')
         'mdi-file-document-outline'
     """
-    import os
     ext = os.path.splitext(filename)[1].lower()
     
     icon_map = {

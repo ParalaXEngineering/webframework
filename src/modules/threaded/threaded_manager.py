@@ -6,12 +6,45 @@ the Threaded_action base class.
 """
 
 import threading
-from typing import Tuple, List
+from typing import List, Tuple
 
 try:
     from ..log.logger_factory import get_logger
 except ImportError:
     from log.logger_factory import get_logger
+
+# Constants
+DEFAULT_LOCK_TIMEOUT = 2.0
+MAX_HISTORY_SIZE = 50
+DEFAULT_STATS = {
+    "total": 0,
+    "running": 0,
+    "with_process": 0,
+    "with_error": 0,
+    "unique_names": 0
+}
+
+# Log level constants (for consistency)
+LOG_LEVEL_INFO = "INFO"
+LOG_LEVEL_DEBUG = "DEBUG"
+LOG_LEVEL_WARNING = "WARNING"
+LOG_LEVEL_ERROR = "ERROR"
+
+# Error messages
+ERR_LOCK_TIMEOUT_ADD = "Failed to acquire lock for add_thread (timeout=%ss)"
+ERR_LOCK_TIMEOUT_DEL = "Failed to acquire lock for del_thread (timeout=%ss)"
+ERR_LOCK_TIMEOUT_GET_ALL = "Failed to acquire lock for get_all_threads (timeout=%ss)"
+ERR_LOCK_TIMEOUT_GET_COMPLETED = "Failed to acquire lock for get_completed_threads (timeout=%ss)"
+ERR_LOCK_TIMEOUT_GET_ALL_HISTORY = "Failed to acquire lock for get_all_threads_with_history (timeout=%ss)"
+ERR_LOCK_TIMEOUT_GET_BY_NAME = "Failed to acquire lock for get_threads_by_name (timeout=%ss)"
+ERR_LOCK_TIMEOUT_GET_UNIQUE = "Failed to acquire lock for get_unique_names (timeout=%ss)"
+ERR_LOCK_TIMEOUT_GET_NAMES = "Failed to acquire lock for get_names (timeout=%ss)"
+ERR_LOCK_TIMEOUT_GET_THREAD = "Failed to acquire lock for get_thread (timeout=%ss)"
+ERR_LOCK_TIMEOUT_REMOVE_HISTORY = "Failed to acquire lock for remove_from_history (timeout=%ss)"
+ERR_LOCK_TIMEOUT_KILL_ALL = "Failed to acquire lock for kill_all_threads (timeout=%ss)"
+ERR_LOCK_TIMEOUT_COUNT = "Failed to acquire lock for get_thread_count (timeout=%ss)"
+ERR_LOCK_TIMEOUT_STATS = "Failed to acquire lock for get_thread_stats (timeout=%ss)"
+ERR_COULD_NOT_ACQUIRE = "Could not acquire lock within %ss"
 
 thread_manager_obj = None
 
@@ -19,7 +52,7 @@ thread_manager_obj = None
 class Threaded_manager:
     """Manage the different threads of the framework"""
 
-    def __init__(self, lock_timeout=2.0):
+    def __init__(self, lock_timeout=DEFAULT_LOCK_TIMEOUT):
         """Initialize the thread manager
         
         Args:
@@ -27,13 +60,13 @@ class Threaded_manager:
         """
         self.m_running_threads = []
         self.m_completed_threads = []  # History of completed threads
-        self.max_history = 50  # Keep last 50 completed threads
+        self.max_history = MAX_HISTORY_SIZE  # Keep last 50 completed threads
         self._lock = threading.Lock()  # Thread-safe operations
         self.lock_timeout = lock_timeout  # Configurable lock timeout
         
         # Initialize logger using centralized factory
         self.m_logger = get_logger("threaded_manager")
-        self.m_logger.info("Thread Manager started")
+        self.m_logger.debug("Thread Manager started")
 
     def add_thread(self, thread: threading.Thread):
         """Add a new thread to the pool.
@@ -42,17 +75,17 @@ class Threaded_manager:
             thread: The thread to add
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for add_thread (timeout={self.lock_timeout}s)")
-            raise TimeoutError(f"Could not acquire lock within {self.lock_timeout}s")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_ADD, self.lock_timeout)
+            raise TimeoutError(ERR_COULD_NOT_ACQUIRE % self.lock_timeout)
         
         try:
             if thread in self.m_running_threads:
                 thread_name = getattr(thread, 'name', str(thread))
-                self.m_logger.debug(f"Thread '{thread_name}' already in pool")
+                self.m_logger.debug("Thread '%s' already in pool", thread_name)
                 return
             self.m_running_threads.append(thread)
             thread_name = getattr(thread, 'name', str(thread))
-            self.m_logger.info(f"Added thread '{thread_name}' to pool")
+            self.m_logger.info("Added thread '%s' to pool", thread_name)
         finally:
             self._lock.release()
 
@@ -69,42 +102,42 @@ class Threaded_manager:
             if hasattr(thread, 'command_close'):
                 thread.command_close()  # type: ignore
         except Exception as e:
-            self.m_logger.debug(f"Thread '{thread_name}' command_close failed: {e}")
+            self.m_logger.debug("Thread '%s' command_close failed: %s", thread_name, e)
             
         try:
             if hasattr(thread, 'process_close'):
                 thread.process_close()  # type: ignore
         except Exception as e:
-            self.m_logger.debug(f"Thread '{thread_name}' process_close failed: {e}")
+            self.m_logger.debug("Thread '%s' process_close failed: %s", thread_name, e)
 
         # Remove from pool and add to history
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for del_thread (timeout={self.lock_timeout}s)")
-            raise TimeoutError(f"Could not acquire lock within {self.lock_timeout}s")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_DEL, self.lock_timeout)
+            raise TimeoutError(ERR_COULD_NOT_ACQUIRE % self.lock_timeout)
         
         try:
             try:
                 self.m_running_threads.remove(thread)
-                self.m_logger.info(f"Removed thread '{thread_name}' from pool")
+                self.m_logger.info("Removed thread '%s' from pool", thread_name)
                 
                 # Add to history (keep only last max_history threads)
                 self.m_completed_threads.append(thread)
                 if len(self.m_completed_threads) > self.max_history:
                     self.m_completed_threads.pop(0)
-                self.m_logger.debug(f"Archived thread '{thread_name}' to history")
+                self.m_logger.debug("Archived thread '%s' to history", thread_name)
             except ValueError:
-                self.m_logger.debug(f"Thread '{thread_name}' not found in pool")
+                self.m_logger.debug("Thread '%s' not found in pool", thread_name)
         finally:
             self._lock.release()
 
-    def get_all_threads(self) -> list:
+    def get_all_threads(self) -> List:
         """Return all threads currently managed.
         
         Returns:
             List of all managed threads
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for get_all_threads (timeout={self.lock_timeout}s)")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_ALL, self.lock_timeout)
             return []
         
         try:
@@ -112,14 +145,14 @@ class Threaded_manager:
         finally:
             self._lock.release()
 
-    def get_completed_threads(self) -> list:
+    def get_completed_threads(self) -> List:
         """Return all completed threads from history.
         
         Returns:
             List of completed threads
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for get_completed_threads (timeout={self.lock_timeout}s)")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_COMPLETED, self.lock_timeout)
             return []
         
         try:
@@ -134,7 +167,7 @@ class Threaded_manager:
             Tuple of (running_threads, completed_threads)
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for get_all_threads_with_history (timeout={self.lock_timeout}s)")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_ALL_HISTORY, self.lock_timeout)
             return ([], [])
         
         try:
@@ -142,7 +175,7 @@ class Threaded_manager:
         finally:
             self._lock.release()
 
-    def get_threads_by_name(self, name: str) -> list:
+    def get_threads_by_name(self, name: str) -> List:
         """Return all threads matching a given name.
         
         Args:
@@ -152,7 +185,7 @@ class Threaded_manager:
             List of threads with matching names
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for get_threads_by_name (timeout={self.lock_timeout}s)")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_BY_NAME, self.lock_timeout)
             return []
         
         try:
@@ -162,14 +195,14 @@ class Threaded_manager:
         finally:
             self._lock.release()
 
-    def get_unique_names(self) -> list:
+    def get_unique_names(self) -> List:
         """Return the list of unique thread names.
         
         Returns:
             List of unique thread names
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for get_unique_names (timeout={self.lock_timeout}s)")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_UNIQUE, self.lock_timeout)
             return []
         
         try:
@@ -183,14 +216,14 @@ class Threaded_manager:
         finally:
             self._lock.release()
     
-    def get_names(self) -> list:
+    def get_names(self) -> List:
         """Return the list of all thread names.
         
         Returns:
             List of thread names (may contain duplicates)
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for get_names (timeout={self.lock_timeout}s)")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_NAMES, self.lock_timeout)
             return []
         
         try:
@@ -214,7 +247,7 @@ class Threaded_manager:
             The thread object, or None if not found
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for get_thread (timeout={self.lock_timeout}s)")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_GET_THREAD, self.lock_timeout)
             return None
         
         try:
@@ -236,7 +269,7 @@ class Threaded_manager:
             True if removed, False if not found
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for remove_from_history (timeout={self.lock_timeout}s)")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_REMOVE_HISTORY, self.lock_timeout)
             return False
         
         try:
@@ -244,9 +277,9 @@ class Threaded_manager:
                 thread_name = thread.get_name() if hasattr(thread, 'get_name') else str(thread)
                 if name == thread_name:
                     self.m_completed_threads.remove(thread)
-                    self.m_logger.info(f"Removed thread '{thread_name}' from history")
+                    self.m_logger.info("Removed thread '%s' from history", thread_name)
                     return True
-            self.m_logger.debug(f"Thread '{name}' not found in history")
+            self.m_logger.debug("Thread '%s' not found in history", name)
             return False
         finally:
             self._lock.release()
@@ -254,7 +287,7 @@ class Threaded_manager:
     def kill_all_threads(self):
         """Kill all managed threads (useful for shutdown)"""
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for kill_all_threads (timeout={self.lock_timeout}s)")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_KILL_ALL, self.lock_timeout)
             return
         
         try:
@@ -262,13 +295,13 @@ class Threaded_manager:
         finally:
             self._lock.release()
         
-        self.m_logger.warning(f"Killing all {len(threads_copy)} threads")
+        self.m_logger.warning("Killing all %d threads", len(threads_copy))
         
         for thread in threads_copy:
             try:
                 self.del_thread(thread)
             except Exception as e:
-                self.m_logger.error(f"Failed to kill thread: {e}")
+                self.m_logger.error("Failed to kill thread: %s", e)
 
     def get_thread_count(self) -> int:
         """Get the number of currently managed threads.
@@ -277,7 +310,7 @@ class Threaded_manager:
             Number of threads
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for get_thread_count (timeout={self.lock_timeout}s)")
+            self.m_logger.error(ERR_LOCK_TIMEOUT_COUNT, self.lock_timeout)
             return 0
         
         try:
@@ -292,8 +325,8 @@ class Threaded_manager:
             Dictionary with thread statistics
         """
         if not self._lock.acquire(timeout=self.lock_timeout):
-            self.m_logger.error(f"Failed to acquire lock for get_thread_stats (timeout={self.lock_timeout}s)")
-            return {"total": 0, "running": 0, "with_process": 0, "with_error": 0, "unique_names": 0}
+            self.m_logger.error(ERR_LOCK_TIMEOUT_STATS, self.lock_timeout)
+            return DEFAULT_STATS
         
         try:
             # Calculate unique names without calling get_unique_names() to avoid nested lock
