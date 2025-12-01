@@ -4,7 +4,7 @@ Layout Showcase - Auto-generated layout type demonstrations
 This module showcases all DisplayerLayout types with examples.
 """
 
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, url_for, redirect
 from src.modules import displayer
 from src.modules.auth.permission_registry import permission_registry
 from src.modules.auth import require_permission

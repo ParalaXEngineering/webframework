@@ -5,24 +5,14 @@ All the demo routes for showcasing displayer components.
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, session
-from functools import wraps
 from src.modules import displayer, utilities
+from src.modules.auth import require_login
 
 # Create blueprint for demo routes
 demo_bp = Blueprint('demo', __name__)
 
-
-def require_login(f):
-    """Decorator to require login for demo pages."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'username' not in session:
-            return redirect(url_for('common.login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
 @demo_bp.route('/simple-form-demo', methods=['GET', 'POST'])
-@require_login
+@require_login()
 def simple_form_demo():
     """Simple form demo - basic text input and display."""
     disp = displayer.Displayer()
@@ -70,7 +60,7 @@ def simple_form_demo():
 
 
 @demo_bp.route('/threading-demo', methods=['GET', 'POST'])
-@require_login
+@require_login()
 def threading_demo():
     """Threading demo with table of examples and code."""
     from demo_support.demo_threaded_complete import DemoThreadedAction
@@ -263,7 +253,7 @@ def threading_demo():
 
 
 @demo_bp.route('/scheduler-demo', methods=['GET', 'POST'])
-@require_login
+@require_login()
 def scheduler_demo():
     """Scheduler/Action system demo with real-time UI updates."""
     from demo_support.demo_scheduler_action import DemoSchedulerAction
@@ -581,7 +571,7 @@ def authorization_demo():
 
 
 @demo_bp.route('/workflow-demo', methods=['GET', 'POST'])
-@require_login
+@require_login()
 def workflow_demo():
     """
     Workflow system demo - Product registration with batch operations.

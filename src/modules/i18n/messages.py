@@ -64,7 +64,7 @@ class TranslatableString(str):
                         print(f"[TranslatableString] ⚠ Translation not found for '{self._content}'!")
                 
                 return translated
-            except (RuntimeError, AttributeError) as e:
+            except (RuntimeError, AttributeError, KeyError) as e:
                 # Babel not initialized, no request context, or _content not set
                 print(f"[TranslatableString] ERROR translating '{self._content}': {e}")
                 return self._content  # type: ignore

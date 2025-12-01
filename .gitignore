@@ -34,3 +34,4 @@ tests/output
 tests/flask_session
 website
 resources/*
+tests/frontend/test_files/*
