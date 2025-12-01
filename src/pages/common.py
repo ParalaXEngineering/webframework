@@ -21,35 +21,102 @@ from ..modules.log.logger_factory import get_logger
 
 logger = get_logger(__name__)
 
-bp = Blueprint("common", __name__, url_prefix="/common")
+# Blueprint Configuration
+BP_NAME = "common"
+BP_URL_PREFIX = "/common"
+bp = Blueprint(BP_NAME, __name__, url_prefix=BP_URL_PREFIX)
+
+# Route Paths
+ROUTE_DOWNLOAD = "/download"
+ROUTE_ASSETS = "/assets/<asset_type>/"
+ROUTE_LOGIN = "/login"
+ROUTE_HELP = "/help"
+
+# HTTP Methods
+METHOD_GET = "GET"
+METHOD_POST = "POST"
+GET_POST = ["GET", "POST"]
+
+# Resource Paths
+RESOURCES_DIR = "ressources"
+DOWNLOADS_DIR = "downloads"
+WEBSITE_DIR = "website"
+HELP_DIR = "help"
+MEIPASS_RESOURCES = "ressources"
+
+# File Handling
+FILE_EXTENSION_SVG = ".svg"
+FILE_EXTENSION_JPG = ".jpg"
+FILE_EXTENSION_JPEG = ".jpeg"
+FILE_EXTENSION_PNG = ".png"
+MIME_TYPE_SVG = "image/svg+xml"
+
+# Query Parameters
+PARAM_FILE = "file"
+PARAM_FILENAME = "filename"
+PARAM_TOPIC = "topic"
+PARAM_USER = "user"
+PARAM_PASSWORD = "password"
+
+# Form Field Names
+FIELD_USER = "user"
+FIELD_PASSWORD = "password"
+
+# Error Messages
+ERROR_CONFIG_NOT_INIT = "Site configuration not initialized"
+ERROR_INVALID_FOLDER = "Invalid folder type"
+ERROR_FILENAME_REQUIRED = "Filename required"
+ERROR_FILE_NOT_FOUND = "Fichier Markdown non trouvé."
+
+# Response Codes
+STATUS_OK = 200
+STATUS_BAD_REQUEST = 400
+STATUS_NOT_FOUND = 404
+STATUS_SERVER_ERROR = 500
+
+# UI Text
+TEXT_404_TEMPLATE = "404.j2"
+TEXT_LOGIN_TEMPLATE = "login.j2"
+TEXT_TEMPLATE_BASE = "base.j2"
+TEXT_TEMPLATE_BASE_CONTENT = "base_content.j2"
+
+# Markdown Configuration
+MARKDOWN_EXTENSIONS = ["sane_lists", "toc", "tables"]
+
+# Avatar Configuration
+AVATAR_PREFIX = "users/"
+AVATAR_EXTENSIONS = [FILE_EXTENSION_SVG, FILE_EXTENSION_JPG, FILE_EXTENSION_JPEG, FILE_EXTENSION_PNG]
+
+# Default Values
+DEFAULT_HELP_TITLE = "Documentation: {}"
 
 
-@bp.route("/download", methods=["GET"])
+@bp.route(ROUTE_DOWNLOAD, methods=[METHOD_GET])
 def download():
     """Page that handles a download request by serving the file through Flask."""
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         base_path = os.path.join(
             os.path.dirname(sys.executable),
-            "ressources",
-            "downloads",
-            request.args.to_dict()["file"],
+            MEIPASS_RESOURCES,
+            DOWNLOADS_DIR,
+            request.args.to_dict()[PARAM_FILE],
         )
         send_path = base_path
     else:
-        send_path = os.path.join("..", "..", "..", "ressources", "downloads", request.args.to_dict()["file"])
-        base_path = os.path.join("ressources", "downloads", request.args.to_dict()["file"])
+        send_path = os.path.join("..", "..", "..", RESOURCES_DIR, DOWNLOADS_DIR, request.args.to_dict()[PARAM_FILE])
+        base_path = os.path.join(RESOURCES_DIR, DOWNLOADS_DIR, request.args.to_dict()[PARAM_FILE])
 
     if not os.path.exists(base_path):
-        return render_template("404.j2")
+        return render_template(TEXT_404_TEMPLATE)
 
     return send_file(send_path, as_attachment=True)
 
 
-@bp.route("/assets/<asset_type>/", methods=["GET"])
+@bp.route(ROUTE_ASSETS, methods=[METHOD_GET])
 def assets(asset_type):
     """Serve asset files based on type."""
     if not site_conf.site_conf_obj:
-        return "Site configuration not initialized", 500
+        return ERROR_CONFIG_NOT_INIT, STATUS_SERVER_ERROR
         
     asset_paths = cast(Dict[str, Any], site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path))
     logger.debug(f"Asset paths: {asset_paths}")
@@ -61,14 +128,14 @@ def assets(asset_type):
             break
 
     if folder_path is None:
-        return "Invalid folder type", 404
+        return ERROR_INVALID_FOLDER, STATUS_NOT_FOUND
 
-    file_name = request.args.get("filename")
+    file_name = request.args.get(PARAM_FILENAME)
     if file_name and file_name[0] == ".":
         file_name = file_name[2:]
     
     if not file_name:
-        return "Filename required", 400
+        return ERROR_FILENAME_REQUIRED, STATUS_BAD_REQUEST
         
     file_path = os.path.join(folder_path, file_name)
 
@@ -76,38 +143,37 @@ def assets(asset_type):
 
     if not os.path.exists(file_path):
         # For user avatars, try alternative extensions (SVG if JPG requested, or vice versa)
-        if file_name.startswith("users/"):
+        if file_name.startswith(AVATAR_PREFIX):
             # Try alternative file extensions for user avatars
             base_name = file_name.rsplit('.', 1)[0] if '.' in file_name else file_name
-            alternative_extensions = ['.svg', '.jpg', '.jpeg', '.png']
             
-            for ext in alternative_extensions:
+            for ext in AVATAR_EXTENSIONS:
                 alt_path = os.path.join(folder_path, base_name + ext)
                 if os.path.exists(alt_path):
                     logger.debug(f"Serving alternative avatar format: {alt_path}")
                     # Determine MIME type based on extension
                     mimetype = None
-                    if ext == '.svg':
-                        mimetype = 'image/svg+xml'
+                    if ext == FILE_EXTENSION_SVG:
+                        mimetype = MIME_TYPE_SVG
                     return send_file(alt_path, as_attachment=False, mimetype=mimetype)
         
         logger.warning(f"File not found: {file_path}")
-        return "", 200  # Return empty response to avoid broken image icons
+        return "", STATUS_OK  # Return empty response to avoid broken image icons
 
     # Serve images inline for display, not as attachment downloads
     # Set proper MIME type for SVG files
     mimetype = None
-    if file_path.lower().endswith('.svg'):
-        mimetype = 'image/svg+xml'
+    if file_path.lower().endswith(FILE_EXTENSION_SVG):
+        mimetype = MIME_TYPE_SVG
     
     return send_file(file_path, as_attachment=False, mimetype=mimetype)
 
 
-@bp.route("/login", methods=["GET", "POST"])
+@bp.route(ROUTE_LOGIN, methods=GET_POST)
 def login():
     """Login page with user authentication."""
     if not auth.auth_manager:
-        return "Authentication system not initialized", 500
+        return ERROR_CONFIG_NOT_INIT, STATUS_SERVER_ERROR
         
     # Logout current user
     auth.auth_manager.logout_current_user()
@@ -115,16 +181,16 @@ def login():
     error_message = None
     
     # Get all users
-    users = [u.username for u in auth.auth_manager.get_all_users()]
+    users = [u.username for u in auth.auth_manager.get_all_users()]  # type: ignore
     users.sort()
     
-    if request.method == "POST":
+    if request.method == METHOD_POST:
         data_in = utilities.util_post_to_json(request.form.to_dict())
-        username = data_in.get("user", "")
-        password = data_in.get("password", "")
+        username = data_in.get(FIELD_USER, "")
+        password = data_in.get(FIELD_PASSWORD, "")
         
         # Use check_login_attempt for security features (lockout, attempt tracking)
-        success, error_message = auth.auth_manager.check_login_attempt(username, password)
+        success, error_message = cast(Any, auth.auth_manager).check_login_attempt(username, password)  # type: ignore
         
         if success:
             # Set user in session (set_current_user handles session.permanent)
@@ -132,32 +198,32 @@ def login():
             return redirect("/")
         # else: error_message is already set by check_login_attempt
     
-    return render_template("login.j2", target="common.login", users=users, message=error_message)
+    return render_template(TEXT_LOGIN_TEMPLATE, target=f"{BP_NAME}.login", users=users, message=error_message)
 
 
-@bp.route("/help", methods=["GET"])
+@bp.route(ROUTE_HELP, methods=[METHOD_GET])
 def help():
     """Display help documentation from Markdown files."""
     data_in = request.args.to_dict()
     try:
-        topic = data_in["topic"]
+        topic = data_in[PARAM_TOPIC]
 
         # Open md file
-        md_file_path = os.path.join("website", "help", topic + ".md")
+        md_file_path = os.path.join(WEBSITE_DIR, HELP_DIR, topic + ".md")
         
         # Check if file exists to avoid FileNotFoundError
         if not os.path.exists(md_file_path):
-            return "Fichier Markdown non trouvé.", 404
+            return ERROR_FILE_NOT_FOUND, STATUS_NOT_FOUND
             
         with open(md_file_path, "r", encoding="utf-8") as text:
             text_data = text.read()
 
-        content = markdown.markdown(text_data, extensions=["sane_lists", "toc", "tables"])
+        content = markdown.markdown(text_data, extensions=MARKDOWN_EXTENSIONS)
         
         disp = displayer.Displayer()
         User_defined_module.User_defined_module.m_default_name = "Help"
         disp.add_module(User_defined_module.User_defined_module, display=False)
-        disp.set_title(f"Documentation: {topic.capitalize().replace('_', ' ').upper()}")
+        disp.set_title(DEFAULT_HELP_TITLE.format(topic.capitalize().replace('_', ' ').upper()))
         
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
@@ -167,6 +233,6 @@ def help():
             displayer.DisplayerItemAlert(content, displayer.BSstyle.NONE), 0
         )
         
-        return render_template("base_content.j2", content=disp.display(), target="")
+        return render_template(TEXT_TEMPLATE_BASE_CONTENT, content=disp.display(), target="")
     except Exception:
-        return render_template("base.j2")
+        return render_template(TEXT_TEMPLATE_BASE)
