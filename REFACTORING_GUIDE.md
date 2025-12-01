@@ -306,6 +306,72 @@ python -m py_compile src/pages/target_file.py
 grep -n "^[A-Z_]* = \"" src/pages/target_file.py
 ```
 
+### ✅ **CRITICAL: Verify No Orphaned Constants**
+
+This is the **most important validation step**. Many constants appear to be "domain-specific" but are actually never used in the code.
+
+**How to verify (Python script):**
+```python
+import re
+
+with open('src/pages/target_file.py', 'r') as f:
+    content = f.read()
+
+# Extract all constants defined
+constants = re.findall(r'^([A-Z][A-Z_]*)\s*=', content, re.MULTILINE)
+
+# Remove duplicates
+seen = set()
+unique_constants = []
+for const in constants:
+    if const not in seen:
+        unique_constants.append(const)
+        seen.add(const)
+
+# Check each constant's usage
+orphaned = []
+for const in unique_constants:
+    pattern = rf'\b{const}\b'
+    matches = len(re.findall(pattern, content))
+    if matches == 1:  # Only the definition line
+        orphaned.append(const)
+
+if orphaned:
+    print(f"❌ ORPHANED CONSTANTS FOUND ({len(orphaned)}):")
+    for const in orphaned:
+        print(f"  - {const}")
+    raise Exception("Remove all orphaned constants before committing!")
+else:
+    print(f"✅ No orphaned constants! All {len(unique_constants)} constants are used.")
+```
+
+**Common culprits (constants that LOOK useful but are never used):**
+- `TABLE_*` constants (table configuration, column names)
+- `FORM_FIELD_*` constants (form field names) 
+- `ACTION_*` constants (action types and styles)
+- `BADGE_*` constants (badge styling)
+- `ICON_*` constants (icon names)
+- `VERSION_*` constants (version status strings)
+- `INTEGRITY_STATUS_*` constants (status strings)
+- `LAYOUT_*` constants (layout dimensions)
+- `THUMB_*` constants (thumbnail configuration)
+- Any `*_TEMPLATE` constants
+
+**Why they're orphaned:** They were defined to encourage consistency, but developers hardcoded the values inline instead of using the constants. Common patterns:
+```python
+# Constant defined but never used:
+TABLE_PAGE_LENGTH = 25
+
+# Value hardcoded inline instead:
+def some_function():
+    return query.limit(25)  # Should be: .limit(TABLE_PAGE_LENGTH)
+```
+
+**Decision for orphaned constants:**
+- If the constant represents a **repeated magic number or string**, consider refactoring code to use it
+- If it's a **leftover from earlier development**, DELETE it
+- If it's a **"nice to have" for future developers**, still DELETE it (code clarity over hypothetical future use)
+
 ---
 
 ## Common Patterns and Edge Cases

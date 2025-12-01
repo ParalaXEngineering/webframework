@@ -32,12 +32,6 @@ from ..modules.constants import (
 )
 from ..modules.i18n.messages import (
     ERROR_FILE_MANAGER_NOT_INITIALIZED,
-    TEXT_NO_FILES_UPLOAD,
-    TEXT_NO_FILES_PERMISSION,
-    TEXT_NO_DELETE_PERMISSION,
-    TEXT_VERSIONING_INFO,
-    TEXT_TAGS_INFO,
-    TEXT_VERSIONS_DELETED_WARNING,
     MSG_NO_FILES_SELECTED,
     MSG_UPDATE_SUCCESS,
     MSG_VERSION_RESTORED,
@@ -51,7 +45,7 @@ from ..modules.i18n.messages import (
 
 logger = get_logger(__name__)
 
-# Constants - Module and permission names
+# Constants - Domain-specific to file manager module
 PERMISSION_MODULE = "FileManager"
 PERMISSION_UPLOAD = "upload"
 PERMISSION_DOWNLOAD = "download"
@@ -59,63 +53,9 @@ PERMISSION_DELETE = "delete"
 PERMISSION_EDIT = "edit"
 PERMISSION_VIEW = "view"
 
-# Constants - Domain-specific to file manager module
-
-# Constants - Table columns
-TABLE_COLUMNS_MAIN = ["Select", "Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Integrity", "Actions"]
-TABLE_COLUMNS_DELETE = ["Filename", "Group ID", "Size", "Uploaded"]
-TABLE_COLUMNS_HISTORY = ["Preview", "Version", "Status", "Size", "Checksum", "Uploaded", "Uploaded By", "Actions"]
-
-# Constants - Table configuration
-TABLE_ID_FILE_LIST = "file_list_table"
-TABLE_PAGE_LENGTH = 25
-TABLE_SEARCHABLE = True
-TABLE_SORT_COLUMN = 2
-TABLE_SORT_ORDER = "asc"
-DATATABLE_NO_SORT_TARGETS = [0, 1, 9]
-DATATABLE_CENTER_ALIGN_TARGETS = [0, 1, 5, 7, 8, 9]
-
-# Constants - Form fields and HTML
-FORM_FIELD_FILE_IDS = "file_ids[]"
-FORM_FIELD_CONFIRM_DELETION = "confirm_deletion"
-FORM_FIELD_FILE_IDS_TO_DELETE = "file_ids_to_delete"
-CHECKBOX_HTML_TEMPLATE = '<input type="checkbox" name="file_ids[]" value="{}">'
-
-# Constants - Action types and styles
-ACTION_DOWNLOAD = "download"
-ACTION_CUSTOM = "custom"
-ACTION_STYLE_PRIMARY = "primary"
-ACTION_STYLE_WARNING = "warning"
-ACTION_STYLE_DANGER = "danger"
-
-# Constants - Integrity status strings (domain-specific to file manager)
-INTEGRITY_STATUS_OK = "OK"
-INTEGRITY_STATUS_MISSING = "Missing"
-INTEGRITY_STATUS_CHECKSUM_MISMATCH = "Checksum mismatch"
-INTEGRITY_STATUS_NOT_FOUND = "Not found"
-INTEGRITY_STATUS_UNKNOWN = "Unknown"
-
-# Constants - Badge styles (domain-specific to file manager)
-BADGE_SUCCESS = "SUCCESS"
-BADGE_WARNING = "WARNING"
-BADGE_ERROR = "ERROR"
-BADGE_SECONDARY = "SECONDARY"
-BADGE_PRIMARY = "PRIMARY"
-BADGE_INFO = "INFO"
-
-# Constants - File version strings (domain-specific to file manager)
-VERSION_CURRENT = "Current"
-VERSION_ARCHIVED = "Archived"
-
 # Constants - File/group display (domain-specific to file manager)
 GROUP_NONE = "(none)"
-THUMB_SIZE_DEFAULT = "60px"
-THUMB_EXTENSION = "_thumb.jpg"
-THUMB_DIR = ".thumbs"
-
-# Constants - Layout dimensions (domain-specific to file manager)
-LAYOUT_VERTICAL = [12]
-LAYOUT_BUTTONS = [6, 6]
+INTEGRITY_STATUS_OK = "OK"
 
 # Register module permissions (view is implicit)
 permission_registry.register_module(PERMISSION_MODULE, [PERMISSION_UPLOAD, PERMISSION_DOWNLOAD, PERMISSION_DELETE, PERMISSION_EDIT])
