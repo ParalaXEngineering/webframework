@@ -4,34 +4,174 @@ File Manager Admin Page - Flask blueprint for file browsing and management UI.
 This module provides a web interface for browsing, searching, and managing uploaded files.
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+# Standard library
 from pathlib import Path
 from typing import Optional, Any
-from ..modules.utilities import util_format_file_size, util_format_date, util_get_file_icon, util_generate_preview_html
-from ..modules.log.logger_factory import get_logger
+
+# Third-party
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+
+# Local modules
+from ..modules import displayer, utilities
 from ..modules.auth import require_permission, auth_manager
 from ..modules.auth.permission_registry import permission_registry
-from ..modules import utilities
-from ..modules import displayer
 from ..modules.displayer import BSstyle
-
-# Register module permissions (view is implicit)
-permission_registry.register_module("FileManager", ["upload", "download", "delete", "edit"])
+from ..modules.log.logger_factory import get_logger
+from ..modules.utilities import (
+    util_format_file_size,
+    util_format_date,
+    util_get_file_icon,
+    util_generate_preview_html,
+)
 
 logger = get_logger(__name__)
+
+# Constants - Module and permission names
+PERMISSION_MODULE = "FileManager"
+PERMISSION_UPLOAD = "upload"
+PERMISSION_DOWNLOAD = "download"
+PERMISSION_DELETE = "delete"
+PERMISSION_EDIT = "edit"
+PERMISSION_VIEW = "view"
+
+# Constants - Error and initialization messages
+ERROR_NOT_INITIALIZED = "File manager not initialized"
+
+# Constants - UI text and labels
+TEXT_FILE_MANAGER = "File Manager"
+TEXT_BROWSE_FILES = "Browse Files"
+TEXT_EDIT_METADATA = "Edit File Metadata"
+TEXT_EDIT_FILE = "Edit File"
+TEXT_FILE_NOT_FOUND = "File Not Found"
+TEXT_CONFIRM_DELETE = "Confirm Delete"
+TEXT_DELETION_COMPLETE = "Deletion Complete"
+TEXT_VERSION_HISTORY = "Version History"
+TEXT_ERROR_LABEL = "Error"
+TEXT_FILE_INFORMATION = "File Information"
+TEXT_EDIT_FORM = "Edit Metadata"
+TEXT_FILES_TO_DELETE = "Files to Delete"
+TEXT_ALL_VERSIONS = "All Versions"
+TEXT_NO_FILES_UPLOAD = "No files found. Upload files to get started!"
+TEXT_NO_FILES_PERMISSION = "No files found. You need 'upload' permission to add files. Contact your administrator."
+TEXT_NO_DELETE_PERMISSION = "You need 'delete' permission to remove files. Contact your administrator."
+TEXT_VERSIONING_INFO = "Group ID for versioning. Files with the same group_id and filename are treated as versions of the same file."
+TEXT_TAGS_INFO = "Organize files with tags for easy searching and filtering."
+TEXT_VERSIONS_DELETED_WARNING = "Files with version history will have <strong>all versions</strong> deleted."
+
+# Constants - Table columns
+TABLE_COLUMNS_MAIN = ["Select", "Preview", "Filename", "Group ID", "Tags", "Version", "Size", "Uploaded", "Integrity", "Actions"]
+TABLE_COLUMNS_DELETE = ["Filename", "Group ID", "Size", "Uploaded"]
+TABLE_COLUMNS_HISTORY = ["Preview", "Version", "Status", "Size", "Checksum", "Uploaded", "Uploaded By", "Actions"]
+
+# Constants - Table configuration
+TABLE_ID_FILE_LIST = "file_list_table"
+TABLE_PAGE_LENGTH = 25
+TABLE_SEARCHABLE = True
+TABLE_SORT_COLUMN = 2
+TABLE_SORT_ORDER = "asc"
+DATATABLE_NO_SORT_TARGETS = [0, 1, 9]
+DATATABLE_CENTER_ALIGN_TARGETS = [0, 1, 5, 7, 8, 9]
+
+# Constants - Form fields and HTML
+FORM_FIELD_FILE_IDS = "file_ids[]"
+FORM_FIELD_CONFIRM_DELETION = "confirm_deletion"
+FORM_FIELD_FILE_IDS_TO_DELETE = "file_ids_to_delete"
+CHECKBOX_HTML_TEMPLATE = '<input type="checkbox" name="file_ids[]" value="{}">'
+
+# Constants - Action types and styles
+ACTION_DOWNLOAD = "download"
+ACTION_CUSTOM = "custom"
+ACTION_STYLE_PRIMARY = "primary"
+ACTION_STYLE_WARNING = "warning"
+ACTION_STYLE_INFO = "info"
+ACTION_STYLE_DANGER = "danger"
+ACTION_STYLE_SUCCESS = "success"
+
+# Constants - Icons
+ICON_DOWNLOAD = "mdi mdi-download"
+ICON_PENCIL = "mdi mdi-pencil"
+ICON_HISTORY = "mdi mdi-history"
+ICON_DELETE = "mdi mdi-delete"
+ICON_DELETE_FOREVER = "delete-forever"
+ICON_TRASH = "trash"
+ICON_RESTORE = "mdi mdi-restore"
+ICON_FILE = "file"
+ICON_CLOSE_CIRCLE = "close-circle"
+ICON_CONTENT_SAVE = "content-save"
+ICON_ARROW_LEFT = "arrow-left"
+ICON_ALERT = "alert"
+ICON_CHECK_CIRCLE = "check-circle"
+ICON_INFO = "mdi mdi-information"
+ICON_INFO_OUTLINE = "mdi mdi-information-outline"
+
+# Constants - Integrity status strings
+STATUS_OK = "OK"
+STATUS_MISSING = "Missing"
+STATUS_CHECKSUM_MISMATCH = "Checksum mismatch"
+STATUS_NOT_FOUND = "Not found"
+STATUS_UNKNOWN = "Unknown"
+
+# Constants - Badge styles
+BADGE_SUCCESS = "SUCCESS"
+BADGE_WARNING = "WARNING"
+BADGE_ERROR = "ERROR"
+BADGE_SECONDARY = "SECONDARY"
+BADGE_PRIMARY = "PRIMARY"
+BADGE_INFO = "INFO"
+
+# Constants - File version strings
+VERSION_CURRENT = "Current"
+VERSION_ARCHIVED = "Archived"
+
+# Constants - File/group display
+GROUP_NONE = "(none)"
+THUMB_SIZE_150 = "150x150"
+THUMB_SIZE_DEFAULT = "60px"
+THUMB_SIZE_PREVIEW = "150px"
+THUMB_SIZE_SMALL = "50px"
+THUMB_EXTENSION = "_thumb.jpg"
+THUMB_DIR = ".thumbs"
+
+# Constants - Flash messages and deletions
+MSG_NO_FILES_SELECTED = "No files selected for deletion."
+MSG_UPDATE_SUCCESS = "Metadata for '{}' updated successfully."
+MSG_VERSION_RESTORED = "Version restored successfully! A new version has been created."
+MSG_VERSION_DELETED = "Version deleted successfully."
+MSG_VERSIONS_DELETED = "All versions deleted. File no longer exists."
+DELETE_CONFIRM_SINGLE_FMT = "You are about to permanently delete the following file: <strong>{}</strong><br><br>This action cannot be undone."
+DELETE_CONFIRM_MULTI_FMT = "You are about to permanently delete <strong>{} files</strong><br><br>This action cannot be undone."
+DELETE_RESULT_PARTIAL_FMT = "<p><strong>{}</strong> file(s) deleted successfully.</p>\n            <p><strong>{}</strong> file(s) failed to delete.</p>"
+DELETE_RESULT_SUCCESS_FMT = "<p><strong>{}</strong> file(s) deleted successfully.</p>"
+
+# Constants - Buttons and labels
+BUTTON_DELETE_SELECTED = "Delete Selected"
+BUTTON_SAVE_CHANGES = "Save Changes"
+BUTTON_CANCEL = "Cancel"
+BUTTON_YES_DELETE = "Yes, Delete"
+BUTTON_RETURN = "Return to File Manager"
+BUTTON_BACK = "Back to File Manager"
+
+# Constants - Layout dimensions and HTTP codes
+LAYOUT_VERTICAL = [12]
+LAYOUT_BUTTONS = [6, 6]
+HTTP_BAD_REQUEST = 400
+HTTP_NOT_FOUND = 404
+HTTP_SERVER_ERROR = 500
+
+# Register module permissions (view is implicit)
+permission_registry.register_module(PERMISSION_MODULE, [PERMISSION_UPLOAD, PERMISSION_DOWNLOAD, PERMISSION_DELETE, PERMISSION_EDIT])
 
 bp = Blueprint("file_manager_admin", __name__, url_prefix="/file_manager")
 
 # File manager instance will be injected by main.py
 file_manager: Optional[Any] = None
 
-
 @bp.route("/", methods=["GET"])
-@require_permission("FileManager", "view")
+@require_permission(PERMISSION_MODULE, PERMISSION_VIEW)
 def index():
     """File manager main page - browse files, view statistics."""
     if not file_manager:
-        return "File manager not initialized", 500
+        return ERROR_NOT_INITIALIZED, HTTP_SERVER_ERROR
     
     disp = displayer.Displayer()
     disp.add_generic("File Manager", display=False)
@@ -84,7 +224,7 @@ def index():
                                     column=2, line=idx, layout_id=table_layout_id)
                 
                 # Group ID (read-only display)
-                group_id_val = file_meta.get('group_id', '') or '(none)'
+                group_id_val = file_meta.get('group_id', '') or GROUP_NONE
                 disp.add_display_item(displayer.DisplayerItemText(group_id_val), 
                                     column=3, line=idx, layout_id=table_layout_id)
                 
@@ -101,7 +241,7 @@ def index():
                             expanded_tags.append(tag)
                     tags_display = ',<br>'.join(expanded_tags)
                 else:
-                    tags_display = '(none)'
+                    tags_display = GROUP_NONE
                 disp.add_display_item(displayer.DisplayerItemAlert(tags_display, displayer.BSstyle.NONE), 
                                     column=4, line=idx, layout_id=table_layout_id)
                 
@@ -184,7 +324,7 @@ def index():
                     if versions and len(versions) > 0:
                         # Show history button for files with versions
                         # Use '(none)' as URL placeholder for files without a group
-                        group_param = file_meta.get('group_id') or '(none)'
+                        group_param = file_meta.get('group_id') or GROUP_NONE
                         actions.append({
                             "type": "custom",
                             "url": url_for('file_manager_admin.version_history', group_id=group_param, filename=file_meta['name']),
@@ -304,7 +444,7 @@ def _generate_preview_html(file_meta: dict, size: str = "60px") -> str:
 
 
 @bp.route("/edit/<int:file_id>", methods=["GET", "POST"])
-@require_permission("FileManager", "edit")
+@require_permission(PERMISSION_MODULE, PERMISSION_EDIT)
 def edit_file(file_id):
     """Edit file metadata (group_id, tags).
     
@@ -312,7 +452,7 @@ def edit_file(file_id):
         file_id: Database ID of the file version to edit
     """
     if not file_manager:
-        return "File manager not initialized", 500
+        return ERROR_NOT_INITIALIZED, HTTP_SERVER_ERROR
     
     disp = displayer.Displayer()
     disp.add_generic("Edit File Metadata")
@@ -432,7 +572,7 @@ def edit_file(file_id):
             <p><strong>Uploaded:</strong> {util_format_date(file_version.uploaded_at.isoformat())}</p>
         </div>
         <div class="col-md-5">
-            <p><strong>Group ID:</strong> {file_version.group_id or '(none)'}</p>
+            <p><strong>Group ID:</strong> {file_version.group_id or GROUP_NONE}</p>
             <p><strong>Version:</strong> v{version_num}</p>
             <p><strong>Checksum:</strong> {file_version.checksum[:16] if file_version.checksum else 'N/A'}...</p>
         </div>
@@ -509,17 +649,17 @@ def edit_file(file_id):
 
 
 @bp.route('/delete-multiple', methods=['POST'])
-@require_permission("FileManager", "delete")
+@require_permission(PERMISSION_MODULE, PERMISSION_DELETE)
 def delete_multiple():
     """Handle multiple file deletion from checkboxes (redirects to confirm_delete)."""
     if not file_manager:
-        return "File manager not initialized", 500
+        return ERROR_NOT_INITIALIZED, HTTP_SERVER_ERROR
     
     # Get selected file IDs from form array
     file_ids_list = request.form.getlist('file_ids[]')
     
     if not file_ids_list:
-        flash("No files selected for deletion.", "warning")
+        flash(MSG_NO_FILES_SELECTED, "warning")
         return redirect(url_for('file_manager_admin.index'))
     
     # Convert to comma-separated string for confirm_delete
@@ -530,7 +670,7 @@ def delete_multiple():
 
 
 @bp.route('/confirm-delete', methods=['GET', 'POST'])
-@require_permission("FileManager", "delete")
+@require_permission(PERMISSION_MODULE, PERMISSION_DELETE)
 def confirm_delete():
     """Confirmation page for deleting file(s).
     
@@ -539,7 +679,7 @@ def confirm_delete():
     POST with confirm=true: Execute the deletion
     """
     if not file_manager:
-        return "File manager not initialized", 500
+        return ERROR_NOT_INITIALIZED, HTTP_SERVER_ERROR
     
     disp = displayer.Displayer()
     
@@ -554,12 +694,12 @@ def confirm_delete():
         # Always delete all versions (full deletion)
         delete_all_versions = True
         if not file_ids_str:
-            return "No files specified", 400
+            return "No files specified", HTTP_BAD_REQUEST
         
         try:
             file_ids = [int(fid) for fid in file_ids_str.split(',') if fid.strip()]
         except ValueError:
-            return "Invalid file IDs", 400
+            return "Invalid file IDs", HTTP_BAD_REQUEST
     else:
         # Show confirmation page (GET or first POST)
         if request.method == 'GET':
@@ -573,9 +713,9 @@ def confirm_delete():
                 try:
                     file_ids = [int(fid) for fid in multi_file_ids_str.split(',') if fid.strip()]
                 except ValueError:
-                    return "Invalid file IDs", 400
+                    return "Invalid file IDs", HTTP_BAD_REQUEST
             else:
-                return "No files specified", 400
+                return "No files specified", HTTP_BAD_REQUEST
         else:
             # First POST from inline delete form
             data = utilities.util_post_to_json(request.form.to_dict())
@@ -584,9 +724,9 @@ def confirm_delete():
                 try:
                     file_ids = [int(fid) for fid in multi_file_ids.split(',') if fid.strip()]
                 except ValueError:
-                    return "Invalid file IDs", 400
+                    return "Invalid file IDs", HTTP_BAD_REQUEST
             else:
-                return "No files specified", 400
+                return "No files specified", HTTP_BAD_REQUEST
         
         # Get file metadata
         files_to_delete = []
@@ -598,11 +738,11 @@ def confirm_delete():
                     'filename': file_meta.filename,
                     'size': file_meta.file_size,
                     'uploaded_at': file_meta.uploaded_at.isoformat() + "Z",
-                    'group_id': file_meta.group_id or '(none)'
+                    'group_id': file_meta.group_id or GROUP_NONE
                 })
         
         if not files_to_delete:
-            return "No valid files found", 404
+            return "No valid files found", HTTP_NOT_FOUND
         
         # Build confirmation page
         disp.add_generic("Confirm Delete", display=False)
@@ -647,7 +787,7 @@ def confirm_delete():
         disp.add_display_item(displayer.DisplayerItemHidden(id="confirm_deletion", value="true"), column=0)
         
         # Check if any files have versions (group_id set)
-        has_versioned_files = any(f['group_id'] != '(none)' for f in files_to_delete)
+        has_versioned_files = any(f['group_id'] != GROUP_NONE for f in files_to_delete)
         
         if has_versioned_files:
             # Inform user that all versions will be deleted
@@ -725,7 +865,7 @@ def confirm_delete():
 
 
 @bp.route('/version-history/<group_id>/<filename>', methods=['GET'])
-@require_permission("FileManager", "view")
+@require_permission(PERMISSION_MODULE, PERMISSION_VIEW)
 def version_history(group_id, filename):
     """Display version history page for a file.
     
@@ -737,11 +877,11 @@ def version_history(group_id, filename):
         HTML page with version history table
     """
     if not file_manager:
-        return "File manager not initialized", 500
+        return ERROR_NOT_INITIALIZED, HTTP_SERVER_ERROR
     
     try:
         # Convert '(none)' placeholder back to None for files without a group
-        actual_group_id = None if group_id == '(none)' else group_id
+        actual_group_id = None if group_id == GROUP_NONE else group_id
         versions = file_manager.get_file_versions(actual_group_id, filename)
         
         # Build version history page
@@ -901,7 +1041,7 @@ def version_history(group_id, filename):
 
 
 @bp.route('/restore-version/<int:target_version_id>/<group_id>/<filename>', methods=['GET'])
-@require_permission("FileManager", "edit")
+@require_permission(PERMISSION_MODULE, PERMISSION_EDIT)
 def restore_version(target_version_id, group_id, filename):
     """Restore an old version of a file using a simple GET link.
     
@@ -954,7 +1094,7 @@ def restore_version(target_version_id, group_id, filename):
 
 
 @bp.route('/delete-single-version/<int:file_id>/<group_id>/<filename>', methods=['GET'])
-@require_permission("FileManager", "delete")
+@require_permission(PERMISSION_MODULE, PERMISSION_DELETE)
 def delete_single_version(file_id, group_id, filename):
     """Delete a single version of a file (not all versions).
     
@@ -985,7 +1125,7 @@ def delete_single_version(file_id, group_id, filename):
         flash(f"Failed to delete version: {str(e)}", "error")
     
     # Check if there are remaining versions
-    actual_group_id = None if group_id == '(none)' else group_id
+    actual_group_id = None if group_id == GROUP_NONE else group_id
     remaining_versions = file_manager.get_file_versions(actual_group_id, filename)
     
     if remaining_versions:
