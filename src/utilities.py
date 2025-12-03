@@ -357,9 +357,16 @@ def util_write_parameters(data: dict):
     :param data: The new parameters to write
     :type data: dict
     """
+    global CONFIG_GLOBAL
+    global LAST_ACCESS_CONFIG
+    
     f = open("website/config.json", "w", encoding="utf-8")
     json.dump(data, f, indent=4)
     f.close()
+    
+    # Mettre à jour le cache global pour éviter les lectures périmées
+    CONFIG_GLOBAL = data
+    LAST_ACCESS_CONFIG = time.time()
 
 
 def util_view_reload_displayer(id: str, disp: displayer) -> dict:
