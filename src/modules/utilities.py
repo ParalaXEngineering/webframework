@@ -4,6 +4,7 @@ Provides common helpers for form data processing, file management, serialization
 breadcrumb navigation, and template rendering.
 """
 import glob
+import hmac
 import os
 import re
 import sys
@@ -823,6 +824,35 @@ def get_config_or_error(settings_manager, *config_paths):
         from flask import render_template
         error_message = ERROR_CONFIG_KEY_NOT_FOUND.format(key=str(e))
         return None, render_template("error.j2", traceback=error_message)
+
+
+def validate_csrf_token(form_token):
+    """Validate CSRF token from form against session token.
+    
+    Uses constant-time comparison to prevent timing attacks.
+    
+    Args:
+        form_token: Token submitted with form (string)
+        
+    Returns:
+        bool: True if valid, False otherwise
+        
+    Example:
+        >>> from flask import request
+        >>> if not validate_csrf_token(request.form.get('csrf_token')):
+        ...     return "Invalid CSRF token", 403
+    """
+    if session is None:
+        return False  # Session not available
+        
+    session_token = session.get('csrf_token')
+    
+    # Both tokens must exist
+    if not session_token or not form_token:
+        return False
+    
+    # Use constant-time comparison to prevent timing attacks
+    return hmac.compare_digest(str(session_token), str(form_token))
 
 
 def util_format_file_size(bytes_size: int) -> str:

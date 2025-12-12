@@ -11,12 +11,50 @@ Usage:
 import sys
 import os
 import logging
+import secrets
+from pathlib import Path
 
 # Get the Manual_Webapp directory (where this file is located)
 manual_webapp_root = os.path.dirname(os.path.abspath(__file__))
 
 # Get the framework root (parent of Manual_Webapp)
 framework_root = os.path.dirname(manual_webapp_root)
+
+# Load or create secret key
+def get_or_create_secret_key(app_root):
+    """Get secret key from file or create new one.
+    
+    Priority:
+    1. PARALAX_SECRET_KEY environment variable
+    2. .secret_key file in app root
+    3. Generate new key and save to file
+    """
+    # 1. Check environment variable
+    env_key = os.environ.get('PARALAX_SECRET_KEY')
+    if env_key:
+        return env_key
+    
+    # 2. Check .secret_key file
+    key_file = Path(app_root) / '.secret_key'
+    if key_file.exists():
+        return key_file.read_text().strip()
+    
+    # 3. Generate new key and save
+    new_key = secrets.token_hex(32)
+    try:
+        key_file.write_text(new_key)
+        # Try to set restrictive permissions (owner read/write only)
+        try:
+            key_file.chmod(0o600)
+        except Exception:
+            pass  # Not critical if chmod fails
+        print(f"Generated new secret key in {key_file}")
+        print("Add .secret_key to .gitignore to keep it secret!")
+    except OSError as e:
+        print(f"Warning: Could not save secret key to file: {e}")
+        print("Key will work for this session only.")
+    
+    return new_key
 
 # Add framework root to path so we can import src modules
 sys.path.insert(0, framework_root)
@@ -47,6 +85,9 @@ auth_manager_instance = AuthManager(auth_dir=os.path.join(manual_webapp_root, "w
 if not FLASK_AVAILABLE or app is None:
     print("ERROR: Flask is not available. Please install dependencies.")
     sys.exit(1)
+
+# Configure secret key BEFORE calling setup_app()
+app.config['SECRET_KEY'] = get_or_create_secret_key(manual_webapp_root)
 
 # Get logger
 logger = get_logger("manual_test")

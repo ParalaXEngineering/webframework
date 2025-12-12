@@ -35,3 +35,6 @@ tests/flask_session
 website
 resources/*
 tests/frontend/test_files/*
+
+# Secret key (auto-generated, never commit)
+.secret_key

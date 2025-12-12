@@ -15,10 +15,11 @@ from flask import session, redirect, url_for, render_template
 from .auth_manager import AuthManager
 from .auth_models import User
 from .permission_registry import PermissionRegistry, PERMISSION_ACTION_VIEW
+from .rate_limiter import login_rate_limiter
 
 __all__ = [
     'AuthManager', 'PermissionRegistry', 'User', 'auth_manager',
-    'require_permission', 'require_admin', 'require_login'
+    'require_permission', 'require_admin', 'require_login', 'login_rate_limiter'
 ]
 
 # Constants

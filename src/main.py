@@ -50,7 +50,6 @@ except ImportError:
     from modules.constants import USER_GUEST_NAME
 
 # Domain-specific constants for main application setup
-DEFAULT_SECRET_KEY = "super secret key"
 COOKIE_SAMESITE = "Lax"
 SESSION_TYPE = "filesystem"
 SESSION_FILE_DIR = "flask_session"
@@ -154,6 +153,31 @@ def setup_app(app):
     if not FLASK_AVAILABLE:
         return None
     
+    # Validate SECRET_KEY was set by caller application
+    if 'SECRET_KEY' not in app.config or not app.config['SECRET_KEY']:
+        error_msg = (
+            "\n" + "="*80 + "\n"
+            "ERROR: SECRET_KEY not configured!\n"
+            "\n"
+            "The SECRET_KEY must be set by the calling application BEFORE calling setup_app().\n"
+            "\n"
+            "Recommended approach:\n"
+            "  1. Create a .secret_key file in your application root with a random key\n"
+            "  2. Add .secret_key to your .gitignore\n"
+            "  3. Set app.config['SECRET_KEY'] before calling setup_app()\n"
+            "\n"
+            "Quick setup commands:\n"
+            "  python -c \"import secrets; print(secrets.token_hex(32))\" > .secret_key\n"
+            "  echo '.secret_key' >> .gitignore\n"
+            "\n"
+            "Then in your main.py:\n"
+            "  from pathlib import Path\n"
+            "  app.config['SECRET_KEY'] = Path('.secret_key').read_text().strip()\n"
+            "\n"
+            "="*80 + "\n"
+        )
+        raise RuntimeError(error_msg)
+    
     # Session configuration with expiration and cleanup
     from datetime import timedelta
     app.config["SESSION_TYPE"] = SESSION_TYPE  # type: ignore
@@ -161,7 +185,6 @@ def setup_app(app):
     app.config["SESSION_FILE_THRESHOLD"] = SESSION_FILE_THRESHOLD  # type: ignore
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=SESSION_PERMANENT_LIFETIME_HOURS)  # type: ignore
     app.config['TEMPLATES_AUTO_RELOAD'] = False  # type: ignore
-    app.config["SECRET_KEY"] = DEFAULT_SECRET_KEY  # type: ignore
     app.config["PROPAGATE_EXCEPTIONS"] = False  # type: ignore
     app.config["SESSION_PERMANENT"] = True  # type: ignore
     app.config["SESSION_COOKIE_SAMESITE"] = COOKIE_SAMESITE  # type: ignore
@@ -571,9 +594,15 @@ def setup_app(app):
     
     @app.context_processor  # type: ignore
     def inject_csrf_token():
-        # Fonction pour générer un jeton unique
+        """Inject CSRF token into templates.
+        
+        Token is generated once per session and persists across requests.
+        This allows multi-tab usage and prevents token invalidation issues.
+        """
         def generate_csrf_token():
-            session['csrf_token'] = str(uuid.uuid4())  # type: ignore
+            # Only generate new token if not already in session
+            if 'csrf_token' not in session:
+                session['csrf_token'] = str(uuid.uuid4())  # type: ignore
             return session['csrf_token']  # type: ignore
         
         return dict(csrf_token=generate_csrf_token())

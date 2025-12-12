@@ -185,12 +185,23 @@ def login():
     users.sort()
     
     if request.method == METHOD_POST:
+        # Check IP-based rate limit BEFORE processing login
+        ip_address = request.remote_addr
+        rate_allowed, rate_message = auth.login_rate_limiter.check(ip_address)
+        
+        if not rate_allowed:
+            # IP is rate limited - show message and don't process login
+            return render_template(TEXT_LOGIN_TEMPLATE, target=f"{BP_NAME}.login", users=users, message=rate_message)
+        
         data_in = utilities.util_post_to_json(request.form.to_dict())
         username = data_in.get(FIELD_USER, "")
         password = data_in.get(FIELD_PASSWORD, "")
         
         # Use check_login_attempt for security features (lockout, attempt tracking)
         success, error_message = cast(Any, auth.auth_manager).check_login_attempt(username, password)  # type: ignore
+        
+        # Record IP-based attempt outcome for rate limiting
+        auth.login_rate_limiter.record_attempt(ip_address, success)
         
         if success:
             # Set user in session (set_current_user handles session.permanent)

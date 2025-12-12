@@ -88,3 +88,14 @@ def reset_logs():
                 log_file.unlink()
             except Exception:
                 pass
+
+
+@pytest.fixture
+def app():
+    """Provide a minimal Flask app for unit tests that need request context."""
+    from flask import Flask
+    app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'test-secret-key-for-unit-tests'
+    app.config['TESTING'] = True
+    return app
+
