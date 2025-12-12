@@ -42,7 +42,8 @@ from ..modules.i18n.messages import (
 )
 
 # Framework modules - core functionality
-from ..modules import auth, displayer, site_conf, User_defined_module, utilities
+from ..modules import auth, displayer, User_defined_module, utilities
+from ..modules.app_context import app_context
 from ..modules.log.logger_factory import get_logger
 
 logger = get_logger(__name__)
@@ -115,10 +116,10 @@ def download():
 @bp.route(ROUTE_ASSETS, methods=[METHOD_GET])
 def assets(asset_type):
     """Serve asset files based on type."""
-    if not site_conf.site_conf_obj:
+    if not app_context.site_conf:
         return ERROR_CONFIG_NOT_INIT, STATUS_SERVER_ERROR
         
-    asset_paths = cast(Dict[str, Any], site_conf.site_conf_obj.get_statics(site_conf.site_conf_app_path))
+    asset_paths = cast(Dict[str, Any], app_context.site_conf.get_statics(app_context.app_path))
     logger.debug(f"Asset paths: {asset_paths}")
 
     folder_path = None
@@ -172,21 +173,21 @@ def assets(asset_type):
 @bp.route(ROUTE_LOGIN, methods=GET_POST)
 def login():
     """Login page with user authentication."""
-    if not auth.auth_manager:
+    if not app_context.auth_manager:
         return ERROR_CONFIG_NOT_INIT, STATUS_SERVER_ERROR
         
     # Logout current user
-    auth.auth_manager.logout_current_user()
+    app_context.auth_manager.logout_current_user()
     
     error_message = None
     
     # Get all users
-    users = [u.username for u in auth.auth_manager.get_all_users()]  # type: ignore
+    users = [u.username for u in app_context.auth_manager.get_all_users()]  # type: ignore
     users.sort()
     
     if request.method == METHOD_POST:
         # Check IP-based rate limit BEFORE processing login
-        ip_address = request.remote_addr
+        ip_address = request.remote_addr or "unknown"
         rate_allowed, rate_message = auth.login_rate_limiter.check(ip_address)
         
         if not rate_allowed:
@@ -198,14 +199,14 @@ def login():
         password = data_in.get(FIELD_PASSWORD, "")
         
         # Use check_login_attempt for security features (lockout, attempt tracking)
-        success, error_message = cast(Any, auth.auth_manager).check_login_attempt(username, password)  # type: ignore
+        success, error_message = cast(Any, app_context.auth_manager).check_login_attempt(username, password)  # type: ignore
         
         # Record IP-based attempt outcome for rate limiting
         auth.login_rate_limiter.record_attempt(ip_address, success)
         
         if success:
             # Set user in session (set_current_user handles session.permanent)
-            auth.auth_manager.set_current_user(username)
+            app_context.auth_manager.set_current_user(username)
             return redirect("/")
         # else: error_message is already set by check_login_attempt
     
@@ -232,7 +233,7 @@ def help():
         content = markdown.markdown(text_data, extensions=MARKDOWN_EXTENSIONS)
         
         disp = displayer.Displayer()
-        User_defined_module.User_defined_module.m_default_name = str(TEXT_HELP)
+        User_defined_module.User_defined_module.m_default_name = TEXT_HELP
         disp.add_module(User_defined_module.User_defined_module, display=False)
         disp.set_title(DEFAULT_HELP_TITLE.format(topic.capitalize().replace('_', ' ').upper()))
         

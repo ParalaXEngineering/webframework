@@ -16,7 +16,7 @@ from flask import Blueprint, render_template, request
 # Local modules
 from ..modules import displayer, site_conf, utilities
 from ..modules import SFTPConnection
-from ..modules.auth import auth_manager
+from ..modules.app_context import app_context
 from ..modules.log.logger_factory import get_logger
 from ..modules.threaded.threaded_action import Threaded_action
 from ..modules.utilities import get_config_or_error
@@ -94,8 +94,8 @@ BTN_ACTION_UNPACK = "unpack"
 
 def get_settings_manager():
     """Get the global settings manager instance (initialized at startup)."""
-    from ..modules.settings import settings_manager
-    return settings_manager
+    from ..modules.app_context import app_context
+    return app_context.settings_manager
 
 
 class SETUP_Updater(Threaded_action):
@@ -645,11 +645,11 @@ def update():
 
     # Check if user is admin
     current_user_name = None
-    if auth_manager:
-        current_user_name = auth_manager.get_current_user()
+    if app_context.auth_manager:
+        current_user_name = app_context.auth_manager.get_current_user()
     user = None
-    if auth_manager and current_user_name:
-        user = auth_manager.get_user(current_user_name)
+    if app_context.auth_manager and current_user_name:
+        user = app_context.auth_manager.get_user(current_user_name)
     is_admin = user and "admin" in user.groups if user else False
     
     if is_admin and not ((getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"))):

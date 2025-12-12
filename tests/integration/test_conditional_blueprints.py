@@ -18,7 +18,7 @@ if str(src_dir) not in sys.path:
 def test_app_setup_minimal_features():
     """Test that app can be set up with minimal features."""
     from flask import Flask
-    from src.modules import site_conf
+    from src.modules.app_context import app_context
     from src.modules.site_conf import Site_conf
     
     # Create minimal config
@@ -30,10 +30,10 @@ def test_app_setup_minimal_features():
     app.config['TESTING'] = True
     app.config['SECRET_KEY'] = 'test'
     
-    # Set site_conf
+    # Set site_conf in app_context
     conf = MinimalConfig()
-    site_conf.site_conf_obj = conf
-    site_conf.site_conf_app_path = str(framework_dir)
+    app_context.site_conf = conf
+    app_context.app_path = str(framework_dir)
     
     # Check blueprints can be imported
     from src.pages import common
@@ -53,7 +53,7 @@ def test_app_setup_minimal_features():
 def test_app_setup_all_features():
     """Test that app can be set up with all features enabled."""
     from flask import Flask
-    from src.modules import site_conf
+    from src.modules.app_context import app_context
     from src.modules.site_conf import Site_conf
     
     # Create config with all features
@@ -67,10 +67,10 @@ def test_app_setup_all_features():
     app.config['TESTING'] = True
     app.config['SECRET_KEY'] = 'test'
     
-    # Set site_conf
+    # Set site_conf in app_context
     conf = FullConfig()
-    site_conf.site_conf_obj = conf
-    site_conf.site_conf_app_path = str(framework_dir)
+    app_context.site_conf = conf
+    app_context.app_path = str(framework_dir)
     
     # Check that all blueprints can be imported
     from src.pages import common, threads, logging, settings, user, admin

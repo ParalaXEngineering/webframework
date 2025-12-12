@@ -27,7 +27,7 @@ from ..modules.i18n.messages import (
 
 # Framework modules - core functionality
 from ..modules import displayer
-from ..modules.threaded import threaded_manager
+from ..modules.app_context import app_context
 
 # =============================================================================
 # Domain-Specific Constants (Threads Module)
@@ -91,7 +91,7 @@ def threads():
     disp.add_breadcrumb(TEXT_BREADCRUMB_THREADS, f"{BP_NAME}.{threads.__name__}", [])
     
     # Get thread manager instance
-    manager = threaded_manager.thread_manager_obj
+    manager = app_context.thread_manager
     
     # Handle POST requests (stop or force kill thread)
     if request.method == METHOD_POST:
@@ -177,7 +177,7 @@ def delete_thread():
     thread_name = request.args.get(PARAM_THREAD_NAME)
     
     if thread_name:
-        manager = threaded_manager.thread_manager_obj
+        manager = app_context.thread_manager
         if manager:
             # Check if thread is running
             thread = manager.get_thread(thread_name)

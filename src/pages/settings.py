@@ -149,8 +149,8 @@ SERIAL_PORT_NONE = "None"
 
 def get_manager():
     """Get the global settings manager instance (initialized at startup)."""
-    from ..modules.settings import settings_manager
-    return settings_manager
+    from ..modules.app_context import app_context
+    return app_context.settings_manager
 
 
 @bp.route("/", methods=["GET"])
@@ -372,11 +372,11 @@ def _view_settings(user_mode=False):
         if user_mode:
             # Save to user overrides
             try:
-                from ..modules.auth import auth_manager
-                if not auth_manager:
+                from ..modules.app_context import app_context
+                if not app_context.auth_manager:
                     flash(ERROR_AUTH_NOT_INIT, "danger")
                     return redirect(url_for('common.login'))
-                current_user = auth_manager.get_current_user()
+                current_user = app_context.auth_manager.get_current_user()
                 if not current_user:
                     flash(ERROR_NOT_LOGGED_IN, "danger")
                     return redirect(url_for('common.login'))
@@ -491,8 +491,8 @@ def _view_settings(user_mode=False):
                                     # For dicts (key_value_pairs, dropdown_mapping), already parsed correctly
                                     
                                     # Save to user override
-                                    if auth_manager:
-                                        auth_manager.set_user_framework_override(current_user, full_key, value)
+                                    if app_context.auth_manager:
+                                        app_context.auth_manager.set_user_framework_override(current_user, full_key, value)
                                         
                                         # Special handling for language change - update session immediately
                                         if full_key == "framework_ui.language":
@@ -506,8 +506,8 @@ def _view_settings(user_mode=False):
                 # Handle unchecked checkboxes - set to False
                 for bool_key in all_bool_settings:
                     if bool_key not in processed_settings:
-                        if auth_manager:
-                            auth_manager.set_user_framework_override(current_user, bool_key, False)
+                        if app_context.auth_manager:
+                            app_context.auth_manager.set_user_framework_override(current_user, bool_key, False)
                 
                 flash(MSG_SETTINGS_SAVED, "success")
                 # Stay on the same page - rebuild URL with category if present
@@ -738,11 +738,11 @@ def _view_settings(user_mode=False):
     user_overrides = {}
     if user_mode:
         try:
-            from ..modules.auth import auth_manager
-            if auth_manager:
-                current_user = auth_manager.get_current_user()
+            from ..modules.app_context import app_context
+            if app_context.auth_manager:
+                current_user = app_context.auth_manager.get_current_user()
                 if current_user:
-                    user_prefs = auth_manager.get_user_prefs(current_user)
+                    user_prefs = app_context.auth_manager.get_user_prefs(current_user)
                     user_overrides = user_prefs.get("framework_overrides", {})
         except Exception:
             pass

@@ -494,8 +494,9 @@ class Workflow:
             except Exception as e:
                 from .log.logger_factory import format_exception_html
                 self.m_logger.error(ERROR_WORKFLOW_ACTION_FAILED.format(error=format_exception_html(e)))
-                if scheduler.scheduler_obj:
-                    scheduler.scheduler_obj.emit_popup(
+                from .app_context import app_context
+                if app_context.scheduler:
+                    app_context.scheduler.emit_popup(
                         scheduler.logLevel.error,
                         ERROR_WORKFLOW_ACTION_FAILED.format(error=e)
                     )
@@ -588,9 +589,9 @@ class Workflow:
         
         # Check if there's a running thread with our workflow name
         try:
-            from . import threaded
-            if threaded.threaded_manager.thread_manager_obj:
-                manager = threaded.threaded_manager.thread_manager_obj
+            from .app_context import app_context
+            if app_context.thread_manager:
+                manager = app_context.thread_manager
                 # Look for a thread with our workflow name (threads should set m_name to include workflow name)
                 thread_name_pattern = f"{self.m_name}_thread"
                 running_threads = getattr(manager, 'm_running_threads', [])

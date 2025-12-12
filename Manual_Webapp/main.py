@@ -67,6 +67,7 @@ sys.path.insert(0, manual_webapp_root)
 from src.main import app, setup_app, FLASK_AVAILABLE
 from src.modules.log.logger_factory import get_logger
 from src.modules import site_conf
+from src.modules.app_context import app_context
 from src.modules.auth.auth_manager import AuthManager
 from src.modules.auth.permission_registry import permission_registry
 import src.modules.auth as auth_module
@@ -184,8 +185,8 @@ class TestSiteConf(site_conf.Site_conf):
 logger.info("Initializing manual test application using framework setup")
 
 # CRITICAL: Set app_path to Manual_Webapp root so config.json is loaded from Manual_Webapp/website/config.json
-site_conf.site_conf_obj = TestSiteConf()
-site_conf.site_conf_app_path = manual_webapp_root
+app_context.site_conf = TestSiteConf()
+app_context.app_path = manual_webapp_root
 
 # IMPORTANT: Change working directory to framework root for templates/static/translations resolution
 # The framework's Flask app is configured to use framework_root/templates, framework_root/webengine,

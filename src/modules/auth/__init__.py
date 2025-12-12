@@ -16,9 +16,10 @@ from .auth_manager import AuthManager
 from .auth_models import User
 from .permission_registry import PermissionRegistry, PERMISSION_ACTION_VIEW
 from .rate_limiter import login_rate_limiter
+from ..app_context import app_context
 
 __all__ = [
-    'AuthManager', 'PermissionRegistry', 'User', 'auth_manager',
+    'AuthManager', 'PermissionRegistry', 'User',
     'require_permission', 'require_admin', 'require_login', 'login_rate_limiter'
 ]
 
@@ -27,9 +28,6 @@ DEFAULT_ACTION = PERMISSION_ACTION_VIEW  # Default permission action for all mod
 ADMIN_GROUP = "admin"
 ROUTE_LOGIN = 'common.login'
 SESSION_USER_KEY = 'user'
-
-# Global auth_manager instance (initialized by main.py when auth is enabled)
-auth_manager = None
 
 
 def require_permission(module: str, action: str = DEFAULT_ACTION):
@@ -61,7 +59,7 @@ def require_permission(module: str, action: str = DEFAULT_ACTION):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             # If auth is disabled, allow access
-            if auth_manager is None:
+            if app_context.auth_manager is None:
                 return f(*args, **kwargs)
             
             # Auth is enabled - check permission
@@ -69,7 +67,7 @@ def require_permission(module: str, action: str = DEFAULT_ACTION):
             if not current_user:
                 return redirect(url_for(ROUTE_LOGIN))
             
-            if not auth_manager.has_permission(current_user, module, action):
+            if not app_context.auth_manager.has_permission(current_user, module, action):
                 # User is logged in but lacks permission - show access denied
                 try:
                     from modules.displayer import (
@@ -126,7 +124,8 @@ def require_admin():
         @wraps(f)
         def decorated_function(*args, **kwargs):
             # If auth is disabled, allow access
-            if auth_manager is None:
+            from ..app_context import app_context
+            if app_context.auth_manager is None:
                 return f(*args, **kwargs)
             
             # Auth is enabled - check admin group
@@ -135,7 +134,7 @@ def require_admin():
                 return redirect(url_for(ROUTE_LOGIN))
             
             # Check if user is in admin group
-            user_obj = auth_manager.get_user(current_user)
+            user_obj = app_context.auth_manager.get_user(current_user)
             if not user_obj or ADMIN_GROUP not in user_obj.groups:
                 # User is logged in but not admin - show access denied
                 try:
@@ -192,7 +191,8 @@ def require_login():
         @wraps(f)
         def decorated_function(*args, **kwargs):
             # If auth is disabled, allow access
-            if auth_manager is None:
+            from ..app_context import app_context
+            if app_context.auth_manager is None:
                 return f(*args, **kwargs)
             
             # Auth is enabled - check if user is logged in

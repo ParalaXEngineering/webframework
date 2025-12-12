@@ -7,10 +7,6 @@ from .message_queue import MessageQueue, MessageType
 from .emitter import MessageEmitter
 from .scheduler import Scheduler, Scheduler_LongTerm, logLevel
 
-# Global scheduler objects (initialized by main application)
-scheduler_obj = None
-scheduler_ltobj = None
-
 __all__ = [
     'MessageQueue',
     'MessageType',
@@ -18,6 +14,4 @@ __all__ = [
     'Scheduler',
     'Scheduler_LongTerm',
     'logLevel',
-    'scheduler_obj',
-    'scheduler_ltobj',
 ]

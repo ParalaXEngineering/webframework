@@ -31,7 +31,7 @@ except ImportError:
     FLASK_AVAILABLE = False
 
 from src.modules import scheduler
-from src.modules import site_conf
+from src.modules.app_context import app_context
 from src.modules.log.logger_factory import format_exception_html, get_logger
 from src.modules.socketio_manager import initialize_socketio_manager
 from src.modules.threaded import threaded_manager
@@ -204,8 +204,8 @@ def setup_app(app):
         app_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     # Ensure required default assets exist (favicon, default avatar)
-    # Use site_conf_app_path if set (instance path), otherwise use app_path
-    instance_path = site_conf.site_conf_app_path if site_conf.site_conf_app_path else app_path
+    # Use app_path from app_context if set (instance path), otherwise use local app_path
+    instance_path = app_context.app_path if app_context.app_path else app_path
     _ensure_default_assets(instance_path, app_path, logger)
 
     # Get all Python files in the website pages directory (if it exists)
@@ -232,19 +232,20 @@ def setup_app(app):
 
     # Import site_conf FIRST (before any feature-dependent initialization)
     # Only set if not already configured (e.g., by test setup)
-    if site_conf.site_conf_obj is None:
+    from src.modules.site_conf import Site_conf
+    if app_context.site_conf is None:
         try:
-            site_conf.site_conf_obj = importlib.import_module(WEBSITE_SITE_CONF_PATH).ExampleSiteConf()
-            site_conf.site_conf_app_path = app_path
+            app_context.site_conf = importlib.import_module(WEBSITE_SITE_CONF_PATH).ExampleSiteConf()
+            app_context.app_path = app_path
             logger.debug("Loaded website.site_conf")
         except (ModuleNotFoundError, AttributeError) as e:
             logger.debug("No website.site_conf found - using default Site_conf: %s", e)
-            site_conf.site_conf_obj = site_conf.Site_conf()
+            app_context.site_conf = Site_conf()
     else:
-        logger.debug("Using pre-configured site_conf: %s", type(site_conf.site_conf_obj).__name__)
+        logger.debug("Using pre-configured site_conf: %s", type(app_context.site_conf).__name__)
     
     # Get site configuration for feature flags
-    site_config = site_conf.site_conf_obj
+    site_config = app_context.site_conf
 
     # Auto-discover and register framework internal pages
     from src import pages as pages_module
@@ -299,37 +300,34 @@ def setup_app(app):
             logger.debug("Failed to register blueprint for %s: %s", page_name, e)
 
     # Initialize auth manager conditionally based on feature flag
-    # Import the auth module (not the auth_manager variable)
-    from src.modules import auth as auth_manager_module
     from src.modules.auth.auth_manager import AuthManager
     
     if site_config.m_enable_authentication:
         # Check if auth_manager was already configured by the calling application
-        if auth_manager_module.auth_manager is None:
-            # Use site_conf_app_path if set, otherwise fall back to app_path
-            auth_base_path = site_conf.site_conf_app_path if site_conf.site_conf_app_path else app_path
+        if app_context.auth_manager is None:
+            # Use app_path from app_context if set, otherwise fall back to app_path
+            auth_base_path = app_context.app_path if app_context.app_path else app_path
             auth_manager_instance = AuthManager(auth_dir=os.path.join(auth_base_path, WEBSITE_AUTH_PATH))
-            auth_manager_module.auth_manager = auth_manager_instance
+            app_context.auth_manager = auth_manager_instance
             
-            # Also update the local module reference so the inject_endpoint function can access it
+            # Also update the local module reference for backward compatibility
             globals()['auth_manager'] = auth_manager_instance
             
             logger.debug("Auth manager initialized")
         else:
             # Auth manager was pre-configured by calling application
-            globals()['auth_manager'] = auth_manager_module.auth_manager
+            globals()['auth_manager'] = app_context.auth_manager
             logger.debug("Auth manager already configured, using existing instance")
     else:
-        auth_manager_module.auth_manager = None
+        app_context.auth_manager = None
         globals()['auth_manager'] = None
         logger.debug("Auth manager disabled")
     
     # Initialize settings manager (always enabled, needed for framework config)
-    from src.modules import settings as settings_module
     from src.modules.settings import SettingsManager
     
-    # Use site_conf_app_path if set, otherwise fall back to local app_path
-    config_base_path = site_conf.site_conf_app_path if site_conf.site_conf_app_path else app_path
+    # Use app_path from app_context if set, otherwise fall back to local app_path
+    config_base_path = app_context.app_path if app_context.app_path else app_path
     config_path = os.path.join(config_base_path, WEBSITE_CONFIG_PATH)
     settings_manager_instance = SettingsManager(config_path)
     settings_manager_instance.load()
@@ -338,7 +336,7 @@ def setup_app(app):
     if site_config:
         settings_manager_instance.merge_optional_configs(site_config)
     
-    settings_module.settings_manager = settings_manager_instance
+    app_context.settings_manager = settings_manager_instance
     globals()['settings_manager'] = settings_manager_instance
     logger.debug("Settings manager initialized with config: %s", config_path)
 
@@ -367,28 +365,28 @@ def setup_app(app):
         scheduler_thread = threading.Thread(target=scheduler_obj.start, daemon=True)
         scheduler_thread.start()
 
-        scheduler.scheduler_obj = scheduler_obj
+        app_context.scheduler = scheduler_obj
         logger.debug("Scheduler initialized")
     else:
-        scheduler.scheduler_obj = None
+        app_context.scheduler = None
         logger.debug("Scheduler disabled")
 
     # Conditionally initialize long term scheduler based on feature flag
     if site_config.m_enable_long_term_scheduler:
         scheduler_lt = scheduler.Scheduler_LongTerm()
         scheduler_lt.start()
-        scheduler.scheduler_ltobj = scheduler_lt
+        app_context.scheduler_lt = scheduler_lt
         logger.debug("Long-term scheduler initialized")
     else:
-        scheduler.scheduler_ltobj = None
+        app_context.scheduler_lt = None
         logger.debug("Long-term scheduler disabled")
 
     # Conditionally initialize thread manager based on feature flag
     if site_config.m_enable_threads:
-        threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
+        app_context.thread_manager = threaded_manager.Threaded_manager()
         logger.debug("Thread manager initialized")
     else:
-        threaded_manager.thread_manager_obj = None
+        app_context.thread_manager = None
         logger.debug("Thread manager disabled")
 
     # Conditionally initialize log emitter for real-time log viewing
@@ -436,25 +434,25 @@ def setup_app(app):
     if site_config.m_enable_scheduler:
         @socketio_obj.on("user_connected")  # type: ignore
         def connect():
-            if scheduler.scheduler_obj:
-                scheduler.scheduler_obj.m_user_connected = True  # type: ignore
+            if app_context.scheduler:
+                app_context.scheduler.m_user_connected = True  # type: ignore
 
     # Set scheduler_obj and register functions (site_conf already loaded earlier)
     # Only set scheduler_obj if scheduler is enabled
-    if site_config.m_enable_scheduler and scheduler.scheduler_obj:
-        site_conf.site_conf_obj.m_scheduler_obj = scheduler.scheduler_obj
+    if site_config.m_enable_scheduler and app_context.scheduler:
+        app_context.site_conf.m_scheduler_obj = app_context.scheduler
 
     # Register long term functions from the site config (if LT scheduler is enabled)
     if site_config.m_enable_long_term_scheduler:
-        site_conf.site_conf_obj.register_scheduler_lt_functions()
+        app_context.site_conf.register_scheduler_lt_functions()
 
     @socketio_obj.server.on("*")  # type: ignore
     def catch_all(event, sid, *args):
-        site_conf.site_conf_obj.socketio_event(event, args)  # type: ignore
+        app_context.site_conf.socketio_event(event, args)  # type: ignore
 
     @app.context_processor  # type: ignore
     def inject_bar():
-        custom_context = site_conf.site_conf_obj.context_processor()  # type: ignore
+        custom_context = app_context.site_conf.context_processor()  # type: ignore
         
         # Get current user for applying overrides
         user = session.get('user')  # type: ignore
@@ -464,11 +462,11 @@ def setup_app(app):
         # Apply user overrides to topbar if needed
         # Deep copy topbar to avoid modifying the original
         topbar_items = {
-            "display": site_conf.site_conf_obj.m_topbar["display"],  # type: ignore
-            "login": site_conf.site_conf_obj.m_topbar["login"],  # type: ignore
-            "left": site_conf.site_conf_obj.m_topbar["left"].copy(),  # type: ignore
-            "center": site_conf.site_conf_obj.m_topbar["center"].copy(),  # type: ignore
-            "right": site_conf.site_conf_obj.m_topbar["right"].copy()  # type: ignore
+            "display": app_context.site_conf.m_topbar["display"],  # type: ignore
+            "login": app_context.site_conf.m_topbar["login"],  # type: ignore
+            "left": app_context.site_conf.m_topbar["left"].copy(),  # type: ignore
+            "center": app_context.site_conf.m_topbar["center"].copy(),  # type: ignore
+            "right": app_context.site_conf.m_topbar["right"].copy()  # type: ignore
         }
         
         # Only apply overrides if user is logged in with auth enabled
@@ -502,7 +500,7 @@ def setup_app(app):
                         topbar_items[target_position].append(thread_item)
         
         # Filter sidebar items for guest users
-        sidebar_items = site_conf.site_conf_obj.m_sidebar.copy()  # type: ignore
+        sidebar_items = app_context.site_conf.m_sidebar.copy()  # type: ignore
         is_guest = user and user.upper() == 'GUEST'
         
         if is_guest and auth_manager is not None:
@@ -531,11 +529,11 @@ def setup_app(app):
         base_context = dict(
             sidebarItems=sidebar_items,
             topbarItems=topbar_items,
-            app=site_conf.site_conf_obj.m_app,  # type: ignore
-            javascript=site_conf.site_conf_obj.m_javascripts,  # type: ignore
+            app=app_context.site_conf.m_app,  # type: ignore
+            javascript=app_context.site_conf.m_javascripts,  # type: ignore
             filename=None,
-            title=site_conf.site_conf_obj.m_app["name"],  # type: ignore
-            footer=site_conf.site_conf_obj.m_app["footer"]  # type: ignore
+            title=app_context.site_conf.m_app["name"],  # type: ignore
+            footer=app_context.site_conf.m_app["footer"]  # type: ignore
         )
         # Merge custom context from site_conf (like enable_easter_eggs) with base context
         if custom_context:
@@ -621,7 +619,7 @@ def setup_app(app):
     @app.route("/")  # type: ignore
     def framework_index():
         session["page_info"] = "index"  # type: ignore
-        return render_template("index.j2", title=site_conf.site_conf_obj.m_app["name"], content=site_conf.site_conf_obj.m_index)  # type: ignore
+        return render_template("index.j2", title=app_context.site_conf.m_app["name"], content=app_context.site_conf.m_index)  # type: ignore
 
     # Handle Chrome DevTools and browser-specific requests to avoid 404 logs
     @app.route('/.well-known/appspecific/com.chrome.devtools.json')  # type: ignore
@@ -693,8 +691,8 @@ def setup_app(app):
         g.start_time = time.time()  # type: ignore
 
         # Only update scheduler if it's enabled
-        if scheduler.scheduler_obj is not None:
-            scheduler.scheduler_obj.m_user_connected = False  # type: ignore
+        if app_context.scheduler is not None:
+            app_context.scheduler.m_user_connected = False  # type: ignore
         
         if request.endpoint == "static":  # type: ignore
             return
@@ -707,8 +705,8 @@ def setup_app(app):
             if request.endpoint not in ['common.login', 'admin_auth.api_login']:
                 session.permanent = True
                 # Check if login is enabled
-                if site_conf.site_conf_obj and hasattr(site_conf.site_conf_obj, 'm_topbar'):
-                    if site_conf.site_conf_obj.m_topbar.get('login', False):
+                if app_context.site_conf and hasattr(app_context.site_conf, 'm_topbar'):
+                    if app_context.site_conf.m_topbar.get('login', False):
                         # Login enabled: default to GUEST if not logged in
                         session['user'] = DEFAULT_USER
                     else:

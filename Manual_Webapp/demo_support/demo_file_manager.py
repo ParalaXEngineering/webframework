@@ -8,7 +8,8 @@ from flask import Blueprint, render_template, session, request
 from src.modules import displayer
 from src.modules.file_manager import FileManager
 from src.modules import settings
-from src.modules.auth import require_permission, auth_manager
+from src.modules.auth import require_permission
+from src.modules.app_context import app_context
 import logging
 
 logger = logging.getLogger(__name__)
@@ -60,9 +61,9 @@ def file_manager_demo():
     
     # Check if user has upload permission for UI display
     has_upload_permission = True
-    if auth_manager:
+    if app_context.auth_manager:
         current_user = session.get('user')
-        has_upload_permission = auth_manager.has_permission(current_user, "FileManager", "upload")
+        has_upload_permission = app_context.auth_manager.has_permission(current_user, "FileManager", "upload")
     
     # Section 1: Full Upload (user selects everything)
     disp.add_master_layout(

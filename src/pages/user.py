@@ -68,7 +68,7 @@ from ..modules.displayer import (
 from ..modules.auth.auth_utils import verify_password, validate_password_strength
 from ..modules import utilities
 from ..modules.log.logger_factory import get_logger
-from ..modules.auth import auth_manager
+from ..modules.app_context import app_context
 
 logger = get_logger("user_profile")
 
@@ -129,12 +129,12 @@ def profile():
     # Auth manager is required for this page
     # NOTE: This check should never fail in normal operation since this page
     # is only added to sidebar when authentication is enabled via site_conf
-    if not auth_manager:
+    if not app_context.auth_manager:
         logger.error(f"{ERROR_AUTH_NOT_INIT} - this should not happen")
         return ERROR_AUTH_NOT_INIT, 500
     
     # Get current user
-    current_user = auth_manager.get_current_user()
+    current_user = app_context.auth_manager.get_current_user()
     if not current_user:
         return redirect(url_for(ROUTE_LOGIN))
     
@@ -153,7 +153,7 @@ def profile():
         ), column=0)
         return render_template("base_content.j2", content=disp.display())
     
-    user = auth_manager.get_user(current_user)
+    user = app_context.auth_manager.get_user(current_user)
     if not user:
         return redirect(url_for(ROUTE_LOGIN))
     
@@ -176,7 +176,7 @@ def profile():
                 email = module_data.get(FORM_FIELD_EMAIL, "").strip()
                 
                 if display_name:
-                    auth_manager.update_user_info(current_user, display_name=display_name, email=email or None)
+                    app_context.auth_manager.update_user_info(current_user, display_name=display_name, email=email or None)
                     flash(MSG_PROFILE_UPDATED, "success")
                 else:
                     flash(MSG_DISPLAY_NAME_EMPTY, "danger")
@@ -198,14 +198,14 @@ def profile():
                     if not is_valid:
                         flash(error_msg or MSG_PASSWORD_INVALID, "danger")
                     else:
-                        auth_manager.update_user_password(current_user, new_password)
+                        app_context.auth_manager.update_user_password(current_user, new_password)
                         flash(MSG_PASSWORD_CHANGED, "success")
             
             # Note: Avatar upload is now handled by simple-upload endpoint via FilePond
             # The file is saved directly to website/assets/images/users/{username}.ext
         
         # Reload user data
-        user = auth_manager.get_user(current_user)
+        user = app_context.auth_manager.get_user(current_user)
     
     if not user:
         flash(MSG_USER_NOT_FOUND, "danger")

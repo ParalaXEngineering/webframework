@@ -30,21 +30,22 @@ from src.modules import scheduler
 @pytest.fixture(autouse=True)
 def setup_thread_manager():
     """Initialize thread manager before each test"""
-    import src.modules.threaded.threaded_manager as tm_module
-    tm_module.thread_manager_obj = Threaded_manager()
+    from src.modules.app_context import app_context
+    app_context.thread_manager = Threaded_manager()
     yield
     # Cleanup after test - kill all threads
-    if tm_module.thread_manager_obj:
-        tm_module.thread_manager_obj.kill_all_threads()
+    if app_context.thread_manager:
+        app_context.thread_manager.kill_all_threads()
         time.sleep(0.2)  # Give threads time to stop
 
 
 @pytest.fixture(autouse=True)
 def setup_scheduler():
     """Initialize scheduler before each test"""
-    if scheduler.scheduler_obj is None:
+    from src.modules.app_context import app_context
+    if app_context.scheduler is None:
         from src.modules.scheduler.scheduler import Scheduler
-        scheduler.scheduler_obj = Scheduler()
+        app_context.scheduler = Scheduler()
     yield
 
 
@@ -170,8 +171,8 @@ def test_thread_name_change():
 
 def test_thread_deletion():
     """Test thread deletion and cleanup"""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     assert manager is not None
     
     thread = SimpleThread()
@@ -443,8 +444,8 @@ def test_process_close():
 
 def test_thread_manager_add():
     """Test adding threads to manager"""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     assert manager is not None
     
     initial_count = manager.get_thread_count()
@@ -458,8 +459,8 @@ def test_thread_manager_add():
 
 def test_thread_manager_get_all():
     """Test getting all threads"""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     assert manager is not None
     
     thread1 = SimpleThread()
@@ -474,8 +475,8 @@ def test_thread_manager_get_all():
 
 def test_thread_manager_get_by_name():
     """Test getting threads by name"""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     assert manager is not None
     
     thread1 = SimpleThread()
@@ -492,8 +493,8 @@ def test_thread_manager_get_by_name():
 
 def test_thread_manager_unique_names():
     """Test getting unique thread names"""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     assert manager is not None
     
     thread1 = SimpleThread()
@@ -509,8 +510,8 @@ def test_thread_manager_unique_names():
 
 def test_thread_manager_stats():
     """Test thread manager statistics"""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     assert manager is not None
     
     # Create threads but don't start them (avoid hanging)
@@ -533,8 +534,8 @@ def test_thread_manager_stats():
 
 def test_thread_manager_delete():
     """Test deleting threads from manager"""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     assert manager is not None
     
     thread = SimpleThread()
@@ -569,8 +570,8 @@ def test_multiple_threads_concurrent():
 
 def test_thread_lifecycle():
     """Test complete thread lifecycle"""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     
     # Create
     thread = SimpleThread()
@@ -637,8 +638,8 @@ def test_thread_manager_custom_timeout():
 
 def test_thread_manager_add_duplicate():
     """Test that adding duplicate thread doesn't create duplicates."""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     
     thread = SimpleThread()
     count_after_init = manager.get_thread_count()
@@ -652,8 +653,8 @@ def test_thread_manager_add_duplicate():
 
 def test_thread_manager_completed_history():
     """Test that completed threads are archived."""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     
     thread = SimpleThread()
     initial_history_count = len(manager.get_completed_threads())
@@ -684,8 +685,8 @@ def test_thread_manager_history_limit():
 
 def test_thread_manager_get_all_threads_with_history():
     """Test getting both running and completed threads."""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     
     thread1 = SimpleThread()
     thread2 = SimpleThread()
@@ -699,8 +700,8 @@ def test_thread_manager_get_all_threads_with_history():
 
 def test_thread_manager_get_names():
     """Test getting all thread names (with duplicates)."""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     
     thread1 = SimpleThread()
     thread2 = SimpleThread()
@@ -716,8 +717,8 @@ def test_thread_manager_get_names():
 
 def test_thread_manager_kill_all():
     """Test killing all threads."""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     
     # Create some threads
     thread1 = SimpleThread()
@@ -738,8 +739,8 @@ def test_thread_manager_kill_all():
 
 def test_thread_manager_thread_safe():
     """Test thread-safe operations on manager."""
-    import src.modules.threaded.threaded_manager as tm_module
-    manager = tm_module.thread_manager_obj
+    from src.modules.app_context import app_context
+    manager = app_context.thread_manager
     import threading
     
     threads_created = []

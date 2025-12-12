@@ -35,7 +35,7 @@ from ..modules.i18n.messages import (
 
 # Local modules
 from ..modules.log.logger_factory import get_logger
-from ..modules.auth import auth_manager
+from ..modules.app_context import app_context
 
 logger = get_logger(__name__)
 
@@ -108,7 +108,7 @@ def _require_permission(permission_module: str, permission_action: str = PERMISS
     Returns:
         bool: True if permitted, False otherwise
     """
-    if not auth_manager:
+    if not app_context.auth_manager:
         # No auth system = allow access (for development/testing)
         logger.warning(f"Permission check for {permission_module}.{permission_action} - auth system not available, allowing access")
         return True
@@ -118,7 +118,7 @@ def _require_permission(permission_module: str, permission_action: str = PERMISS
         logger.warning(f"Permission check for {permission_module}.{permission_action} - no user in session")
         return False
     
-    has_perm = auth_manager.has_permission(current_user, permission_module, permission_action)
+    has_perm = app_context.auth_manager.has_permission(current_user, permission_module, permission_action)
     if not has_perm:
         logger.info(f"Permission denied: user '{current_user}' lacks '{permission_action}' permission for '{permission_module}'")
     
@@ -235,7 +235,6 @@ def simple_upload():
     import os
     import re
     from PIL import Image
-    from ..modules import site_conf
     
     # Get file from request
     if FORM_FIELD_FILE not in request.files:
@@ -280,7 +279,7 @@ def simple_upload():
         final_name = re.sub(FILENAME_SAFE_PATTERN, FILENAME_SAFE_REPLACEMENT, original_filename)
     
     # Build destination path
-    app_path = site_conf.site_conf_app_path or os.getcwd()
+    app_path = app_context.app_path or os.getcwd()
     dest_dir = os.path.join(app_path, PATH_ASSET_DIRECTORY, PATH_ASSET_SUBDIRECTORY, upload_path)
     os.makedirs(dest_dir, exist_ok=True)
     dest_path = os.path.join(dest_dir, final_name)

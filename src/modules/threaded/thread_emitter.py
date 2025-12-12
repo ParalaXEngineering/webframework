@@ -100,7 +100,8 @@ class ThreadEmitter:
     
     def _emit_thread_update(self):
         """Collect and emit current thread status as HTML to each user's room."""
-        manager = threaded_manager.thread_manager_obj
+        from ..app_context import app_context
+        manager = app_context.thread_manager
         if not manager:
             self.logger.debug("Thread manager not initialized")
             return

@@ -36,10 +36,6 @@ from src.modules.i18n.messages import (
 
 logger = get_logger("site_conf")
 
-# Module-level state
-site_conf_obj = None
-site_conf_app_path = None
-
 # Sidebar endpoints (technical identifiers - domain-specific)
 ENDPOINT_USER = "user"
 ENDPOINT_ADMIN = "admin"
@@ -360,9 +356,10 @@ class Site_conf:
         """
         Register all the functions that are set in the m_scheduler_lt_functions, which must be populated by the child class
         """
-        if scheduler.scheduler_ltobj:
+        from .app_context import app_context
+        if app_context.scheduler_lt:
             for func in self.m_scheduler_lt_functions:
-                scheduler.scheduler_ltobj.register_function(func[0], func[1])
+                app_context.scheduler_lt.register_function(func[0], func[1])
 
     def add_sidebar_title(self, title: str):
         """Add a sidebar title, which can logically seperate several parts of the sidebar
@@ -714,9 +711,9 @@ class Site_conf:
             # Try to get user override first
             if username:
                 try:
-                    from .auth import auth_manager as auth_mgr_module
-                    if hasattr(auth_mgr_module, 'auth_manager') and auth_mgr_module.auth_manager:  # type: ignore[attr-defined]
-                        override = auth_mgr_module.auth_manager.get_user_framework_override(  # type: ignore[attr-defined]
+                    from .app_context import app_context
+                    if app_context.auth_manager:
+                        override = app_context.auth_manager.get_user_framework_override(
                             username, f"framework_ui.{key}"
                         )
                         if override is not None:

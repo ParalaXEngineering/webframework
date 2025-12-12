@@ -6,14 +6,12 @@ This package contains:
 - thread_emitter: Real-time thread status emission via SocketIO
 """
 
-from .thread_emitter import ThreadEmitter, thread_emitter_obj
+from .thread_emitter import ThreadEmitter
 from .threaded_action import Threaded_action
-from .threaded_manager import Threaded_manager, thread_manager_obj
+from .threaded_manager import Threaded_manager
 
 __all__ = [
     'Threaded_action',
     'Threaded_manager',
-    'thread_manager_obj',
     'ThreadEmitter',
-    'thread_emitter_obj',
 ]

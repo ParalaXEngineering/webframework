@@ -10,8 +10,6 @@ from typing import Any, Dict, List, Optional
 from .core import Layouts, ResourceRegistry
 from .layout import DisplayerLayout
 
-from src.modules.auth import auth_manager as auth_manager_module
-
 from src.modules.log.logger_factory import get_logger
 
 from src.modules.i18n.messages import (
@@ -107,8 +105,9 @@ class Displayer:
         required_permission = getattr(module, 'm_required_permission', None)
         required_action = getattr(module, 'm_required_action', 'view')
         
-        # Get the current auth_manager instance from the module (not the import-time value)
-        auth_manager = auth_manager_module.auth_manager if auth_manager_module else None
+        # Get the current auth_manager instance from app_context
+        from ..app_context import app_context
+        auth_manager = app_context.auth_manager
         
         logger.info(f"[Displayer] Module: {default_name}, required_permission={required_permission}, required_action={required_action}")
         logger.info(f"[Displayer] auth_manager={auth_manager}, session available={session is not None}")

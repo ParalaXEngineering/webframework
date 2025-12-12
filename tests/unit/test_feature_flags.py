@@ -119,8 +119,8 @@ def test_scheduler_null_check():
     assert "def before_request():" in main_py
     
     # Verify that scheduler access is guarded by a None check
-    # Look for pattern: if scheduler.scheduler_obj is not None:
-    assert "if scheduler.scheduler_obj is not None:" in main_py, \
+    # Look for pattern: if app_context.scheduler is not None:
+    assert "if app_context.scheduler is not None:" in main_py, \
         "Scheduler access in before_request should check for None"
     
     # Verify the m_user_connected assignment is after the check
@@ -129,9 +129,9 @@ def test_scheduler_null_check():
     user_connected_line = None
     
     for i, line in enumerate(lines):
-        if 'if scheduler.scheduler_obj is not None:' in line:
+        if 'if app_context.scheduler is not None:' in line:
             scheduler_check_line = i
-        if 'scheduler.scheduler_obj.m_user_connected = False' in line and scheduler_check_line:
+        if 'app_context.scheduler.m_user_connected = False' in line and scheduler_check_line:
             # Check if this line comes after the None check
             if i > scheduler_check_line:
                 user_connected_line = i

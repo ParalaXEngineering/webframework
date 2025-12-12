@@ -34,15 +34,14 @@ def get_locale():
     
     # Priority 2 & 3: Try to get from settings (user override or global)
     try:
-        from ..auth import auth_manager
-        from ..settings import settings_manager
+        from ..app_context import app_context
         
-        if settings_manager:
+        if app_context.settings_manager:
             # Try user override first (if authenticated)
-            if auth_manager:
-                current_user = auth_manager.get_current_user()
+            if app_context.auth_manager:
+                current_user = app_context.auth_manager.get_current_user()
                 if current_user and current_user.upper() != 'GUEST':
-                    lang_override = auth_manager.get_user_framework_override(
+                    lang_override = app_context.auth_manager.get_user_framework_override(
                         current_user, "framework_ui.language"
                     )
                     if lang_override:
@@ -51,7 +50,7 @@ def get_locale():
             
             # Fall back to global setting
             try:
-                global_lang = settings_manager.get_setting("framework_ui.language")
+                global_lang = app_context.settings_manager.get_setting("framework_ui.language")
                 if global_lang:
                     print(f"[i18n] ✓ Locale from global setting: {global_lang}")
                     return global_lang

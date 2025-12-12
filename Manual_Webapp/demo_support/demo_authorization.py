@@ -6,7 +6,8 @@ Interactive demo of the framework's authorization system.
 
 from flask import Blueprint, render_template, session, url_for
 from src.modules import displayer
-from src.modules.auth import require_permission, require_admin, auth_manager
+from src.modules.auth import require_permission, require_admin
+from src.modules.app_context import app_context
 from src.modules.auth.permission_registry import permission_registry
 from src.modules.log.logger_factory import get_logger
 
@@ -40,11 +41,11 @@ def index():
     ), 0)
     
     # Current user info
-    if auth_manager:
-        user_obj = auth_manager.get_user(current_user)
+    if app_context.auth_manager:
+        user_obj = app_context.auth_manager.get_user(current_user)
         if user_obj:
             groups_str = ', '.join(user_obj.groups) if user_obj.groups else 'None'
-            demo_permissions = auth_manager.get_user_permissions(current_user, "Demo_Auth")
+            demo_permissions = app_context.auth_manager.get_user_permissions(current_user, "Demo_Auth")
             perms_str = ', '.join(demo_permissions) if demo_permissions else 'None'
             
             disp.add_master_layout(displayer.DisplayerLayout(
@@ -141,19 +142,19 @@ def test_delete():
         subtitle="Inline Permission Checks"
     ))
     
-    inline_code = '''from src.modules.auth import auth_manager
+    inline_code = '''from src.modules.app_context import app_context
 
 current_user = session.get("user")
 
 # Runtime check
-if auth_manager and not auth_manager.has_permission(current_user, "Module", "action"):
+if app_context.auth_manager and not app_context.auth_manager.has_permission(current_user, "Module", "action"):
     return "No permission"'''
     
     disp.add_display_item(displayer.DisplayerItemCode("code_inline", inline_code, language="python"), 0)
     
     # Live check results
-    can_edit = auth_manager.has_permission(current_user, "Demo_Auth", "edit") if auth_manager else True
-    can_delete = auth_manager.has_permission(current_user, "Demo_Auth", "delete") if auth_manager else True
+    can_edit = app_context.auth_manager.has_permission(current_user, "Demo_Auth", "edit") if app_context.auth_manager else True
+    can_delete = app_context.auth_manager.has_permission(current_user, "Demo_Auth", "delete") if app_context.auth_manager else True
     
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.TABLE,
@@ -414,20 +415,20 @@ def inline_check_demo():
     
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
     
-    code = '''from src.modules.auth import auth_manager
+    code = '''from src.modules.app_context import app_context
 
 current_user = session.get("user")
 
-has_edit = auth_manager.has_permission(current_user, "Demo_Auth", "edit")
-has_delete = auth_manager.has_permission(current_user, "Demo_Auth", "delete")
+has_edit = app_context.auth_manager.has_permission(current_user, "Demo_Auth", "edit")
+has_delete = app_context.auth_manager.has_permission(current_user, "Demo_Auth", "delete")
 
 # Customize response based on permissions'''
     disp.add_display_item(displayer.DisplayerItemCode("code_inline_demo", code, language="python"), 0)
     
     # Perform checks
-    has_view = auth_manager.has_permission(current_user, "Demo_Auth", "view") if auth_manager else True
-    has_edit = auth_manager.has_permission(current_user, "Demo_Auth", "edit") if auth_manager else True
-    has_delete = auth_manager.has_permission(current_user, "Demo_Auth", "delete") if auth_manager else True
+    has_view = app_context.auth_manager.has_permission(current_user, "Demo_Auth", "view") if app_context.auth_manager else True
+    has_edit = app_context.auth_manager.has_permission(current_user, "Demo_Auth", "edit") if app_context.auth_manager else True
+    has_delete = app_context.auth_manager.has_permission(current_user, "Demo_Auth", "delete") if app_context.auth_manager else True
     
     disp.add_master_layout(displayer.DisplayerLayout(
         displayer.Layouts.TABLE,

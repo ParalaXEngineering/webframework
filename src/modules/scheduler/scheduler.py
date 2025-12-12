@@ -137,10 +137,11 @@ class Scheduler:
         """
         # Try to find the Threaded_action instance that owns this thread
         try:
-            if threaded_manager.thread_manager_obj:
+            from ..app_context import app_context
+            if app_context.thread_manager:
                 current_thread = threading.current_thread()
                 # Search for the Threaded_action whose m_thread_action matches current thread
-                running_threads = cast(List[Any], threaded_manager.thread_manager_obj.m_running_threads)
+                running_threads = cast(List[Any], app_context.thread_manager.m_running_threads)
                 if running_threads:
                     for action in running_threads:
                         if hasattr(action, 'm_thread_action') and action.m_thread_action == current_thread:
@@ -376,10 +377,11 @@ class Scheduler:
 
                 # Thread information
                 thread_info = []
-                if threaded_manager.thread_manager_obj:
-                    threads_names = cast(list, threaded_manager.thread_manager_obj.get_unique_names())
+                from ..app_context import app_context
+                if app_context.thread_manager:
+                    threads_names = cast(list, app_context.thread_manager.get_unique_names())
                     for name in threads_names:
-                        current_thread = threaded_manager.thread_manager_obj.get_threads_by_name(name)
+                        current_thread = app_context.thread_manager.get_threads_by_name(name)
                         for i, thread in enumerate(current_thread):
                             thread_info.append({
                                 "name": f"{name} #{i+1}" if len(current_thread) > 1 else name,

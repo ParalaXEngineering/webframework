@@ -7,10 +7,6 @@ __all__ = [
     'SettingsStorage',
     'SettingsManager',
     'SettingNotFoundError',
-    'settings_manager',  # Global singleton instance
 ]
-
-# Global settings manager instance (initialized by framework at startup)
-settings_manager = None
 
 

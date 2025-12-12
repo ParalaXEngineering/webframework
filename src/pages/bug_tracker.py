@@ -15,7 +15,7 @@ from redminelib import Redmine
 import redminelib
 
 from ..modules import User_defined_module, displayer, site_conf, utilities
-from ..modules.auth import auth_manager
+from ..modules.app_context import app_context
 from ..modules.constants import USER_GUEST_NAME
 from ..modules.i18n.messages import (
     ERROR_BUG_ISSUE_NOT_FOUND,
@@ -104,8 +104,8 @@ FORM_EDIT_ISSUE_BUTTON = "update"
 
 def get_settings_manager():
     """Get the global settings manager instance (initialized at startup)."""
-    from ..modules.settings import settings_manager
-    return settings_manager
+    from ..modules.app_context import app_context
+    return app_context.settings_manager
 
 
 @bp.route("/edit/<int:issue_id>", methods=["GET", "POST"])
@@ -169,8 +169,8 @@ def edit_issue(issue_id):
 
             try:
                 current_user = USER_GUEST_NAME
-                if auth_manager:
-                    current_user = auth_manager.get_current_user() or USER_GUEST_NAME
+                if app_context.auth_manager:
+                    current_user = app_context.auth_manager.get_current_user() or USER_GUEST_NAME
 
                 # Prepare update data
                 update_data = {
@@ -583,8 +583,8 @@ def bugtracker():
             log_archive_path = None
             try:
                 current_user = USER_GUEST_NAME
-                if auth_manager:
-                    current_user = auth_manager.get_current_user() or USER_GUEST_NAME
+                if app_context.auth_manager:
+                    current_user = app_context.auth_manager.get_current_user() or USER_GUEST_NAME
 
                 # Create logs archive
                 try:

@@ -141,10 +141,11 @@ class Threaded_action:
         self._init_logger()
 
         # Register the thread
-        if threaded_manager.thread_manager_obj:
-            threaded_manager.thread_manager_obj.add_thread(self)
+        from ..app_context import app_context
+        if app_context.thread_manager:
+            app_context.thread_manager.add_thread(self)
 
-        self.m_scheduler = scheduler.scheduler_obj
+        self.m_scheduler = app_context.scheduler
 
     def _init_logger(self):
         """Initialize logger with custom handler for console capture"""
@@ -449,8 +450,9 @@ class Threaded_action:
             self.m_error = ERROR_THREAD_ABORT_BY_USER
             self.console_write(STATUS_THREAD_ABORTED, LOG_LEVEL_ERROR)
 
-        if threaded_manager.thread_manager_obj:
-            threaded_manager.thread_manager_obj.del_thread(self)
+        from ..app_context import app_context
+        if app_context.thread_manager:
+            app_context.thread_manager.del_thread(self)
 
     # ============================================================================
     # PROCESS MANAGEMENT
@@ -643,8 +645,9 @@ class Threaded_action:
             time.sleep(0.5)
 
             # Unregister from thread manager (but don't force-stop ourselves)
-            if threaded_manager.thread_manager_obj:
-                threaded_manager.thread_manager_obj.del_thread(self)
+            from ..app_context import app_context
+            if app_context.thread_manager:
+                app_context.thread_manager.del_thread(self)
 
     def start(self):
         """Start the thread and capture user context for isolation"""

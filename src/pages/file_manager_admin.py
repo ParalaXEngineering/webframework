@@ -13,8 +13,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 
 # Local modules
 from ..modules import displayer, utilities
-from ..modules.auth import require_permission, auth_manager
+from ..modules.auth import require_permission
 from ..modules.auth.permission_registry import permission_registry
+from ..modules.app_context import app_context
 from ..modules.displayer import BSstyle
 from ..modules.log.logger_factory import get_logger
 from ..modules.utilities import (
@@ -160,9 +161,9 @@ def index():
     
     # Check user permissions
     current_user = session.get('user', 'GUEST')
-    can_upload = auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_UPLOAD) if auth_manager else True
-    can_delete = auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_DELETE) if auth_manager else True
-    can_edit = auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_EDIT) if auth_manager else True
+    can_upload = app_context.auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_UPLOAD) if app_context.auth_manager else True
+    can_delete = app_context.auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_DELETE) if app_context.auth_manager else True
+    can_edit = app_context.auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_EDIT) if app_context.auth_manager else True
     
     try:
         # Get file list from database (Phase 3 - includes versions, tags, group_id)

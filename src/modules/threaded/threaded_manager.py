@@ -56,8 +56,6 @@ DEFAULT_STATS = {
     "unique_names": 0
 }
 
-thread_manager_obj = None
-
 
 class Threaded_manager:
     """Manage the different threads of the framework"""

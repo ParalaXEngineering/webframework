@@ -7,7 +7,8 @@ Manage users, groups, and module permissions.
 from flask import Blueprint, render_template, request, flash
 
 # Framework modules
-from ..modules.auth import require_admin, auth_manager
+from ..modules.auth import require_admin
+from ..modules.app_context import app_context
 from ..modules.auth.auth_utils import validate_username, validate_password_strength
 from ..modules.auth.permission_registry import permission_registry
 from ..modules.constants import STATUS_SERVER_ERROR
@@ -95,7 +96,7 @@ CHECKBOX_SEPARATOR = "|"
 def manage_users():
     """User management page - CRUD operations."""
     
-    if not auth_manager:
+    if not app_context.auth_manager:
         return ERROR_AUTH_NOT_INIT, STATUS_SERVER_ERROR
     
     disp = Displayer()
@@ -127,25 +128,25 @@ def manage_users():
                 is_valid_username, error_msg = validate_username(username)
                 if not is_valid_username:
                     flash(error_msg or ERROR_INVALID_USERNAME, "danger")
-                elif auth_manager.get_user(username):
+                elif app_context.auth_manager.get_user(username):
                     flash(ERROR_USERNAME_EXISTS, "danger")
                 elif password:
                     is_valid_password, error_msg = validate_password_strength(password)
                     if not is_valid_password:
                         flash(error_msg or ERROR_INVALID_PASSWORD, "danger")
                     else:
-                        auth_manager.create_user(username, password, groups, display_name or None, email or None)
+                        app_context.auth_manager.create_user(username, password, groups, display_name or None, email or None)
                         flash(MSG_USER_CREATED.format(username=username), "success")
                 else:
                     # Passwordless user
-                    auth_manager.create_user(username, "", groups, display_name or None, email or None)
+                    app_context.auth_manager.create_user(username, "", groups, display_name or None, email or None)
                     flash(MSG_PASSWORDLESS_USER_CREATED.format(username=username), "success")
             
             # Delete user
             elif BTN_DELETE_USER in module_data:
                 username = module_data.get("select_user_to_delete", "")
                 if username and username not in RESERVED_USERS:
-                    auth_manager.delete_user(username)
+                    app_context.auth_manager.delete_user(username)
                     flash(MSG_USER_DELETED.format(username=username), "success")
                 else:
                     flash(ERROR_CANNOT_DELETE_SYSTEM_USERS, "danger")
@@ -162,7 +163,7 @@ def manage_users():
                     groups = groups_data if isinstance(groups_data, list) else []
                 
                 if username:
-                    auth_manager.update_user_groups(username, groups)
+                    app_context.auth_manager.update_user_groups(username, groups)
                     flash(MSG_GROUPS_UPDATED.format(username=username), "success")
             
             # Reset password
@@ -175,11 +176,11 @@ def manage_users():
                     if not is_valid:
                         flash(error_msg or ERROR_INVALID_PASSWORD, "danger")
                     else:
-                        auth_manager.update_user_password(username, new_password)
+                        app_context.auth_manager.update_user_password(username, new_password)
                         flash(MSG_PASSWORD_RESET.format(username=username), "success")
     
     # User List Table
-    users = auth_manager.get_all_users()
+    users = app_context.auth_manager.get_all_users()
     user_data = []
     for user in users:  # type: ignore
         user_data.append({
@@ -221,7 +222,7 @@ def manage_users():
     disp.add_display_item(DisplayerItemInputString("input_display_name", LABEL_DISPLAY_NAME), column=2)
     disp.add_display_item(DisplayerItemInputString("input_email", LABEL_EMAIL), column=3)
     
-    all_groups = auth_manager.get_all_groups()
+    all_groups = app_context.auth_manager.get_all_groups()
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [8, 4]))
     disp.add_display_item(DisplayerItemInputMultiSelect(
         "input_groups",
@@ -289,7 +290,7 @@ def manage_users():
 def manage_permissions():
     """Module permissions matrix management."""
     
-    if not auth_manager:
+    if not app_context.auth_manager:
         return ERROR_AUTH_NOT_INIT, STATUS_SERVER_ERROR
     
     disp = Displayer()
@@ -309,7 +310,7 @@ def manage_permissions():
                 
                 # Get all modules and groups to rebuild permissions
                 all_modules = permission_registry.get_all_modules()
-                all_groups = auth_manager.get_all_groups()
+                all_groups = app_context.auth_manager.get_all_groups()
                 
                 # Build new permissions from form data
                 new_permissions = {}
@@ -336,13 +337,13 @@ def manage_permissions():
                 # Apply all new permissions
                 for module_name, group_perms in new_permissions.items():
                     for group, actions in group_perms.items():
-                        auth_manager.set_module_permissions(module_name, group, actions)
+                        app_context.auth_manager.set_module_permissions(module_name, group, actions)
                 
                 flash(MSG_PERMISSIONS_SAVED, "success")
     
     # Get all modules and groups (excluding admin)
     all_modules = permission_registry.get_all_modules()
-    all_groups = [g for g in auth_manager.get_all_groups() if g != SYSTEM_ADMIN_GROUP]  # type: ignore
+    all_groups = [g for g in app_context.auth_manager.get_all_groups() if g != SYSTEM_ADMIN_GROUP]  # type: ignore
     
     if not all_modules:
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -360,7 +361,7 @@ def manage_permissions():
         disp.add_display_item(DisplayerItemText(f"<h4 class='mt-4'>{module_name}</h4>"), column=0)
         
         actions = permission_registry.get_module_actions(module_name)
-        current_perms = auth_manager.get_module_permissions(module_name)
+        current_perms = app_context.auth_manager.get_module_permissions(module_name)
         
         # Create table: rows=actions, cols=groups
         header = [LABEL_ACTION] + all_groups
@@ -399,7 +400,7 @@ def manage_permissions():
 def manage_groups():
     """Group management page."""
     
-    if not auth_manager:
+    if not app_context.auth_manager:
         return ERROR_AUTH_NOT_INIT, STATUS_SERVER_ERROR
     
     disp = Displayer()
@@ -420,10 +421,10 @@ def manage_groups():
                 
                 if not group_name:
                     flash(ERROR_GROUP_NAME_EMPTY, "danger")
-                elif group_name in auth_manager.get_all_groups():
+                elif group_name in app_context.auth_manager.get_all_groups():
                     flash(ERROR_GROUP_EXISTS.format(group_name=group_name), "danger")
                 else:
-                    auth_manager.create_group(group_name)
+                    app_context.auth_manager.create_group(group_name)
                     flash(MSG_GROUP_CREATED.format(group_name=group_name), "success")
             
             # Rename group
@@ -434,10 +435,10 @@ def manage_groups():
                 if old_name and new_name:
                     if old_name in RESERVED_GROUPS:
                         flash(ERROR_CANNOT_RENAME_SYSTEM_GROUPS, "danger")
-                    elif new_name in auth_manager.get_all_groups():
+                    elif new_name in app_context.auth_manager.get_all_groups():
                         flash(ERROR_GROUP_EXISTS.format(group_name=new_name), "danger")
                     else:
-                        auth_manager.rename_group(old_name, new_name)
+                        app_context.auth_manager.rename_group(old_name, new_name)
                         flash(MSG_GROUP_RENAMED.format(old_name=old_name, new_name=new_name), "success")
             
             # Delete group
@@ -447,17 +448,17 @@ def manage_groups():
                 if group_name in RESERVED_GROUPS:
                     flash(ERROR_CANNOT_DELETE_SYSTEM_GROUPS, "danger")
                 elif group_name:
-                    auth_manager.delete_group(group_name)
+                    app_context.auth_manager.delete_group(group_name)
                     flash(MSG_GROUP_DELETED.format(group_name=group_name), "success")
     
     # Current Groups
-    groups = auth_manager.get_all_groups()
+    groups = app_context.auth_manager.get_all_groups()
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText(HTML_CURRENT_GROUPS), column=0)
     
     layout_id = disp.add_master_layout(DisplayerLayout(Layouts.TABLE, [TABLE_HEADER_GROUP_NAME, TABLE_HEADER_NUM_USERS]))
-    users = auth_manager.get_all_users()
+    users = app_context.auth_manager.get_all_users()
     for line_idx, group in enumerate(groups):
         user_count = sum(1 for u in users if group in u.groups)  # type: ignore
         disp.add_display_item(DisplayerItemText(group), 0, line=line_idx, layout_id=layout_id)
