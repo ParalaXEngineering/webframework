@@ -18,70 +18,36 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from ..scheduler.scheduler import Scheduler
 
-try:
-    from . import threaded_manager
-    from .. import scheduler
-    from ..log.logger_factory import get_logger
-    from ..i18n.messages import (
-        ERROR_THREAD_ABORT_BY_USER,
-        ERROR_THREAD_NOT_FOUND,
-        ERROR_THREAD_FAILED_FORCE_STOP,
-        ERROR_THREAD_STOPPING_SUBPROCESS,
-        ERROR_THREAD_FORCE_STOPPING,
-        ERROR_THREAD_READING_STDERR,
-        ERROR_THREAD_READING_STDOUT,
-        ERROR_THREAD_FAILED_START_PROCESS,
-        ERROR_THREAD_FAILED,
-        STATUS_THREAD_RENAMED,
-        STATUS_THREAD_DELETION_REQUESTED,
-        STATUS_THREAD_TERMINATING_SUBPROCESS,
-        STATUS_THREAD_SUBPROCESS_KILLED,
-        STATUS_THREAD_FORCE_STOPPING,
-        STATUS_THREAD_EXECUTION_STOPPED,
-        STATUS_THREAD_ABORTED,
-        STATUS_THREAD_EXECUTING_PROCESS,
-        STATUS_THREAD_PROCESS_STARTED,
-        STATUS_THREAD_KILLING_PROCESS,
-        STATUS_THREAD_PROCESS_COMPLETED,
-        STATUS_THREAD_PROCESS_TIMEOUT,
-        STATUS_THREAD_STARTED,
-        STATUS_THREAD_COMPLETED,
-        STATUS_THREAD_STARTING_FOR_USER,
-        WARNING_THREAD_DEFAULT_ACTION,
-    )
-except ImportError:
-    import threaded_manager
-    import scheduler
-    from log.logger_factory import get_logger
-    # Fallback for standalone usage
-    class TranslatableString(str):
-        def format(self, *args, **kwargs):
-            return str(self).format(*args, **kwargs)
-    ERROR_THREAD_ABORT_BY_USER = TranslatableString("Aborted by user")
-    ERROR_THREAD_NOT_FOUND = TranslatableString("Thread ID not found - cannot force stop")
-    ERROR_THREAD_FAILED_FORCE_STOP = TranslatableString("Failed to force stop thread")
-    ERROR_THREAD_STOPPING_SUBPROCESS = TranslatableString("Error stopping subprocess: {error}")
-    ERROR_THREAD_FORCE_STOPPING = TranslatableString("Error force-stopping thread: {error}")
-    ERROR_THREAD_READING_STDERR = TranslatableString("Error reading stderr: {error}")
-    ERROR_THREAD_READING_STDOUT = TranslatableString("Error reading stdout: {error}")
-    ERROR_THREAD_FAILED_START_PROCESS = TranslatableString("Failed to start process: {error}")
-    ERROR_THREAD_FAILED = TranslatableString("Thread failed: {error}")
-    STATUS_THREAD_RENAMED = TranslatableString("Thread renamed to: {name}")
-    STATUS_THREAD_DELETION_REQUESTED = TranslatableString("Thread deletion requested")
-    STATUS_THREAD_TERMINATING_SUBPROCESS = TranslatableString("Terminating subprocess...")
-    STATUS_THREAD_SUBPROCESS_KILLED = TranslatableString("Subprocess forcefully killed")
-    STATUS_THREAD_FORCE_STOPPING = TranslatableString("Force-stopping thread execution...")
-    STATUS_THREAD_EXECUTION_STOPPED = TranslatableString("Thread execution forcefully stopped")
-    STATUS_THREAD_ABORTED = TranslatableString("Thread aborted by user")
-    STATUS_THREAD_EXECUTING_PROCESS = TranslatableString("Executing process: {command}")
-    STATUS_THREAD_PROCESS_STARTED = TranslatableString("Process started (PID: {pid})")
-    STATUS_THREAD_KILLING_PROCESS = TranslatableString("Killing process (PID: {pid})")
-    STATUS_THREAD_PROCESS_COMPLETED = TranslatableString("Process completed")
-    STATUS_THREAD_PROCESS_TIMEOUT = TranslatableString("Process wait timeout after {timeout}s")
-    STATUS_THREAD_STARTED = TranslatableString("Thread '{name}' started")
-    STATUS_THREAD_COMPLETED = TranslatableString("Thread '{name}' completed successfully")
-    STATUS_THREAD_STARTING_FOR_USER = TranslatableString("Starting thread '{name}' for user '{username}'")
-    WARNING_THREAD_DEFAULT_ACTION = TranslatableString("Default action - override this method")
+from . import threaded_manager
+from .. import scheduler
+from ..log.logger_factory import get_logger
+from ..i18n.messages import (
+    ERROR_THREAD_ABORT_BY_USER,
+    ERROR_THREAD_NOT_FOUND,
+    ERROR_THREAD_FAILED_FORCE_STOP,
+    ERROR_THREAD_STOPPING_SUBPROCESS,
+    ERROR_THREAD_FORCE_STOPPING,
+    ERROR_THREAD_READING_STDERR,
+    ERROR_THREAD_READING_STDOUT,
+    ERROR_THREAD_FAILED_START_PROCESS,
+    ERROR_THREAD_FAILED,
+    STATUS_THREAD_RENAMED,
+    STATUS_THREAD_DELETION_REQUESTED,
+    STATUS_THREAD_TERMINATING_SUBPROCESS,
+    STATUS_THREAD_SUBPROCESS_KILLED,
+    STATUS_THREAD_FORCE_STOPPING,
+    STATUS_THREAD_EXECUTION_STOPPED,
+    STATUS_THREAD_ABORTED,
+    STATUS_THREAD_EXECUTING_PROCESS,
+    STATUS_THREAD_PROCESS_STARTED,
+    STATUS_THREAD_KILLING_PROCESS,
+    STATUS_THREAD_PROCESS_COMPLETED,
+    STATUS_THREAD_PROCESS_TIMEOUT,
+    STATUS_THREAD_STARTED,
+    STATUS_THREAD_COMPLETED,
+    STATUS_THREAD_STARTING_FOR_USER,
+    WARNING_THREAD_DEFAULT_ACTION,
+)
 
 
 # Constants

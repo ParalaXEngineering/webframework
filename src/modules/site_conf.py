@@ -7,62 +7,32 @@ import logging
 import os
 from typing import Optional
 
-try:
-    from . import scheduler
-except ImportError:
-    import scheduler
+from src.modules import scheduler
 
-try:
-    from .log.logger_factory import get_logger
-except ImportError:
-    from log.logger_factory import get_logger
+from src.modules.log.logger_factory import get_logger
 
-try:
-    from .i18n.messages import (
-        TEXT_SECTION_SYSTEM,
-        TEXT_SECTION_USER_MANAGEMENT,
-        TEXT_SECTION_ACCOUNT,
-        TEXT_SECTION_ADMIN,
-        TEXT_SECTION_MONITORING,
-        TEXT_SECTION_TOOLS,
-        TEXT_SECTION_DEPLOYMENT,
-        TEXT_MY_PROFILE_SIDEBAR,
-        TEXT_FRAMEWORK_PREFERENCES,
-        TEXT_USERS,
-        TEXT_PERMISSIONS,
-        TEXT_GROUPS_SIDEBAR,
-        TEXT_THREAD_MONITOR_SIDEBAR,
-        TEXT_LOG_VIEWER_SIDEBAR,
-        TEXT_BUG_TRACKER_SIDEBAR,
-        TEXT_SETTINGS_SIDEBAR,
-        TEXT_UPDATER_SIDEBAR,
-        TEXT_PACKAGER_SIDEBAR,
-        TEXT_FILE_MANAGER_SIDEBAR,
-        TEXT_DEFAULT_INDEX_MESSAGE,
-    )
-except ImportError:
-    from i18n.messages import (
-        TEXT_SECTION_SYSTEM,
-        TEXT_SECTION_USER_MANAGEMENT,
-        TEXT_SECTION_ACCOUNT,
-        TEXT_SECTION_ADMIN,
-        TEXT_SECTION_MONITORING,
-        TEXT_SECTION_TOOLS,
-        TEXT_SECTION_DEPLOYMENT,
-        TEXT_MY_PROFILE_SIDEBAR,
-        TEXT_FRAMEWORK_PREFERENCES,
-        TEXT_USERS,
-        TEXT_PERMISSIONS,
-        TEXT_GROUPS_SIDEBAR,
-        TEXT_THREAD_MONITOR_SIDEBAR,
-        TEXT_LOG_VIEWER_SIDEBAR,
-        TEXT_BUG_TRACKER_SIDEBAR,
-        TEXT_SETTINGS_SIDEBAR,
-        TEXT_UPDATER_SIDEBAR,
-        TEXT_PACKAGER_SIDEBAR,
-        TEXT_FILE_MANAGER_SIDEBAR,
-        TEXT_DEFAULT_INDEX_MESSAGE,
-    )
+from src.modules.i18n.messages import (
+    TEXT_SECTION_SYSTEM,
+    TEXT_SECTION_USER_MANAGEMENT,
+    TEXT_SECTION_ACCOUNT,
+    TEXT_SECTION_ADMIN,
+    TEXT_SECTION_MONITORING,
+    TEXT_SECTION_TOOLS,
+    TEXT_SECTION_DEPLOYMENT,
+    TEXT_MY_PROFILE_SIDEBAR,
+    TEXT_FRAMEWORK_PREFERENCES,
+    TEXT_USERS,
+    TEXT_PERMISSIONS,
+    TEXT_GROUPS_SIDEBAR,
+    TEXT_THREAD_MONITOR_SIDEBAR,
+    TEXT_LOG_VIEWER_SIDEBAR,
+    TEXT_BUG_TRACKER_SIDEBAR,
+    TEXT_SETTINGS_SIDEBAR,
+    TEXT_UPDATER_SIDEBAR,
+    TEXT_PACKAGER_SIDEBAR,
+    TEXT_FILE_MANAGER_SIDEBAR,
+    TEXT_DEFAULT_INDEX_MESSAGE,
+)
 
 logger = get_logger("site_conf")
 

@@ -30,24 +30,14 @@ except ImportError:
     SocketIO = None  # type: ignore
     FLASK_AVAILABLE = False
 
-try:
-    from .modules import scheduler
-    from .modules import site_conf
-    from .modules.log.logger_factory import format_exception_html, get_logger
-    from .modules.socketio_manager import initialize_socketio_manager
-    from .modules.threaded import threaded_manager
-except ImportError:
-    from modules import scheduler
-    from modules import site_conf
-    from modules.log.logger_factory import format_exception_html, get_logger
-    from modules.socketio_manager import initialize_socketio_manager
-    from modules.threaded import threaded_manager
+from src.modules import scheduler
+from src.modules import site_conf
+from src.modules.log.logger_factory import format_exception_html, get_logger
+from src.modules.socketio_manager import initialize_socketio_manager
+from src.modules.threaded import threaded_manager
 
 # Framework modules - constants
-try:
-    from .modules.constants import USER_GUEST_NAME
-except ImportError:
-    from modules.constants import USER_GUEST_NAME
+from src.modules.constants import USER_GUEST_NAME
 
 # Domain-specific constants for main application setup
 COOKIE_SAMESITE = "Lax"
@@ -194,10 +184,7 @@ def setup_app(app):
     socketio_obj = SocketIO(app)  # type: ignore
     
     # Initialize Babel for i18n support
-    try:
-        from .modules.i18n import init_babel
-    except ImportError:
-        from modules.i18n import init_babel
+    from src.modules.i18n import init_babel
     init_babel(app)
     
     # Initialize logger using centralized factory and log application start
@@ -260,10 +247,7 @@ def setup_app(app):
     site_config = site_conf.site_conf_obj
 
     # Auto-discover and register framework internal pages
-    try:
-        from . import pages as pages_module
-    except ImportError:
-        import pages as pages_module
+    from src import pages as pages_module
     
     # Map of page names to required feature flags
     # Note: 'common' is always registered as it provides essential assets serving
@@ -316,12 +300,8 @@ def setup_app(app):
 
     # Initialize auth manager conditionally based on feature flag
     # Import the auth module (not the auth_manager variable)
-    try:
-        from .modules import auth as auth_manager_module
-        from .modules.auth.auth_manager import AuthManager
-    except ImportError:
-        from modules import auth as auth_manager_module
-        from modules.auth.auth_manager import AuthManager
+    from src.modules import auth as auth_manager_module
+    from src.modules.auth.auth_manager import AuthManager
     
     if site_config.m_enable_authentication:
         # Check if auth_manager was already configured by the calling application
@@ -345,12 +325,8 @@ def setup_app(app):
         logger.debug("Auth manager disabled")
     
     # Initialize settings manager (always enabled, needed for framework config)
-    try:
-        from .modules import settings as settings_module
-        from .modules.settings import SettingsManager
-    except ImportError:
-        from modules import settings as settings_module
-        from modules.settings import SettingsManager
+    from src.modules import settings as settings_module
+    from src.modules.settings import SettingsManager
     
     # Use site_conf_app_path if set, otherwise fall back to local app_path
     config_base_path = site_conf.site_conf_app_path if site_conf.site_conf_app_path else app_path
@@ -368,12 +344,8 @@ def setup_app(app):
 
     # Conditionally initialize file manager based on feature flag
     if site_config.m_enable_file_manager:
-        try:
-            from .modules.file_manager import FileManager
-            from .pages import file_handler, file_manager_admin
-        except ImportError:
-            from modules.file_manager import FileManager
-            from pages import file_handler, file_manager_admin
+        from src.modules.file_manager import FileManager
+        from src.pages import file_handler, file_manager_admin
         
         # Create FileManager instance and inject into route modules
         file_manager_instance = FileManager(settings_manager_instance)
@@ -421,10 +393,7 @@ def setup_app(app):
 
     # Conditionally initialize log emitter for real-time log viewing
     if site_config.m_enable_log_viewer:
-        try:
-            from .modules.log import log_emitter
-        except ImportError:
-            from modules.log import log_emitter
+        from src.modules.log import log_emitter
         
         logs_dir = os.path.join(app_path, LOGS_DIR_NAME)
         log_emitter.initialize_log_emitter(socketio_obj, logs_dir, interval=LOG_EMITTER_INTERVAL)
@@ -434,10 +403,7 @@ def setup_app(app):
 
     # Conditionally initialize thread emitter for real-time thread updates
     if site_config.m_enable_threads:
-        try:
-            from .modules.threaded import thread_emitter
-        except ImportError:
-            from modules.threaded import thread_emitter
+        from src.modules.threaded import thread_emitter
         
         thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=THREAD_EMITTER_INTERVAL)
         thread_emitter.thread_emitter_obj.start()

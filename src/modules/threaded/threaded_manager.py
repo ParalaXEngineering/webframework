@@ -8,10 +8,7 @@ the Threaded_action base class.
 import threading
 from typing import List, Tuple
 
-try:
-    from ..log.logger_factory import get_logger
-except ImportError:
-    from log.logger_factory import get_logger
+from src.modules.log.logger_factory import get_logger
 
 try:
     from ..i18n.messages import (

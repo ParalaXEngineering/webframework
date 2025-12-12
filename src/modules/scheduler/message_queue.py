@@ -10,21 +10,12 @@ from threading import Lock
 from typing import List, Any, Dict, Optional, NamedTuple
 from enum import Enum
 
-try:
-    from ..log.logger_factory import get_logger
-except ImportError:
-    from log.logger_factory import get_logger
+from src.modules.log.logger_factory import get_logger
 
-try:
-    from ..i18n.messages import (
-        LOG_QUEUE_ADDED_USER,
-        LOG_QUEUE_ADDED_BROADCAST,
-    )
-except ImportError:
-    from i18n.messages import (
-        LOG_QUEUE_ADDED_USER,
-        LOG_QUEUE_ADDED_BROADCAST,
-    )
+from src.modules.i18n.messages import (
+    LOG_QUEUE_ADDED_USER,
+    LOG_QUEUE_ADDED_BROADCAST,
+)
 
 
 class MessageType(Enum):

@@ -11,30 +11,17 @@ from collections import defaultdict
 from enum import Enum
 from typing import Any, Dict, List, Optional, cast
 
-try:
-    from ..log.logger_factory import get_logger
-    from ..threaded import threaded_manager
-    from ..i18n.messages import (
-        LOG_SCHEDULER_ERROR_EXECUTING,
-        LOG_SCHEDULER_LT_STOPPED,
-        LOG_SCHEDULER_LT_STARTED,
-        LOG_SCHEDULER_STARTED,
-        LOG_SCHEDULER_COLLECTED_MESSAGES,
-    )
-    from .emitter import MessageEmitter
-    from .message_queue import MessageQueue, MessageType
-except ImportError:
-    from log.logger_factory import get_logger
-    from threaded import threaded_manager
-    from i18n.messages import (
-        LOG_SCHEDULER_ERROR_EXECUTING,
-        LOG_SCHEDULER_LT_STOPPED,
-        LOG_SCHEDULER_LT_STARTED,
-        LOG_SCHEDULER_STARTED,
-        LOG_SCHEDULER_COLLECTED_MESSAGES,
-    )
-    from emitter import MessageEmitter
-    from message_queue import MessageQueue, MessageType
+from src.modules.log.logger_factory import get_logger
+from src.modules.threaded import threaded_manager
+from src.modules.i18n.messages import (
+    LOG_SCHEDULER_ERROR_EXECUTING,
+    LOG_SCHEDULER_LT_STOPPED,
+    LOG_SCHEDULER_LT_STARTED,
+    LOG_SCHEDULER_STARTED,
+    LOG_SCHEDULER_COLLECTED_MESSAGES,
+)
+from .emitter import MessageEmitter
+from .message_queue import MessageQueue, MessageType
 
 
 class logLevel(Enum):

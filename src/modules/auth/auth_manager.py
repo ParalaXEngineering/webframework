@@ -17,26 +17,15 @@ from .security_utils import (
     DEFAULT_LOCKOUT_MINUTES,
 )
 
-try:
-    from ..log.logger_factory import get_logger
-except ImportError:
-    from log.logger_factory import get_logger
+from src.modules.log.logger_factory import get_logger
 
 # Import user-facing messages for i18n
-try:
-    from ..i18n.messages import (
-        ERROR_AUTH_ACCOUNT_LOCKED,
-        ERROR_AUTH_USER_DOES_NOT_EXIST,
-        ERROR_AUTH_TOO_MANY_ATTEMPTS,
-        ERROR_AUTH_BAD_PASSWORD,
-    )
-except ImportError:
-    from i18n.messages import (
-        ERROR_AUTH_ACCOUNT_LOCKED,
-        ERROR_AUTH_USER_DOES_NOT_EXIST,
-        ERROR_AUTH_TOO_MANY_ATTEMPTS,
-        ERROR_AUTH_BAD_PASSWORD,
-    )
+from src.modules.i18n.messages import (
+    ERROR_AUTH_ACCOUNT_LOCKED,
+    ERROR_AUTH_USER_DOES_NOT_EXIST,
+    ERROR_AUTH_TOO_MANY_ATTEMPTS,
+    ERROR_AUTH_BAD_PASSWORD,
+)
 
 logger = get_logger("auth.auth_manager")
 

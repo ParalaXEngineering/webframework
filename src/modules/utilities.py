@@ -38,12 +38,9 @@ except ImportError:
 # displayer is only imported at runtime, not for type checking
 if not TYPE_CHECKING:
     try:
-        from . import displayer
+        from src.modules import displayer
     except ImportError:
-        try:
-            import displayer  # type: ignore
-        except ImportError:
-            displayer = None  # type: ignore
+        displayer = None  # type: ignore
 
 # Constants for HTML rendering
 HTML_LIST_CLASS = "list-group list-group-flush"

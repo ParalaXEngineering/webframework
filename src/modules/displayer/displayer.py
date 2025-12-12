@@ -10,26 +10,14 @@ from typing import Any, Dict, List, Optional
 from .core import Layouts, ResourceRegistry
 from .layout import DisplayerLayout
 
-try:
-    from ..auth import auth_manager as auth_manager_module
-except ImportError:
-    from auth import auth_manager as auth_manager_module
+from src.modules.auth import auth_manager as auth_manager_module
 
-try:
-    from ..log.logger_factory import get_logger
-except ImportError:
-    from log.logger_factory import get_logger
+from src.modules.log.logger_factory import get_logger
 
-try:
-    from ..i18n.messages import (
-        ERROR_DISPLAYER_NOT_LOGGED_IN,
-        ERROR_DISPLAYER_PERMISSION_DENIED,
-    )
-except ImportError:
-    from i18n.messages import (
-        ERROR_DISPLAYER_NOT_LOGGED_IN,
-        ERROR_DISPLAYER_PERMISSION_DENIED,
-    )
+from src.modules.i18n.messages import (
+    ERROR_DISPLAYER_NOT_LOGGED_IN,
+    ERROR_DISPLAYER_PERMISSION_DENIED,
+)
 
 try:
     from flask import session

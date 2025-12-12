@@ -12,58 +12,31 @@ from typing import Any, Dict, List, Optional
 
 from jinja2 import Environment, FileSystemLoader
 
-try:
-    from ..displayer import (
-        BSalign, BSstyle, Displayer, DisplayerItemActionButtons,
-        DisplayerItemAlert, DisplayerItemBadge, DisplayerItemConsole,
-        DisplayerItemIconText, DisplayerItemText, DisplayerLayout, Layouts,
-    )
-    from ..i18n.messages import (
-        MSG_THREAD_COMPLETED_HEADER,
-        MSG_THREAD_LAST_N,
-        MSG_THREAD_NO_DATA,
-        MSG_THREAD_NO_THREADS,
-        MSG_THREAD_RUNNING_HEADER,
-        STATUS_THREAD_ABORTED,
-        STATUS_THREAD_COMPLETED,
-        STATUS_THREAD_ERROR,
-        STATUS_THREAD_RUNNING,
-        TEXT_THREAD_INFO_NAME,
-        TEXT_THREAD_INFO_PROGRESS,
-        TEXT_THREAD_INFO_STATUS,
-        TEXT_THREAD_TAB_CONSOLE,
-        TEXT_THREAD_TAB_INFO,
-        TEXT_THREAD_TAB_LOGS,
-    )
-    from ..log.logger_factory import get_logger
-    from ..socketio_manager import socketio_manager
-    from . import threaded_manager
-except ImportError:
-    from displayer import (
-        BSalign, BSstyle, Displayer, DisplayerItemActionButtons,
-        DisplayerItemAlert, DisplayerItemBadge, DisplayerItemConsole,
-        DisplayerItemIconText, DisplayerItemText, DisplayerLayout, Layouts,
-    )
-    from i18n.messages import (
-        MSG_THREAD_COMPLETED_HEADER,
-        MSG_THREAD_LAST_N,
-        MSG_THREAD_NO_DATA,
-        MSG_THREAD_NO_THREADS,
-        MSG_THREAD_RUNNING_HEADER,
-        STATUS_THREAD_ABORTED,
-        STATUS_THREAD_COMPLETED,
-        STATUS_THREAD_ERROR,
-        STATUS_THREAD_RUNNING,
-        TEXT_THREAD_INFO_NAME,
-        TEXT_THREAD_INFO_PROGRESS,
-        TEXT_THREAD_INFO_STATUS,
-        TEXT_THREAD_TAB_CONSOLE,
-        TEXT_THREAD_TAB_INFO,
-        TEXT_THREAD_TAB_LOGS,
-    )
-    from log.logger_factory import get_logger
-    from socketio_manager import socketio_manager
-    import threaded_manager
+from src.modules.displayer import (
+    BSalign, BSstyle, Displayer, DisplayerItemActionButtons,
+    DisplayerItemAlert, DisplayerItemBadge, DisplayerItemConsole,
+    DisplayerItemIconText, DisplayerItemText, DisplayerLayout, Layouts,
+)
+from src.modules.i18n.messages import (
+    MSG_THREAD_COMPLETED_HEADER,
+    MSG_THREAD_LAST_N,
+    MSG_THREAD_NO_DATA,
+    MSG_THREAD_NO_THREADS,
+    MSG_THREAD_RUNNING_HEADER,
+    STATUS_THREAD_ABORTED,
+    STATUS_THREAD_COMPLETED,
+    STATUS_THREAD_ERROR,
+    STATUS_THREAD_RUNNING,
+    TEXT_THREAD_INFO_NAME,
+    TEXT_THREAD_INFO_PROGRESS,
+    TEXT_THREAD_INFO_STATUS,
+    TEXT_THREAD_TAB_CONSOLE,
+    TEXT_THREAD_TAB_INFO,
+    TEXT_THREAD_TAB_LOGS,
+)
+from src.modules.log.logger_factory import get_logger
+from src.modules.socketio_manager import socketio_manager
+from . import threaded_manager
 
 
 # Constants for thread status display
