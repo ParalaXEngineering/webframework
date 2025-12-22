@@ -36,6 +36,7 @@ dependencies = [
     "urllib3>=1.26.0",
     "paramiko>=2.8.0",
     "textile>=4.0.0",
+    "beautifulsoup4>=4.12.0",
     "Pillow>=10.0.0",
     "PyMuPDF>=1.23.0",
     "SQLAlchemy>=1.4.0",
@@ -46,10 +47,10 @@ dependencies = [
 dev = [
     "pytest>=6.0.0",
     "pytest-flask>=1.2.0",
-    "beautifulsoup4>=4.12.0",
     "importlib-metadata>=4.0.0",
     "playwright>=1.40.0",
     "pytest-playwright>=0.4.0",
+    # Note: After installing dev dependencies, run: playwright install
 ]
 docs = [
     "sphinx>=7.0.0",

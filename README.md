@@ -550,6 +550,9 @@ source .venv/bin/activate
 # Install in development mode
 pip install -e .[dev]
 
+# Install Playwright browsers (required for frontend tests)
+playwright install
+
 # Run tests
 pytest tests/ -v
 
