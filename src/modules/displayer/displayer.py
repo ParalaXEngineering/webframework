@@ -10,9 +10,9 @@ from typing import Any, Dict, List, Optional
 from .core import Layouts, ResourceRegistry
 from .layout import DisplayerLayout
 
-from src.modules.log.logger_factory import get_logger
+from ..log.logger_factory import get_logger
 
-from src.modules.i18n.messages import (
+from ..i18n.messages import (
     ERROR_DISPLAYER_NOT_LOGGED_IN,
     ERROR_DISPLAYER_PERMISSION_DENIED,
 )

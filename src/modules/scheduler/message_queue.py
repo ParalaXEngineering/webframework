@@ -10,9 +10,9 @@ from threading import Lock
 from typing import List, Any, Dict, Optional, NamedTuple
 from enum import Enum
 
-from src.modules.log.logger_factory import get_logger
+from ..log.logger_factory import get_logger
 
-from src.modules.i18n.messages import (
+from ..i18n.messages import (
     LOG_QUEUE_ADDED_USER,
     LOG_QUEUE_ADDED_BROADCAST,
 )

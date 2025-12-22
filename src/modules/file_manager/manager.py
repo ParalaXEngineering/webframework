@@ -28,7 +28,7 @@ from .models import Base, FileGroup, FileVersion, FileTag
 from .storage import ContentAddressableStorage
 
 # Framework i18n
-from src.modules.i18n.messages import (
+from ..i18n.messages import (
     ERROR_NO_FILE_PROVIDED_VALIDATION,
     ERROR_FILE_TYPE_NOT_ALLOWED,
     ERROR_FILE_TOO_LARGE_VALIDATION,

@@ -30,14 +30,14 @@ except ImportError:
     SocketIO = None  # type: ignore
     FLASK_AVAILABLE = False
 
-from src.modules import scheduler
-from src.modules.app_context import app_context
-from src.modules.log.logger_factory import format_exception_html, get_logger
-from src.modules.socketio_manager import initialize_socketio_manager
-from src.modules.threaded import threaded_manager
+from .modules import scheduler
+from .modules.app_context import app_context
+from .modules.log.logger_factory import format_exception_html, get_logger
+from .modules.socketio_manager import initialize_socketio_manager
+from .modules.threaded import threaded_manager
 
 # Framework modules - constants
-from src.modules.constants import USER_GUEST_NAME
+from .modules.constants import USER_GUEST_NAME
 
 # Domain-specific constants for main application setup
 COOKIE_SAMESITE = "Lax"
@@ -184,7 +184,7 @@ def setup_app(app):
     socketio_obj = SocketIO(app)  # type: ignore
     
     # Initialize Babel for i18n support
-    from src.modules.i18n import init_babel
+    from .modules.i18n import init_babel
     init_babel(app)
     
     # Initialize logger using centralized factory and log application start
@@ -232,7 +232,7 @@ def setup_app(app):
 
     # Import site_conf FIRST (before any feature-dependent initialization)
     # Only set if not already configured (e.g., by test setup)
-    from src.modules.site_conf import Site_conf
+    from .modules.site_conf import Site_conf
     if app_context.site_conf is None:
         try:
             app_context.site_conf = importlib.import_module(WEBSITE_SITE_CONF_PATH).ExampleSiteConf()
@@ -300,7 +300,7 @@ def setup_app(app):
             logger.debug("Failed to register blueprint for %s: %s", page_name, e)
 
     # Initialize auth manager conditionally based on feature flag
-    from src.modules.auth.auth_manager import AuthManager
+    from .modules.auth.auth_manager import AuthManager
     
     if site_config.m_enable_authentication:
         # Check if auth_manager was already configured by the calling application
@@ -324,7 +324,7 @@ def setup_app(app):
         logger.debug("Auth manager disabled")
     
     # Initialize settings manager (always enabled, needed for framework config)
-    from src.modules.settings import SettingsManager
+    from .modules.settings import SettingsManager
     
     # Use app_path from app_context if set, otherwise fall back to local app_path
     config_base_path = app_context.app_path if app_context.app_path else app_path
@@ -342,8 +342,8 @@ def setup_app(app):
 
     # Conditionally initialize file manager based on feature flag
     if site_config.m_enable_file_manager:
-        from src.modules.file_manager import FileManager
-        from src.pages import file_handler, file_manager_admin
+        from .modules.file_manager import FileManager
+        from .pages import file_handler, file_manager_admin
         
         # Create FileManager instance and inject into route modules
         file_manager_instance = FileManager(settings_manager_instance)
@@ -391,7 +391,7 @@ def setup_app(app):
 
     # Conditionally initialize log emitter for real-time log viewing
     if site_config.m_enable_log_viewer:
-        from src.modules.log import log_emitter
+        from .modules.log import log_emitter
         
         logs_dir = os.path.join(app_path, LOGS_DIR_NAME)
         log_emitter.initialize_log_emitter(socketio_obj, logs_dir, interval=LOG_EMITTER_INTERVAL)
@@ -401,7 +401,7 @@ def setup_app(app):
 
     # Conditionally initialize thread emitter for real-time thread updates
     if site_config.m_enable_threads:
-        from src.modules.threaded import thread_emitter
+        from .modules.threaded import thread_emitter
         
         thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=THREAD_EMITTER_INTERVAL)
         thread_emitter.thread_emitter_obj.start()

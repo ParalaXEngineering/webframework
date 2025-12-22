@@ -7,11 +7,11 @@ import logging
 import os
 from typing import Optional
 
-from src.modules import scheduler
+from . import scheduler
 
-from src.modules.log.logger_factory import get_logger
+from .log.logger_factory import get_logger
 
-from src.modules.i18n.messages import (
+from .i18n.messages import (
     TEXT_SECTION_SYSTEM,
     TEXT_SECTION_USER_MANAGEMENT,
     TEXT_SECTION_ACCOUNT,

@@ -11,9 +11,9 @@ from collections import defaultdict
 from enum import Enum
 from typing import Any, Dict, List, Optional, cast
 
-from src.modules.log.logger_factory import get_logger
-from src.modules.threaded import threaded_manager
-from src.modules.i18n.messages import (
+from ..log.logger_factory import get_logger
+from ..threaded import threaded_manager
+from ..i18n.messages import (
     LOG_SCHEDULER_ERROR_EXECUTING,
     LOG_SCHEDULER_LT_STOPPED,
     LOG_SCHEDULER_LT_STARTED,

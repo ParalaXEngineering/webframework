@@ -6,8 +6,8 @@ Decoupled from message queueing for better testability.
 """
 from typing import List, Dict, Any
 
-from src.modules.log.logger_factory import get_logger
-from src.modules.socketio_manager import socketio_manager
+from ..log.logger_factory import get_logger
+from ..socketio_manager import socketio_manager
 
 try:
     from typing import Protocol

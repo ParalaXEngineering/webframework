@@ -12,12 +12,12 @@ from typing import Any, Dict, List, Optional
 
 from jinja2 import Environment, FileSystemLoader
 
-from src.modules.displayer import (
+from ..displayer import (
     BSalign, BSstyle, Displayer, DisplayerItemActionButtons,
     DisplayerItemAlert, DisplayerItemBadge, DisplayerItemConsole,
     DisplayerItemIconText, DisplayerItemText, DisplayerLayout, Layouts,
 )
-from src.modules.i18n.messages import (
+from ..i18n.messages import (
     MSG_THREAD_COMPLETED_HEADER,
     MSG_THREAD_LAST_N,
     MSG_THREAD_NO_DATA,
@@ -34,8 +34,8 @@ from src.modules.i18n.messages import (
     TEXT_THREAD_TAB_INFO,
     TEXT_THREAD_TAB_LOGS,
 )
-from src.modules.log.logger_factory import get_logger
-from src.modules.socketio_manager import socketio_manager
+from ..log.logger_factory import get_logger
+from ..socketio_manager import socketio_manager
 from . import threaded_manager
 
 
