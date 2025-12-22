@@ -17,7 +17,7 @@ import requests
 from pathlib import Path
 from typing import Optional
 
-from playwright.sync_api import sync_playwright, Browser, Page, Playwright
+from playwright.sync_api import sync_playwright, Browser, BrowserContext, Page, Playwright
 
 
 # ============================================================================
@@ -25,7 +25,7 @@ from playwright.sync_api import sync_playwright, Browser, Page, Playwright
 # ============================================================================
 
 # Set to True to watch tests run visually with pauses between actions
-HUMAN_MODE = False  # Set to False for headless mode
+HUMAN_MODE = True  # Set to False for headless mode
 
 # Test configuration
 BASE_URL = "http://localhost:5001"
@@ -163,16 +163,24 @@ def flask_server(reset_auth_state):
 # TEST FIXTURES
 # ============================================================================
 
-@pytest.fixture
-def page(browser: Browser, flask_server) -> Page:
-    """Create a new page for each test.
-    
-    Depends on flask_server to ensure server is running before creating page.
-    """
+@pytest.fixture(scope="session")
+def browser_context(browser: Browser) -> "BrowserContext":
+    """Create a shared browser context for the session to persist cookies/login state."""
     context = browser.new_context(
         viewport={'width': 1280, 'height': 720}
     )
-    page = context.new_page()
+    yield context
+    context.close()
+
+
+@pytest.fixture
+def page(browser_context, flask_server) -> Page:
+    """Create a new page for each test, but reuse the browser context.
+    
+    This allows cookies/session to persist across tests for faster execution.
+    Depends on flask_server to ensure server is running before creating page.
+    """
+    page = browser_context.new_page()
     
     # Set default timeout to 2 seconds for faster failure detection
     page.set_default_timeout(2000)
@@ -192,33 +200,29 @@ def page(browser: Browser, flask_server) -> Page:
     
     yield page
     page.close()
-    context.close()
 
 
 @pytest.fixture
 def logged_in_page(page: Page) -> Page:
     """Provide a logged-in page with admin credentials.
     
-    Ensures fresh login for each test to prevent session expiration issues.
+    Checks if already logged in before performing login to speed up tests.
     """
+    # Check if already logged in
+    if is_logged_in_as_admin(page):
+        print(f"  ⚡ Already logged in as {TEST_ADMIN_USERNAME}, skipping login")
+        return page
+    
     # Reset any account lockouts before logging in
     reset_account_lockout(TEST_ADMIN_USERNAME)
     
-    # Perform fresh login
+    # Perform login
     login(page, TEST_ADMIN_USERNAME, TEST_ADMIN_PASSWORD)
     
-    # Verify we're actually logged in by checking for the topbar button with username
-    # After login, we're redirected to home page, so check the topbar
-    try:
-        # Look for the topbar button containing the username (admin)
-        topbar_button = page.locator('#topbar_target')
-        if topbar_button.count() > 0:
-            button_text = topbar_button.inner_text().strip().lower()
-            if TEST_ADMIN_USERNAME.lower() in button_text:
-                print(f"  ✅ Verified logged in as {TEST_ADMIN_USERNAME}")
-                return page
-    except Exception:
-        pass
+    # Verify we're actually logged in
+    if is_logged_in_as_admin(page):
+        print(f"  ✅ Logged in as {TEST_ADMIN_USERNAME}")
+        return page
     
     # If verification failed, we might be GUEST - try logging in again
     print(f"  ⚠️  Login verification failed, retrying...")
@@ -274,10 +278,36 @@ def login(
     page.wait_for_timeout(500)
 
 
+def is_logged_in_as_admin(page: Page) -> bool:
+    """Check if currently logged in as admin.
+    
+    Args:
+        page: Playwright page object
+        
+    Returns:
+        True if logged in as admin, False otherwise
+    """
+    try:
+        # Navigate to a safe page if not already there to check session
+        current_url = page.url
+        if not current_url.startswith(BASE_URL):
+            page.goto(BASE_URL, timeout=5000)
+        
+        # Look for the topbar button containing the username
+        topbar_button = page.locator('#topbar_target')
+        if topbar_button.count() > 0:
+            button_text = topbar_button.inner_text().strip().lower()
+            return TEST_ADMIN_USERNAME.lower() in button_text
+    except Exception:
+        pass
+    
+    return False
+
+
 def logout(page: Page, base_url: str = BASE_URL):
     """Logout from the application."""
     page.goto(f"{base_url}/common/logout")
-    page.wait_for_load_state('networkidle')
+    page.wait_for_load_state('load')
 
 
 def navigate_to(page: Page, path: str, base_url: str = BASE_URL):
