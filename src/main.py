@@ -574,11 +574,13 @@ def setup_app(app):
     @app.context_processor
     def inject_resources():
         from .modules.displayer import ResourceRegistry
-        return dict(
+        import traceback
+        resources = dict(
             required_css=ResourceRegistry.get_required_css(),
             required_js=ResourceRegistry.get_required_js(),
             required_cdn=ResourceRegistry.get_required_js_cdn()
         )
+        return resources
     
     @app.context_processor
     def inject_user_theme():

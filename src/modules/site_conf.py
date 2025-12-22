@@ -36,6 +36,10 @@ from .i18n.messages import (
 
 logger = get_logger("site_conf")
 
+# Module-level globals for application configuration
+site_conf_obj: Optional["Site_conf"] = None
+site_conf_app_path: Optional[str] = None
+
 # Sidebar endpoints (technical identifiers - domain-specific)
 ENDPOINT_USER = "user"
 ENDPOINT_ADMIN = "admin"
