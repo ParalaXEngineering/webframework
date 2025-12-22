@@ -28,7 +28,7 @@ class TestAdminUsers:
         navigate_to(page, "/admin/users")
         
         # Wait for page content
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Verify page elements
         assert page_contains_text(page, "User Management")
@@ -39,7 +39,7 @@ class TestAdminUsers:
         """Verify users table loads with data."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Verify admin user is visible in the page (in the users table)
         assert page_contains_text(page, "admin")
@@ -48,7 +48,7 @@ class TestAdminUsers:
         """Create a new user and verify it appears in the table."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Generate unique username
         timestamp = int(time.time())
@@ -62,7 +62,7 @@ class TestAdminUsers:
         
         # Click create button
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify success message
@@ -75,7 +75,7 @@ class TestAdminUsers:
         """Create a passwordless user."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Generate unique username
         timestamp = int(time.time())
@@ -87,7 +87,7 @@ class TestAdminUsers:
         
         # Click create button
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify success message for passwordless user
@@ -97,7 +97,7 @@ class TestAdminUsers:
         """Update a user's groups."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # First create a test user if needed
         timestamp = int(time.time())
@@ -106,7 +106,7 @@ class TestAdminUsers:
         page.fill('input[name="User Management.input_username"]', username)
         page.fill('input[name="User Management.input_password"]', "TestPass123!")
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Now update groups - select the new user
@@ -115,7 +115,7 @@ class TestAdminUsers:
         
         # Click update button
         page.click('button[name="User Management.btn_update_groups"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify success
@@ -125,7 +125,7 @@ class TestAdminUsers:
         """Reset a user's password."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # First create a test user
         timestamp = int(time.time())
@@ -134,7 +134,7 @@ class TestAdminUsers:
         page.fill('input[name="User Management.input_username"]', username)
         page.fill('input[name="User Management.input_password"]', "OldPass123!")
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Select user for password reset
@@ -146,7 +146,7 @@ class TestAdminUsers:
         
         # Click reset button
         page.click('button[name="User Management.btn_reset_password"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify success
@@ -156,7 +156,7 @@ class TestAdminUsers:
         """Delete a user."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # First create a test user to delete
         timestamp = int(time.time())
@@ -165,7 +165,7 @@ class TestAdminUsers:
         page.fill('input[name="User Management.input_username"]', username)
         page.fill('input[name="User Management.input_password"]', "TestPass123!")
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify user was created
@@ -177,7 +177,7 @@ class TestAdminUsers:
         
         # Click delete button
         page.click('button[name="User Management.btn_delete_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify success
@@ -187,7 +187,7 @@ class TestAdminUsers:
         """Verify admin user cannot be deleted (not in dropdown)."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Check that admin is not in the delete dropdown
         delete_select = page.locator('select[name="User Management.select_user_to_delete"]')
@@ -200,7 +200,7 @@ class TestAdminUsers:
         """Verify GUEST user cannot be deleted (not in dropdown)."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Check that GUEST is not in the delete dropdown
         delete_select = page.locator('select[name="User Management.select_user_to_delete"]')
@@ -213,14 +213,14 @@ class TestAdminUsers:
         """Verify error when creating user with existing username."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Try to create user with 'admin' username (already exists)
         page.fill('input[name="User Management.input_username"]', "admin")
         page.fill('input[name="User Management.input_password"]', "TestPass123!")
         
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Should show error about username already existing
@@ -230,7 +230,7 @@ class TestAdminUsers:
         """Verify error when creating user with weak password."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Generate unique username
         timestamp = int(time.time())
@@ -241,7 +241,7 @@ class TestAdminUsers:
         page.fill('input[name="User Management.input_password"]', "123")  # Too weak
         
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Should show error about password strength
@@ -254,14 +254,14 @@ class TestAdminUsers:
         """Verify error when creating user with invalid username."""
         page = logged_in_page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Try invalid username (empty or special chars)
         page.fill('input[name="User Management.input_username"]', "")
         page.fill('input[name="User Management.input_password"]', "TestPass123!")
         
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Should show error about invalid username
@@ -276,7 +276,7 @@ class TestAdminGroups:
         page = logged_in_page
         navigate_to(page, "/admin/groups")
         
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         assert page_contains_text(page, "Group Management")
         assert page_contains_text(page, "Current Groups")
@@ -286,7 +286,7 @@ class TestAdminGroups:
         """Verify groups table shows default groups."""
         page = logged_in_page
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Default groups should exist
         assert page_contains_text(page, "admin")
@@ -296,7 +296,7 @@ class TestAdminGroups:
         """Create a new group."""
         page = logged_in_page
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Generate unique group name
         timestamp = int(time.time())
@@ -305,7 +305,7 @@ class TestAdminGroups:
         # Fill and submit (framework uses module prefix)
         page.fill('input[name="Group Management.input_new_group"]', group_name)
         page.click('button[name="Group Management.btn_create_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify success
@@ -316,7 +316,7 @@ class TestAdminGroups:
         """Rename a group."""
         page = logged_in_page
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # First create a group to rename
         timestamp = int(time.time())
@@ -325,7 +325,7 @@ class TestAdminGroups:
         
         page.fill('input[name="Group Management.input_new_group"]', old_name)
         page.click('button[name="Group Management.btn_create_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Select group to rename
@@ -337,7 +337,7 @@ class TestAdminGroups:
         
         # Click rename
         page.click('button[name="Group Management.btn_rename_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify success
@@ -347,7 +347,7 @@ class TestAdminGroups:
         """Delete a group."""
         page = logged_in_page
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # First create a group to delete
         timestamp = int(time.time())
@@ -355,7 +355,7 @@ class TestAdminGroups:
         
         page.fill('input[name="Group Management.input_new_group"]', group_name)
         page.click('button[name="Group Management.btn_create_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Select group for deletion
@@ -364,7 +364,7 @@ class TestAdminGroups:
         
         # Click delete
         page.click('button[name="Group Management.btn_delete_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify success
@@ -374,7 +374,7 @@ class TestAdminGroups:
         """Verify admin group cannot be deleted (not in dropdown)."""
         page = logged_in_page
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Check that admin is not in the delete dropdown
         delete_select = page.locator('select[name="Group Management.select_group_to_delete"]')
@@ -386,7 +386,7 @@ class TestAdminGroups:
         """Verify guest group cannot be deleted (not in dropdown)."""
         page = logged_in_page
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Check that guest is not in the delete dropdown
         delete_select = page.locator('select[name="Group Management.select_group_to_delete"]')
@@ -398,7 +398,7 @@ class TestAdminGroups:
         """Verify admin group cannot be renamed (not in dropdown)."""
         page = logged_in_page
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Check that admin is not in the rename dropdown
         rename_select = page.locator('select[name="Group Management.select_group_to_rename"]')
@@ -410,7 +410,7 @@ class TestAdminGroups:
         """Verify guest group cannot be renamed (not in dropdown)."""
         page = logged_in_page
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Check that guest is not in the rename dropdown
         rename_select = page.locator('select[name="Group Management.select_group_to_rename"]')
@@ -422,13 +422,13 @@ class TestAdminGroups:
         """Verify error when creating group with existing name."""
         page = logged_in_page
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Try to create group with 'admin' name (already exists)
         page.fill('input[name="Group Management.input_new_group"]', "admin")
         
         page.click('button[name="Group Management.btn_create_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Should show error about group already existing
@@ -438,13 +438,13 @@ class TestAdminGroups:
         """Verify error when creating group with empty name."""
         page = logged_in_page
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Try empty group name
         page.fill('input[name="Group Management.input_new_group"]', "")
         
         page.click('button[name="Group Management.btn_create_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Should show error about empty name
@@ -459,7 +459,7 @@ class TestAdminPermissions:
         page = logged_in_page
         navigate_to(page, "/admin/permissions")
         
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         assert page_contains_text(page, "Permission Management") or page_contains_text(page, "Module Permissions")
 
@@ -467,7 +467,7 @@ class TestAdminPermissions:
         """Verify permission matrix shows modules."""
         page = logged_in_page
         navigate_to(page, "/admin/permissions")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Should have a save button
         save_btn = page.locator('button[name="Permission Management.btn_save_permissions"]')
@@ -477,7 +477,7 @@ class TestAdminPermissions:
         """Verify permission checkboxes are rendered."""
         page = logged_in_page
         navigate_to(page, "/admin/permissions")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Look for checkboxes with the permission pattern (module prefix)
         checkboxes = page.locator('input[type="checkbox"][name^="Permission Management.checkbox_"]')
@@ -492,11 +492,11 @@ class TestAdminPermissions:
         """Click save permissions button."""
         page = logged_in_page
         navigate_to(page, "/admin/permissions")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Click save
         page.click('button[name="Permission Management.btn_save_permissions"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Should show success (even if no changes)
@@ -506,7 +506,7 @@ class TestAdminPermissions:
         """Toggle a permission checkbox and save."""
         page = logged_in_page
         navigate_to(page, "/admin/permissions")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Find first checkbox (uses module prefix)
         checkboxes = page.locator('input[type="checkbox"][name^="Permission Management.checkbox_"]')
@@ -521,7 +521,7 @@ class TestAdminPermissions:
             
             # Save
             page.click('button[name="Permission Management.btn_save_permissions"]')
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
             page.wait_for_timeout(500)
             
             assert page_contains_text(page, "saved successfully")
@@ -533,7 +533,7 @@ class TestAdminPermissions:
         """Verify permission changes persist after page reload."""
         page = logged_in_page
         navigate_to(page, "/admin/permissions")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         checkboxes = page.locator('input[type="checkbox"][name^="Permission Management.checkbox_"]')
         
@@ -550,12 +550,12 @@ class TestAdminPermissions:
             
             # Save
             page.click('button[name="Permission Management.btn_save_permissions"]')
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
             page.wait_for_timeout(500)
             
             # Reload page
             navigate_to(page, "/admin/permissions")
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
             
             # Verify the change persisted
             reloaded_checkbox = page.locator(f'input[name="{checkbox_name}"]')
@@ -570,7 +570,7 @@ class TestAdminPermissions:
             else:
                 reloaded_checkbox.uncheck()
             page.click('button[name="Permission Management.btn_save_permissions"]')
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
         else:
             # No modules registered - just pass
             pass
@@ -579,7 +579,7 @@ class TestAdminPermissions:
         """Verify admin group is not shown in permission matrix (has full access)."""
         page = logged_in_page
         navigate_to(page, "/admin/permissions")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Admin group should not appear in checkboxes (they have full access)
         # The checkbox names use module prefix: Permission Management.checkbox_{module}|{group}|{action}
@@ -596,7 +596,7 @@ class TestAdminAccessControl:
         """Verify unauthenticated user cannot access /admin/users."""
         # Use raw page (not logged in) - framework sets GUEST session
         page.goto(f"{BASE_URL}/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # GUEST user should see Access Denied page (not redirect to login)
         # because framework auto-sets session['user'] = 'GUEST'
@@ -607,7 +607,7 @@ class TestAdminAccessControl:
     def test_02_guest_cannot_access_groups(self, page):
         """Verify unauthenticated user cannot access /admin/groups."""
         page.goto(f"{BASE_URL}/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # GUEST user should see Access Denied page
         url = page.url
@@ -616,7 +616,7 @@ class TestAdminAccessControl:
     def test_03_guest_cannot_access_permissions(self, page):
         """Verify unauthenticated user cannot access /admin/permissions."""
         page.goto(f"{BASE_URL}/admin/permissions")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # GUEST user should see Access Denied page
         url = page.url
@@ -628,27 +628,27 @@ class TestAdminAccessControl:
         
         # First create a non-admin test user
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Create test user with only 'guest' group
         page.fill('input[name="User Management.input_username"]', TEST_NONADMIN_USERNAME)
         page.fill('input[name="User Management.input_password"]', TEST_NONADMIN_PASSWORD)
         page.fill('input[name="User Management.input_display_name"]', "Non-Admin Test User")
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Logout admin
         logout(page)
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Login as non-admin user
         login(page, TEST_NONADMIN_USERNAME, TEST_NONADMIN_PASSWORD)
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Try to access admin page
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Should see Access Denied
         assert page_contains_text(page, "Access Denied") or page_contains_text(page, "Admin access required")
@@ -657,14 +657,14 @@ class TestAdminAccessControl:
         logout(page)
         login(page, "admin", "admin123")
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Delete the test user
         delete_select = page.locator('select[name="User Management.select_user_to_delete"]')
         try:
             delete_select.select_option(TEST_NONADMIN_USERNAME)
             page.click('button[name="User Management.btn_delete_user"]')
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
         except Exception:
             pass  # User might not exist if test failed earlier
 
@@ -676,7 +676,7 @@ class TestAdvancedScenarios:
         """Verify permission changes persist after logout/login."""
         page = logged_in_page
         navigate_to(page, "/admin/permissions")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         # Find checkboxes
         checkboxes = page.locator('input[type="checkbox"][name^="Permission Management.checkbox_"]')
@@ -694,20 +694,20 @@ class TestAdvancedScenarios:
             
             # Save
             page.click('button[name="Permission Management.btn_save_permissions"]')
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
             page.wait_for_timeout(500)
             
             # Logout
             logout(page)
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
             
             # Login again
             login(page, "admin", "admin123")
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
             
             # Go back to permissions page
             navigate_to(page, "/admin/permissions")
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
             
             # Verify the change persisted
             reloaded_checkbox = page.locator(f'input[name="{checkbox_name}"]')
@@ -722,7 +722,7 @@ class TestAdvancedScenarios:
             else:
                 reloaded_checkbox.uncheck()
             page.click('button[name="Permission Management.btn_save_permissions"]')
-            page.wait_for_load_state("networkidle")
+            page.wait_for_load_state("load")
         else:
             # No modules registered - skip
             pytest.skip("No permission checkboxes available")
@@ -733,19 +733,19 @@ class TestAdvancedScenarios:
         
         # First create an extra group for testing
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         timestamp = int(time.time())
         test_group = f"test_multigroup_{timestamp}"
         
         page.fill('input[name="Group Management.input_new_group"]', test_group)
         page.click('button[name="Group Management.btn_create_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Go to users page and create a user
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         username = f"multigroup_user_{timestamp}"
         page.fill('input[name="User Management.input_username"]', username)
@@ -754,7 +754,7 @@ class TestAdvancedScenarios:
         
         # Create with default group (guest)
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify user was created
@@ -769,7 +769,7 @@ class TestAdvancedScenarios:
         # The update groups multi-select should be available
         # Click update button to update groups
         page.click('button[name="User Management.btn_update_groups"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Should show success message
@@ -779,14 +779,14 @@ class TestAdvancedScenarios:
         delete_select = page.locator('select[name="User Management.select_user_to_delete"]')
         delete_select.select_option(username)
         page.click('button[name="User Management.btn_delete_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         delete_group_select = page.locator('select[name="Group Management.select_group_to_delete"]')
         delete_group_select.select_option(test_group)
         page.click('button[name="Group Management.btn_delete_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
 
     def test_03_rename_group_preserves_user_membership(self, logged_in_page):
         """Verify that renaming a group preserves user membership."""
@@ -794,7 +794,7 @@ class TestAdvancedScenarios:
         
         # Create a test group
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         timestamp = int(time.time())
         old_group_name = f"rename_test_group_{timestamp}"
@@ -802,19 +802,19 @@ class TestAdvancedScenarios:
         
         page.fill('input[name="Group Management.input_new_group"]', old_group_name)
         page.click('button[name="Group Management.btn_create_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Create a user (will have default guest group)
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         username = f"rename_test_user_{timestamp}"
         page.fill('input[name="User Management.input_username"]', username)
         page.fill('input[name="User Management.input_password"]', "TestPass123!")
         
         page.click('button[name="User Management.btn_create_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify user was created
@@ -825,13 +825,13 @@ class TestAdvancedScenarios:
         # by checking that after renaming, the new name appears in the system
         
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         rename_select = page.locator('select[name="Group Management.select_group_to_rename"]')
         rename_select.select_option(old_group_name)
         page.fill('input[name="Group Management.input_new_group_name"]', new_group_name)
         page.click('button[name="Group Management.btn_rename_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Verify group was renamed
@@ -842,15 +842,16 @@ class TestAdvancedScenarios:
         
         # Cleanup: delete user and group
         navigate_to(page, "/admin/users")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         delete_select = page.locator('select[name="User Management.select_user_to_delete"]')
         delete_select.select_option(username)
         page.click('button[name="User Management.btn_delete_user"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         
         navigate_to(page, "/admin/groups")
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
         delete_group_select = page.locator('select[name="Group Management.select_group_to_delete"]')
         delete_group_select.select_option(new_group_name)
         page.click('button[name="Group Management.btn_delete_group"]')
-        page.wait_for_load_state("networkidle")
+        page.wait_for_load_state("load")
+
