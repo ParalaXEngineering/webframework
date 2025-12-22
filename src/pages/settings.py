@@ -678,12 +678,16 @@ def _view_settings(user_mode=False):
                     manager.set_setting_metadata(setting_key, METADATA_OVERRIDABLE, True)
                 
                 # Handle unchecked overridable checkboxes (set to False)
-                # Need to check both direct settings and subcategory settings
+                # Only process categories that were displayed in the form (respect category_filter)
                 all_settings = manager.get_all_settings()
-                for category in all_settings:  # type: ignore
+                categories_to_process = [category_filter] if category_filter else list(all_settings.keys())
+                
+                for category in categories_to_process:
+                    if category not in all_settings:
+                        continue
                     category_data = all_settings[category]
                     for key in category_data:  # type: ignore
-                        if key == METADATA_FRIENDLY or not isinstance(category_data[key], dict):
+                        if key in [METADATA_FRIENDLY, METADATA_CATEGORY_DESCRIPTION] or not isinstance(category_data[key], dict):
                             continue
                         
                         # Check if this is a direct setting (has 'type' field)
@@ -757,11 +761,27 @@ def _view_settings(user_mode=False):
         
         # In user mode, check if category has any overridable settings
         if user_mode:
-            has_overridable_in_category = any(
-                setting.get(METADATA_OVERRIDABLE, False)
-                for key, setting in category_data.items()  # type: ignore
-                if key != METADATA_FRIENDLY and isinstance(setting, dict)
-            )
+            has_overridable_in_category = False
+            for key, setting in category_data.items():  # type: ignore
+                if key in [METADATA_FRIENDLY, METADATA_CATEGORY_DESCRIPTION] or not isinstance(setting, dict):
+                    continue
+                
+                # Check direct setting
+                if METADATA_TYPE in setting and setting.get(METADATA_OVERRIDABLE, False):
+                    has_overridable_in_category = True
+                    break
+                
+                # Check subcategory settings
+                if METADATA_TYPE not in setting and METADATA_FRIENDLY in setting:
+                    for subkey, subsetting in setting.items():
+                        if subkey in [METADATA_FRIENDLY, METADATA_DESCRIPTION] or not isinstance(subsetting, dict):
+                            continue
+                        if METADATA_TYPE in subsetting and subsetting.get(METADATA_OVERRIDABLE, False):
+                            has_overridable_in_category = True
+                            break
+                    if has_overridable_in_category:
+                        break
+            
             if not has_overridable_in_category:
                 continue  # Skip category in user mode
         
@@ -798,20 +818,41 @@ def _view_settings(user_mode=False):
         
         # Render direct settings first (if any)
         if direct_settings:
-            columns = COLUMNS_SETTING_USER if user_mode else COLUMNS_SETTING_ADMIN
+            # In user mode, only create table if there are overridable settings
+            if user_mode:
+                has_overridable_direct = any(
+                    setting.get(METADATA_OVERRIDABLE, False)
+                    for setting in direct_settings.values()
+                    if isinstance(setting, dict)
+                )
+                if not has_overridable_direct:
+                    direct_settings = {}  # Skip rendering
             
-            layout_id = disp.add_master_layout(displayer.DisplayerLayout(
-                displayer.Layouts.TABLE,
-                columns=columns
-            ))
-            
-            line = 0
-            for key, setting in direct_settings.items():
-                _render_setting_row(disp, layout_id, line, category, key, setting, user_mode, user_overrides)
-                line += 1
+            if direct_settings:
+                columns = COLUMNS_SETTING_USER if user_mode else COLUMNS_SETTING_ADMIN
+                
+                layout_id = disp.add_master_layout(displayer.DisplayerLayout(
+                    displayer.Layouts.TABLE,
+                    columns=columns
+                ))
+                
+                line = 0
+                for key, setting in direct_settings.items():
+                    if _render_setting_row(disp, layout_id, line, category, key, setting, user_mode, user_overrides):
+                        line += 1
         
         # Render each subcategory
         for subcat_key, subcat_data in subcategories.items():
+            # In user mode, check if subcategory has any overridable settings
+            if user_mode:
+                has_overridable_in_subcat = any(
+                    setting.get(METADATA_OVERRIDABLE, False)
+                    for key, setting in subcat_data.items()
+                    if key not in [METADATA_FRIENDLY, METADATA_DESCRIPTION] and isinstance(setting, dict) and METADATA_TYPE in setting
+                )
+                if not has_overridable_in_subcat:
+                    continue  # Skip this subcategory
+            
             subcat_friendly = subcat_data.get(METADATA_FRIENDLY, subcat_key)
             
             # Add subcategory subtitle
