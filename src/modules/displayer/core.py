@@ -2,12 +2,13 @@
 Core components for the Displayer system.
 
 This module contains:
-- ResourceRegistry: Dynamic resource loading system
+- ResourceRegistry: Dynamic resource loading system (request-scoped)
 - DisplayerCategory: Category decorator for auto-discovery
 - Enums: Layout types, item types, styles, and alignment options
 """
 
 from enum import Enum
+from typing import Set, Dict, List
 
 
 # ============================================================================
@@ -16,8 +17,9 @@ from enum import Enum
 
 class ResourceRegistry:
     """
-    Global registry for tracking which CSS/JS resources are needed by displayer items.
-    This allows dynamic loading of only the required assets.
+    Request-scoped registry for tracking which CSS/JS resources are needed by displayer items.
+    Uses Flask's g object for request-scoped storage to avoid conflicts between concurrent requests.
+    Falls back to class-level storage when outside Flask context (e.g., tests).
     
     Example:
         >>> ResourceRegistry.require('datatables', 'filepond')
@@ -25,12 +27,13 @@ class ResourceRegistry:
         >>> js_files = ResourceRegistry.get_required_js()
     """
     
-    _required_css = set()
-    _required_js = set()
-    _required_vendors = set()
+    # Class-level storage for backward compatibility (used outside Flask context)
+    _required_css: Set[str] = set()
+    _required_js: Set[str] = set()
+    _required_vendors: Set[str] = set()
     
     # Define available resources
-    RESOURCES = {
+    RESOURCES: Dict[str, Dict[str, List[str]]] = {
         'jquery': {
             'js': ['vendors/jquery/jquery.min.js']
         },
@@ -74,6 +77,18 @@ class ResourceRegistry:
     }
     
     @classmethod
+    def _get_registry(cls) -> set:
+        """Get the request-scoped registry, or fallback to class-level."""
+        try:
+            from flask import g
+            if not hasattr(g, '_resource_registry'):
+                g._resource_registry = set()
+            return g._resource_registry
+        except (ImportError, RuntimeError):
+            # Outside Flask context (e.g., tests) - use class-level
+            return cls._required_vendors
+    
+    @classmethod
     def require(cls, *resource_names):
         """
         Mark resources as required. Can be called by displayer items or layouts.
@@ -84,20 +99,22 @@ class ResourceRegistry:
         Example:
             >>> ResourceRegistry.require('datatables', 'sweetalert')
         """
+        registry = cls._get_registry()
         for name in resource_names:
             if name in cls.RESOURCES:
-                cls._required_vendors.add(name)
+                registry.add(name)
     
     @classmethod
     def get_required_css(cls):
         """
-        Get list of all required CSS files.
+        Get list of all required CSS files for this request.
         
         Returns:
             list: CSS file paths needed by registered resources
         """
+        registry = cls._get_registry()
         css_files = []
-        for vendor in cls._required_vendors:
+        for vendor in registry:
             if vendor in cls.RESOURCES and 'css' in cls.RESOURCES[vendor]:
                 css_files.extend(cls.RESOURCES[vendor]['css'])
         return list(set(css_files))
@@ -105,13 +122,14 @@ class ResourceRegistry:
     @classmethod
     def get_required_js(cls):
         """
-        Get list of all required JS files.
+        Get list of all required JS files for this request.
         
         Returns:
             list: JS file paths needed by registered resources
         """
+        registry = cls._get_registry()
         js_files = []
-        for vendor in cls._required_vendors:
+        for vendor in registry:
             if vendor in cls.RESOURCES and 'js' in cls.RESOURCES[vendor]:
                 js_files.extend(cls.RESOURCES[vendor]['js'])
         return list(set(js_files))
@@ -119,27 +137,28 @@ class ResourceRegistry:
     @classmethod
     def get_required_js_cdn(cls):
         """
-        Get list of all required CDN JS files.
+        Get list of all required CDN JS files for this request.
         
         Returns:
             list: CDN URLs for JS resources
         """
+        registry = cls._get_registry()
         js_cdn = []
-        for vendor in cls._required_vendors:
+        for vendor in registry:
             if vendor in cls.RESOURCES and 'js_cdn' in cls.RESOURCES[vendor]:
                 js_cdn.extend(cls.RESOURCES[vendor]['js_cdn'])
         return list(set(js_cdn))
     
     @classmethod
     def get_required_css_cdn(cls):
-        """
-        Get list of all required CDN CSS files.
+        """ for this request.
         
         Returns:
             list: CDN URLs for CSS resources
         """
+        registry = cls._get_registry()
         css_cdn = []
-        for vendor in cls._required_vendors:
+        for vendor in registry:
             if vendor in cls.RESOURCES and 'css_cdn' in cls.RESOURCES[vendor]:
                 css_cdn.extend(cls.RESOURCES[vendor]['css_cdn'])
         return list(set(css_cdn))
@@ -147,11 +166,16 @@ class ResourceRegistry:
     @classmethod
     def reset(cls):
         """
-        Reset all required resources. Useful for testing or new page renders.
+        Reset request-scoped resources.
+        For backward compatibility and testing.
         """
-        cls._required_css.clear()
-        cls._required_js.clear()
-        cls._required_vendors.clear()
+        try:
+            from flask import g
+            if hasattr(g, '_resource_registry'):
+                g._resource_registry = set()
+        except (ImportError, RuntimeError):
+            # Outside Flask context - reset class-level
+            cls._required_vendors = set()
 
 
 # ============================================================================

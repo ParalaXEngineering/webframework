@@ -61,10 +61,11 @@ class Displayer:
     """
 
     def __init__(self) -> None:
-        """Initialize a new Displayer instance."""
-        # Reset resource registry for this new page render
-        ResourceRegistry.reset()
+        """Initialize a new Displayer instance.
         
+        Note: Resources are now request-scoped via Flask's g object.
+        No need to reset here - resources are automatically isolated per request.
+        """
         self.m_modules: Dict[str, Dict[str, Any]] = {}
         self.m_modals: List[Dict[str, Any]] = []
         self.g_next_layout: int = 0

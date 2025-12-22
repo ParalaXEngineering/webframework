@@ -571,14 +571,30 @@ def setup_app(app):
         
         return dict(csrf_token=generate_csrf_token())
 
+    @app.before_request
+    def reset_resources():
+        """Reset ResourceRegistry at the start of each request.
+        
+        This ensures resources from previous requests don't leak into new ones.
+        The registry uses Flask's g object for request-scoped storage.
+        """
+        from .modules.displayer import ResourceRegistry
+        ResourceRegistry.reset()
+
     @app.context_processor
     def inject_resources():
+        """Inject required CSS/JS resources into all templates.
+        
+        Resources are accumulated during page rendering via ResourceRegistry.require() calls,
+        then injected here so templates can include the necessary files.
+        """
         from .modules.displayer import ResourceRegistry
-        return dict(
+        resources = dict(
             required_css=ResourceRegistry.get_required_css(),
             required_js=ResourceRegistry.get_required_js(),
             required_cdn=ResourceRegistry.get_required_js_cdn()
         )
+        return resources
     
     @app.context_processor
     def inject_user_theme():
