@@ -202,9 +202,9 @@ FILE_STORAGE_CONFIG = {
             "type": "array",
             "friendly": str(CONFIG_ALLOWED_EXTENSIONS),
             "value": [
-                ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
+                ".pdf", ".txt", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
                 ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
-                ".txt", ".csv", ".zip", ".7z", ".rar"
+                ".csv", ".zip", ".7z", ".rar"
             ],
             "persistent": True
         },

@@ -272,7 +272,7 @@ def manage_users():
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText(HTML_DELETE_USER), column=0)
     
-    deletable_users = [u.username for u in users if u.username not in RESERVED_USERS]  # type: ignore
+    deletable_users = [u.username for u in users if u.username.lower() not in RESERVED_USERS]  # type: ignore
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [6, 6]))
     disp.add_display_item(DisplayerItemInputSelect(
         "select_user_to_delete",
