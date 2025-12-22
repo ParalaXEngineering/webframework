@@ -137,7 +137,7 @@ class SETUP_Packager(Threaded_action):
             configs[CONFIG_UPDATES_PASSWORD]
         )
 
-        site_conf_obj = site_conf.site_conf_obj
+        site_conf_obj = app_context.site_conf
 
         if self.m_action == "create_package":
             try:
@@ -490,7 +490,7 @@ bp = Blueprint("packager", __name__, url_prefix="/packager")
 @bp.route("/packager", methods=["GET", "POST"])
 def packager():
     data_in = None
-    site_conf_obj = site_conf.site_conf_obj
+    site_conf_obj = app_context.site_conf
 
     if request.method == "POST":
         data_raw = request.form.to_dict()

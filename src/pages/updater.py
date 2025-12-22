@@ -156,7 +156,7 @@ class SETUP_Updater(Threaded_action):
             configs[CONFIG_UPDATES_PASSWORD]
         )
 
-        site_conf_obj = site_conf.site_conf_obj
+        site_conf_obj = app_context.site_conf
 
         if self.m_action in ("update", "load_update_file"):
             if self.m_scheduler:
@@ -583,7 +583,7 @@ bp = Blueprint("updater", __name__, url_prefix="/updater")
 @bp.route("/update", methods=["GET", "POST"])
 def update():
     """Update page to handle update package creation (if credential authorize it) or update package download and application"""
-    site_conf_obj = site_conf.site_conf_obj
+    site_conf_obj = app_context.site_conf
     data_in = None
     if request.method == "POST":
         data_in = utilities.util_post_to_json(request.form.to_dict())

@@ -116,7 +116,7 @@ def edit_issue(issue_id):
     User_defined_module.User_defined_module.m_default_name = TEXT_BUG_EDIT_ISSUE.format(issue_id=issue_id)
     disp.add_module(User_defined_module.User_defined_module)
 
-    if site_conf.site_conf_obj and not site_conf.site_conf_obj.m_globals["on_target"]:
+    if app_context.site_conf and not app_context.site_conf.m_globals["on_target"]:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         # Get Redmine configuration
@@ -499,7 +499,7 @@ def bugtracker():
     User_defined_module.User_defined_module.m_default_name = TEXT_BUG_TRACKER
     disp.add_module(User_defined_module.User_defined_module)
 
-    if site_conf.site_conf_obj and not site_conf.site_conf_obj.m_globals["on_target"]:
+    if app_context.site_conf and not app_context.site_conf.m_globals["on_target"]:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         # Get Redmine configuration with error handling
@@ -531,8 +531,8 @@ def bugtracker():
 
         # Get version name from site_conf if available
         version_name = ""
-        if site_conf.site_conf_obj:
-            version_name = site_conf.site_conf_obj.m_app["version"].lower().replace('_', '-').replace(' ', '-')
+        if app_context.site_conf:
+            version_name = app_context.site_conf.m_app["version"].lower().replace('_', '-').replace(' ', '-')
 
         # Verify project exists and fetch data
         try:
