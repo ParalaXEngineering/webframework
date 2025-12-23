@@ -103,14 +103,23 @@ class DisplayerItemFileUpload(DisplayerItem):
             container: The container list for items
             parent_id: Optional parent ID prefix
         """
-        # Get file manager from global context
-        from ...modules.file_manager import FileManager
-        from ...modules import settings
-        
-        try:
-            file_manager = FileManager(settings.settings_manager)
-        except Exception:
+        # Get file manager - use shared instance from file_handler if available
+        # Import here to avoid circular dependency and ensure setup_app has run
+        import sys
+        if 'src.pages.file_handler' in sys.modules:
+            from ...pages import file_handler as fh
+            file_manager = fh.file_manager
+        else:
             file_manager = None
+            
+        if file_manager is None:
+            # Fallback: create new instance if shared one doesn't exist
+            try:
+                from ...modules.file_manager import FileManager
+                from ...modules import settings
+                file_manager = FileManager(settings.settings_manager)
+            except Exception:
+                file_manager = None
         
         # Get list of existing groups if file_manager is available
         existing_groups = []
@@ -234,14 +243,37 @@ class DisplayerItemFileDisplay(DisplayerItem):
             container: The container list for items
             parent_id: Optional parent ID prefix
         """
-        # Get file manager from global context
-        from ...modules.file_manager import FileManager
-        from ...modules import settings
+        # Get file manager - use shared instance from file_handler if available
+        # Import here to avoid circular dependency and ensure setup_app has run
+        import sys
+        import logging
+        logger = logging.getLogger(__name__)
         
-        try:
-            file_manager = FileManager(settings.settings_manager)
-        except Exception:
-            file_manager = None
+        # Debug: check what file_handler modules are available
+        fh_modules = [k for k in sys.modules.keys() if 'file_handler' in k.lower()]
+        logger.info(f"[DisplayerItemFileDisplay] file_handler modules in sys.modules: {fh_modules}")
+        
+        file_manager = None
+        # Try different possible module paths
+        for module_path in ['src.pages.file_handler', 'pages.file_handler', 'file_handler']:
+            if module_path in sys.modules:
+                logger.info(f"[DisplayerItemFileDisplay] Found file_handler at: {module_path}")
+                fh = sys.modules[module_path]
+                file_manager = getattr(fh, 'file_manager', None)
+                if file_manager:
+                    logger.info(f"[DisplayerItemFileDisplay] Using shared FileManager at: {file_manager.db_path}")
+                    break
+        
+        if file_manager is None:
+            logger.warning("[DisplayerItemFileDisplay] Shared file_manager is None, creating fallback instance")
+            try:
+                from ...modules.file_manager import FileManager
+                from ...modules import settings
+                file_manager = FileManager(settings.settings_manager)
+                logger.info(f"[DisplayerItemFileDisplay] Fallback FileManager created at: {file_manager.db_path}")
+            except Exception as e:
+                logger.error(f"[DisplayerItemFileDisplay] Failed to create fallback FileManager: {e}")
+                file_manager = None
         
         item = {
             "object": "item",
