@@ -657,6 +657,40 @@ document.addEventListener('DOMContentLoaded', function() {
             {% endif %}
         {% endif %}
     {% endfor %}
+    
+    {# Initialize cascade on page load - trigger for first option if it exists #}
+    {% if level == -1 and id | length > 1 %}
+    <script>
+        (function() {
+            // Use setTimeout to ensure selects are fully rendered
+            setTimeout(function() {
+                var firstSelect = document.getElementById('{{id[0]}}');
+                if (firstSelect && firstSelect.options.length > 0) {
+                    // If first select has a selected value (not empty), trigger cascade
+                    var firstValue = firstSelect.value || (firstSelect.selectedIndex >= 0 && firstSelect.options[firstSelect.selectedIndex] ? firstSelect.options[firstSelect.selectedIndex].text : '');
+                    if (firstSelect.selectedIndex >= 0 && firstValue && firstValue !== '') {
+                        cascaded({{data | tojson | safe}}, {{id | tojson | safe}}, firstSelect);
+                        
+                        // After cascading, restore selected values from server data
+                        {% if value %}
+                        // Wait a bit longer for cascade to populate dependent selects
+                        setTimeout(function() {
+                            var values = {{value | tojson | safe}};
+                            var selectIds = {{id | tojson | safe}};
+                            for (var i = 0; i < values.length && i < selectIds.length; i++) {
+                                var select = document.getElementById(selectIds[i]);
+                                if (select && values[i]) {
+                                    select.value = values[i];
+                                }
+                            }
+                        }, 50);
+                        {% endif %}
+                    }
+                }
+            }, 10);
+        })();
+    </script>
+    {% endif %}
 {% endmacro %}
 
 
