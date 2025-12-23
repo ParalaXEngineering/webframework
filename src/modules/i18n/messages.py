@@ -18,10 +18,10 @@ current request context. When Babel is not initialized, it returns the English s
 try:
     from flask_babel import gettext, _
     BABEL_AVAILABLE = True
-    print("[i18n] ✓ Flask-Babel imported successfully")
+    print("[i18n] Flask-Babel imported successfully")
 except ImportError:
     BABEL_AVAILABLE = False
-    print("[i18n] ✗ Flask-Babel not available")
+    print("[i18n] Flask-Babel not available")
     # Fallback gettext that returns original string
     def gettext(s): return s
     def _(s): return s
