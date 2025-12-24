@@ -1045,6 +1045,21 @@ class DisplayerItemInputCascaded(DisplayerItem):
         self.m_level = level
         return
 
+    def display(self, container: list, parent_id: Optional[str] = None) -> None:
+        """Override display to ensure value is always present in the output dict.
+        
+        The cascaded input template requires 'value' to always be present,
+        even if it's None or an empty list.
+        """
+        # Call parent display method
+        super().display(container, parent_id)
+        
+        # Ensure 'value' key exists in the last added item
+        if container and 'value' not in container[-1]:
+            container[-1]['value'] = None
+        
+        return
+
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample cascaded select.
