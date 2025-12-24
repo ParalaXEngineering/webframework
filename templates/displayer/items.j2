@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 {{ common_input.select_js(
                     id[0], 
                     'cascaded(' + (data | tojson | safe) + ', ' + (id | tojson | safe) + ', this)', 
-                    data.keys() | list | sort, 
+                    [""] + (data.keys() | list | sort), 
                     value[0]
                 ) }}
             {% else %}
