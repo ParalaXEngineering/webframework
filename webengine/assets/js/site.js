@@ -379,29 +379,12 @@ function saveScrollPosition() {
 }
 
 $(document).ready(function() {
-    console.log('[DEBUG] site.js loaded and document ready');
-    console.log('[DEBUG] Attempting to connect to SocketIO at:', 'http://' + document.domain + ':' + location.port);
-    
     // Make socket globally accessible for other scripts
     window.socket = io.connect('http://' + document.domain + ':' + location.port);
     var socket = window.socket;  // Keep local reference for compatibility
     
-    // Debug: Socket connection events
-    socket.on('connect', function() {
-        console.log('[SOCKETIO] Connected to server');
-    });
-    
-    socket.on('disconnect', function() {
-        console.log('[SOCKETIO] Disconnected from server');
-    });
-    
-    socket.on('connect_error', function(error) {
-        console.error('[SOCKETIO] Connection error:', error);
-    });
-    
     setTimeout(test_connect, 1000)
     function test_connect(){
-        console.log('[SOCKETIO] Emitting user_connected');
         socket.emit("user_connected");
     }
 
