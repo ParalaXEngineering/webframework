@@ -16,6 +16,7 @@ from flask import Blueprint, render_template, request, jsonify
 # Local modules
 from ..modules import displayer
 from ..modules.auth import require_admin
+from ..modules.app_context import app_context
 from ..modules.i18n.messages import (
     ERROR_INVALID_LOG_FILE,
     ERROR_LOG_FILE_NOT_FOUND,
@@ -164,8 +165,9 @@ def logs():
     
     disp.add_breadcrumb(TEXT_LOGS, f"{BLUEPRINT_NAME}.logs", [])
     
-    # Get logs directory
-    logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'logs')
+    # Get logs directory from app_context (uses project's logs, not framework's)
+    app_path = app_context.app_path or os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    logs_dir = os.path.join(app_path, 'logs')
     
     # Check if logs directory exists
     if not os.path.exists(logs_dir):
@@ -302,7 +304,9 @@ def get_logs(log_file: str):
     order_column = request.args.get(API_PARAM_ORDER_COL, type=int, default=0)
     order_dir = request.args.get(API_PARAM_ORDER_DIR, default=TABLE_SORT_ORDER)
     
-    logs_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'logs')
+    # Get logs directory from app_context (uses project's logs, not framework's)
+    app_path = app_context.app_path or os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    logs_dir = os.path.join(app_path, 'logs')
     log_path = os.path.join(logs_dir, log_file)
     
     if not os.path.exists(log_path):
