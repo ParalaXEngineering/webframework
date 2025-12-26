@@ -137,27 +137,21 @@ def log_validation_results(issues: List[Tuple[str, str]]):
 
 def validate_and_log():
     """Run validation and log results. Call this at application startup."""
-    separator = "=" * 70
-    logger.info(separator)
     logger.info(str(TEXT_PERMISSION_VALIDATION_START))
-    logger.info(separator)
     
     issues = validate_permissions()
     log_validation_results(issues)
     
-    # Print critical errors to console
+    # Print critical errors to console for visibility (startup errors need stderr)
     errors = [msg for sev, msg in issues if sev == "ERROR"]
     if errors:
-        error_separator = "!" * 70
-        print("\n" + error_separator)
-        print(str(MSG_CRITICAL_PERMISSION_ERRORS))
-        print(error_separator)
+        import sys
+        logger.critical(str(MSG_CRITICAL_PERMISSION_ERRORS))
         for error in errors:
-            print(f"  ✗ {error}")
-        print(str(MSG_FIX_ISSUES_PRODUCTION))
-        print(str(MSG_SEE_LOGS_DETAILS))
-        print(error_separator + "\n")
+            logger.critical(f"  ✗ {error}")
+            # Also output to stderr for startup visibility
+            print(f"  ✗ {error}", file=sys.stderr)
+        logger.critical(str(MSG_FIX_ISSUES_PRODUCTION))
+        logger.critical(str(MSG_SEE_LOGS_DETAILS))
     
-    logger.info(separator)
     logger.info(str(TEXT_PERMISSION_VALIDATION_COMPLETE))
-    logger.info(separator)

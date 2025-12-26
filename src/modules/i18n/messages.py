@@ -15,13 +15,14 @@ The TranslatableString class ensures messages are translated based on the
 current request context. When Babel is not initialized, it returns the English string.
 """
 
+import logging
+
+logger = logging.getLogger(__name__)  # Use basic logging to avoid circular import
 try:
     from flask_babel import gettext, _
     BABEL_AVAILABLE = True
-    print("[i18n] Flask-Babel imported successfully")
 except ImportError:
     BABEL_AVAILABLE = False
-    print("[i18n] Flask-Babel not available")
     # Fallback gettext that returns original string
     def gettext(s): return s
     def _(s): return s
@@ -51,24 +52,24 @@ class TranslatableString(str):
                 if self._content in ["Settings", "My Profile", "Settings saved successfully!", "Upload New Avatar"]:
                     if has_request_context():
                         current_locale = get_locale()
-                        print(f"[TranslatableString] Translating '{self._content}' with locale={current_locale}")
+                        logger.debug(f"[TranslatableString] Translating '{self._content}' with locale={current_locale}")
                     else:
-                        print(f"[TranslatableString] WARNING: No request context for '{self._content}'")
+                        logger.debug(f"[TranslatableString] WARNING: No request context for '{self._content}'")
                 
                 translated = gettext(self._content)  # type: ignore
                 
                 # Debug output
                 if self._content in ["Settings", "My Profile", "Settings saved successfully!", "Upload New Avatar"]:
-                    print(f"[TranslatableString] '{self._content}' -> '{translated}'")
+                    logger.debug(f"[TranslatableString] '{self._content}' -> '{translated}'")
                     if translated == self._content:
-                        print(f"[TranslatableString] ⚠ Translation not found for '{self._content}'!")
+                        logger.debug(f"[TranslatableString] ⚠ Translation not found for '{self._content}'!")
                 
                 return translated
             except (RuntimeError, AttributeError, KeyError) as e:
                 # Babel not initialized, no request context, or _content not set
-                print(f"[TranslatableString] ERROR translating '{self._content}': {e}")
+                logger.debug(f"[TranslatableString] ERROR translating '{self._content}': {e}")
                 return self._content  # type: ignore
-        print(f"[TranslatableString] BABEL NOT AVAILABLE for '{self._content}'")
+        logger.debug(f"[TranslatableString] BABEL NOT AVAILABLE for '{self._content}'")
         return self._content  # type: ignore
     
     def __repr__(self):

@@ -498,8 +498,8 @@ def _view_settings(user_mode=False):
                                         if full_key == "framework_ui.language":
                                             session['locale'] = value
                                             logger.info(f"[i18n] Language changed to '{value}' for user '{current_user}', session updated")
-                                            print(f"[i18n] *** SESSION UPDATED: locale = '{value}' for user '{current_user}'")
-                                            print(f"[i18n] *** Session dict: {dict(session)}")
+                                            logger.debug(f"[i18n] SESSION UPDATED: locale = '{value}' for user '{current_user}'")
+                                            logger.debug(f"[i18n] Session dict: {dict(session)}")
                         except Exception:
                             logger.exception(ERROR_SAVING_USER_OVERRIDE)
                 

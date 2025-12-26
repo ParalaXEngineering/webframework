@@ -14,6 +14,9 @@ from typing import TYPE_CHECKING, Callable, Optional
 
 # Framework modules - i18n
 from .i18n.messages import ERROR_CONFIG_KEY_NOT_FOUND
+from .log.logger_factory import get_logger
+
+logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from . import displayer
@@ -331,7 +334,7 @@ def util_post_to_json(data: dict, debug: bool = False) -> dict:
         - DisplayerItemInputSelect: Generates select fields
     """
     if debug:
-        print(f"[util_post_to_json] Input: {data}")
+        logger.debug(f"[util_post_to_json] Input: {data}")
     formated = {}
 
     # For each item given, we will parse level by level
@@ -400,7 +403,7 @@ def util_post_to_json(data: dict, debug: bool = False) -> dict:
             item_split.pop(0)
 
     if debug:
-        print(f"[util_post_to_json] Output: {formated}")
+        logger.debug(f"[util_post_to_json] Output: {formated}")
     return formated
 
 
