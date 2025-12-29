@@ -4,16 +4,21 @@ Provides a factory function to create loggers with both rotating file and
 console handlers using a unified format. Directory and file handlers are
 created lazily when `get_logger` is first called to avoid import-time
 side-effects.
+
+IMPORTANT: Respects LOG_DIR environment variable set by setup_logging.py.
+Logs are written to the caller's root (e.g., Manual_Webapp/logs), not framework root.
 """
 
 import html
 import logging
+import os
 import threading
 import traceback
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-LOG_DIR = "logs"
+# Use LOG_DIR env var if set (by setup_logging.py), otherwise default to 'logs'
+LOG_DIR = os.environ.get('LOG_DIR', 'logs')
 # Lock to guard logger creation/configuration across threads
 _logger_lock = threading.Lock()
 
