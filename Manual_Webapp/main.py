@@ -63,6 +63,10 @@ sys.path.insert(0, os.path.join(framework_root, 'src'))
 # Add Manual_Webapp to path for demo_support and website imports
 sys.path.insert(0, manual_webapp_root)
 
+# Setup hierarchical logging (framework → Manual_Webapp)
+from setup_logging import setup_hierarchical_logging
+setup_hierarchical_logging(Path(framework_root), Path(manual_webapp_root))
+
 # Import framework setup
 from src.main import app, setup_app, FLASK_AVAILABLE
 from src.modules.log.logger_factory import get_logger
@@ -257,9 +261,5 @@ if __name__ == "__main__":
     print("  ")
     print("  Press CTRL+C to stop the server")
     print("=" * 60)
-    
-    # Disable Flask/Werkzeug HTTP request logging
-    log = logging.getLogger('werkzeug')
-    log.setLevel(logging.ERROR)
     
     socketio.run(app, debug=False, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True, log_output=False)  # type: ignore
