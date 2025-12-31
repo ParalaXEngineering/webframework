@@ -92,6 +92,7 @@ from .items import (
     DisplayerItemConsole,
     DisplayerItemCode,
     DisplayerItemProgressBar,
+    DisplayerItemGridEditor,
 )
 
 # File manager items
@@ -175,6 +176,7 @@ __all__ = [
     'DisplayerItemProgressBar',
     'DisplayerItemFileUpload',
     'DisplayerItemFileDisplay',
+    'DisplayerItemGridEditor',
 ]
 
 # Backward compatibility aliases for clearer naming
