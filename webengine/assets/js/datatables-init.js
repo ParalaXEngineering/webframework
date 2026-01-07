@@ -35,6 +35,7 @@ function getCommonButtons(checkAll, elementId) {
 
 function initializeDataTable(selector, customOptions, ajax) {
     const elements = document.querySelectorAll(selector);
+    const tables = [];
     elements.forEach(element => {
         const tableId = element.id;
         
@@ -54,6 +55,10 @@ function initializeDataTable(selector, customOptions, ajax) {
         
         const finalOptions = { ...tableOptions, ...customOptions };
         const table = new DataTable(`#${tableId}`, finalOptions);
+        tables.push(table);
         // Note: Auto-refresh removed - use customOptions.ajax with proper endpoint if needed
     });
+    
+    // Return single table or array depending on how many were initialized
+    return tables.length === 1 ? tables[0] : tables;
 }

@@ -157,16 +157,172 @@
           {% endif %}
         };
 
+        {% if addon.get('type') == 'reorderable' %}
+        // RowReorder extension configuration for DOM-based tables
+        opts_{{ table_id }}.rowReorder = {
+          update: false,  // Don't let RowReorder auto-update - we handle it manually
+          selector: 'td:first-child',  // Drag from first column (name with icon)
+          snapX: true  // Constrain horizontal movement
+        };
+        
+        // Disable all sorting to preserve DOM order (database order)
+        opts_{{ table_id }}.ordering = false;
+        
+        // Disable paging for reorderable tables to see all rows
+        opts_{{ table_id }}.paging = false;
+        {% endif %}
+
         // If you actually use Scroller elsewhere, ensure the flags are coherent
         {% if addon.get('scroller') %}
         opts_{{ table_id }}.scroller = true;
         opts_{{ table_id }}.deferRender = true;
         {% endif %}
 
-        initializeDataTable(tableSelector, opts_{{ table_id }}, {{ 'true' if is_ssp else 'false' }});
+        // Initialize DataTable and capture instance
+        const dt_{{ table_id }} = initializeDataTable(tableSelector, opts_{{ table_id }}, {{ 'true' if is_ssp else 'false' }});
+        
+        {% if addon.get('type') == 'reorderable' %}
+        // Attach reorder event handler using DataTable API directly (not jQuery)
+        dt_{{ table_id }}.on('row-reorder', function(e, diff, edit) {
+          if (diff.length > 0) {
+            console.log('[REORDER] Row reorder event triggered');
+            console.log('[REORDER] Diff:', diff);
+            
+            // Wait for DOM to update, then extract order
+            setTimeout(function() {
+              const orderData = {};
+              
+              // Extract order from DOM after reorder (not from DataTable data)
+              const table = document.querySelector(tableSelector);
+              const rows = table.querySelectorAll('tbody tr');
+              
+              rows.forEach((row, index) => {
+                // Get first cell (Name column with drag icon)
+                const firstCell = row.querySelector('td:first-child');
+                if (firstCell) {
+                  // Extract text content (this will skip HTML tags like the icon)
+                  const attrName = firstCell.textContent.trim();
+                  orderData[attrName] = index;
+                  console.log(`[REORDER] Row ${index}: ${attrName}`);
+                }
+              });
+              
+              console.log('[REORDER] New order map:', orderData);
+            
+              // Update hidden form field
+              const hiddenField = $('input[name="Edit Manifest.attribute_order"], input[name="Edit Module.attribute_order"], input[name="attribute_order"]');
+              console.log('[REORDER] Looking for hidden field, found:', hiddenField.length);
+              if (hiddenField.length) {
+                const jsonValue = JSON.stringify(orderData);
+                hiddenField.val(jsonValue);
+                console.log('[REORDER] Updated hidden field "' + hiddenField.attr('name') + '" with:', jsonValue);
+              } else {
+                console.error('[REORDER] Hidden field not found! Available inputs:', $('input').map(function() { return $(this).attr('name'); }).get());
+              }
+            }, 100);  // Wait 100ms for DOM to update
+          }
+        });
+        {% endif %}
       })();
     {% endfor %}
   {% endif %}
+
+  // Global function to save table order (for RowReorder)
+  window.saveTableOrder = function(tableId) {
+    alert('saveTableOrder called with: ' + tableId);
+    console.log('[REORDER] saveTableOrder called with tableId:', tableId);
+    
+    const $table = $('#' + tableId);
+    console.log('[REORDER] Table element found:', $table.length > 0);
+    
+    if (!$table.length) {
+      alert('Table not found: ' + tableId);
+      return;
+    }
+    
+    const dataTable = $table.DataTable();
+    const reorderCallback = $table.data('reorder-callback');
+    console.log('[REORDER] Reorder callback URL:', reorderCallback);
+    
+    if (!reorderCallback) {
+      alert('No save endpoint configured for this table');
+      return;
+    }
+    
+    // Build order array from current table state
+    const orderData = [];
+    dataTable.rows({order: 'current'}).every(function(rowIdx, tableLoop, rowLoop) {
+      const data = this.data();
+      // For HTML tables: data is array [order, name, ...]
+      // Column 0 is order (hidden), column 1 is name with drag icon
+      let attrName;
+      if (Array.isArray(data)) {
+        // Extract name from column 1, removing HTML tags (drag icon)
+        const nameHtml = data[1] || '';
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = nameHtml;
+        attrName = tempDiv.textContent.trim();
+      } else {
+        attrName = data.name || data.Name;
+      }
+      orderData.push({
+        name: attrName,
+        order: rowLoop
+      });
+    });
+    
+    console.log('[REORDER] Order data to send:', orderData);
+    
+    // Disable button and show loading
+    const saveBtn = $('#save_order_' + tableId);
+    saveBtn.prop('disabled', true)
+           .html('<i class="mdi mdi-loading mdi-spin"></i> Saving...');
+    
+    // POST to callback URL
+    console.log('[REORDER] Sending POST to:', reorderCallback);
+    fetch(reorderCallback, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ reorder: orderData })
+    })
+    .then(response => {
+      console.log('[REORDER] Response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('[REORDER] Response data:', data);
+      if (data.success) {
+        // Success feedback
+        saveBtn.removeClass('btn-primary')
+               .addClass('btn-success')
+               .html('<i class="mdi mdi-check"></i> Saved');
+        
+        // Reset button after 2 seconds
+        setTimeout(function() {
+          saveBtn.html('<i class="mdi mdi-content-save"></i> Save Order')
+                 .removeClass('btn-success')
+                 .addClass('btn-secondary')
+                 .prop('disabled', true);
+        }, 2000);
+      } else {
+        alert('Failed to update order: ' + (data.error || 'Unknown error'));
+        saveBtn.html('<i class="mdi mdi-content-save"></i> Save Order')
+               .removeClass('btn-secondary')
+               .addClass('btn-primary')
+               .prop('disabled', false);
+      }
+    })
+    .catch(error => {
+      console.error('[REORDER] Error:', error);
+      alert('Error updating order: ' + error);
+      saveBtn.html('<i class="mdi mdi-content-save"></i> Save Order')
+             .removeClass('btn-secondary')
+             .addClass('btn-primary')
+             .prop('disabled', false);
+    });
+  };
 
   // ---- Tab redraw: safe for jQuery and vanilla builds ----------------------
   document.addEventListener('DOMContentLoaded', function () {

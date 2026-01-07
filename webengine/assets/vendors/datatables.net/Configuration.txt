@@ -15,6 +15,9 @@ colReorder
 Scroller
 Select
 SearchPanes
+Responsive
+RowGroup
+RowReorder
 
 Warning! Css has been modified from source by changing the background from "div.dts div.dt-scroll-body table, div.dts div.dataTables_scrollBody table": It is now commented out:
 

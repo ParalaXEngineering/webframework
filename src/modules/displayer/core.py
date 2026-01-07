@@ -41,6 +41,10 @@ class ResourceRegistry:
             'css': ['vendors/datatables.net/datatables.min.css'],
             'js': ['vendors/datatables.net/datatables.min.js', 'js/datatables-init.js']
         },
+        'rowreorder': {
+            'css_cdn': ['https://cdn.datatables.net/rowreorder/1.4.1/css/rowReorder.dataTables.min.css'],
+            'js_cdn': ['https://cdn.datatables.net/rowreorder/1.4.1/js/dataTables.rowReorder.min.js']
+        },
         'gridstack': {
             'css': ['vendors/gridstack/gridstack.min.css', 'css/gridstack-bootstrap.css'],
             'js': ['vendors/gridstack/gridstack-all.min.js']
@@ -325,11 +329,13 @@ class TableMode(Enum):
     - INTERACTIVE: DataTables with manual row population via DisplayerItems
     - BULK_DATA: DataTables with pre-loaded JSON data (most efficient for large datasets)
     - SERVER_SIDE: DataTables with AJAX endpoint for server-side data loading
+    - REORDERABLE: DataTables with RowReorder extension for drag-and-drop row reordering
     """
     SIMPLE = "simple"
     INTERACTIVE = "interactive"
     BULK_DATA = "bulk_data"
     SERVER_SIDE = "server_side"
+    REORDERABLE = "reorderable"
 
 
 class DisplayerItems(Enum):

@@ -71,7 +71,8 @@ class DisplayerLayout:
         datatable_config: Optional[Dict[str, Any]] = None,
         grid_config: Optional[Dict[str, Any]] = None,
         userid: Optional[str] = None,
-        style: Optional[MAZERStyles] = None
+        style: Optional[MAZERStyles] = None,
+        reorder_callback: Optional[str] = None
     ) -> None:
         """
         Initialize a layout.
@@ -94,6 +95,7 @@ class DisplayerLayout:
                 Format: {"version": "1.0", "columns": 12, "items": [{"field_id": "example1", "x": 0, "y": 0, "w": 6, "h": 1}, ...]}
             userid: Custom ID for form analysis
             style: Custom style override (MAZERStyles enum)
+            reorder_callback: URL endpoint for saving row order (used with TableMode.REORDERABLE)
             
         Example:
             >>> # VERTICAL layout: side-by-side columns
@@ -140,6 +142,7 @@ class DisplayerLayout:
         self.m_userid = userid
         self.m_style = style
         self.m_grid_config = grid_config
+        self.m_reorder_callback = reorder_callback
         
         # Instance-specific layout metadata storage (replaces class variable g_all_layout)
         self.m_all_layout = {}
@@ -344,8 +347,14 @@ class DisplayerLayout:
                 # New datatable_config format
                 ResourceRegistry.require('datatables')
                 
-                table_id = config_to_use.get("table_id", "table")
+                # Require RowReorder extension if mode is REORDERABLE
                 mode = config_to_use.get("mode", TableMode.INTERACTIVE.value)
+                if hasattr(mode, 'value'):
+                    mode = mode.value
+                if mode == TableMode.REORDERABLE.value or mode == 'reorderable':
+                    ResourceRegistry.require('rowreorder')
+                
+                table_id = config_to_use.get("table_id", "table")
                 
                 # Extract value if it's an enum
                 if hasattr(mode, 'value'):
@@ -387,6 +396,10 @@ class DisplayerLayout:
                     table_dict["pageLength"] = config_to_use["pageLength"]
                 
                 self.m_all_layout["responsive_addon"][table_id] = table_dict
+            
+            # Add reorder callback if provided (for REORDERABLE mode)
+            if self.m_reorder_callback:
+                current_layout["reorder_callback"] = self.m_reorder_callback
 
             # For TABS, lines is a single row of cells (one per tab)
             if self.m_type == Layouts.TABS.value:

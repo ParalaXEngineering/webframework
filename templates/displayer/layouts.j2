@@ -6,7 +6,7 @@
     {% elif layout["type"] == "HORIZ" %}
         {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["background"], layout["style"], layout["user_id"]) }}
     {% elif layout["type"] == "TABLE" %}
-        {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"], layout["user_id"], layout["background"], layout["style"], layout["spacing"]) }}
+        {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"], layout["user_id"], layout["background"], layout["style"], layout["spacing"], layout.get("reorder_callback")) }}
     {% elif layout["type"] == "TABS" %}
         {{ display_tabs_layout(layout["header"], layout["lines"], layout["user_id"], layout["subtitle"], layout["background"], layout["style"], layout["spacing"]) }}
     {% elif layout["type"] == "SPACER" %}
@@ -74,12 +74,15 @@
 
 {% endmacro %}
 
-{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None, user_id = none, background = none, style = none, spacing = 0) %}    
+{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None, user_id = none, background = none, style = none, spacing = 0, reorder_callback = none) %}    
     <div class="row m-1 {{spacing}} {% if background %}bg-{{background}}{% endif %} {% if style %}{{style}}{% endif %}" {% if user_id %} id="{{user_id}}"{% endif %}>
     <div class="table-responsive">
         <table class="table table-striped mb-0" 
                    {% if responsive %}
-                        id="{{ responsive_type }}_{{ responsive }}"                       
+                        id="{{ responsive_type }}_{{ responsive }}"
+                        {% if reorder_callback %}
+                        data-reorder-callback="{{ reorder_callback }}"
+                        {% endif %}
                    {% endif %}>
             <thead>
                 <tr>
