@@ -209,8 +209,8 @@
               
               console.log('[REORDER] New order map:', orderData);
             
-              // Update hidden form field
-              const hiddenField = $('input[name="Edit Manifest.attribute_order"], input[name="Edit Module.attribute_order"], input[name="attribute_order"]');
+              // Update hidden form field (unified format with form prefix)
+              const hiddenField = $('input[name$=".attribute_order"]');
               console.log('[REORDER] Looking for hidden field, found:', hiddenField.length);
               if (hiddenField.length) {
                 const jsonValue = JSON.stringify(orderData);
