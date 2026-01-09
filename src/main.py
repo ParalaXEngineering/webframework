@@ -71,6 +71,33 @@ THREAD_EMITTER_INTERVAL = 0.5
 # Module-level auth_manager variable (initialized in setup_app)
 auth_manager = None
 
+# Middleware to support reverse proxy with URL prefix
+class PrefixMiddleware:
+    """
+    Middleware to handle X-Forwarded-Prefix header from reverse proxies.
+    
+    When nginx (or other reverse proxy) sends X-Forwarded-Prefix header,
+    this middleware sets SCRIPT_NAME so Flask's url_for() generates correct URLs.
+    """
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        # Read X-Forwarded-Prefix header (set by nginx)
+        prefix = environ.get('HTTP_X_FORWARDED_PREFIX', '')
+        if prefix:
+            # Remove trailing slash to avoid double slashes
+            prefix = prefix.rstrip('/')
+            # Set SCRIPT_NAME so Flask knows about the prefix
+            environ['SCRIPT_NAME'] = prefix
+            # Adjust PATH_INFO by removing the prefix if it's there
+            path_info = environ.get('PATH_INFO', '')
+            if path_info.startswith(prefix):
+                environ['PATH_INFO'] = path_info[len(prefix):]
+        
+        return self.app(environ, start_response)
+
+
 # Create Flask app only if Flask is available
 if FLASK_AVAILABLE:
     app = Flask(  # type: ignore
@@ -79,6 +106,8 @@ if FLASK_AVAILABLE:
         static_folder=os.path.join("..", "webengine", "assets"),
         template_folder=os.path.join("..", "templates")
     )
+    # Apply prefix middleware to handle reverse proxy URL prefixes
+    app.wsgi_app = PrefixMiddleware(app.wsgi_app)  # type: ignore
 else:
     app = None  # Placeholder when Flask is not available
 
