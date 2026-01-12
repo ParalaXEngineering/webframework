@@ -35,6 +35,9 @@
                     <p class="auth-subtitle mb-5">Please select a user</p>
 
                     <form action="{{ url_for(target) }}" method="POST">
+                        {% if next_url %}
+                        <input type="hidden" name="next" value="{{ next_url }}">
+                        {% endif %}
                         <div class="form-group position-relative has-icon-left mb-4">
                             <select class="form-control form-control-xl" name="user" id="user">
                                     {% for user in users %}

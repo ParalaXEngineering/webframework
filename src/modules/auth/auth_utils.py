@@ -124,6 +124,53 @@ def validate_username(username: str) -> Tuple[bool, Optional[str]]:
     return True, None
 
 
+def is_safe_redirect_url(target: str) -> bool:
+    """
+    Validate that a redirect URL is safe (same domain only).
+    Prevents open redirect attacks.
+    
+    Args:
+        target: URL to validate
+        
+    Returns:
+        True if URL is safe to redirect to, False otherwise
+    """
+    if not target:
+        return False
+    
+    # Reject protocol-relative URLs (//example.com)
+    if target.startswith('//'):
+        return False
+    
+    # Allow relative URLs (starting with single /) or anchors
+    if target.startswith('/') or target.startswith('#'):
+        return True
+    
+    # For absolute URLs, parse and check if same domain
+    try:
+        from urllib.parse import urlparse
+        from flask import request
+        
+        target_url = urlparse(target)
+        
+        # Reject dangerous protocols
+        if target_url.scheme and target_url.scheme not in ('http', 'https'):
+            return False
+        
+        # If there's a netloc (domain), verify it matches current request
+        if target_url.netloc:
+            request_url = urlparse(request.host_url)
+            # Same domain/port - safe
+            return target_url.netloc == request_url.netloc
+        
+        # No netloc means relative URL - safe
+        return True
+        
+    except Exception:
+        # If parsing fails, reject for safety
+        return False
+
+
 def get_default_user_prefs() -> dict:
     """
     Get default user preferences structure.

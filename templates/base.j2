@@ -266,7 +266,7 @@
                                 </ul>
                                 <ul class="navbar-nav mr-auto">
                                 {% if topbarItems["login"] %}
-                                        <a href="{{url_for('common.login') }}"><button class="btn btn-secondary mx-1">
+                                        <a href="{{url_for('common.login', next=request.url) }}"><button class="btn btn-secondary mx-1">
                                         <div id="topbar_target" class="float-end align-items-center">
                                             <div class="col avatar avatar-lg">
                                                 {% if user %}

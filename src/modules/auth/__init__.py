@@ -16,11 +16,13 @@ from .auth_manager import AuthManager
 from .auth_models import User
 from .permission_registry import PermissionRegistry, PERMISSION_ACTION_VIEW
 from .rate_limiter import login_rate_limiter
+from .auth_utils import is_safe_redirect_url
 from ..app_context import app_context
 
 __all__ = [
     'AuthManager', 'PermissionRegistry', 'User',
-    'require_permission', 'require_admin', 'require_login', 'login_rate_limiter'
+    'require_permission', 'require_admin', 'require_login', 'login_rate_limiter',
+    'is_safe_redirect_url'
 ]
 
 # Constants
@@ -65,7 +67,8 @@ def require_permission(module: str, action: str = DEFAULT_ACTION):
             # Auth is enabled - check permission
             current_user = session.get(SESSION_USER_KEY)
             if not current_user:
-                return redirect(url_for(ROUTE_LOGIN))
+                from flask import request
+                return redirect(url_for(ROUTE_LOGIN, next=request.url))
             
             if not app_context.auth_manager.has_permission(current_user, module, action):
                 # User is logged in but lacks permission - show access denied
@@ -131,7 +134,8 @@ def require_admin():
             # Auth is enabled - check admin group
             current_user = session.get(SESSION_USER_KEY)
             if not current_user:
-                return redirect(url_for(ROUTE_LOGIN))
+                from flask import request
+                return redirect(url_for(ROUTE_LOGIN, next=request.url))
             
             # Check if user is in admin group
             user_obj = app_context.auth_manager.get_user(current_user)
@@ -198,7 +202,8 @@ def require_login():
             # Auth is enabled - check if user is logged in
             current_user = session.get(SESSION_USER_KEY)
             if not current_user:
-                return redirect(url_for(ROUTE_LOGIN))
+                from flask import request
+                return redirect(url_for(ROUTE_LOGIN, next=request.url))
             
             # User is logged in - allow access
             return f(*args, **kwargs)

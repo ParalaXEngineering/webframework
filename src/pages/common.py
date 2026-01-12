@@ -181,6 +181,9 @@ def login():
     
     error_message = None
     
+    # Get next URL from query parameter (where to redirect after login)
+    next_url = request.args.get('next', '/')
+    
     # Get all users
     users = [u.username for u in app_context.auth_manager.get_all_users()]  # type: ignore
     users.sort()
@@ -192,11 +195,15 @@ def login():
         
         if not rate_allowed:
             # IP is rate limited - show message and don't process login
-            return render_template(TEXT_LOGIN_TEMPLATE, target=f"{BP_NAME}.login", users=users, message=rate_message)
+            return render_template(TEXT_LOGIN_TEMPLATE, target=f"{BP_NAME}.login", users=users, message=rate_message, next_url=next_url)
         
         data_in = utilities.util_post_to_json(request.form.to_dict())
         username = data_in.get(FIELD_USER, "")
         password = data_in.get(FIELD_PASSWORD, "")
+        
+        # Get next URL from POST data (hidden field) if not in query string
+        if 'next' in data_in:
+            next_url = data_in['next']
         
         # Use check_login_attempt for security features (lockout, attempt tracking)
         success, error_message = cast(Any, app_context.auth_manager).check_login_attempt(username, password)  # type: ignore
@@ -207,10 +214,17 @@ def login():
         if success:
             # Set user in session (set_current_user handles session.permanent)
             app_context.auth_manager.set_current_user(username)
-            return redirect("/")
+            
+            # Validate and redirect to next URL (prevent open redirect attacks)
+            if auth.is_safe_redirect_url(next_url):
+                return redirect(next_url)
+            else:
+                # Invalid next URL - go to home
+                logger.warning(f"Blocked unsafe redirect to: {next_url}")
+                return redirect("/")
         # else: error_message is already set by check_login_attempt
     
-    return render_template(TEXT_LOGIN_TEMPLATE, target=f"{BP_NAME}.login", users=users, message=error_message)
+    return render_template(TEXT_LOGIN_TEMPLATE, target=f"{BP_NAME}.login", users=users, message=error_message, next_url=next_url)
 
 
 @bp.route(ROUTE_HELP, methods=[METHOD_GET])
