@@ -1,0 +1,86 @@
+{
+  "name": "webframework",
+  "type": "framework",
+  "python_version": "3.8",
+  
+  "vendors": {
+    "enabled": true,
+    "target_dir": "webengine/assets/vendors",
+    "libraries": [
+      {
+        "name": "gridstack",
+        "package": "gridstack",
+        "files": ["dist/gridstack-all.min.js", "dist/gridstack.min.css"]
+      },
+      {
+        "name": "jquery",
+        "package": "jquery",
+        "files": ["dist/jquery.min.js"]
+      },
+      {
+        "name": "datatables.net",
+        "package": "datatables.net-bs5",
+        "files": ["css/dataTables.bootstrap5.min.css", "js/dataTables.bootstrap5.min.js"]
+      },
+      {
+        "name": "fullcalendar",
+        "package": "@fullcalendar/core",
+        "files": ["index.global.min.js"]
+      },
+      {
+        "name": "perfect-scrollbar",
+        "package": "perfect-scrollbar",
+        "files": ["dist/perfect-scrollbar.min.js", "css/perfect-scrollbar.css"]
+      },
+      {
+        "name": "sweetalert",
+        "package": "sweetalert2",
+        "files": ["dist/sweetalert2.all.min.js", "dist/sweetalert2.min.css"]
+      },
+      {
+        "name": "mdi",
+        "package": "@mdi/font",
+        "files": ["css/materialdesignicons.min.css"]
+      },
+      {
+        "name": "filepond",
+        "package": "filepond",
+        "files": ["dist/filepond.min.js", "dist/filepond.min.css"]
+      },
+      {
+        "name": "filepond-plugin-image-preview",
+        "package": "filepond-plugin-image-preview",
+        "files": ["dist/filepond-plugin-image-preview.min.js", "dist/filepond-plugin-image-preview.min.css"]
+      },
+      {
+        "name": "filepond-plugin-file-validate-type",
+        "package": "filepond-plugin-file-validate-type",
+        "files": ["dist/filepond-plugin-file-validate-type.min.js"]
+      },
+      {
+        "name": "highlightjs",
+        "package": "highlight.js",
+        "files": [],
+        "custom_handler": "highlightjs"
+      },
+      {
+        "name": "mdi_fonts",
+        "package": "@mdi/font",
+        "files": [],
+        "custom_handler": "mdi_fonts"
+      },
+      {
+        "name": "tinymce",
+        "package": "tinymce",
+        "files": [],
+        "custom_handler": "tinymce"
+      }
+    ]
+  },
+  
+  "tools": {
+    "babel": true,
+    "docs": true,
+    "tests": true
+  }
+}
