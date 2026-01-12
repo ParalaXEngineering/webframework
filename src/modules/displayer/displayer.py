@@ -74,6 +74,7 @@ class Displayer:
         self.m_title: Optional[str] = None
         self.m_active_module: Optional[str] = None
         self.m_last_layout: Optional[DisplayerLayout] = None
+        self._tooltip_contexts: List[str] = []  # Tooltip contexts for this page
 
     def add_module(self, module: Any, name_override: Optional[str] = None, display: bool = True) -> None:
         """
@@ -627,6 +628,19 @@ class Displayer:
 
         return None
 
+    def set_tooltip_contexts(self, contexts: List[str]) -> None:
+        """
+        Set tooltip contexts for this page.
+        
+        Args:
+            contexts: List of context names (e.g., ["global", "module_123"])
+        """
+        self._tooltip_contexts = contexts
+    
+    def get_tooltip_contexts(self) -> List[str]:
+        """Get current tooltip contexts."""
+        return self._tooltip_contexts
+
     def display(self, bypass_auth: bool = False) -> Dict[str, Any]:
         """
         Return the information to pass to the template.
@@ -649,6 +663,18 @@ class Displayer:
         serve_modules["required_js"] = ResourceRegistry.get_required_js()
         serve_modules["required_cdn"] = ResourceRegistry.get_required_js_cdn()
         serve_modules["required_css_cdn"] = ResourceRegistry.get_required_css_cdn()
+        
+        # Add tooltips if contexts are set and tooltip_manager is available
+        from ..app_context import app_context
+        if self._tooltip_contexts and hasattr(app_context, 'tooltip_manager') and app_context.tooltip_manager:
+            tooltips = app_context.tooltip_manager.get_tooltips_for_contexts(self._tooltip_contexts)
+            logger.info(f"Loading tooltips for contexts {self._tooltip_contexts}: {len(tooltips)} tooltips")
+            logger.debug(f"Tooltip data: {tooltips}")
+            serve_modules["tooltips"] = tooltips
+        else:
+            serve_modules["tooltips"] = {}
+            if self._tooltip_contexts:
+                logger.warning(f"Tooltip contexts set ({self._tooltip_contexts}) but tooltip_manager not available")
 
         for module in self.m_modules:  
             # Authorization is now handled in add_module(), so we just check the flag

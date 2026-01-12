@@ -374,7 +374,17 @@
       });
     });
   });
+  
+  // Tooltip system initialization
+  {% if content.tooltips and content.tooltips|length > 0 %}
+  window.tooltipData = {{ content.tooltips | tojson | safe }};
+  {% endif %}
 </script>
+
+{% if content.tooltips and content.tooltips|length > 0 %}
+<script src="{{ url_for('static', filename='framework/tooltip_init.js') }}"></script>
+{% endif %}
+
 {% endblock %}
 
 

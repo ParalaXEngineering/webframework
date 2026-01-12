@@ -280,6 +280,42 @@ FILE_STORAGE_CONFIG = {
     }
 }
 
+# Default configuration for tooltip system
+TOOLTIP_CONFIG = {
+    "tooltip_system": {
+        "db_path": {
+            "type": "string",
+            "value": "resources/tooltip_data.db",
+            "description": "Path to tooltip database",
+            "persistent": True
+        },
+        "cache_ttl": {
+            "type": "int",
+            "value": 300,
+            "description": "Cache TTL in seconds",
+            "persistent": True
+        },
+        "image_max_width": {
+            "type": "int",
+            "value": 800,
+            "description": "Max width for resized images",
+            "persistent": True
+        },
+        "image_max_height": {
+            "type": "int",
+            "value": 600,
+            "description": "Max height for resized images",
+            "persistent": True
+        },
+        "image_quality": {
+            "type": "int",
+            "value": 85,
+            "description": "JPEG quality (1-100)",
+            "persistent": True
+        }
+    }
+}
+
 # Map of feature flags to their config sections
 FEATURE_CONFIGS = {
     "framework_ui": FRAMEWORK_UI_CONFIG,  # Always enabled (includes language, thread status, log viewer settings)
@@ -287,4 +323,5 @@ FEATURE_CONFIGS = {
     "updater": UPDATES_CONFIG,
     "packager": UPDATES_CONFIG,  # Packager uses same config as updater
     "file_manager": FILE_STORAGE_CONFIG,
+    "tooltip_manager": TOOLTIP_CONFIG,
 }
