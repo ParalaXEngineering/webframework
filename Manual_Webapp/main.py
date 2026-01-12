@@ -164,6 +164,9 @@ class TestSiteConf(site_conf.Site_conf):
         # Enable File Manager separately (not in enable_all_features yet)
         self.enable_file_manager(add_to_sidebar=True, enable_admin_page=True)
         
+        # Enable Tooltip Manager
+        self.enable_tooltip_manager(add_to_sidebar=True)
+        
         # Configure topbar login display (don't overwrite m_topbar, just update it)
         # The enable_all_features() already configured the topbar with thread status
         self.m_topbar["login"] = True

@@ -931,6 +931,25 @@ TEXT_SETTINGS_SIDEBAR = TranslatableString("Settings")
 TEXT_UPDATER_SIDEBAR = TranslatableString("Updater")
 TEXT_PACKAGER_SIDEBAR = TranslatableString("Packager")
 TEXT_FILE_MANAGER_SIDEBAR = TranslatableString("File Manager")
+TEXT_TOOLTIP_MANAGER_SIDEBAR = TranslatableString("Tooltip Manager")
 
 # Default Messages
 TEXT_DEFAULT_INDEX_MESSAGE = TranslatableString("Welcome to the ESD framework default page")
+
+# =============================================================================
+# Tooltip Manager Module Messages
+# =============================================================================
+# UI Text and Labels
+TEXT_TOOLTIP_MANAGER = TranslatableString("Tooltip Manager")
+TEXT_TOOLTIPS = TranslatableString("Tooltips")
+TEXT_CONTEXTS = TranslatableString("Contexts")
+TEXT_KEYWORD = TranslatableString("Keyword")
+TEXT_STRATEGY = TranslatableString("Strategy")
+
+# Success Messages
+MSG_TOOLTIP_CREATED = TranslatableString("Tooltip created successfully!")
+MSG_TOOLTIP_UPDATED = TranslatableString("Tooltip updated successfully!")
+MSG_TOOLTIP_DELETED = TranslatableString("Tooltip deleted successfully!")
+MSG_CONTEXT_CREATED = TranslatableString("Context created successfully!")
+MSG_CONTEXT_UPDATED = TranslatableString("Context updated successfully!")
+MSG_CONTEXT_DELETED = TranslatableString("Context deleted successfully!")

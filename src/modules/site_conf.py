@@ -31,6 +31,7 @@ from .i18n.messages import (
     TEXT_UPDATER_SIDEBAR,
     TEXT_PACKAGER_SIDEBAR,
     TEXT_FILE_MANAGER_SIDEBAR,
+    TEXT_TOOLTIP_MANAGER_SIDEBAR,
     TEXT_DEFAULT_INDEX_MESSAGE,
 )
 
@@ -142,6 +143,9 @@ class Site_conf:
         
         self.m_file_manager_admin = False
         """Enable file manager admin interface"""
+        
+        self.m_enable_tooltip_manager = False
+        """Enable tooltip manager system"""
 
     def _ensure_system_title(self):
         """Helper to ensure 'System' title exists in sidebar."""
@@ -325,6 +329,23 @@ class Site_conf:
             if not has_tools:
                 self.add_sidebar_section(str(TEXT_SECTION_TOOLS), ICON_TOOLBOX, ENDPOINT_TOOLS)
             self.add_sidebar_submenu(str(TEXT_FILE_MANAGER_SIDEBAR), "file_manager_admin.index", endpoint=ENDPOINT_TOOLS)
+    
+    def enable_tooltip_manager(self, add_to_sidebar: bool = True):
+        """Enable tooltip manager system.
+        
+        :param add_to_sidebar: If True, adds tooltip manager to sidebar under System Tools, defaults to True
+        :type add_to_sidebar: bool, optional
+        """
+        self.m_enable_tooltip_manager = True
+        if add_to_sidebar:
+            self._ensure_system_title()
+            # Check if Tools section exists, create if not
+            has_tools = any(
+                item.get(ATTR_ENDPOINT) == ENDPOINT_TOOLS for item in self.m_sidebar
+            )
+            if not has_tools:
+                self.add_sidebar_section(str(TEXT_SECTION_TOOLS), ICON_TOOLBOX, ENDPOINT_TOOLS)
+            self.add_sidebar_submenu(str(TEXT_TOOLTIP_MANAGER_SIDEBAR), "framework_tooltips.index", endpoint=ENDPOINT_TOOLS)
     
     def enable_all_features(self, add_to_sidebar: bool = True, add_to_topbar: bool = True):
         """Enable all framework features (useful for demos and testing).

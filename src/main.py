@@ -383,6 +383,21 @@ def setup_app(app):
         logger.debug("File manager initialized")
     else:
         logger.debug("File manager disabled")
+    
+    # Conditionally initialize tooltip manager based on feature flag
+    if site_config.m_enable_tooltip_manager:
+        from .modules.tooltip_manager import TooltipManager
+        from .modules.tooltip_manager import routes as tooltip_routes
+        
+        # Create TooltipManager instance and register blueprint
+        tooltip_manager_instance = TooltipManager(settings_manager_instance)
+        app_context.tooltip_manager = tooltip_manager_instance
+        app.register_blueprint(tooltip_routes.bp)
+        
+        logger.debug("Tooltip manager initialized")
+    else:
+        app_context.tooltip_manager = None
+        logger.debug("Tooltip manager disabled")
 
     # Conditionally initialize scheduler based on feature flag
     if site_config.m_enable_scheduler:

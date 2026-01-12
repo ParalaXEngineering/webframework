@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Tuple, Any
 from sqlalchemy import create_engine, or_, func
 from sqlalchemy.orm import sessionmaker, Session
 
-from submodules.framework.src.modules.log.logger_factory import get_logger
+from src.modules.log.logger_factory import get_logger
 from .models import Base, Context, Tooltip, TooltipContext
 from .utils import process_image_to_base64
 
