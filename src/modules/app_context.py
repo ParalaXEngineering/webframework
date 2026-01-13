@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from .scheduler.scheduler import Scheduler
     from .socketio_manager import SocketIOManager
     from .site_conf import Site_conf
+    from .tooltip_manager.manager import TooltipManager
     from flask_socketio import SocketIO
 
 
@@ -60,6 +61,7 @@ class AppContext:
     socketio: Optional["SocketIO"] = None
     socketio_manager: Optional["SocketIOManager"] = None
     site_conf: Optional["Site_conf"] = None
+    tooltip_manager: Optional["TooltipManager"] = None
     
     # Paths
     app_path: Optional[str] = None
@@ -85,6 +87,7 @@ class AppContext:
         self.socketio = None
         self.socketio_manager = None
         self.site_conf = None
+        self.tooltip_manager = None
         self.app_path = None
         self.framework_path = None
         self.is_initialized = False
