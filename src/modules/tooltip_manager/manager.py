@@ -1,7 +1,5 @@
 """Tooltip Manager - Core class for managing tooltips"""
 
-import csv
-import io
 import re
 import time
 from datetime import datetime
@@ -12,7 +10,6 @@ from sqlalchemy.orm import sessionmaker, Session
 
 from src.modules.log.logger_factory import get_logger
 from .models import Base, Context, Tooltip, TooltipContext
-from .utils import process_image_to_base64
 
 logger = get_logger(__name__)
 
@@ -35,27 +32,32 @@ class TooltipManager:
         if settings_manager:
             try:
                 db_path = settings_manager.get_setting('tooltip_system.db_path') or 'resources/tooltip_data.db'
-            except:
+            except Exception as e:
+                logger.warning(f"Could not load db_path from settings: {e}")
                 db_path = 'resources/tooltip_data.db'
             
             try:
                 self.cache_ttl = settings_manager.get_setting('tooltip_system.cache_ttl') or 300
-            except:
+            except Exception as e:
+                logger.warning(f"Could not load cache_ttl from settings: {e}")
                 self.cache_ttl = 300
                 
             try:
                 self.image_max_width = settings_manager.get_setting('tooltip_system.image_max_width') or 800
-            except:
+            except Exception as e:
+                logger.warning(f"Could not load image_max_width from settings: {e}")
                 self.image_max_width = 800
                 
             try:
                 self.image_max_height = settings_manager.get_setting('tooltip_system.image_max_height') or 600
-            except:
+            except Exception as e:
+                logger.warning(f"Could not load image_max_height from settings: {e}")
                 self.image_max_height = 600
                 
             try:
                 self.image_quality = settings_manager.get_setting('tooltip_system.image_quality') or 85
-            except:
+            except Exception as e:
+                logger.warning(f"Could not load image_quality from settings: {e}")
                 self.image_quality = 85
         else:
             db_path = 'resources/tooltip_data.db'
@@ -185,7 +187,7 @@ class TooltipManager:
                 for tooltip in tooltips:
                     result[tooltip.keyword] = {
                         'content': tooltip.content,
-                        'type': tooltip.content_type,
+                        'type': 'html',
                         'strategy': ctx.matching_strategy
                     }
             
@@ -217,17 +219,15 @@ class TooltipManager:
         self,
         keyword: str,
         content: str,
-        contexts: List[str],
-        content_type: str = 'text'
+        contexts: List[str]
     ) -> int:
         """
         Create or update tooltip.
         
         Args:
             keyword: Tooltip keyword
-            content: Tooltip content
+            content: Tooltip content (HTML format)
             contexts: List of context names
-            content_type: 'text' or 'html'
         
         Returns:
             Tooltip ID
@@ -250,15 +250,13 @@ class TooltipManager:
             if existing:
                 # Update existing
                 existing.content = content
-                existing.content_type = content_type
                 existing.updated_at = datetime.utcnow()
                 tooltip_id = existing.id
             else:
                 # Create new
                 tooltip = Tooltip(
                     keyword=keyword,
-                    content=content,
-                    content_type=content_type
+                    content=content
                 )
                 session.add(tooltip)
                 session.flush()  # Get ID
@@ -290,61 +288,6 @@ class TooltipManager:
         except Exception as e:
             logger.error(f"Error registering tooltip: {e}")
             raise
-    
-    def register_batch_tooltips(self, tooltips: List[Dict[str, Any]]) -> Dict[str, bool]:
-        """
-        Bulk insert tooltips.
-        
-        Args:
-            tooltips: List of dicts with keys: keyword, content, contexts, content_type
-        
-        Returns:
-            Dict mapping keyword to success status
-        """
-        results = {}
-        try:
-            session = self._get_session()
-            
-            for item in tooltips:
-                keyword = item['keyword']
-                try:
-                    # Create tooltip
-                    tooltip = Tooltip(
-                        keyword=keyword,
-                        content=item['content'],
-                        content_type=item.get('content_type', 'text')
-                    )
-                    session.add(tooltip)
-                    session.flush()
-                    
-                    # Assign to contexts
-                    for ctx_name in item['contexts']:
-                        ctx = session.query(Context).filter_by(name=ctx_name).first()
-                        if not ctx:
-                            ctx = Context(name=ctx_name, description=f"Auto-created")
-                            session.add(ctx)
-                            session.flush()
-                        
-                        tc = TooltipContext(tooltip_id=tooltip.id, context_id=ctx.id)
-                        session.add(tc)
-                    
-                    results[keyword] = True
-                except Exception as e:
-                    logger.error(f"Error in batch for keyword {keyword}: {e}")
-                    results[keyword] = False
-            
-            session.commit()
-            session.close()
-            
-            # Invalidate entire cache
-            self._invalidate_cache()
-            
-            logger.info(f"Batch registered {sum(results.values())}/{len(tooltips)} tooltips")
-            return results
-        
-        except Exception as e:
-            logger.error(f"Error in batch registration: {e}")
-            return {item['keyword']: False for item in tooltips}
     
     # Management API
     def list_tooltips(
@@ -583,96 +526,3 @@ class TooltipManager:
         except Exception as e:
             logger.error(f"Error assigning tooltip to contexts: {e}")
             return False
-    
-    # Import API
-    def import_from_csv(
-        self,
-        csv_content: str,
-        context_name: str,
-        column_mapping: Dict[str, int],
-        content_type: str = 'text',
-        auto_html_template: Optional[str] = None
-    ) -> Tuple[int, List[str]]:
-        """
-        Import tooltips from CSV.
-        
-        Args:
-            csv_content: CSV string
-            context_name: Assign all to this context
-            column_mapping: {"keyword": 0, "content": 1, "image_path": 2}
-            content_type: 'text' or 'html'
-            auto_html_template: Template string with {image}, {keyword}, {content}
-        
-        Returns:
-            (success_count, error_messages)
-        """
-        errors = []
-        success_count = 0
-        
-        try:
-            # Ensure context exists
-            session = self._get_session()
-            ctx = session.query(Context).filter_by(name=context_name).first()
-            if not ctx:
-                ctx = Context(name=context_name, description="CSV imported")
-                session.add(ctx)
-                session.commit()
-            session.close()
-            
-            # Parse CSV
-            reader = csv.reader(io.StringIO(csv_content))
-            rows = list(reader)
-            
-            for idx, row in enumerate(rows):
-                try:
-                    # Skip header or empty rows
-                    if idx == 0 or not row:
-                        continue
-                    
-                    # Extract fields
-                    keyword_col = column_mapping.get('keyword')
-                    content_col = column_mapping.get('content')
-                    image_col = column_mapping.get('image_path')
-                    
-                    if keyword_col is None or keyword_col >= len(row):
-                        errors.append(f"Row {idx+1}: Missing keyword column")
-                        continue
-                    
-                    keyword = row[keyword_col].strip()
-                    if not keyword:
-                        continue
-                    
-                    content = row[content_col].strip() if content_col is not None and content_col < len(row) else ""
-                    
-                    # Handle image
-                    if image_col is not None and image_col < len(row) and auto_html_template:
-                        image_path = row[image_col].strip()
-                        if image_path and Path(image_path).exists():
-                            try:
-                                base64_img = process_image_to_base64(
-                                    image_path,
-                                    self.image_max_width,
-                                    self.image_max_height,
-                                    self.image_quality
-                                )
-                                content = auto_html_template.format(
-                                    image=base64_img,
-                                    keyword=keyword,
-                                    content=content
-                                )
-                                content_type = 'html'
-                            except Exception as e:
-                                errors.append(f"Row {idx+1}: Image error: {e}")
-                    
-                    # Register tooltip
-                    self.register_tooltip(keyword, content, [context_name], content_type)
-                    success_count += 1
-                
-                except Exception as e:
-                    errors.append(f"Row {idx+1}: {str(e)}")
-            
-            return success_count, errors
-        
-        except Exception as e:
-            logger.error(f"Error importing CSV: {e}")
-            return 0, [str(e)]

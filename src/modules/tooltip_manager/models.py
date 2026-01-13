@@ -39,8 +39,7 @@ class Tooltip(Base):
     
     id = Column(Integer, primary_key=True)
     keyword = Column(String(255), nullable=False, index=True)
-    content = Column(Text, nullable=False)
-    content_type = Column(String(50), default='text')  # 'text' or 'html'
+    content = Column(Text, nullable=False)  # Always HTML format
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -52,7 +51,6 @@ class Tooltip(Base):
             'id': self.id,
             'keyword': self.keyword,
             'content': self.content,
-            'content_type': self.content_type,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

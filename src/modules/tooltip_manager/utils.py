@@ -1,4 +1,54 @@
-"""Utility functions for tooltip system"""
+"""Utility functions for tooltip system
+
+This module provides image processing utilities for tooltips.
+
+Image Processing Workflow:
+--------------------------
+To add images to tooltips, the recommended workflow is:
+
+1. **In the UI**: User pastes or uploads an image in the WYSIWYG editor
+2. **In the editor**: The editor converts the image to base64 data URI automatically
+3. **On save**: The HTML content (including base64 images) is stored in the database
+
+Alternatively, for programmatic/batch usage:
+
+1. Call process_image_to_base64() with an image file path
+2. The function returns a data URI string like: "data:image/jpeg;base64,/9j/4AAQ..."
+3. Embed this in HTML: <img src="data:image/jpeg;base64,...">
+4. Store the complete HTML in the tooltip content field
+
+Configuration (via settings_manager):
+-------------------------------------
+- tooltip_system.image_max_width: Maximum width in pixels (default: 800)
+- tooltip_system.image_max_height: Maximum height in pixels (default: 600)
+- tooltip_system.image_quality: JPEG quality 1-100 (default: 85)
+
+These settings ensure images are optimized for tooltips and don't bloat the database.
+
+Example Usage:
+-------------
+```python
+from src.modules.tooltip_manager.utils import process_image_to_base64
+
+# Process an image file
+image_path = "path/to/image.jpg"
+data_uri = process_image_to_base64(image_path, max_width=800, max_height=600, quality=85)
+
+# Create HTML content with the image
+html_content = f'<img src="{data_uri}" alt="Part diagram"><br>Part description here'
+
+# Register tooltip with HTML content
+tooltip_manager.register_tooltip(
+    keyword="PartNumber",
+    content=html_content,
+    contexts=["Global"]
+)
+```
+
+Note: For most use cases, the WYSIWYG editor (TinyMCE/Quill) handles
+image-to-base64 conversion automatically. This utility is primarily for
+programmatic/batch operations.
+"""
 
 import base64
 import io

@@ -2,7 +2,7 @@
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 
-from src.modules import displayer, utilities
+from src.modules import utilities
 from src.modules.displayer import (
     Displayer, DisplayerLayout, Layouts, BSstyle, TableMode,
     DisplayerItemText, DisplayerItemButton, DisplayerItemAlert,
@@ -108,17 +108,14 @@ def index():
             
             # Preview (truncate content)
             preview = tooltip['content'][:50] + '...' if len(tooltip['content']) > 50 else tooltip['content']
-            if tooltip['content_type'] == 'html':
-                preview = '(HTML content)'
             disp.add_display_item(
                 DisplayerItemText(preview),
                 column=1, line=idx, layout_id=table_layout_id
             )
             
-            # Type badge
-            badge_style = BSstyle.PRIMARY if tooltip['content_type'] == 'text' else BSstyle.INFO
+            # Type badge - always HTML
             disp.add_display_item(
-                DisplayerItemBadge(tooltip['content_type'], badge_style),
+                DisplayerItemBadge('html', BSstyle.INFO),
                 column=2, line=idx, layout_id=table_layout_id
             )
             
@@ -290,7 +287,6 @@ def create_tooltip():
             
             keyword = form_data.get("keyword", "").strip()
             content = form_data.get("content", "").strip()
-            content_type = "html"  # Always use HTML for proper rendering
             
             # Handle contexts from multi-select widget (stored as .list0, .list1, etc. in raw form)
             context_selections = []
@@ -312,7 +308,7 @@ def create_tooltip():
                 return redirect(request.url)
             
             # Register tooltip
-            tm.register_tooltip(keyword, content, context_names, content_type)
+            tm.register_tooltip(keyword, content, context_names)
             flash(f"Tooltip '{keyword}' created successfully", "success")
             return redirect(url_for('framework_tooltips.index'))
             
@@ -410,7 +406,6 @@ def edit_tooltip(id):
             
             keyword = form_data.get("keyword", "").strip()
             content = form_data.get("content", "").strip()
-            content_type = "html"  # Always use HTML for proper rendering
             
             # Handle contexts from multi-select widget (stored as .list0, .list1, etc. in raw form)
             context_selections = []
@@ -432,7 +427,7 @@ def edit_tooltip(id):
                 return redirect(request.url)
             
             # Update tooltip
-            tm.update_tooltip(id, keyword=keyword, content=content, content_type=content_type)
+            tm.update_tooltip(id, keyword=keyword, content=content)
             
             # Get context IDs from names
             all_contexts = tm.list_contexts()
@@ -552,7 +547,6 @@ def delete_tooltip(id):
     contexts_str = ', '.join(tooltip.get('contexts', []))
     warning_html = f"""
     Are you sure you want to delete the tooltip '<strong>{tooltip['keyword']}</strong>'?<br>
-    <strong>Content Type:</strong> {tooltip['content_type']}<br>
     <strong>Contexts:</strong> {contexts_str}<br>
     <strong>Content Preview:</strong> {tooltip['content'][:100]}{'...' if len(tooltip['content']) > 100 else ''}<br><br>
     This action cannot be undone.
