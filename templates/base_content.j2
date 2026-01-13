@@ -463,6 +463,7 @@
 
     {% for module in content %}
         {% if module != "modals" and module != "all_layout" and module != "breadcrumbs" and module != "title" and module != "required_css" and module != "required_js" and module != "required_cdn" and module != "required_css_cdn" %}
+            {% if content[module].get("layouts") or content[module].get("error") or content[module].get("type") in ["threaded_action", "workflow"] %}
             <div class="card">
                 <div class="card-header py-1"></div>
 
@@ -520,27 +521,28 @@
                             </form>
                         {% endif %}
 
-                    </div>
-
-                    {% if content[module]["type"] == "threaded_action" or content[module]["type"] == "workflow" %}
-                        <div class="card-footer alert-light-secondary theme-aware">
-                            <h4 class="theme-text">Action progress</h4>
-                            <div class="table-responsive">
-                                <table class="table-light table-striped mb-0 theme-aware" id="{{module | replace(' ', '_')}}_result">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 50%;">Task</th>
-                                            <th style="width: 50%;">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                            <div id="{{module | replace(' ', '_')}}_progress"></div>
-                        </div>
                     {% endif %}
+                </div>
+
+                {% if content[module]["type"] == "threaded_action" or content[module]["type"] == "workflow" %}
+                    <div class="card-footer alert-light-secondary theme-aware">
+                        <h4 class="theme-text">Action progress</h4>
+                        <div class="table-responsive">
+                            <table class="table-light table-striped mb-0 theme-aware" id="{{module | replace(' ', '_')}}_result">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50%;">Task</th>
+                                        <th style="width: 50%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div id="{{module | replace(' ', '_')}}_progress"></div>
+                    </div>
                 {% endif %}
             </div>
+            {% endif %}
         {% endif %}
     {% endfor %}
 {% endif %}
