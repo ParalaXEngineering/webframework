@@ -393,6 +393,35 @@ def fill_form_field(page: Page, name: str, value: str):
     )
 
 
+def fill_tinymce_field(page: Page, name: str, value: str):
+    """Fill a TinyMCE rich text editor field.
+    
+    TinyMCE hides the original textarea and uses an iframe for editing.
+    This helper uses JavaScript to set the content directly.
+    
+    Args:
+        page: Playwright page
+        name: Field name (e.g., 'Create Tooltip.content')
+        value: HTML content to set
+    """
+    # Find the textarea (it's hidden but still exists in DOM)
+    selector = f'textarea[name="{name}"]'
+    if page.locator(selector).count() == 0:
+        # Try partial match
+        selector = f'textarea[name*="{name}"]'
+    
+    field = page.locator(selector).first
+    if field.count() > 0:
+        # Use JavaScript to set the value and trigger TinyMCE update
+        field.evaluate(f"el => {{ el.value = `{value}`; if (tinymce && tinymce.get(el.id)) {{ tinymce.get(el.id).setContent(`{value}`); }} }}")
+        page.wait_for_timeout(100)
+    else:
+        raise AssertionError(
+            f"❌ Could not find textarea for TinyMCE field '{name}'!\n"
+            f"Current URL: {page.url}"
+        )
+
+
 def select_form_option(page: Page, name: str, value: str, timeout: int = 2000):
     """Select an option from a dropdown.
     
@@ -523,6 +552,41 @@ def page_contains_text(page: Page, text: str) -> bool:
     """
     page_text = get_page_text(page).lower()
     return text.lower() in page_text
+
+
+def select_multi_list_values(page: Page, field_id: str, values: list, timeout: int = 2000):
+    """Select multiple values in a DisplayerItemInputMultiSelect field.
+    
+    This handles the framework's multi-select pattern where clicking "+" adds
+    additional select dropdowns, and each dropdown can hold one value.
+    
+    Args:
+        page: Playwright page
+        field_id: The field ID (e.g., "Create Tooltip.contexts")
+        values: List of values to select (one per dropdown)
+        timeout: Timeout in milliseconds
+        
+    Example:
+        select_multi_list_values(page, "Create Tooltip.contexts", 
+                               ["Global - Global context", "Custom - My context"])
+    """
+    if not values:
+        return
+    
+    # Select the first value in the first dropdown (always exists)
+    first_select = page.locator(f'select[name="{field_id}.list0"]')
+    first_select.select_option(values[0], timeout=timeout)
+    
+    # For additional values, click "+" and select in new dropdowns
+    for i, value in enumerate(values[1:], start=1):
+        # Click the "+" button to add a new dropdown
+        add_button = page.locator(f'a[onclick*="setting_add_list(\'{field_id}\')"]')
+        add_button.click()
+        page.wait_for_timeout(100)  # Brief wait for DOM update
+        
+        # Select the value in the newly created dropdown
+        new_select = page.locator(f'select[name="{field_id}.list{i}"]')
+        new_select.select_option(value, timeout=timeout)
 
 
 def reset_account_lockout(username: str):

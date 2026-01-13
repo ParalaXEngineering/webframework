@@ -41,7 +41,7 @@ def index():
     tm = get_tooltip_manager()
     
     if not tm:
-        flash("Tooltip manager is not enabled", "error")
+        flash("Tooltip manager is not enabled", "danger")
         return redirect(url_for('tracker_admin.index'))
     
     # Check user permissions
@@ -274,7 +274,7 @@ def create_tooltip():
     """Create new tooltip"""
     tm = get_tooltip_manager()
     if not tm:
-        flash("Tooltip manager is not enabled", "error")
+        flash("Tooltip manager is not enabled", "danger")
         return redirect(url_for('tracker_admin.index'))
     
     if request.method == 'POST':
@@ -300,11 +300,11 @@ def create_tooltip():
             logger.debug(f"Context names extracted: {context_names}")
             
             if not keyword or not content:
-                flash("Keyword and content are required", "error")
+                flash("Keyword and content are required", "danger")
                 return redirect(request.url)
             
             if not context_names:
-                flash("At least one context is required", "error")
+                flash("At least one context is required", "danger")
                 return redirect(request.url)
             
             # Register tooltip
@@ -313,7 +313,7 @@ def create_tooltip():
             return redirect(url_for('framework_tooltips.index'))
             
         except Exception as e:
-            flash(f"Error creating tooltip: {e}", "error")
+            flash(f"Error creating tooltip: {e}", "danger")
             logger.error(f"Error creating tooltip: {e}", exc_info=True)
     
     # GET - show form
@@ -388,12 +388,12 @@ def edit_tooltip(id):
     """Edit tooltip"""
     tm = get_tooltip_manager()
     if not tm:
-        flash("Tooltip manager is not enabled", "error")
+        flash("Tooltip manager is not enabled", "danger")
         return redirect(url_for('tracker_admin.index'))
     
     tooltip = tm.get_tooltip(id)
     if not tooltip:
-        flash("Tooltip not found", "error")
+        flash("Tooltip not found", "danger")
         return redirect(url_for('framework_tooltips.index'))
     
     if request.method == 'POST':
@@ -419,11 +419,11 @@ def edit_tooltip(id):
             logger.info(f"Context names extracted: {context_names}")
             
             if not keyword or not content:
-                flash("Keyword and content are required", "error")
+                flash("Keyword and content are required", "danger")
                 return redirect(request.url)
             
             if not context_names:
-                flash("At least one context is required", "error")
+                flash("At least one context is required", "danger")
                 return redirect(request.url)
             
             # Update tooltip
@@ -440,7 +440,7 @@ def edit_tooltip(id):
             return redirect(url_for('framework_tooltips.index'))
             
         except Exception as e:
-            flash(f"Error updating tooltip: {e}", "error")
+            flash(f"Error updating tooltip: {e}", "danger")
             logger.error(f"Error updating tooltip: {e}", exc_info=True)
     
     # GET - show form with existing data
@@ -521,12 +521,12 @@ def delete_tooltip(id):
     """Delete tooltip"""
     tm = get_tooltip_manager()
     if not tm:
-        flash("Tooltip manager is not enabled", "error")
+        flash("Tooltip manager is not enabled", "danger")
         return redirect(url_for('tracker_admin.index'))
     
     tooltip = tm.get_tooltip(id)
     if not tooltip:
-        flash("Tooltip not found", "error")
+        flash("Tooltip not found", "danger")
         return redirect(url_for('framework_tooltips.index'))
     
     if request.method == 'POST':
@@ -591,7 +591,7 @@ def create_context():
     """Create new context"""
     tm = get_tooltip_manager()
     if not tm:
-        flash("Tooltip manager is not enabled", "error")
+        flash("Tooltip manager is not enabled", "danger")
         return redirect(url_for('tracker_admin.index'))
     
     if request.method == 'POST':
@@ -604,7 +604,7 @@ def create_context():
             strategy = form_data.get("matching_strategy", "exact")
             
             if not name:
-                flash("Context name is required", "error")
+                flash("Context name is required", "danger")
                 return redirect(request.url)
             
             tm.create_context(name, description, strategy)
@@ -612,10 +612,10 @@ def create_context():
             return redirect(url_for('framework_tooltips.index'))
             
         except ValueError as e:
-            flash(str(e), "error")
+            flash(str(e), "danger")
             return redirect(request.url)
         except Exception as e:
-            flash(f"Error creating context: {e}", "error")
+            flash(f"Error creating context: {e}", "danger")
             logger.error(f"Error creating context: {e}", exc_info=True)
             return redirect(request.url)
     
@@ -688,19 +688,19 @@ def edit_context(id):
     """Edit context"""
     tm = get_tooltip_manager()
     if not tm:
-        flash("Tooltip manager is not enabled", "error")
+        flash("Tooltip manager is not enabled", "danger")
         return redirect(url_for('tracker_admin.index'))
     
     # Get context
     all_contexts = tm.list_contexts()
     ctx = next((c for c in all_contexts if c['id'] == id), None)
     if not ctx:
-        flash("Context not found", "error")
+        flash("Context not found", "danger")
         return redirect(url_for('framework_tooltips.index'))
     
     # Prevent editing Global context
     if ctx['name'] == 'Global':
-        flash("Cannot edit Global context - it is a system context", "error")
+        flash("Cannot edit Global context - it is a system context", "danger")
         return redirect(url_for('framework_tooltips.index'))
     
     if request.method == 'POST':
@@ -716,7 +716,7 @@ def edit_context(id):
             return redirect(url_for('framework_tooltips.index'))
             
         except Exception as e:
-            flash(f"Error updating context: {e}", "error")
+            flash(f"Error updating context: {e}", "danger")
             logger.error(f"Error updating context: {e}", exc_info=True)
     
     # GET - show form
@@ -789,19 +789,19 @@ def delete_context(id):
     """Delete context"""
     tm = get_tooltip_manager()
     if not tm:
-        flash("Tooltip manager is not enabled", "error")
+        flash("Tooltip manager is not enabled", "danger")
         return redirect(url_for('tracker_admin.index'))
     
     # Get context
     all_contexts = tm.list_contexts()
     ctx = next((c for c in all_contexts if c['id'] == id), None)
     if not ctx:
-        flash("Context not found", "error")
+        flash("Context not found", "danger")
         return redirect(url_for('framework_tooltips.index'))
     
     # Prevent deleting Global context
     if ctx['name'] == 'Global':
-        flash("Cannot delete Global context - it is a system context", "error")
+        flash("Cannot delete Global context - it is a system context", "danger")
         return redirect(url_for('framework_tooltips.index'))
     
     if request.method == 'POST':
@@ -810,10 +810,10 @@ def delete_context(id):
             flash(f"Context '{ctx['name']}' deleted successfully", "success")
             return redirect(url_for('framework_tooltips.index'))
         except ValueError as e:
-            flash(str(e), "error")
+            flash(str(e), "danger")
             return redirect(url_for('framework_tooltips.index'))
         except Exception as e:
-            flash(f"Error deleting context: {e}", "error")
+            flash(f"Error deleting context: {e}", "danger")
             logger.error(f"Error deleting context: {e}", exc_info=True)
             return redirect(url_for('framework_tooltips.index'))
     
