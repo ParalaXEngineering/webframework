@@ -14,59 +14,9 @@ import pytest
 from playwright.sync_api import Page
 
 from tests.frontend.conftest import (
-    navigate_to, click_button, 
+    navigate_to, click_button, fill_form_field, select_form_option,
     check_flash_message, page_contains_text, BASE_URL
 )
-
-
-def find_and_fill_setting_field(page: Page, setting_key: str, value: str) -> bool:
-    """
-    Find a setting field by key and fill it with a value.
-    
-    Tries multiple selector patterns to find the field.
-    Returns True if successful, False otherwise.
-    """
-    # Try different selector patterns
-    selectors = [
-        f'input[name="{setting_key}"]',
-        f'input[name*="{setting_key}"]',
-        f'select[name="{setting_key}"]',
-        f'select[name*="{setting_key}"]',
-    ]
-    
-    for selector in selectors:
-        if page.locator(selector).count() > 0:
-            element = page.locator(selector).first
-            # Check if it's a select or input
-            tag_name = element.evaluate('el => el.tagName.toLowerCase()')
-            if tag_name == 'select':
-                element.select_option(value)
-            else:
-                element.fill(value)
-            return True
-    
-    return False
-
-
-def get_setting_value(page: Page, setting_key: str) -> str:
-    """Get the current value of a setting field."""
-    selectors = [
-        f'input[name="{setting_key}"]',
-        f'input[name*="{setting_key}"]',
-        f'select[name="{setting_key}"]',
-        f'select[name*="{setting_key}"]',
-    ]
-    
-    for selector in selectors:
-        if page.locator(selector).count() > 0:
-            element = page.locator(selector).first
-            tag_name = element.evaluate('el => el.tagName.toLowerCase()')
-            if tag_name == 'select':
-                return element.input_value()
-            else:
-                return element.input_value()
-    
-    return ""
 
 
 class TestSettingsAndPreferences:
@@ -157,13 +107,14 @@ class TestSettingsAndPreferences:
             "Should be on Framework UI settings page"
         
         # Verify thread_status_icon field exists and get its current value
-        current_value = get_setting_value(page, "thread_status_icon")
+        icon_input = page.locator('input[name*="thread_status_icon"]').first
+        assert icon_input.count() > 0, "Should be able to find thread_status_icon field"
+        current_value = icon_input.input_value()
         print(f"  Current thread_status_icon: '{current_value}'")
         assert current_value, "Should be able to read thread_status_icon value"
         
         # Verify the field is editable
-        success = find_and_fill_setting_field(page, "thread_status_icon", current_value)
-        assert success, "Should be able to find thread_status_icon field"
+        fill_form_field(page, "thread_status_icon", current_value)
         print(f"  ✅ Thread status icon setting is accessible")
         
         print("✅ Admin can view and access settings")
@@ -248,7 +199,8 @@ class TestSettingsAndPreferences:
             "Thread Status Icon setting should be visible to user"
         
         # Verify it shows the global value (should be cog if test_01 saved successfully)
-        current_value = get_setting_value(page, "thread_status_icon")
+        icon_input = page.locator('input[name*="thread_status_icon"]').first
+        current_value = icon_input.input_value() if icon_input.count() > 0 else ""
         print(f"  Current value in user preferences: '{current_value}'")
         # Accept either cog-sync (if test_01 didn't save) or cog (if it did)
         assert current_value in ["cog", "cog-sync"], \
@@ -271,8 +223,7 @@ class TestSettingsAndPreferences:
             "Should be on Framework Settings page"
         
         # Verify the thread_status_icon setting is visible and accessible
-        success = find_and_fill_setting_field(page, "thread_status_icon", "hammer")
-        assert success, "Should be able to find and interact with thread_status_icon field"
+        fill_form_field(page, "thread_status_icon", "hammer")
         print(f"  ✅ User can access and interact with settings")
         
         print("✅ User preferences page is accessible")

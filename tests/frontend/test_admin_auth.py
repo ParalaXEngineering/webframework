@@ -10,7 +10,8 @@ import time
 from playwright.sync_api import Page, expect
 
 from tests.frontend.conftest import (
-    navigate_to, page_contains_text, BASE_URL, login, logout
+    navigate_to, page_contains_text, BASE_URL, login, logout,
+    fill_form_field, click_button, select_form_option
 )
 
 
@@ -55,13 +56,13 @@ class TestAdminUsers:
         username = f"frontend_test_user_{timestamp}"
         
         # Framework prefixes input names with module name "User Management."
-        page.fill('input[name="User Management.input_username"]', username)
-        page.fill('input[name="User Management.input_password"]', "TestPass123!")
-        page.fill('input[name="User Management.input_display_name"]', "Test User")
-        page.fill('input[name="User Management.input_email"]', "test@example.com")
+        fill_form_field(page, "input_username", username)
+        fill_form_field(page, "input_password", "TestPass123!")
+        fill_form_field(page, "input_display_name", "Test User")
+        fill_form_field(page, "input_email", "test@example.com")
         
         # Click create button
-        page.click('button[name="User Management.btn_create_user"]')
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -82,11 +83,11 @@ class TestAdminUsers:
         username = f"frontend_test_nopass_{timestamp}"
         
         # Fill form without password (framework uses module prefix)
-        page.fill('input[name="User Management.input_username"]', username)
-        page.fill('input[name="User Management.input_display_name"]', "No Password User")
+        fill_form_field(page, "input_username", username)
+        fill_form_field(page, "input_display_name", "No Password User")
         
         # Click create button
-        page.click('button[name="User Management.btn_create_user"]')
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -103,18 +104,17 @@ class TestAdminUsers:
         timestamp = int(time.time())
         username = f"frontend_test_groups_{timestamp}"
         
-        page.fill('input[name="User Management.input_username"]', username)
-        page.fill('input[name="User Management.input_password"]', "TestPass123!")
-        page.click('button[name="User Management.btn_create_user"]')
+        fill_form_field(page, "input_username", username)
+        fill_form_field(page, "input_password", "TestPass123!")
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Now update groups - select the new user
-        user_select = page.locator('select[name="User Management.select_user_to_update"]')
-        user_select.select_option(username)
+        select_form_option(page, "select_user_to_update", username)
         
         # Click update button
-        page.click('button[name="User Management.btn_update_groups"]')
+        click_button(page, "btn_update_groups")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -131,21 +131,20 @@ class TestAdminUsers:
         timestamp = int(time.time())
         username = f"frontend_test_reset_{timestamp}"
         
-        page.fill('input[name="User Management.input_username"]', username)
-        page.fill('input[name="User Management.input_password"]', "OldPass123!")
-        page.click('button[name="User Management.btn_create_user"]')
+        fill_form_field(page, "input_username", username)
+        fill_form_field(page, "input_password", "OldPass123!")
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Select user for password reset
-        reset_select = page.locator('select[name="User Management.select_user_to_reset"]')
-        reset_select.select_option(username)
+        select_form_option(page, "select_user_to_reset", username)
         
         # Enter new password
-        page.fill('input[name="User Management.input_reset_password"]', "NewPass456!")
+        fill_form_field(page, "input_reset_password", "NewPass456!")
         
         # Click reset button
-        page.click('button[name="User Management.btn_reset_password"]')
+        click_button(page, "btn_reset_password")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -162,9 +161,9 @@ class TestAdminUsers:
         timestamp = int(time.time())
         username = f"frontend_test_delete_{timestamp}"
         
-        page.fill('input[name="User Management.input_username"]', username)
-        page.fill('input[name="User Management.input_password"]', "TestPass123!")
-        page.click('button[name="User Management.btn_create_user"]')
+        fill_form_field(page, "input_username", username)
+        fill_form_field(page, "input_password", "TestPass123!")
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -172,11 +171,10 @@ class TestAdminUsers:
         assert page_contains_text(page, username)
         
         # Select user for deletion
-        delete_select = page.locator('select[name="User Management.select_user_to_delete"]')
-        delete_select.select_option(username)
+        select_form_option(page, "select_user_to_delete", username)
         
         # Click delete button
-        page.click('button[name="User Management.btn_delete_user"]')
+        click_button(page, "btn_delete_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -216,10 +214,10 @@ class TestAdminUsers:
         page.wait_for_load_state("load")
         
         # Try to create user with 'admin' username (already exists)
-        page.fill('input[name="User Management.input_username"]', "admin")
-        page.fill('input[name="User Management.input_password"]', "TestPass123!")
+        fill_form_field(page, "input_username", "admin")
+        fill_form_field(page, "input_password", "TestPass123!")
         
-        page.click('button[name="User Management.btn_create_user"]')
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -237,10 +235,10 @@ class TestAdminUsers:
         username = f"frontend_test_weak_{timestamp}"
         
         # Try weak password
-        page.fill('input[name="User Management.input_username"]', username)
-        page.fill('input[name="User Management.input_password"]', "123")  # Too weak
+        fill_form_field(page, "input_username", username)
+        fill_form_field(page, "input_password", "123")  # Too weak
         
-        page.click('button[name="User Management.btn_create_user"]')
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -257,10 +255,10 @@ class TestAdminUsers:
         page.wait_for_load_state("load")
         
         # Try invalid username (empty or special chars)
-        page.fill('input[name="User Management.input_username"]', "")
-        page.fill('input[name="User Management.input_password"]', "TestPass123!")
+        fill_form_field(page, "input_username", "")
+        fill_form_field(page, "input_password", "TestPass123!")
         
-        page.click('button[name="User Management.btn_create_user"]')
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -303,8 +301,8 @@ class TestAdminGroups:
         group_name = f"frontend_test_group_{timestamp}"
         
         # Fill and submit (framework uses module prefix)
-        page.fill('input[name="Group Management.input_new_group"]', group_name)
-        page.click('button[name="Group Management.btn_create_group"]')
+        fill_form_field(page, "input_new_group", group_name)
+        click_button(page, "btn_create_group")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -323,20 +321,19 @@ class TestAdminGroups:
         old_name = f"frontend_test_rename_{timestamp}"
         new_name = f"frontend_test_renamed_{timestamp}"
         
-        page.fill('input[name="Group Management.input_new_group"]', old_name)
-        page.click('button[name="Group Management.btn_create_group"]')
+        fill_form_field(page, "input_new_group", old_name)
+        click_button(page, "btn_create_group")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Select group to rename
-        rename_select = page.locator('select[name="Group Management.select_group_to_rename"]')
-        rename_select.select_option(old_name)
+        select_form_option(page, "select_group_to_rename", old_name)
         
         # Enter new name
-        page.fill('input[name="Group Management.input_new_group_name"]', new_name)
+        fill_form_field(page, "input_new_group_name", new_name)
         
         # Click rename
-        page.click('button[name="Group Management.btn_rename_group"]')
+        click_button(page, "btn_rename_group")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -353,17 +350,16 @@ class TestAdminGroups:
         timestamp = int(time.time())
         group_name = f"frontend_test_delete_{timestamp}"
         
-        page.fill('input[name="Group Management.input_new_group"]', group_name)
-        page.click('button[name="Group Management.btn_create_group"]')
+        fill_form_field(page, "input_new_group", group_name)
+        click_button(page, "btn_create_group")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
         # Select group for deletion
-        delete_select = page.locator('select[name="Group Management.select_group_to_delete"]')
-        delete_select.select_option(group_name)
+        select_form_option(page, "select_group_to_delete", group_name)
         
         # Click delete
-        page.click('button[name="Group Management.btn_delete_group"]')
+        click_button(page, "btn_delete_group")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -425,9 +421,9 @@ class TestAdminGroups:
         page.wait_for_load_state("load")
         
         # Try to create group with 'admin' name (already exists)
-        page.fill('input[name="Group Management.input_new_group"]', "admin")
+        fill_form_field(page, "input_new_group", "admin")
         
-        page.click('button[name="Group Management.btn_create_group"]')
+        click_button(page, "btn_create_group")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -441,9 +437,9 @@ class TestAdminGroups:
         page.wait_for_load_state("load")
         
         # Try empty group name
-        page.fill('input[name="Group Management.input_new_group"]', "")
+        fill_form_field(page, "input_new_group", "")
         
-        page.click('button[name="Group Management.btn_create_group"]')
+        click_button(page, "btn_create_group")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -495,7 +491,7 @@ class TestAdminPermissions:
         page.wait_for_load_state("load")
         
         # Click save
-        page.click('button[name="Permission Management.btn_save_permissions"]')
+        click_button(page, "btn_save_permissions")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -520,7 +516,7 @@ class TestAdminPermissions:
                 first_checkbox.check()
             
             # Save
-            page.click('button[name="Permission Management.btn_save_permissions"]')
+            click_button(page, "btn_save_permissions")
             page.wait_for_load_state("load")
             page.wait_for_timeout(500)
             
@@ -549,7 +545,7 @@ class TestAdminPermissions:
                 first_checkbox.check()
             
             # Save
-            page.click('button[name="Permission Management.btn_save_permissions"]')
+            click_button(page, "btn_save_permissions")
             page.wait_for_load_state("load")
             page.wait_for_timeout(500)
             
@@ -569,7 +565,7 @@ class TestAdminPermissions:
                 reloaded_checkbox.check()
             else:
                 reloaded_checkbox.uncheck()
-            page.click('button[name="Permission Management.btn_save_permissions"]')
+            click_button(page, "btn_save_permissions")
             page.wait_for_load_state("load")
         else:
             # No modules registered - just pass
@@ -594,6 +590,9 @@ class TestAdminAccessControl:
 
     def test_01_guest_cannot_access_users(self, page):
         """Verify unauthenticated user cannot access /admin/users."""
+        # Logout to ensure we're GUEST (previous tests may have logged in)
+        logout(page)
+        
         # Use raw page (not logged in) - framework sets GUEST session
         page.goto(f"{BASE_URL}/admin/users")
         page.wait_for_load_state("load")
@@ -606,6 +605,9 @@ class TestAdminAccessControl:
 
     def test_02_guest_cannot_access_groups(self, page):
         """Verify unauthenticated user cannot access /admin/groups."""
+        # Logout to ensure we're GUEST
+        logout(page)
+        
         page.goto(f"{BASE_URL}/admin/groups")
         page.wait_for_load_state("load")
         
@@ -615,6 +617,9 @@ class TestAdminAccessControl:
 
     def test_03_guest_cannot_access_permissions(self, page):
         """Verify unauthenticated user cannot access /admin/permissions."""
+        # Logout to ensure we're GUEST
+        logout(page)
+        
         page.goto(f"{BASE_URL}/admin/permissions")
         page.wait_for_load_state("load")
         
@@ -631,10 +636,10 @@ class TestAdminAccessControl:
         page.wait_for_load_state("load")
         
         # Create test user with only 'guest' group
-        page.fill('input[name="User Management.input_username"]', TEST_NONADMIN_USERNAME)
-        page.fill('input[name="User Management.input_password"]', TEST_NONADMIN_PASSWORD)
-        page.fill('input[name="User Management.input_display_name"]', "Non-Admin Test User")
-        page.click('button[name="User Management.btn_create_user"]')
+        fill_form_field(page, "input_username", TEST_NONADMIN_USERNAME)
+        fill_form_field(page, "input_password", TEST_NONADMIN_PASSWORD)
+        fill_form_field(page, "input_display_name", "Non-Admin Test User")
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -663,7 +668,7 @@ class TestAdminAccessControl:
         delete_select = page.locator('select[name="User Management.select_user_to_delete"]')
         try:
             delete_select.select_option(TEST_NONADMIN_USERNAME)
-            page.click('button[name="User Management.btn_delete_user"]')
+            click_button(page, "btn_delete_user")
             page.wait_for_load_state("load")
         except Exception:
             pass  # User might not exist if test failed earlier
@@ -693,7 +698,7 @@ class TestAdvancedScenarios:
                 first_checkbox.check()
             
             # Save
-            page.click('button[name="Permission Management.btn_save_permissions"]')
+            click_button(page, "btn_save_permissions")
             page.wait_for_load_state("load")
             page.wait_for_timeout(500)
             
@@ -721,7 +726,7 @@ class TestAdvancedScenarios:
                 reloaded_checkbox.check()
             else:
                 reloaded_checkbox.uncheck()
-            page.click('button[name="Permission Management.btn_save_permissions"]')
+            click_button(page, "btn_save_permissions")
             page.wait_for_load_state("load")
         else:
             # No modules registered - skip
@@ -738,8 +743,8 @@ class TestAdvancedScenarios:
         timestamp = int(time.time())
         test_group = f"test_multigroup_{timestamp}"
         
-        page.fill('input[name="Group Management.input_new_group"]', test_group)
-        page.click('button[name="Group Management.btn_create_group"]')
+        fill_form_field(page, "input_new_group", test_group)
+        click_button(page, "btn_create_group")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -748,12 +753,12 @@ class TestAdvancedScenarios:
         page.wait_for_load_state("load")
         
         username = f"multigroup_user_{timestamp}"
-        page.fill('input[name="User Management.input_username"]', username)
-        page.fill('input[name="User Management.input_password"]', "TestPass123!")
-        page.fill('input[name="User Management.input_display_name"]', "Multi-Group User")
+        fill_form_field(page, "input_username", username)
+        fill_form_field(page, "input_password", "TestPass123!")
+        fill_form_field(page, "input_display_name", "Multi-Group User")
         
         # Create with default group (guest)
-        page.click('button[name="User Management.btn_create_user"]')
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -763,12 +768,11 @@ class TestAdvancedScenarios:
         
         # Now update user to add the test group
         # Select the user for update
-        update_select = page.locator('select[name="User Management.select_user_to_update"]')
-        update_select.select_option(username)
+        select_form_option(page, "select_user_to_update", username)
         
         # The update groups multi-select should be available
         # Click update button to update groups
-        page.click('button[name="User Management.btn_update_groups"]')
+        click_button(page, "btn_update_groups")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -776,16 +780,14 @@ class TestAdvancedScenarios:
         assert page_contains_text(page, "updated") or page_contains_text(page, "Groups")
         
         # Cleanup: delete the test user and group
-        delete_select = page.locator('select[name="User Management.select_user_to_delete"]')
-        delete_select.select_option(username)
-        page.click('button[name="User Management.btn_delete_user"]')
+        select_form_option(page, "select_user_to_delete", username)
+        click_button(page, "btn_delete_user")
         page.wait_for_load_state("load")
         
         navigate_to(page, "/admin/groups")
         page.wait_for_load_state("load")
-        delete_group_select = page.locator('select[name="Group Management.select_group_to_delete"]')
-        delete_group_select.select_option(test_group)
-        page.click('button[name="Group Management.btn_delete_group"]')
+        select_form_option(page, "select_group_to_delete", test_group)
+        click_button(page, "btn_delete_group")
         page.wait_for_load_state("load")
 
     def test_03_rename_group_preserves_user_membership(self, logged_in_page):
@@ -800,8 +802,8 @@ class TestAdvancedScenarios:
         old_group_name = f"rename_test_group_{timestamp}"
         new_group_name = f"renamed_group_{timestamp}"
         
-        page.fill('input[name="Group Management.input_new_group"]', old_group_name)
-        page.click('button[name="Group Management.btn_create_group"]')
+        fill_form_field(page, "input_new_group", old_group_name)
+        click_button(page, "btn_create_group")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -810,10 +812,10 @@ class TestAdvancedScenarios:
         page.wait_for_load_state("load")
         
         username = f"rename_test_user_{timestamp}"
-        page.fill('input[name="User Management.input_username"]', username)
-        page.fill('input[name="User Management.input_password"]', "TestPass123!")
+        fill_form_field(page, "input_username", username)
+        fill_form_field(page, "input_password", "TestPass123!")
         
-        page.click('button[name="User Management.btn_create_user"]')
+        click_button(page, "btn_create_user")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -827,10 +829,9 @@ class TestAdvancedScenarios:
         navigate_to(page, "/admin/groups")
         page.wait_for_load_state("load")
         
-        rename_select = page.locator('select[name="Group Management.select_group_to_rename"]')
-        rename_select.select_option(old_group_name)
-        page.fill('input[name="Group Management.input_new_group_name"]', new_group_name)
-        page.click('button[name="Group Management.btn_rename_group"]')
+        select_form_option(page, "select_group_to_rename", old_group_name)
+        fill_form_field(page, "input_new_group_name", new_group_name)
+        click_button(page, "btn_rename_group")
         page.wait_for_load_state("load")
         page.wait_for_timeout(500)
         
@@ -843,15 +844,13 @@ class TestAdvancedScenarios:
         # Cleanup: delete user and group
         navigate_to(page, "/admin/users")
         page.wait_for_load_state("load")
-        delete_select = page.locator('select[name="User Management.select_user_to_delete"]')
-        delete_select.select_option(username)
-        page.click('button[name="User Management.btn_delete_user"]')
+        select_form_option(page, "select_user_to_delete", username)
+        click_button(page, "btn_delete_user")
         page.wait_for_load_state("load")
         
         navigate_to(page, "/admin/groups")
         page.wait_for_load_state("load")
-        delete_group_select = page.locator('select[name="Group Management.select_group_to_delete"]')
-        delete_group_select.select_option(new_group_name)
-        page.click('button[name="Group Management.btn_delete_group"]')
+        select_form_option(page, "select_group_to_delete", new_group_name)
+        click_button(page, "btn_delete_group")
         page.wait_for_load_state("load")
 

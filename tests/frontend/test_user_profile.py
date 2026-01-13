@@ -18,7 +18,8 @@ from playwright.sync_api import Page
 
 from tests.frontend.conftest import (
     navigate_to, fill_form_field, click_button, 
-    check_flash_message, page_contains_text, BASE_URL
+    check_flash_message, page_contains_text, BASE_URL,
+    upload_file_filepond
 )
 
 
@@ -173,13 +174,9 @@ class TestUserProfilePage:
         avatar_file_path = Path(__file__).parent / "test_avatar.jpg"
         assert avatar_file_path.exists(), "Test avatar file should exist"
         
-        # FilePond creates a hidden file input with class 'filepond--browser'
-        file_input = page.locator('.filepond--browser').first
-        file_input.set_input_files(str(avatar_file_path))
-        
-        # FilePond uploads automatically - wait for upload indicator
-        # Look for FilePond success state (checkmark) or processing complete
-        page.wait_for_timeout(3000)  # Wait for async upload
+        # Upload via FilePond helper
+        upload_success = upload_file_filepond(page, str(avatar_file_path), timeout=3000)
+        assert upload_success, "FilePond upload should not raise exceptions"
         
         # Check for FilePond processing complete (either success or error shown)
         # FilePond adds data-filepond-item-state attribute to track file state
@@ -214,11 +211,7 @@ class TestUserProfilePage:
         
         try:
             # Try to upload text file via FilePond
-            file_input = page.locator('.filepond--browser').first
-            file_input.set_input_files(str(temp_file))
-            
-            # Wait for FilePond to process and reject
-            page.wait_for_timeout(1000)
+            upload_file_filepond(page, str(temp_file), timeout=1000)
             
             # FilePond shows error in the UI when file type is rejected
             # Check for FilePond error state or error message
@@ -251,10 +244,9 @@ class TestUserProfilePage:
             pytest.skip("Password change not available for this user")
         
         # Now test changing password from 'admin123' to 'newpass123'
-        # Note: Using raw HTML inputs since DisplayerItemInputPassword doesn't exist yet
-        page.fill('input#input_current_password', 'admin123')
-        page.fill('input#input_new_password', 'newpass123')
-        page.fill('input#input_confirm_password', 'newpass123')
+        fill_form_field(page, "input_current_password", "admin123")
+        fill_form_field(page, "input_new_password", "newpass123")
+        fill_form_field(page, "input_confirm_password", "newpass123")
         
         # Click change password button
         click_button(page, "btn_change_password")
@@ -269,9 +261,9 @@ class TestUserProfilePage:
         
         # IMPORTANT: Change password back immediately to not break subsequent tests
         navigate_to(page, "/user/profile")
-        page.fill('input#input_current_password', 'newpass123')
-        page.fill('input#input_new_password', 'admin123')
-        page.fill('input#input_confirm_password', 'admin123')
+        fill_form_field(page, "input_current_password", "newpass123")
+        fill_form_field(page, "input_new_password", "admin123")
+        fill_form_field(page, "input_confirm_password", "admin123")
         click_button(page, "btn_change_password")
         page.wait_for_timeout(500)
         
@@ -294,9 +286,9 @@ class TestUserProfilePage:
             pytest.skip("Password change not available")
         
         # Try to change password with wrong current password
-        page.fill('input#input_current_password', 'wrongpassword')
-        page.fill('input#input_new_password', 'newpass123')
-        page.fill('input#input_confirm_password', 'newpass123')
+        fill_form_field(page, "input_current_password", "wrongpassword")
+        fill_form_field(page, "input_new_password", "newpass123")
+        fill_form_field(page, "input_confirm_password", "newpass123")
         
         # Click change password button
         click_button(page, "btn_change_password")
@@ -322,9 +314,9 @@ class TestUserProfilePage:
             pytest.skip("Password change not available")
         
         # Try to change password with mismatched confirmation
-        page.fill('input#input_current_password', 'admin123')
-        page.fill('input#input_new_password', 'newpass123')
-        page.fill('input#input_confirm_password', 'different123')
+        fill_form_field(page, "input_current_password", "admin123")
+        fill_form_field(page, "input_new_password", "newpass123")
+        fill_form_field(page, "input_confirm_password", "different123")
         
         # Click change password button
         click_button(page, "btn_change_password")
@@ -353,9 +345,9 @@ class TestUserProfilePage:
         weak_passwords = ["123", "abc", "12345"]
         
         for weak_pwd in weak_passwords:
-            page.fill('input#input_current_password', 'admin123')
-            page.fill('input#input_new_password', weak_pwd)
-            page.fill('input#input_confirm_password', weak_pwd)
+            fill_form_field(page, "input_current_password", "admin123")
+            fill_form_field(page, "input_new_password", weak_pwd)
+            fill_form_field(page, "input_confirm_password", weak_pwd)
             
             # Click change password button
             click_button(page, "btn_change_password")

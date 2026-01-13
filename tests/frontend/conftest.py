@@ -25,7 +25,7 @@ from playwright.sync_api import sync_playwright, Browser, BrowserContext, Page, 
 # ============================================================================
 
 # Set to True to watch tests run visually with pauses between actions
-HUMAN_MODE = True  # Set to False for headless mode
+HUMAN_MODE = False  # Set to False for headless mode
 
 # Test configuration
 BASE_URL = "http://localhost:5001"
@@ -305,9 +305,11 @@ def is_logged_in_as_admin(page: Page) -> bool:
 
 
 def logout(page: Page, base_url: str = BASE_URL):
-    """Logout from the application."""
+    """Logout from the application and clear all session data."""
     page.goto(f"{base_url}/common/logout")
     page.wait_for_load_state('load')
+    # Clear cookies to ensure clean session
+    page.context.clear_cookies()
 
 
 def navigate_to(page: Page, path: str, base_url: str = BASE_URL):
@@ -587,6 +589,39 @@ def select_multi_list_values(page: Page, field_id: str, values: list, timeout: i
         # Select the value in the newly created dropdown
         new_select = page.locator(f'select[name="{field_id}.list{i}"]')
         new_select.select_option(value, timeout=timeout)
+
+
+def upload_file_filepond(page: Page, file_path: str, timeout: int = 5000) -> bool:
+    """Upload a file using FilePond widget.
+    
+    FilePond creates a hidden file input with class 'filepond--browser'.
+    This helper uploads the file and waits for completion.
+    
+    Args:
+        page: Playwright page
+        file_path: Path to file to upload
+        timeout: Timeout for upload completion in milliseconds
+        
+    Returns:
+        True if upload successful, False otherwise
+    """
+    try:
+        # Find FilePond file input
+        file_input = page.locator('.filepond--browser').first
+        if file_input.count() == 0:
+            raise AssertionError("FilePond input not found on page")
+        
+        # Upload file
+        file_input.set_input_files(file_path)
+        
+        # Wait for upload to complete
+        # FilePond shows either success state or error state
+        page.wait_for_timeout(timeout)
+        
+        return True
+    except Exception as e:
+        print(f"  ❌ FilePond upload failed: {e}")
+        return False
 
 
 def reset_account_lockout(username: str):
