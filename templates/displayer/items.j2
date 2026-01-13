@@ -68,7 +68,7 @@
     {% elif item["type"] == "INFOLDER" %}
         {{infolder(item["id"], item["text"])}}
     {% elif item["type"] == "SELECT" %}
-        {{inselect(item["id"], item["data"], item["value"], item["text"], item["tooltips"])}}
+        {{inselect(item["id"], item["data"], item["value"], item["text"])}}
     {% elif item["type"] == "INCASCADED" %}
         {{incascaded(item["id"], item["data"], item["value"], item["text"], item["level"])}}
     {% elif item["type"] == "INLISTTEXT" %}
