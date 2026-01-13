@@ -596,14 +596,14 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 {% endmacro %}
 
-{% macro inselect(id, data, value, text, tooltips) %}
+{% macro inselect(id, data, value, text) %}
     {% if text %}
         {{ text }}
     {% endif %}
     {% if value %}
-        {{ common_input.select(id, data, value, false, tooltips)}}
+        {{ common_input.select(id, data, value, false)}}
     {% else %}
-        {{ common_input.select(id, data, history[id] if history is defined else None, false, tooltips)}}
+        {{ common_input.select(id, data, history[id] if history is defined else None, false)}}
     {% endif %}
 {% endmacro %}
 

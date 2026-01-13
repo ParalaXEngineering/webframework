@@ -1,5 +1,5 @@
 
-{% macro select(name, options, selected="", generic=false, tooltips=false) %}
+{% macro select(name, options, selected="", generic=false) %}
   {% set sel_norm = (selected|string)|replace('\t',' ')|trim %}
   {% if options %}
   <select class="form-control" name="{{ name }}" id="{{ name }}">
@@ -16,10 +16,8 @@
       {% for option in options %}
         {% set opt_val  = option|string %}
         {% set opt_norm = opt_val|replace('\t',' ')|trim %}
-        {% set has_tip  = tooltips and (loop.index0 < (tooltips|length)) %}
         <option
           value="{{ opt_val }}"
-          {% if has_tip %} data-tooltip="{{ tooltips[loop.index0] }}"{% endif %}
           {% if opt_norm == sel_norm %} selected{% endif %}
         >{{ opt_val }}</option>
       {% endfor %}

@@ -1085,7 +1085,7 @@ class DisplayerItemInputCascaded(DisplayerItem):
 class DisplayerItemInputSelect(DisplayerItem):
     """Specialized display to display an input select box."""
 
-    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None, choices: list = [], tooltips: list = []) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None, choices: list = []) -> None:
         """
         Initialize a select dropdown input.
 
@@ -1095,35 +1095,24 @@ class DisplayerItemInputSelect(DisplayerItem):
             value: Currently selected value (default: None)
             choices: List of selectable options (default: [])
                     Automatically sorted alphabetically
-            tooltips: List of tooltip texts for each choice (default: [])
-                     Must match length of choices for proper pairing
 
         Example:
             >>> select = DisplayerItemInputSelect(
             ...     id="priority",
             ...     text="Select Priority",
             ...     value="medium",
-            ...     choices=["low", "medium", "high"],
-            ...     tooltips=["Low priority", "Medium priority", "High priority"]
+            ...     choices=["low", "medium", "high"]
             ... )
         """
         super().__init__(DisplayerItems.SELECT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
-
-        # Ensure choices and tooltips have the same length before zipping
-        if isinstance(choices, list) and isinstance(tooltips, list):
-            if len(choices) == len(tooltips) and len(choices) > 0:
-                combined = list(zip(choices, tooltips))
-                combined.sort(key=lambda pair: pair[0])
-                # Unzip safely
-                choices, tooltips = map(list, zip(*combined))
-            elif choices:
-                choices.sort()
+        
+        if choices:
+            choices.sort()
 
         self.m_data = choices
-        self.m_tooltips = tooltips
         return
 
     @classmethod
@@ -1134,8 +1123,7 @@ class DisplayerItemInputSelect(DisplayerItem):
             Instance of the class with test data.
         """
         return cls(id="test_select", text="Choose an option", value="option2",
-                   choices=["option1", "option2", "option3"],
-                   tooltips=["First option", "Second option", "Third option"])
+                   choices=["option1", "option2", "option3"])
 
 
 @DisplayerCategory.INPUT
