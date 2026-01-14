@@ -312,6 +312,12 @@ TOOLTIP_CONFIG = {
             "value": 85,
             "description": "JPEG quality (1-100)",
             "persistent": True
+        },
+        "allowed_elements": {
+            "type": "list",
+            "value": ["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "td", "th", "label", "span", "div", "select"],
+            "description": "HTML elements where tooltips are allowed to be displayed",
+            "persistent": True
         }
     }
 }

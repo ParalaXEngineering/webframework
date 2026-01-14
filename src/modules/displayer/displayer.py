@@ -669,8 +669,25 @@ class Displayer:
         if self._tooltip_contexts and hasattr(app_context, 'tooltip_manager') and app_context.tooltip_manager:
             tooltips = app_context.tooltip_manager.get_tooltips_for_contexts(self._tooltip_contexts)
             logger.info(f"Loading tooltips for contexts {self._tooltip_contexts}: {len(tooltips)} tooltips")
-            logger.debug(f"Tooltip data: {tooltips}")
+            logger.info(f"Tooltip data: {tooltips}")
             serve_modules["tooltips"] = tooltips
+            
+            # Add tooltip configuration (allowed elements)
+            if hasattr(app_context, 'settings_manager') and app_context.settings_manager:
+                try:
+                    allowed_elements = app_context.settings_manager.get_setting('tooltip_system.allowed_elements')
+                    logger.info(f"Tooltip allowed_elements from settings: {allowed_elements} (type: {type(allowed_elements)})")
+                    if allowed_elements is not None:
+                        serve_modules["tooltip_allowed_elements"] = allowed_elements
+                    else:
+                        # Fallback to default
+                        logger.warning("Tooltip allowed_elements is None, using defaults")
+                        serve_modules["tooltip_allowed_elements"] = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "td", "th", "label", "span", "div", "select"]
+                except Exception as e:
+                    logger.warning(f"Could not load tooltip allowed_elements from settings: {e}")
+                    serve_modules["tooltip_allowed_elements"] = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "td", "th", "label", "span", "div", "select"]
+            else:
+                serve_modules["tooltip_allowed_elements"] = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "td", "th", "label", "span", "div", "select"]
         else:
             serve_modules["tooltips"] = {}
             if self._tooltip_contexts:

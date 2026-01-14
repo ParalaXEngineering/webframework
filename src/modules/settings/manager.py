@@ -157,6 +157,7 @@ class SettingsManager:
             "updater": site_conf_obj.m_enable_updater,
             "packager": site_conf_obj.m_enable_packager,
             "file_manager": site_conf_obj.m_enable_file_manager,
+            "tooltip_manager": site_conf_obj.m_enable_tooltip_manager,
         }
         
         for feature, is_enabled in feature_map.items():

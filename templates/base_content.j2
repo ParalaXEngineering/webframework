@@ -378,11 +378,14 @@
   // Tooltip system initialization
   {% if content.tooltips and content.tooltips|length > 0 %}
   window.tooltipData = {{ content.tooltips | tojson | safe }};
+  {% if content.tooltip_allowed_elements %}
+  window.tooltipAllowedElements = {{ content.tooltip_allowed_elements | tojson | safe }};
+  {% endif %}
   {% endif %}
 </script>
 
 {% if content.tooltips and content.tooltips|length > 0 %}
-<script src="{{ url_for('static', filename='framework/tooltip_init.js') }}"></script>
+<script src="{{ url_for('static', filename='js/tooltip_init.js') }}"></script>
 {% endif %}
 
 {% endblock %}
@@ -462,7 +465,7 @@
     {% endfor %}
 
     {% for module in content %}
-        {% if module != "modals" and module != "all_layout" and module != "breadcrumbs" and module != "title" and module != "required_css" and module != "required_js" and module != "required_cdn" and module != "required_css_cdn" %}
+        {% if module != "modals" and module != "all_layout" and module != "breadcrumbs" and module != "title" and module != "required_css" and module != "required_js" and module != "required_cdn" and module != "required_css_cdn" and module != "tooltips" and module != "tooltip_allowed_elements" %}
             {% if content[module].get("layouts") or content[module].get("error") or content[module].get("type") in ["threaded_action", "workflow"] %}
             <div class="card">
                 <div class="card-header py-1"></div>

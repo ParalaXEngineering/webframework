@@ -153,6 +153,9 @@ class TestSiteConf(site_conf.Site_conf):
                 parameter=f"layout={layout_key}",
                 endpoint="layout_main"
             )
+        
+        # Tooltip Demo
+        self.add_sidebar_page("Tooltips Demo", "help-circle", "demo.tooltips_demo")
 
         
         

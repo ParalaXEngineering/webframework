@@ -627,3 +627,87 @@ def workflow_demo():
     
     return render_template("base_content.j2", content=disp.display(), target="demo.workflow_demo")
 
+
+@demo_bp.route('/tooltips-demo', methods=['GET'])
+@require_login()
+def tooltips_demo():
+    """Tooltip system demo - showcases tooltip functionality on various HTML elements."""
+    disp = displayer.Displayer()
+    disp.add_generic("Tooltip System Demo")
+    disp.set_title("Tooltip Demo")
+    disp.add_breadcrumb("Tooltips Demo", "demo.tooltips_demo", [])
+    
+    # Enable tooltip context
+    disp.set_tooltip_contexts(["Global"])
+    
+    # Instructions card
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemAlert(
+        """<h4>How to Use Tooltips</h4>
+        <p>This demo showcases the tooltip system. Tooltips are automatically applied to keywords within <code>.card-body</code> elements.</p>
+        <h5>Try it yourself:</h5>
+        <ol>
+            <li>Go to <a href="/admin/tooltips/">Tooltip Management</a></li>
+            <li>Create a new tooltip with a keyword that appears on this page (e.g., "Demo", "Framework", "Python", "Select")</li>
+            <li>Refresh this page to see your tooltip in action!</li>
+        </ol>
+        <p><strong>Allowed Elements:</strong> Tooltips work in paragraphs, headings, lists, table cells, labels, spans, divs, and select elements.</p>
+        """,
+        displayer.BSstyle.INFO
+    ), 0)
+    
+    # Text content examples
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemText(
+        """<h3>Content Examples</h3>
+        <p>The ParalaX Framework makes it easy to build web applications. This Demo showcases various tooltip features.</p>
+        <p>You can create tooltips for technical terms like Python, Flask, or Database. Hover over any underlined text to see tooltips!</p>
+        
+        <h4>List Example</h4>
+        <ul>
+            <li>Framework features include tooltips, threading, and authentication</li>
+            <li>Python is used for backend development</li>
+            <li>Database management is built-in</li>
+        </ul>
+        
+        <h5>Table Example</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Tooltips</td>
+                    <td>Context-aware help system for users</td>
+                </tr>
+                <tr>
+                    <td>Framework</td>
+                    <td>ParalaX Web Framework core functionality</td>
+                </tr>
+                <tr>
+                    <td>Demo</td>
+                    <td>Example pages showing features</td>
+                </tr>
+            </tbody>
+        </table>
+        """
+    ), 0)
+    
+    # Form elements example
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemText(
+        "<h3>Form Elements with Tooltips</h3>"
+    ), 0)
+    
+    # Add select with options that could have tooltips
+    disp.add_display_item(displayer.DisplayerItemInputSelect(
+        "example_select",
+        "Choose a Framework Feature",
+        value="",
+        choices=["Tooltips", "Framework", "Python", "Demo", "Database"],
+    ), 0)
+    
+    return render_template("base_content.j2", content=disp.display(), target="demo.tooltips_demo")
