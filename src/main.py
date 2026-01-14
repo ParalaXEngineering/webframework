@@ -169,6 +169,7 @@ def _ensure_default_assets(app_path, framework_root, logger):
 
 def setup_app(app):
     """Setup Flask app. Only call when FLASK_AVAILABLE is True."""
+    import sys
     if not FLASK_AVAILABLE:
         return None
     
@@ -394,10 +395,10 @@ def setup_app(app):
         app_context.tooltip_manager = tooltip_manager_instance
         app.register_blueprint(tooltip_routes.bp)
         
-        logger.debug("Tooltip manager initialized")
+        logger.info(f"Tooltip manager initialized and registered")
     else:
         app_context.tooltip_manager = None
-        logger.debug("Tooltip manager disabled")
+        logger.info("Tooltip manager disabled (feature flag off)")
 
     # Conditionally initialize scheduler based on feature flag
     if site_config.m_enable_scheduler:

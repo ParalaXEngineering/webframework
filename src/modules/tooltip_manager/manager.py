@@ -504,6 +504,111 @@ class TooltipManager:
             logger.error(f"Error deleting context: {e}")
             return False
     
+    def ensure_context(self, name: str, description: str = "") -> int:
+        """
+        Ensure context exists - create if it doesn't, return ID if it does.
+        
+        Args:
+            name: Context name
+            description: Context description (only used if creating new)
+            
+        Returns:
+            Context ID
+        """
+        try:
+            session = self._get_session()
+            ctx = session.query(Context).filter_by(name=name).first()
+            
+            if ctx:
+                ctx_id = ctx.id
+                session.close()
+                return ctx_id
+            else:
+                session.close()
+                # Create new context
+                return self.create_context(name, description)
+        except Exception as e:
+            logger.error(f"Error ensuring context: {e}")
+            raise
+    
+    def delete_context_by_name(self, name: str) -> bool:
+        """
+        Delete context by name (cascades to TooltipContext).
+        
+        Args:
+            name: Context name
+            
+        Returns:
+            True if deleted, False if not found or error
+        """
+        try:
+            session = self._get_session()
+            ctx = session.query(Context).filter_by(name=name).first()
+            if ctx:
+                # Prevent deletion of Global context
+                if ctx.name == GLOBAL_CONTEXT_NAME:
+                    session.close()
+                    raise ValueError(f"Cannot delete {GLOBAL_CONTEXT_NAME} context - it is a system context")
+                
+                session.delete(ctx)
+                session.commit()
+                self._invalidate_cache(name)
+                session.close()
+                logger.info(f"Deleted context: {name}")
+                return True
+            else:
+                session.close()
+                logger.warning(f"Context not found: {name}")
+                return False
+        except Exception as e:
+            logger.error(f"Error deleting context by name: {e}")
+            return False
+    
+    def delete_all_tooltips_in_context(self, context_name: str) -> int:
+        """
+        Delete all tooltips that belong ONLY to the specified context.
+        Tooltips shared with other contexts are unassigned from this context but not deleted.
+        
+        Args:
+            context_name: Name of the context
+            
+        Returns:
+            Number of tooltips fully deleted (not just unassigned)
+        """
+        try:
+            session = self._get_session()
+            ctx = session.query(Context).filter_by(name=context_name).first()
+            if not ctx:
+                session.close()
+                return 0
+            
+            # Find all tooltips in this context
+            tooltip_contexts = session.query(TooltipContext).filter_by(context_id=ctx.id).all()
+            
+            deleted_count = 0
+            for tc in tooltip_contexts:
+                # Count how many contexts this tooltip belongs to
+                context_count = session.query(TooltipContext).filter_by(tooltip_id=tc.tooltip_id).count()
+                
+                if context_count == 1:
+                    # This is the only context - delete the tooltip entirely
+                    tooltip = session.query(Tooltip).filter_by(id=tc.tooltip_id).first()
+                    if tooltip:
+                        session.delete(tooltip)
+                        deleted_count += 1
+                else:
+                    # Shared with other contexts - just remove the association
+                    session.delete(tc)
+            
+            session.commit()
+            session.close()
+            self._invalidate_cache(context_name)
+            logger.info(f"Deleted {deleted_count} tooltips from context {context_name}")
+            return deleted_count
+        except Exception as e:
+            logger.error(f"Error deleting tooltips in context: {e}")
+            return 0
+    
     def assign_tooltip_to_contexts(self, tooltip_id: int, context_ids: List[int]):
         """Replace all context assignments for tooltip"""
         try:

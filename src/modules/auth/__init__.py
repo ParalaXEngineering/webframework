@@ -18,6 +18,7 @@ from .permission_registry import PermissionRegistry, PERMISSION_ACTION_VIEW
 from .rate_limiter import login_rate_limiter
 from .auth_utils import is_safe_redirect_url
 from ..app_context import app_context
+from ..constants import USER_GUEST_NAME
 
 __all__ = [
     'AuthManager', 'PermissionRegistry', 'User',
@@ -66,7 +67,8 @@ def require_permission(module: str, action: str = DEFAULT_ACTION):
             
             # Auth is enabled - check permission
             current_user = session.get(SESSION_USER_KEY)
-            if not current_user:
+            # Treat GUEST as unauthenticated - redirect to login
+            if not current_user or current_user == USER_GUEST_NAME:
                 from flask import request
                 return redirect(url_for(ROUTE_LOGIN, next=request.url))
             
@@ -133,7 +135,8 @@ def require_admin():
             
             # Auth is enabled - check admin group
             current_user = session.get(SESSION_USER_KEY)
-            if not current_user:
+            # Treat GUEST as unauthenticated - redirect to login
+            if not current_user or current_user == USER_GUEST_NAME:
                 from flask import request
                 return redirect(url_for(ROUTE_LOGIN, next=request.url))
             
@@ -201,7 +204,8 @@ def require_login():
             
             # Auth is enabled - check if user is logged in
             current_user = session.get(SESSION_USER_KEY)
-            if not current_user:
+            # Treat GUEST as unauthenticated - redirect to login
+            if not current_user or current_user == USER_GUEST_NAME:
                 from flask import request
                 return redirect(url_for(ROUTE_LOGIN, next=request.url))
             

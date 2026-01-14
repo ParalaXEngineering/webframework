@@ -216,8 +216,7 @@ class WorkflowDemo(Workflow):
                 "workflow_type",
                 "Workflow Type",
                 current_type,
-                [t[0] for t in workflow_types],
-                [t[1] for t in workflow_types]
+                [t[0] for t in workflow_types]
             ),
             0
         )

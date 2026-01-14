@@ -108,7 +108,7 @@ class Displayer:
         required_action = getattr(module, 'm_required_action', 'view')
         
         # Get the current auth_manager instance from app_context
-        from ..app_context import app_context
+        from src.modules.app_context import app_context
         auth_manager = app_context.auth_manager
         
         logger.info(f"[Displayer] Module: {default_name}, required_permission={required_permission}, required_action={required_action}")
@@ -665,7 +665,7 @@ class Displayer:
         serve_modules["required_css_cdn"] = ResourceRegistry.get_required_css_cdn()
         
         # Add tooltips if contexts are set and tooltip_manager is available
-        from ..app_context import app_context
+        from src.modules.app_context import app_context
         if self._tooltip_contexts and hasattr(app_context, 'tooltip_manager') and app_context.tooltip_manager:
             tooltips = app_context.tooltip_manager.get_tooltips_for_contexts(self._tooltip_contexts)
             logger.info(f"Loading tooltips for contexts {self._tooltip_contexts}: {len(tooltips)} tooltips")

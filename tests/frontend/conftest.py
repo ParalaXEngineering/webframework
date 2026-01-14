@@ -25,7 +25,7 @@ from playwright.sync_api import sync_playwright, Browser, BrowserContext, Page, 
 # ============================================================================
 
 # Set to True to watch tests run visually with pauses between actions
-HUMAN_MODE = True  # Set to False for headless mode
+HUMAN_MODE = False  # Set to False for headless mode
 
 # Test configuration
 BASE_URL = "http://localhost:5001"
@@ -305,9 +305,11 @@ def is_logged_in_as_admin(page: Page) -> bool:
 
 
 def logout(page: Page, base_url: str = BASE_URL):
-    """Logout from the application."""
+    """Logout from the application and clear all session data."""
     page.goto(f"{base_url}/common/logout")
     page.wait_for_load_state('load')
+    # Clear cookies to ensure clean session
+    page.context.clear_cookies()
 
 
 def navigate_to(page: Page, path: str, base_url: str = BASE_URL):
@@ -391,6 +393,35 @@ def fill_form_field(page: Page, name: str, value: str):
         f"Available input fields (first 10): {input_names}\n"
         f"Current URL: {page.url}"
     )
+
+
+def fill_tinymce_field(page: Page, name: str, value: str):
+    """Fill a TinyMCE rich text editor field.
+    
+    TinyMCE hides the original textarea and uses an iframe for editing.
+    This helper uses JavaScript to set the content directly.
+    
+    Args:
+        page: Playwright page
+        name: Field name (e.g., 'Create Tooltip.content')
+        value: HTML content to set
+    """
+    # Find the textarea (it's hidden but still exists in DOM)
+    selector = f'textarea[name="{name}"]'
+    if page.locator(selector).count() == 0:
+        # Try partial match
+        selector = f'textarea[name*="{name}"]'
+    
+    field = page.locator(selector).first
+    if field.count() > 0:
+        # Use JavaScript to set the value and trigger TinyMCE update
+        field.evaluate(f"el => {{ el.value = `{value}`; if (tinymce && tinymce.get(el.id)) {{ tinymce.get(el.id).setContent(`{value}`); }} }}")
+        page.wait_for_timeout(100)
+    else:
+        raise AssertionError(
+            f"❌ Could not find textarea for TinyMCE field '{name}'!\n"
+            f"Current URL: {page.url}"
+        )
 
 
 def select_form_option(page: Page, name: str, value: str, timeout: int = 2000):
@@ -523,6 +554,74 @@ def page_contains_text(page: Page, text: str) -> bool:
     """
     page_text = get_page_text(page).lower()
     return text.lower() in page_text
+
+
+def select_multi_list_values(page: Page, field_id: str, values: list, timeout: int = 2000):
+    """Select multiple values in a DisplayerItemInputMultiSelect field.
+    
+    This handles the framework's multi-select pattern where clicking "+" adds
+    additional select dropdowns, and each dropdown can hold one value.
+    
+    Args:
+        page: Playwright page
+        field_id: The field ID (e.g., "Create Tooltip.contexts")
+        values: List of values to select (one per dropdown)
+        timeout: Timeout in milliseconds
+        
+    Example:
+        select_multi_list_values(page, "Create Tooltip.contexts", 
+                               ["Global - Global context", "Custom - My context"])
+    """
+    if not values:
+        return
+    
+    # Select the first value in the first dropdown (always exists)
+    first_select = page.locator(f'select[name="{field_id}.list0"]')
+    first_select.select_option(values[0], timeout=timeout)
+    
+    # For additional values, click "+" and select in new dropdowns
+    for i, value in enumerate(values[1:], start=1):
+        # Click the "+" button to add a new dropdown
+        add_button = page.locator(f'a[onclick*="setting_add_list(\'{field_id}\')"]')
+        add_button.click()
+        page.wait_for_timeout(100)  # Brief wait for DOM update
+        
+        # Select the value in the newly created dropdown
+        new_select = page.locator(f'select[name="{field_id}.list{i}"]')
+        new_select.select_option(value, timeout=timeout)
+
+
+def upload_file_filepond(page: Page, file_path: str, timeout: int = 5000) -> bool:
+    """Upload a file using FilePond widget.
+    
+    FilePond creates a hidden file input with class 'filepond--browser'.
+    This helper uploads the file and waits for completion.
+    
+    Args:
+        page: Playwright page
+        file_path: Path to file to upload
+        timeout: Timeout for upload completion in milliseconds
+        
+    Returns:
+        True if upload successful, False otherwise
+    """
+    try:
+        # Find FilePond file input
+        file_input = page.locator('.filepond--browser').first
+        if file_input.count() == 0:
+            raise AssertionError("FilePond input not found on page")
+        
+        # Upload file
+        file_input.set_input_files(file_path)
+        
+        # Wait for upload to complete
+        # FilePond shows either success state or error state
+        page.wait_for_timeout(timeout)
+        
+        return True
+    except Exception as e:
+        print(f"  ❌ FilePond upload failed: {e}")
+        return False
 
 
 def reset_account_lockout(username: str):

@@ -17,6 +17,7 @@ from src.modules.auth import require_login
 # Create blueprint for demo routes
 demo_bp = Blueprint('demo', __name__)
 
+
 @demo_bp.route('/simple-form-demo', methods=['GET', 'POST']) 
 @require_login()
 def simple_form_demo():
@@ -28,21 +29,25 @@ def simple_form_demo():
     disp.add_breadcrumb("Simple Form", "demo.simple_form_demo", [])
     
     # Handle POST - display submitted data
+    message = None
     if request.method == 'POST':
         # Parse form data using util_post_to_json
         data_in = utilities.util_post_to_json(request.form.to_dict())
         
         # Extract data from the module
-        if "Simple Form Demo" in data_in:
-            form_data = data_in["Simple Form Demo"]
+        if "TEXT_SIMPLE_FORM_DEMO" in data_in:
+            form_data = data_in["TEXT_SIMPLE_FORM_DEMO"]
             user_text = form_data.get("input_text", "")
-            
-            # Show success message with submitted text
-            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            disp.add_display_item(displayer.DisplayerItemAlert(
-                f"<strong>Form Submitted!</strong><br>You entered: <em>{user_text}</em>",
-                displayer.BSstyle.SUCCESS
-            ), 0)
+            if user_text:
+                message = f"<strong>Form Submitted!</strong><br>You entered: <em>{user_text}</em>"
+    
+    # Show success message if form was submitted
+    if message:
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(displayer.DisplayerItemAlert(
+            message,
+            displayer.BSstyle.SUCCESS
+        ), 0)
     
     # Show form
     disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
@@ -70,7 +75,7 @@ def simple_form_demo():
 def threading_demo():
     """Threading demo with table of examples and code."""
     from demo_support.demo_threaded_complete import DemoThreadedAction
-    from src.modules.threaded import threaded_manager
+    from src.modules.app_context import app_context
     
     disp = displayer.Displayer()
     disp.add_module(DemoThreadedAction)
@@ -99,9 +104,9 @@ def threading_demo():
                 thread.start()
                 message = ("✓ Process Demo Started", displayer.BSstyle.SUCCESS)
             elif 'btn_stop' in module_data:
-                if threaded_manager.thread_manager_obj:
-                    count = threaded_manager.thread_manager_obj.get_thread_count()
-                    threaded_manager.thread_manager_obj.kill_all_threads()
+                if app_context.thread_manager:
+                    count = app_context.thread_manager.get_thread_count()
+                    app_context.thread_manager.kill_all_threads()
                     message = (f"✓ Stopped {count} threads", displayer.BSstyle.WARNING)
                 else:
                     message = ("Thread manager not available", displayer.BSstyle.ERROR)
@@ -120,8 +125,8 @@ def threading_demo():
     ), 0)
     
     # Thread statistics
-    if threaded_manager.thread_manager_obj:
-        stats = threaded_manager.thread_manager_obj.get_thread_stats()
+    if app_context.thread_manager:
+        stats = app_context.thread_manager.get_thread_stats()
     else:
         stats = {'total': 0, 'running': 0, 'sleeping': 0, 'error': 0}
     
@@ -263,7 +268,7 @@ def threading_demo():
 def scheduler_demo():
     """Scheduler/Action system demo with real-time UI updates."""
     from demo_support.demo_scheduler_action import DemoSchedulerAction
-    from src.modules.threaded import threaded_manager
+    from src.modules.app_context import app_context
     from src.modules.displayer import ResourceRegistry
     
     # Require jQuery for SocketIO
@@ -276,7 +281,7 @@ def scheduler_demo():
         
         if DemoSchedulerAction.m_default_name in data_in:
             action_data = data_in[DemoSchedulerAction.m_default_name]
-            thread = threaded_manager.thread_manager_obj.get_thread(DemoSchedulerAction.m_default_name) if threaded_manager.thread_manager_obj else None
+            thread = app_context.thread_manager.get_thread(DemoSchedulerAction.m_default_name) if app_context.thread_manager else None
             
             if not thread:
                 demo_action = DemoSchedulerAction()
