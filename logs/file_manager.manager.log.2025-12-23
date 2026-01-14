@@ -1,0 +1,1019 @@
+2025-11-24 14:11:35,387 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:11:35,390 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:15:13,909 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:15:13,909 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:15:32,365 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:15:32,375 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:17:42,844 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:17:42,855 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:20:00,742 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:20:00,742 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:32:41,262 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:32:41,262 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:39:00,716 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:39:00,723 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:39:49,103 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:39:49,105 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:39:49,111 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:39:49,112 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:39:56,613 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:39:56,613 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:39:56,618 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:39:56,623 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:40:03,550 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:40:03,553 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:40:03,577 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:40:03,581 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:40:03,949 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for user_1.png at resources\hashfs_storage\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-24 14:40:03,952 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for user_1.png (ext: .png)
+2025-11-24 14:40:03,953 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for user_1.png
+2025-11-24 14:40:04,679 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\150x150\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 14:40:04,698 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\300x300\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 14:40:04,699 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for user_1.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:40:04,699 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:40:04,700 - INFO - file_manager.manager - manager.py:402 - File uploaded: user_1.png (group: tracker_1189, version: 1, size: 2397915 bytes)
+2025-11-24 14:40:20,878 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:40:20,884 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:40:20,892 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:40:20,893 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:40:53,672 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:40:53,673 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:40:53,677 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:40:53,678 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:41:33,273 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:41:33,275 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:41:38,851 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:41:38,852 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:42:37,033 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:42:37,034 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:42:41,823 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:42:41,824 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:42:57,042 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:42:57,043 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:42:57,048 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:42:57,049 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:43:04,945 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for Generated_image.png at resources\hashfs_storage\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22
+2025-11-24 14:43:04,945 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for Generated_image.png (ext: .png)
+2025-11-24 14:43:04,945 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for Generated_image.png
+2025-11-24 14:43:05,325 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\150x150\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-24 14:43:05,344 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\300x300\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-24 14:43:05,344 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for Generated_image.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:43:05,345 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:43:05,345 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:43:05,346 - INFO - file_manager.manager - manager.py:402 - File uploaded: Generated_image.png (group: tracker_1190, version: 1, size: 1618403 bytes)
+2025-11-24 14:43:05,387 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:43:05,393 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:43:05,395 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:43:12,382 - INFO - file_manager.manager - manager.py:330 - File deduplicated (existing content): Generated_image.png
+2025-11-24 14:43:12,408 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for Generated_image.png at resources\hashfs_storage\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22
+2025-11-24 14:43:12,409 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for Generated_image.png (ext: .png)
+2025-11-24 14:43:12,409 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for Generated_image.png
+2025-11-24 14:43:12,752 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\150x150\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-24 14:43:12,766 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\300x300\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-24 14:43:12,766 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for Generated_image.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:43:12,766 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:43:12,767 - INFO - file_manager.manager - manager.py:402 - File uploaded: Generated_image.png (group: tracker_1190, version: 2, size: 1618403 bytes)
+2025-11-24 14:43:14,606 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:43:14,607 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:43:14,610 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:43:14,610 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:43:14,617 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:43:14,618 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:43:23,883 - INFO - file_manager.manager - manager.py:330 - File deduplicated (existing content): Generated_image.png
+2025-11-24 14:43:23,893 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for Generated_image.png at resources\hashfs_storage\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22
+2025-11-24 14:43:23,894 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for Generated_image.png (ext: .png)
+2025-11-24 14:43:23,894 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for Generated_image.png
+2025-11-24 14:43:24,176 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\150x150\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-24 14:43:24,184 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\300x300\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-24 14:43:24,184 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for Generated_image.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:43:24,184 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:43:24,184 - INFO - file_manager.manager - manager.py:402 - File uploaded: Generated_image.png (group: tracker_1191, version: 1, size: 1618403 bytes)
+2025-11-24 14:43:26,346 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:43:26,347 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:43:26,351 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:43:26,353 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:45:26,711 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:45:26,711 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:45:31,794 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:45:31,795 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:45:31,800 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:45:31,801 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:45:40,772 - INFO - file_manager.manager - manager.py:330 - File deduplicated (existing content): user_1.png
+2025-11-24 14:45:40,791 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for user_1.png at resources\hashfs_storage\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-24 14:45:40,791 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for user_1.png (ext: .png)
+2025-11-24 14:45:40,792 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for user_1.png
+2025-11-24 14:45:41,139 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\150x150\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 14:45:41,146 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\300x300\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 14:45:41,146 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for user_1.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:45:41,146 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:45:41,146 - INFO - file_manager.manager - manager.py:402 - File uploaded: user_1.png (group: tracker_1191, version: 1, size: 2397915 bytes)
+2025-11-24 14:45:48,333 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:45:48,333 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:45:48,338 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:45:48,339 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:45:48,342 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 14:45:48,345 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 14:45:57,144 - INFO - file_manager.manager - manager.py:330 - File deduplicated (existing content): Generated_image.png
+2025-11-24 14:45:57,159 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for Generated_image.png at resources\hashfs_storage\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22
+2025-11-24 14:45:57,159 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for Generated_image.png (ext: .png)
+2025-11-24 14:45:57,159 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for Generated_image.png
+2025-11-24 14:45:57,449 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\150x150\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-24 14:45:57,456 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\300x300\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-24 14:45:57,456 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for Generated_image.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:45:57,456 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 14:45:57,456 - INFO - file_manager.manager - manager.py:402 - File uploaded: Generated_image.png (group: tracker_1191, version: 2, size: 1618403 bytes)
+2025-11-24 15:13:31,149 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:13:31,151 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:13:36,369 - INFO - file_manager.manager - manager.py:331 - File deduplicated (existing content): user_1.png
+2025-11-24 15:13:36,557 - INFO - file_manager.manager - manager.py:394 - Generating thumbnails for user_1.png at resources\hashfs_storage\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-24 15:13:36,558 - INFO - file_manager.manager - manager.py:549 - Attempting thumbnail generation for user_1.png (ext: .png)
+2025-11-24 15:13:36,558 - INFO - file_manager.manager - manager.py:555 - Generating image thumbnails for user_1.png
+2025-11-24 15:13:36,940 - INFO - file_manager.manager - manager.py:633 - Generated thumbnail: .thumbs/150x150/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\150x150\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 15:13:36,952 - INFO - file_manager.manager - manager.py:633 - Generated thumbnail: .thumbs/300x300/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\300x300\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 15:13:36,952 - INFO - file_manager.manager - manager.py:573 - Generated 2 thumbnails for user_1.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:13:36,952 - INFO - file_manager.manager - manager.py:397 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:13:36,952 - INFO - file_manager.manager - manager.py:404 - File uploaded: user_1.png (group: tracker_1190, version: 1, size: 2397915 bytes)
+2025-11-24 15:14:04,936 - INFO - file_manager.manager - manager.py:394 - Generating thumbnails for MIL-STD-461G.cleaned_2_converted_screenshots.pdf at resources\hashfs_storage\fa\56\1467724fb29d96b38158b297bb01d96cb875e2005b079dddd7954a25b95a
+2025-11-24 15:14:04,936 - INFO - file_manager.manager - manager.py:549 - Attempting thumbnail generation for MIL-STD-461G.cleaned_2_converted_screenshots.pdf (ext: .pdf)
+2025-11-24 15:14:04,936 - WARNING - file_manager.manager - manager.py:566 - PyMuPDF not available - cannot generate PDF thumbnails
+2025-11-24 15:14:04,936 - INFO - file_manager.manager - manager.py:573 - Generated 0 thumbnails for MIL-STD-461G.cleaned_2_converted_screenshots.pdf: []
+2025-11-24 15:14:04,936 - WARNING - file_manager.manager - manager.py:400 - No thumbnails generated for MIL-STD-461G.cleaned_2_converted_screenshots.pdf
+2025-11-24 15:14:04,936 - INFO - file_manager.manager - manager.py:404 - File uploaded: MIL-STD-461G.cleaned_2_converted_screenshots.pdf (group: tracker_1190, version: 1, size: 239826 bytes)
+2025-11-24 15:14:24,195 - INFO - file_manager.manager - manager.py:485 - Finalized file 8: MIL-STD-461G.cleaned_2_converted_screenshots.pdf
+2025-11-24 15:14:24,200 - INFO - file_manager.manager - manager.py:504 - Deleting orphaned temporary file 7: user_1.png
+2025-11-24 15:14:24,217 - INFO - file_manager.manager - manager.py:771 - File 7 deleted from DB, physical file retained (2 other references)
+2025-11-24 15:14:24,218 - INFO - file_manager.manager - manager.py:510 - Finalized 1 files, deleted 1 orphaned temporary files
+2025-11-24 15:14:24,250 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:14:24,251 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:14:24,256 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:14:24,258 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:14:24,263 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:14:24,265 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:15:11,742 - INFO - file_manager.manager - manager.py:510 - Finalized 0 files, deleted 0 orphaned temporary files
+2025-11-24 15:15:11,768 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:15:11,769 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:15:11,773 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:15:11,774 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:15:11,779 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:15:11,779 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:15:14,281 - INFO - file_manager.manager - manager.py:510 - Finalized 0 files, deleted 0 orphaned temporary files
+2025-11-24 15:15:14,304 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:15:14,306 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:15:14,309 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:15:14,311 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:15:14,311 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:15:14,317 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:19:12,632 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:19:12,638 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:19:23,955 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:19:23,956 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:19:23,959 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:19:23,960 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:19:23,963 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:19:23,963 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:19:28,910 - INFO - file_manager.manager - manager.py:330 - File deduplicated (existing content): user_1.png
+2025-11-24 15:19:28,931 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for user_1.png at resources\hashfs_storage\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-24 15:19:28,931 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for user_1.png (ext: .png)
+2025-11-24 15:19:28,931 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for user_1.png
+2025-11-24 15:19:29,244 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\150x150\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 15:19:29,256 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\300x300\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 15:19:29,258 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for user_1.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:19:29,258 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:19:29,259 - INFO - file_manager.manager - manager.py:402 - File uploaded: user_1.png (group: tracker_1191, version: 2, size: 2397915 bytes)
+2025-11-24 15:19:36,528 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:19:36,528 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:19:36,535 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:19:36,536 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:19:36,539 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:19:36,541 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:19:36,546 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:19:36,555 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:24:25,373 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:24:25,375 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:24:30,558 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:24:30,559 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:24:30,563 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:24:30,564 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:24:30,567 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:24:30,569 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:24:30,574 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:24:30,574 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:24:39,908 - INFO - file_manager.manager - manager.py:330 - File deduplicated (existing content): user_1.png
+2025-11-24 15:24:39,931 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for user_1.png at resources\hashfs_storage\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-24 15:24:39,931 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for user_1.png (ext: .png)
+2025-11-24 15:24:39,931 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for user_1.png
+2025-11-24 15:24:40,247 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\150x150\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 15:24:40,260 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\300x300\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 15:24:40,261 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for user_1.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:24:40,261 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:24:40,261 - INFO - file_manager.manager - manager.py:402 - File uploaded: user_1.png (group: tracker_1191, version: 3, size: 2397915 bytes)
+2025-11-24 15:24:41,187 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:24:41,188 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:24:41,192 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:24:41,194 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:24:41,197 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:24:41,198 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:24:41,202 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:24:41,203 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:24:41,209 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:24:41,210 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:26:42,939 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:26:42,941 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:26:47,980 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:26:47,980 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:26:47,987 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:26:47,987 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:26:47,990 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:26:47,991 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:26:47,994 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:26:47,995 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:26:47,999 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:26:48,000 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:26:57,353 - INFO - file_manager.manager - manager.py:330 - File deduplicated (existing content): user_1.png
+2025-11-24 15:26:57,369 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for user_1.png at resources\hashfs_storage\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-24 15:26:57,369 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for user_1.png (ext: .png)
+2025-11-24 15:26:57,370 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for user_1.png
+2025-11-24 15:26:57,679 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\150x150\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 15:26:57,690 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\300x300\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 15:26:57,690 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for user_1.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:26:57,691 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:26:57,691 - INFO - file_manager.manager - manager.py:402 - File uploaded: user_1.png (group: tracker_1191, version: 4, size: 2397915 bytes)
+2025-11-24 15:29:16,857 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:29:16,857 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:29:22,176 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:29:22,177 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:29:22,180 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:29:22,181 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:29:22,185 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:29:22,187 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:29:22,190 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:29:22,192 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:29:22,198 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:29:22,199 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:29:49,766 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:29:49,767 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:30:10,699 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:30:10,701 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:30:10,704 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:30:10,704 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:30:10,707 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:30:10,709 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:30:10,711 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:30:10,713 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:30:10,717 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:30:10,718 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:34:00,987 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:34:00,988 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:34:06,114 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:34:06,115 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:34:06,118 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:34:06,120 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:34:06,122 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:34:06,123 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:34:06,126 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:34:06,127 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:34:06,131 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:34:06,132 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:38:10,833 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:38:10,840 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:38:26,375 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:38:26,385 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:38:33,877 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:38:33,879 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:38:33,883 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:38:33,884 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:38:33,887 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:38:33,888 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:38:33,892 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:38:33,893 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:38:33,898 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:38:33,900 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:39:58,097 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:39:58,099 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:40:03,167 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:40:03,167 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:40:03,179 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:40:03,179 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:40:03,183 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:40:03,184 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:40:03,186 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:40:03,187 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:40:03,191 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:40:03,192 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:43:23,882 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:43:23,882 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:43:33,229 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:43:33,234 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:43:33,237 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:43:33,239 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:43:33,243 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:43:33,245 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:43:33,247 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:43:33,249 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:43:33,254 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:43:33,255 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:43:40,073 - INFO - file_manager.manager - manager.py:330 - File deduplicated (existing content): user_1.png
+2025-11-24 15:43:40,103 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for user_1.png at resources\hashfs_storage\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-24 15:43:40,103 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for user_1.png (ext: .png)
+2025-11-24 15:43:40,103 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for user_1.png
+2025-11-24 15:43:40,497 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\150x150\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 15:43:40,514 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\300x300\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-24 15:43:40,514 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for user_1.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:43:40,514 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:43:40,514 - INFO - file_manager.manager - manager.py:402 - File uploaded: user_1.png (group: tracker_1191, version: 5, size: 2397915 bytes)
+2025-11-24 15:43:48,899 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for DFNDR-UMK2-0003-CM.xlsx at resources\hashfs_storage\34\ad\b8cba658693a10f3e0dfa9c30d534bbb2f0ab83ce0dea5aaa1ea1c7fa1de
+2025-11-24 15:43:48,905 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for DFNDR-UMK2-0003-CM.xlsx (ext: .xlsx)
+2025-11-24 15:43:48,906 - INFO - file_manager.manager - manager.py:512 - Generated 0 thumbnails for DFNDR-UMK2-0003-CM.xlsx: []
+2025-11-24 15:43:48,906 - WARNING - file_manager.manager - manager.py:398 - No thumbnails generated for DFNDR-UMK2-0003-CM.xlsx
+2025-11-24 15:43:48,906 - INFO - file_manager.manager - manager.py:402 - File uploaded: DFNDR-UMK2-0003-CM.xlsx (group: tracker_1191, version: 1, size: 271122 bytes)
+2025-11-24 15:44:41,340 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:44:41,341 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:44:41,344 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:44:41,345 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:44:41,349 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:44:41,350 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:44:41,353 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:44:41,355 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:44:41,360 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:44:41,363 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:44:50,540 - INFO - file_manager.manager - manager.py:330 - File deduplicated (existing content): DFNDR-UMK2-0003-CM.xlsx
+2025-11-24 15:44:50,553 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for DFNDR-UMK2-0003-CM.xlsx at resources\hashfs_storage\34\ad\b8cba658693a10f3e0dfa9c30d534bbb2f0ab83ce0dea5aaa1ea1c7fa1de
+2025-11-24 15:44:50,554 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for DFNDR-UMK2-0003-CM.xlsx (ext: .xlsx)
+2025-11-24 15:44:50,554 - INFO - file_manager.manager - manager.py:512 - Generated 0 thumbnails for DFNDR-UMK2-0003-CM.xlsx: []
+2025-11-24 15:44:50,554 - WARNING - file_manager.manager - manager.py:398 - No thumbnails generated for DFNDR-UMK2-0003-CM.xlsx
+2025-11-24 15:44:50,555 - INFO - file_manager.manager - manager.py:402 - File uploaded: DFNDR-UMK2-0003-CM.xlsx (group: tracker_1191, version: 2, size: 271122 bytes)
+2025-11-24 15:45:25,695 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:45:25,709 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:45:31,211 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:45:31,213 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:45:31,216 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:45:31,217 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:45:31,220 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:45:31,221 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:45:31,223 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:45:31,224 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:45:31,228 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:45:31,229 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:45:41,526 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for Ultra_light_Presentation251117.pptx at resources\hashfs_storage\a6\3f\7c4be23f8d47056c6fe614afe8199ed19194d9ca1eea1ab60e8b0e4aceeb
+2025-11-24 15:45:41,527 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for Ultra_light_Presentation251117.pptx (ext: .pptx)
+2025-11-24 15:45:41,527 - INFO - file_manager.manager - manager.py:512 - Generated 0 thumbnails for Ultra_light_Presentation251117.pptx: []
+2025-11-24 15:45:41,527 - WARNING - file_manager.manager - manager.py:398 - No thumbnails generated for Ultra_light_Presentation251117.pptx
+2025-11-24 15:45:41,528 - INFO - file_manager.manager - manager.py:402 - File uploaded: Ultra_light_Presentation251117.pptx (group: tracker_1191, version: 1, size: 57608 bytes)
+2025-11-24 15:47:04,031 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:47:04,033 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:47:19,986 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:47:19,987 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:47:19,989 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:47:19,990 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:47:19,993 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:47:19,994 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:47:19,997 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:47:19,999 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:47:20,003 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:47:20,004 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:47:29,129 - INFO - file_manager.manager - manager.py:330 - File deduplicated (existing content): Generated_image.png
+2025-11-24 15:47:29,152 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for Generated_image.png at resources\hashfs_storage\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22
+2025-11-24 15:47:29,152 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for Generated_image.png (ext: .png)
+2025-11-24 15:47:29,152 - INFO - file_manager.manager - manager.py:494 - Generating image thumbnails for Generated_image.png
+2025-11-24 15:47:29,564 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/150x150/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\150x150\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-24 15:47:29,579 - INFO - file_manager.manager - manager.py:572 - Generated thumbnail: .thumbs/300x300/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\300x300\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-24 15:47:29,580 - INFO - file_manager.manager - manager.py:512 - Generated 2 thumbnails for Generated_image.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:47:29,580 - INFO - file_manager.manager - manager.py:395 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-24 15:47:29,581 - INFO - file_manager.manager - manager.py:402 - File uploaded: Generated_image.png (group: tracker_1191, version: 3, size: 1618403 bytes)
+2025-11-24 15:49:25,113 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:49:25,115 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:49:30,277 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:49:30,278 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:49:30,280 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:49:30,282 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:49:30,285 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:49:30,286 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:49:30,289 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:49:30,290 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:49:30,294 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:49:30,296 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:49:43,957 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for Timesheet_2509.pdf at resources\hashfs_storage\00\e0\8159d1cdf95c6dc3b4c349425c5be9dd10fce93e087a682027f2c5302ffe
+2025-11-24 15:49:43,958 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for Timesheet_2509.pdf (ext: .pdf)
+2025-11-24 15:49:43,958 - WARNING - file_manager.manager - manager.py:505 - PyMuPDF not available - cannot generate PDF thumbnails
+2025-11-24 15:49:43,958 - INFO - file_manager.manager - manager.py:512 - Generated 0 thumbnails for Timesheet_2509.pdf: []
+2025-11-24 15:49:43,958 - WARNING - file_manager.manager - manager.py:398 - No thumbnails generated for Timesheet_2509.pdf
+2025-11-24 15:49:43,959 - INFO - file_manager.manager - manager.py:402 - File uploaded: Timesheet_2509.pdf (group: tracker_1191, version: 1, size: 470105 bytes)
+2025-11-24 15:49:46,888 - INFO - file_manager.manager - manager.py:706 - Deleted physical file (no other references): 00\e0\8159d1cdf95c6dc3b4c349425c5be9dd10fce93e087a682027f2c5302ffe
+2025-11-24 15:49:56,597 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for DFNDR-UMK2-1001-TN.docx at resources\hashfs_storage\55\ca\ab497cd3d6556b9b2848f6eeeed1c26da7c959de3a5f7e48e1aa1db517b2
+2025-11-24 15:49:56,601 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for DFNDR-UMK2-1001-TN.docx (ext: .docx)
+2025-11-24 15:49:56,607 - INFO - file_manager.manager - manager.py:512 - Generated 0 thumbnails for DFNDR-UMK2-1001-TN.docx: []
+2025-11-24 15:49:56,608 - WARNING - file_manager.manager - manager.py:398 - No thumbnails generated for DFNDR-UMK2-1001-TN.docx
+2025-11-24 15:49:56,611 - INFO - file_manager.manager - manager.py:402 - File uploaded: DFNDR-UMK2-1001-TN.docx (group: tracker_1191, version: 1, size: 1274577 bytes)
+2025-11-24 15:50:01,293 - INFO - file_manager.manager - manager.py:706 - Deleted physical file (no other references): 55\ca\ab497cd3d6556b9b2848f6eeeed1c26da7c959de3a5f7e48e1aa1db517b2
+2025-11-24 15:53:11,723 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:53:11,723 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:54:56,096 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:54:56,096 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:55:58,737 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:55:58,739 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:56:10,954 - INFO - file_manager.manager - manager.py:710 - File 16 deleted from DB, physical file retained (4 other references)
+2025-11-24 15:56:17,021 - INFO - file_manager.manager - manager.py:706 - Deleted physical file (no other references): a6\3f\7c4be23f8d47056c6fe614afe8199ed19194d9ca1eea1ab60e8b0e4aceeb
+2025-11-24 15:56:17,033 - INFO - file_manager.manager - manager.py:710 - File 14 deleted from DB, physical file retained (1 other references)
+2025-11-24 15:58:03,068 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:58:03,068 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:59:18,852 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:59:18,853 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 15:59:54,446 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 15:59:54,447 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:00:21,515 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:00:21,522 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:01:38,954 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:01:38,954 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:02:10,275 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:02:10,275 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:03:02,987 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:03:02,987 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:06:04,410 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:06:04,410 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:09:02,620 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:09:02,620 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:11:43,657 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:11:43,657 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:13:16,366 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:13:16,366 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:13:26,567 - INFO - file_manager.manager - manager.py:710 - File 12 deleted from DB, physical file retained (5 other references)
+2025-11-24 16:15:02,719 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:15:02,723 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:21:50,156 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:21:50,156 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:25:57,025 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:25:57,025 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:27:34,258 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:27:34,258 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:30:22,418 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:30:22,418 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:31:30,409 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:31:30,409 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:32:15,705 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:32:15,715 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:32:54,521 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:32:54,521 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:34:16,181 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:34:16,182 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:34:16,188 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:34:16,191 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:34:16,196 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:34:16,197 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:34:16,202 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:34:16,204 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:34:16,211 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:34:16,213 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:34:54,430 - INFO - file_manager.manager - manager.py:710 - File 1 deleted from DB, physical file retained (4 other references)
+2025-11-24 16:35:01,319 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:35:01,320 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:35:01,324 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:35:01,325 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:35:01,327 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:35:01,328 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:35:01,332 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:35:01,333 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:35:22,210 - INFO - file_manager.manager - manager.py:710 - File 3 deleted from DB, physical file retained (3 other references)
+2025-11-24 16:37:09,046 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:37:09,046 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:37:19,433 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:37:19,434 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:37:19,438 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:37:19,440 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:37:19,444 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:37:19,445 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:37:19,448 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:37:19,450 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:41:07,423 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:41:07,424 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:41:12,651 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:41:12,651 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:41:12,656 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:41:12,658 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:41:12,660 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:41:12,661 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:41:12,664 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:41:12,665 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:48:30,419 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:48:30,419 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:48:42,418 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:48:42,420 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:48:42,423 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:48:42,425 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:48:42,428 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:48:42,429 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:48:42,431 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:48:42,432 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:48:42,438 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:48:42,439 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:52:20,196 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:52:20,198 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:54:10,313 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:54:10,315 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:54:45,514 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:54:45,515 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:54:45,518 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:54:45,519 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:54:45,522 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:54:45,523 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:54:45,527 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:54:45,528 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:54:45,534 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:54:45,535 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:55:00,635 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:55:00,637 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:55:05,814 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:55:05,814 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:55:05,814 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:55:05,814 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:55:05,822 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:55:05,822 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:55:05,822 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:55:05,827 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-24 16:55:05,832 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-24 16:55:05,833 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:31:08,577 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:31:08,579 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:33:33,246 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:33:33,248 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:33:48,510 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:33:48,512 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:34,946 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:34,948 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:44,371 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:44,373 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:44,376 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:44,378 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:44,379 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:44,381 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:44,383 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:44,384 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:54,197 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:54,199 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:54,202 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:54,203 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:54,207 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:54,209 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:54,212 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:54,213 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:54,218 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:54,220 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:55,666 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:55,667 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:55,670 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:55,671 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:55,674 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:55,675 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:55,678 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:55,679 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:55,684 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:55,685 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:56,496 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:56,497 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:56,500 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:56,501 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:56,503 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:56,504 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:56,507 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:56,509 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:56,516 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:56,517 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:58,433 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:58,434 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:58,437 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:58,440 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:58,444 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:58,445 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:34:58,450 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:34:58,451 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:00,381 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:00,382 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:00,385 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:00,386 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:00,390 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:00,391 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:02,134 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:02,135 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:02,139 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:02,140 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:02,982 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:02,983 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:02,987 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:02,988 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:04,500 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:04,500 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:04,505 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:04,506 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:12,400 - INFO - file_manager.manager - manager.py:392 - Generating thumbnails for d6041b_42b_1_01.pdf at resources\hashfs_storage\82\87\d05535595ca44eec286f58ca6e2244d7c6f711558c4ab73b828e3d1be393
+2025-11-25 12:35:12,401 - INFO - file_manager.manager - manager.py:488 - Attempting thumbnail generation for d6041b_42b_1_01.pdf (ext: .pdf)
+2025-11-25 12:35:12,401 - WARNING - file_manager.manager - manager.py:505 - PyMuPDF not available - cannot generate PDF thumbnails
+2025-11-25 12:35:12,401 - INFO - file_manager.manager - manager.py:512 - Generated 0 thumbnails for d6041b_42b_1_01.pdf: []
+2025-11-25 12:35:12,401 - WARNING - file_manager.manager - manager.py:398 - No thumbnails generated for d6041b_42b_1_01.pdf
+2025-11-25 12:35:12,402 - INFO - file_manager.manager - manager.py:402 - File uploaded: d6041b_42b_1_01.pdf (group: tracker_1191, version: 1, size: 35072 bytes)
+2025-11-25 12:35:15,132 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:15,133 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:15,137 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:15,138 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:15,143 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:15,144 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:17,329 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:17,331 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:17,334 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:17,335 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:21,211 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:21,212 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:21,217 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:21,219 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:33,007 - INFO - file_manager.manager - manager.py:729 - Deleted physical file (no other references): 82\87\d05535595ca44eec286f58ca6e2244d7c6f711558c4ab73b828e3d1be393
+2025-11-25 12:35:35,217 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:35,218 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:35:35,222 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:35:35,223 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:20,557 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:20,558 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:20,562 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:20,563 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:20,566 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:20,568 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:20,572 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:20,573 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:24,016 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:24,017 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:24,020 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:24,021 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:24,023 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:24,024 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:24,027 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:24,028 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:24,033 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:24,034 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:24,037 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:24,038 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:24,041 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:24,043 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:24,045 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:24,047 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:24,050 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:24,051 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:24,053 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:24,054 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:25,553 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:25,555 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:25,558 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:25,559 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:25,563 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:25,564 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:25,568 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:25,569 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:25,573 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:25,574 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:25,579 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:25,580 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:25,584 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:25,585 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:26,585 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:26,586 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:26,588 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:26,590 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:26,594 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:26,595 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:26,599 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:26,600 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:32,690 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:32,693 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:32,696 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:32,697 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:32,700 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:32,701 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:32,706 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:32,708 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:32,710 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:32,711 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:32,716 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:32,717 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:32,720 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:32,722 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:33,391 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:33,392 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:33,395 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:33,397 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:33,399 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:33,401 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:33,404 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:33,405 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:33,409 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:33,410 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:33,412 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:33,413 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:33,416 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:33,418 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:33,423 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:33,424 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:33,427 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:33,428 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:33,431 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:33,432 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:34,720 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:34,722 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:34,725 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:34,726 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:34,729 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:34,730 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:39:34,733 - INFO - file_manager.manager - manager.py:111 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:39:34,734 - INFO - file_manager.manager - manager.py:121 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:42:46,501 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:42:46,502 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:42:54,678 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:42:54,679 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:42:54,683 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:42:54,685 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:42:54,690 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:42:54,692 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:43:01,621 - INFO - file_manager.manager - manager.py:334 - File deduplicated (existing content): user_1.png
+2025-11-25 12:43:01,637 - INFO - file_manager.manager - manager.py:396 - Generating thumbnails for user_1.png at resources\hashfs_storage\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-25 12:43:01,638 - INFO - file_manager.manager - manager.py:492 - Attempting thumbnail generation for user_1.png (ext: .png)
+2025-11-25 12:43:01,638 - INFO - file_manager.manager - manager.py:498 - Generating image thumbnails for user_1.png
+2025-11-25 12:43:02,004 - INFO - file_manager.manager - manager.py:576 - Generated thumbnail: .thumbs/150x150/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\150x150\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-25 12:43:02,017 - INFO - file_manager.manager - manager.py:576 - Generated thumbnail: .thumbs/300x300/df\60/d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg at resources\.thumbs\300x300\df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504_thumb.jpg
+2025-11-25 12:43:02,017 - INFO - file_manager.manager - manager.py:516 - Generated 2 thumbnails for user_1.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-25 12:43:02,017 - INFO - file_manager.manager - manager.py:399 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-25 12:43:02,018 - INFO - file_manager.manager - manager.py:406 - File uploaded: user_1.png (group: tracker_1191, version: 5, size: 2397915 bytes)
+2025-11-25 12:43:06,778 - INFO - file_manager.manager - manager.py:334 - File deduplicated (existing content): MIL-STD-461G.cleaned_2_converted_screenshots_7.pdf
+2025-11-25 12:43:06,792 - INFO - file_manager.manager - manager.py:396 - Generating thumbnails for MIL-STD-461G.cleaned_2_converted_screenshots_7.pdf at resources\hashfs_storage\fa\56\1467724fb29d96b38158b297bb01d96cb875e2005b079dddd7954a25b95a
+2025-11-25 12:43:06,792 - INFO - file_manager.manager - manager.py:492 - Attempting thumbnail generation for MIL-STD-461G.cleaned_2_converted_screenshots_7.pdf (ext: .pdf)
+2025-11-25 12:43:06,793 - INFO - file_manager.manager - manager.py:506 - Generating PDF thumbnails for MIL-STD-461G.cleaned_2_converted_screenshots_7.pdf
+2025-11-25 12:43:06,825 - INFO - file_manager.manager - manager.py:516 - Generated 2 thumbnails for MIL-STD-461G.cleaned_2_converted_screenshots_7.pdf: ['thumb_150x150', 'thumb_300x300']
+2025-11-25 12:43:06,826 - INFO - file_manager.manager - manager.py:399 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-25 12:43:06,826 - INFO - file_manager.manager - manager.py:406 - File uploaded: MIL-STD-461G.cleaned_2_converted_screenshots_7.pdf (group: tracker_1191, version: 1, size: 239826 bytes)
+2025-11-25 12:43:08,479 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:43:08,481 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:43:08,484 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:43:08,485 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:43:08,488 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:43:08,489 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:43:08,492 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:43:08,493 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:43:08,497 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:43:08,498 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:43:30,616 - INFO - file_manager.manager - manager.py:737 - Physical file retained (4 other references): df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-25 12:43:32,479 - INFO - file_manager.manager - manager.py:737 - Physical file retained (3 other references): df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-25 12:43:42,529 - INFO - file_manager.manager - manager.py:704 - Deleting all 1 versions of MIL-STD-461G.cleaned_2_converted_screenshots_7.pdf in group tracker_1191
+2025-11-25 12:43:42,543 - INFO - file_manager.manager - manager.py:737 - Physical file retained (1 other references): fa\56\1467724fb29d96b38158b297bb01d96cb875e2005b079dddd7954a25b95a
+2025-11-25 12:43:49,831 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:43:49,832 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:43:49,836 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:43:49,837 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:43:49,841 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:43:49,842 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:43:49,846 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:43:49,848 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:02,766 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:02,767 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:18,468 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:18,470 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:18,473 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:18,474 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:18,476 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:18,477 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:18,480 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:18,481 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:18,486 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:18,487 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:34,489 - INFO - file_manager.manager - manager.py:334 - File deduplicated (existing content): Generated_image.png
+2025-11-25 12:49:34,520 - INFO - file_manager.manager - manager.py:396 - Generating thumbnails for Generated_image.png at resources\hashfs_storage\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22
+2025-11-25 12:49:34,520 - INFO - file_manager.manager - manager.py:492 - Attempting thumbnail generation for Generated_image.png (ext: .png)
+2025-11-25 12:49:34,520 - INFO - file_manager.manager - manager.py:498 - Generating image thumbnails for Generated_image.png
+2025-11-25 12:49:34,812 - INFO - file_manager.manager - manager.py:576 - Generated thumbnail: .thumbs/150x150/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\150x150\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-25 12:49:34,823 - INFO - file_manager.manager - manager.py:576 - Generated thumbnail: .thumbs/300x300/bc\ea/472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg at resources\.thumbs\300x300\bc\ea\472aa4923fae0c3d454c65fd1aa79d49817321efa166bbb2ec4bb73f2c22_thumb.jpg
+2025-11-25 12:49:34,824 - INFO - file_manager.manager - manager.py:516 - Generated 2 thumbnails for Generated_image.png: ['thumb_150x150', 'thumb_300x300']
+2025-11-25 12:49:34,824 - INFO - file_manager.manager - manager.py:399 - Adding 2 thumbnails to metadata: ['thumb_150x150', 'thumb_300x300']
+2025-11-25 12:49:34,824 - INFO - file_manager.manager - manager.py:406 - File uploaded: Generated_image.png (group: tracker_1191, version: 3, size: 1618403 bytes)
+2025-11-25 12:49:36,505 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:36,506 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:36,511 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:36,512 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:36,515 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:36,517 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:36,520 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:36,521 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:36,525 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:36,526 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:49:36,531 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:49:36,532 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:51:26,304 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:51:26,306 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:51:26,309 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:51:26,310 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:51:26,313 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:51:26,314 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:51:26,317 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:51:26,318 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:51:26,324 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-25 12:51:26,325 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-25 12:52:15,933 - INFO - file_manager.manager - manager.py:704 - Deleting all 3 versions of user_1.png in group tracker_1191
+2025-11-25 12:52:15,956 - INFO - file_manager.manager - manager.py:735 - Deleted physical file and thumbnails (no other references): df\60\d42de39f1d6d8bdbb2519c662bdefb63da695e4f014bde43fd473e030504
+2025-11-27 09:59:12,673 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:12,680 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:37,103 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:37,105 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:37,108 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:37,110 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:37,113 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:37,114 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:37,115 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:37,115 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:46,033 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:46,033 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:46,038 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:46,039 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:46,041 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:46,043 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:46,046 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:46,047 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:46,051 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:46,051 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:57,733 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:57,734 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:57,737 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:57,738 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:57,741 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:57,741 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:57,743 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:57,743 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 09:59:57,751 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 09:59:57,751 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:00:22,034 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:00:22,035 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:00:22,039 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:00:22,040 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:00:22,042 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:00:22,043 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:00:22,046 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:00:22,047 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:00:22,051 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:00:22,051 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:00:29,052 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:00:29,053 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:00:29,058 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:00:29,059 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:00:29,106 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:00:29,112 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:01:23,801 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:01:23,802 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:01:26,317 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:01:26,318 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:01:30,852 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:01:30,853 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:01:32,337 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:01:32,338 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:01:32,345 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:01:32,345 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:01:32,351 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:01:32,352 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:01:43,730 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:01:43,732 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:01:43,738 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:01:43,740 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:01:45,104 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:01:45,106 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 10:01:49,482 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 10:01:49,486 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 13:09:45,521 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 13:09:45,523 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 13:29:14,226 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 13:29:14,233 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-11-27 13:33:23,659 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\OneDrive - Groupe Herstal\Documents\CODE\trackersite\website\.file_metadata.db
+2025-11-27 13:33:23,663 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-12-22 12:32:11,875 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 12:32:11,897 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-12-22 12:34:22,156 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 12:34:22,174 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-12-22 12:49:24,181 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 12:49:24,199 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-12-22 12:51:09,991 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 12:51:10,009 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-12-22 12:53:43,038 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 12:53:43,056 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-12-22 12:53:48,854 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 12:53:48,855 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-12-22 12:56:26,359 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 12:56:26,382 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-12-22 12:56:43,826 - INFO - file_manager.manager - manager.py:115 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 12:56:43,827 - INFO - file_manager.manager - manager.py:125 - Content-addressable storage (hashfs) initialized
+2025-12-22 13:55:21,414 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 13:55:21,427 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 13:56:51,922 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 13:56:51,941 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 13:57:11,634 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 13:57:11,653 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 13:59:29,283 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 13:59:29,295 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 13:59:49,881 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 13:59:49,902 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 14:02:54,931 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 14:02:54,950 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 14:03:17,021 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 14:03:17,034 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:01:47,580 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:01:47,583 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:03:42,350 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:03:42,370 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:03:53,525 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:03:53,543 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:05:06,764 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:05:06,798 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:08:06,844 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:08:06,866 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:09:02,384 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:09:02,409 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:10:07,258 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:10:07,286 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:32:48,757 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:32:48,771 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:34:17,963 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:34:17,980 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:39:58,633 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:39:58,648 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:40:13,800 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:40:13,813 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:40:52,241 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:40:52,279 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:44:48,913 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:44:48,944 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:46:39,528 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:46:39,547 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:46:46,965 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:46:46,965 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:46:52,709 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:46:52,726 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:49:01,735 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:49:01,756 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:50:22,899 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:50:22,899 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:52:39,217 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:52:39,246 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:54:28,971 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:54:28,990 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:54:48,835 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:54:48,850 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:57:19,302 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:57:19,315 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:58:18,949 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:58:18,983 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:59:12,461 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:59:12,485 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 15:59:22,804 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 15:59:22,825 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:07:25,356 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:07:25,362 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:07:57,867 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:07:57,899 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:09:26,502 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:09:26,518 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:10:32,101 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:10:32,126 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:10:58,750 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:10:58,766 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:12:17,127 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:12:17,134 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:14:47,538 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:14:47,556 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:17:34,337 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:17:34,346 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:19:26,445 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:19:26,448 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:25:40,399 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:25:40,424 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:32:50,631 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:32:50,664 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-22 16:33:37,189 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-22 16:33:37,206 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 09:09:30,208 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 09:09:30,235 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 09:32:27,372 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 09:32:27,404 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 09:48:46,061 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 09:48:46,075 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 09:48:53,776 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 09:48:53,803 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 09:49:48,605 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 09:49:48,625 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 09:51:20,976 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 09:51:20,998 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 09:51:30,070 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 09:51:30,091 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 10:48:13,676 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 10:48:13,697 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 11:03:17,657 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 11:03:17,673 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 11:04:30,737 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 11:04:30,756 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 11:06:12,513 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 11:06:12,533 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 11:12:20,848 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 11:12:20,866 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 11:13:03,067 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 11:13:03,085 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 11:14:59,657 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 11:14:59,676 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized
+2025-12-23 11:16:10,102 - INFO - file_manager.manager - manager.py:129 - File manager database initialized at C:\Users\remacle\Documents\CODE\trackersite\website\.file_metadata.db
+2025-12-23 11:16:10,139 - INFO - file_manager.manager - manager.py:139 - Content-addressable storage (hashfs) initialized

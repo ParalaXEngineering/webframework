@@ -146,6 +146,26 @@ class Site_conf:
         
         self.m_enable_tooltip_manager = False
         """Enable tooltip manager system"""
+        
+        # Plugin system
+        self.m_enabled_plugins: list[str] = []
+        """List of enabled plugin names (e.g., ['tracker'])"""
+
+    def enable_plugin(self, name: str) -> None:
+        """Enable a plugin by name.
+        
+        Plugins are loaded from submodules/{name}/web/ and must implement PluginBase.
+        The plugin will be registered during setup_app().
+        
+        :param name: Plugin name (must match submodule folder name)
+        :type name: str
+        
+        Example:
+            self.enable_plugin("tracker")  # Loads from submodules/tracker/web/
+        """
+        if name not in self.m_enabled_plugins:
+            self.m_enabled_plugins.append(name)
+            logger.debug("Plugin '%s' enabled", name)
 
     def _ensure_system_title(self):
         """Helper to ensure 'System' title exists in sidebar."""

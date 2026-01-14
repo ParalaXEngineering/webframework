@@ -1,0 +1,52 @@
+2026-01-12 15:20:05,842 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:21:39,401 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:24:01,296 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:25:33,723 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:27:17,311 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:29:13,681 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:30:53,499 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:31:36,334 - INFO - src.modules.tooltip_manager.manager - manager.py:457 - Created context: Global
+2026-01-12 15:32:52,286 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:33:09,013 - INFO - src.modules.tooltip_manager.manager - manager.py:260 - Registered tooltip: Test in contexts: ['Global']
+2026-01-12 15:38:13,051 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:40:13,693 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:41:59,643 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:42:32,177 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:43:13,847 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:44:02,662 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:45:13,043 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:46:03,856 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:46:54,120 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:48:56,122 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:49:20,271 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:50:27,161 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:51:51,675 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:54:46,541 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:55:06,415 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:55:19,366 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 15:58:14,617 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:15:54,137 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:16:46,938 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:17:46,773 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:19:55,396 - INFO - src.modules.tooltip_manager.manager - manager.py:75 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:24:03,556 - INFO - src.modules.tooltip_manager.manager - manager.py:102 - Created Global context
+2026-01-12 16:24:03,566 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:25:18,007 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:26:10,495 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:27:14,960 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:29:34,063 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:32:12,385 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:35:05,937 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:35:34,978 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:35:51,036 - INFO - src.modules.tooltip_manager.manager - manager.py:287 - Registered tooltip: <p>User</p> in contexts: ['']
+2026-01-12 16:38:22,965 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:39:25,767 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:40:50,788 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:42:29,597 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:42:48,050 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:44:25,055 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:46:29,127 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:48:09,561 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:49:38,445 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:49:48,027 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
+2026-01-12 16:53:00,994 - INFO - src.modules.tooltip_manager.manager - manager.py:82 - TooltipManager initialized with DB: resources/tooltip_data.db
