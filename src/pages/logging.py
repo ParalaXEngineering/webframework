@@ -35,6 +35,7 @@ from ..modules.i18n.messages import (
 BLUEPRINT_NAME = "logging"
 BLUEPRINT_PREFIX = "/logging"
 ROUTE_LOGS = "/logs"
+ROUTE_CONFIG = "/config"
 ROUTE_API = "/api/<log_file>"
 
 # Constants - Log levels and styling
@@ -159,6 +160,8 @@ def _get_level_badge(level: str) -> str:
 @require_admin()
 def logs():
     """Display log files in tabs with SERVER_SIDE DataTables for efficient viewing."""
+    from ..modules.log.logger_factory import get_all_loggers
+    
     disp = displayer.Displayer()
     disp.add_generic(TEXT_LOG_VIEWER)
     disp.set_title(TEXT_LOG_VIEWER)
@@ -202,7 +205,7 @@ def logs():
     # Statistics section
     total_size = sum(f['size'] for f in log_files)
     disp.add_master_layout(displayer.DisplayerLayout(
-        displayer.Layouts.VERTICAL, [4, 4, 4]
+        displayer.Layouts.VERTICAL, [3, 3, 3, 3]
     ))
     
     disp.add_display_item(displayer.DisplayerItemText(
@@ -269,6 +272,194 @@ def logs():
                          target=f"{BLUEPRINT_NAME}.logs")
 
 
+
+
+@bp.route(ROUTE_CONFIG, methods=["GET", "POST"])
+@require_admin()
+def config():
+    """Display logger configuration page with grouped loggers."""
+    from ..modules.log.logger_factory import get_all_loggers, set_log_level as set_level_func, get_logger
+    from collections import defaultdict
+    from flask import flash, redirect, url_for
+    from ..modules import utilities
+    
+    logger = get_logger(__name__)
+    
+    # Handle POST request (form submission)
+    if request.method == 'POST':
+        try:
+            # Use util_post_to_json to strip page title prefix from field names
+            data = utilities.util_post_to_json(request.form.to_dict())
+            
+            # Extract the nested form data (under 'Logger Configuration' key)
+            form_data = data.get('Logger Configuration', {})
+            logger_name = form_data.get('logger_name', 'root')
+            log_level = form_data.get('log_level', 'INFO')
+            
+            # Check if it's a group pattern (ends with .*)
+            if logger_name.endswith('.*'):
+                # Get prefix without .*
+                prefix = logger_name[:-2]
+                
+                # Get all loggers matching the prefix
+                all_loggers = get_all_loggers()
+                matching_loggers = [name for name, _, _ in all_loggers if name.startswith(prefix)]
+                
+                if not matching_loggers:
+                    flash(f"✗ No loggers found matching {logger_name}", "warning")
+                else:
+                    # Set level for all matching loggers
+                    count = 0
+                    for match_name in matching_loggers:
+                        success, _ = set_level_func(match_name, log_level)
+                        if success:
+                            count += 1
+                    
+                    flash(f"✓ Set {count} loggers in {logger_name} to {log_level}", "success")
+            else:
+                # Single logger
+                success, message = set_level_func(logger_name, log_level)
+                
+                if success:
+                    flash(f"✓ {message}", "success")
+                else:
+                    flash(f"✗ {message}", "danger")
+                
+        except Exception as e:
+            flash(f"✗ Error setting log level: {str(e)}", "danger")
+        
+        return redirect(url_for(f"{BLUEPRINT_NAME}.config"))
+    
+    disp = displayer.Displayer()
+    disp.add_generic("Logger Configuration")
+    disp.set_title("Logger Configuration")
+    
+    disp.add_breadcrumb(TEXT_LOGS, f"{BLUEPRINT_NAME}.logs", [])
+    disp.add_breadcrumb("Configuration", f"{BLUEPRINT_NAME}.config", [])
+    
+    # Get all active loggers
+    loggers_info = get_all_loggers()
+    
+    # Group loggers by prefix (e.g., "src.*", "website.pages.*")
+    grouped = defaultdict(list)
+    level_priority = {'DEBUG': 0, 'INFO': 10, 'WARNING': 20, 'ERROR': 30, 'CRITICAL': 40, 'NOTSET': 50}
+    
+    for logger_name, level_name, handler_count in loggers_info:
+        # Determine group prefix
+        if logger_name == "root":
+            group = "root"
+        elif '.' in logger_name:
+            # Group by first component (e.g., "framework.tooltip" -> "framework.*")
+            parts = logger_name.split('.')
+            group = f"{parts[0]}.*"
+        else:
+            # Single-name loggers: werkzeug, socketio, engineio, trackerdb
+            group = f"{logger_name}.*"
+        
+        grouped[group].append((logger_name, level_name, handler_count))
+    
+    # Calculate group-level info (most permissive level, total handlers)
+    # Only show configurable (persistent) logger groups
+    configurable_groups = {'root', 'framework.*', 'tracker.*', 'trackerdb.*', 'website.*', 'werkzeug.*', 'socketio.*', 'engineio.*'}
+    
+    group_info = []
+    for group, loggers in grouped.items():
+        # Skip non-configurable logger groups (third-party libraries)
+        if group not in configurable_groups:
+            continue
+            
+        # Find most permissive level (lowest priority number = DEBUG is most permissive)
+        min_level = min((level_priority.get(lvl, 50) for _, lvl, _ in loggers))
+        group_level = next(lvl for lvl, pri in level_priority.items() if pri == min_level)
+        total_handlers = sum(h for _, _, h in loggers)
+        group_info.append((group, group_level, len(loggers), total_handlers))
+    
+    # Level change form
+    disp.add_display_item(displayer.DisplayerItemText("<h5>Change Logger Level</h5>"), 0)
+    
+    form_layout = disp.add_slave_layout(
+        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 4, 4]),
+        column=0,
+        layout_id=0
+    )
+    
+    # Logger group selector
+    group_names = sorted([g for g, _, _, _ in group_info])
+    if not group_names:
+        group_names = ["root"]
+    
+    disp.add_display_item(
+        displayer.DisplayerItemInputSelect(
+            "logger_name",
+            "Logger Group",
+            value=group_names[0],
+            choices=group_names
+        ),
+        0, form_layout
+    )
+    
+    # Level selector
+    disp.add_display_item(
+        displayer.DisplayerItemInputSelect(
+            "log_level",
+            "New Level",
+            value="INFO",
+            choices=LEVEL_NAMES
+        ),
+        1, form_layout
+    )
+    
+    # Submit button
+    disp.add_display_item(
+        displayer.DisplayerItemButton(
+            "submit_level",
+            "Set Level",
+            icon="save",
+            color=displayer.BSstyle.PRIMARY
+        ),
+        2, form_layout
+    )
+
+    disp.add_master_layout(displayer.DisplayerLayout(
+        displayer.Layouts.VERTICAL, [12]
+    ))
+    
+    # Display grouped loggers
+    disp.add_display_item(displayer.DisplayerItemText(f"<h5>Logger Groups ({len(group_info)})</h5>"), 0)
+    
+    # Convert level name to BSstyle for badge
+    level_style_map = {
+        'DEBUG': displayer.BSstyle.SECONDARY,
+        'INFO': displayer.BSstyle.INFO,
+        'WARNING': displayer.BSstyle.WARNING,
+        'ERROR': displayer.BSstyle.ERROR,
+        'CRITICAL': displayer.BSstyle.DARK,
+        'NOTSET': displayer.BSstyle.LIGHT
+    }
+    
+    # Table for grouped loggers
+    table_layout = disp.add_master_layout(
+        displayer.DisplayerLayout(
+            displayer.Layouts.TABLE,
+            columns=["Logger Group", "Level", "Loggers", "Handlers"]
+        )
+    )
+    
+    for group, level_name, logger_count, handler_count in sorted(group_info):
+        disp.add_display_item(displayer.DisplayerItemText(group), 0, table_layout)
+        
+        level_style = level_style_map.get(level_name, displayer.BSstyle.INFO)
+        disp.add_display_item(displayer.DisplayerItemBadge(level_name, level_style), 1, table_layout)
+        
+        disp.add_display_item(displayer.DisplayerItemText(str(logger_count)), 2, table_layout)
+        disp.add_display_item(displayer.DisplayerItemText(str(handler_count)), 3, table_layout)
+    
+    # Render page
+    content = disp.display()
+    
+    return render_template("base_content.j2", 
+                         content=content, 
+                         target=f"{BLUEPRINT_NAME}.config")
 
 
 @bp.route(ROUTE_API, methods=["GET"])
@@ -513,3 +704,6 @@ def get_logs(log_file: str):
             API_RESPONSE_DATA: [],
             API_RESPONSE_ERROR: str(e)
         }), 500
+
+
+# set_log_level route removed - now handled directly in config() POST handler

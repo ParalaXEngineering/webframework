@@ -63,9 +63,9 @@ sys.path.insert(0, os.path.join(framework_root, 'src'))
 # Add Manual_Webapp to path for demo_support and website imports
 sys.path.insert(0, manual_webapp_root)
 
-# Setup hierarchical logging (framework → Manual_Webapp)
-from setup_logging import setup_hierarchical_logging
-setup_hierarchical_logging(Path(framework_root), Path(manual_webapp_root))
+# Initialize logging using framework's unified system (console-only for Manual_Webapp)
+from src.modules.log.logger_factory import initialize_logging
+initialize_logging(Path(manual_webapp_root), config_file=None)  # No config file = use defaults
 
 # Import framework setup
 from src.main import app, setup_app, FLASK_AVAILABLE
