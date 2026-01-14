@@ -400,6 +400,67 @@ def setup_app(app):
         app_context.tooltip_manager = None
         logger.info("Tooltip manager disabled (feature flag off)")
 
+    # -------------------------------------------------------------------------
+    # Plugin System - Load and register enabled plugins from submodules
+    # -------------------------------------------------------------------------
+    if hasattr(site_config, 'm_enabled_plugins') and site_config.m_enabled_plugins:
+        from .modules.plugin_base import PluginBase
+        
+        # Load plugin config from settings (config.json)
+        all_settings = settings_manager_instance.get_all_settings()
+        plugin_configs = all_settings.get("plugins", {})
+        
+        for plugin_name in site_config.m_enabled_plugins:
+            try:
+                # Import the plugin from submodules/{name}/web/
+                plugin_module = importlib.import_module(f"submodules.{plugin_name}.web")
+                
+                # Find the plugin class (must inherit from PluginBase)
+                plugin_class = None
+                for attr_name in dir(plugin_module):
+                    attr = getattr(plugin_module, attr_name)
+                    if (isinstance(attr, type) 
+                        and issubclass(attr, PluginBase) 
+                        and attr is not PluginBase):
+                        plugin_class = attr
+                        break
+                
+                if plugin_class is None:
+                    raise RuntimeError(f"No PluginBase subclass found in submodules.{plugin_name}.web")
+                
+                # Instantiate and validate dependencies
+                plugin_instance = plugin_class()
+                plugin_instance.validate_dependencies(site_config)
+                
+                # Get plugin-specific config
+                plugin_config = plugin_configs.get(plugin_name, {})
+                
+                # Register the plugin
+                plugin_instance.on_register(app, app_context, plugin_config)
+                
+                # Build sidebar items
+                plugin_instance.build_sidebar(site_config)
+                
+                logger.info(f"Plugin '{plugin_name}' loaded and registered successfully")
+                
+            except ImportError as e:
+                error_msg = (
+                    f"\n{'='*80}\n"
+                    f"ERROR: Failed to import plugin '{plugin_name}'\n\n"
+                    f"Make sure the plugin exists at: submodules/{plugin_name}/web/__init__.py\n"
+                    f"Import error: {e}\n"
+                    f"{'='*80}\n"
+                )
+                raise RuntimeError(error_msg) from e
+            except Exception as e:
+                error_msg = (
+                    f"\n{'='*80}\n"
+                    f"ERROR: Failed to load plugin '{plugin_name}'\n\n"
+                    f"Error: {e}\n"
+                    f"{'='*80}\n"
+                )
+                raise RuntimeError(error_msg) from e
+    
     # Conditionally initialize scheduler based on feature flag
     if site_config.m_enable_scheduler:
         if os.path.isfile(os.path.join(app_path, WEBSITE_SCHEDULER_PATH)):
