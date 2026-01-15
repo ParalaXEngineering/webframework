@@ -16,7 +16,7 @@ import pytest
 from pathlib import Path
 from playwright.sync_api import Page
 
-from tests.frontend.conftest import (
+from .conftest import (
     navigate_to, fill_form_field, click_button, 
     check_flash_message, page_contains_text, BASE_URL,
     upload_file_filepond

@@ -67,7 +67,7 @@ def simple_form_demo():
         color=displayer.BSstyle.PRIMARY
     ), 0)
     
-    return render_template("base_content.j2", content=disp.display(), target="demo.simple_form_demo")
+    return render_template("base_content.j2Yeah but aga", content=disp.display(), target="demo.simple_form_demo")
 
 
 @demo_bp.route('/threading-demo', methods=['GET', 'POST'])

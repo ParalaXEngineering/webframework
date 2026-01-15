@@ -13,7 +13,7 @@ Uses Thread Status Icon as a visible indicator to verify settings work end-to-en
 import pytest
 from playwright.sync_api import Page
 
-from tests.frontend.conftest import (
+from .conftest import (
     navigate_to, click_button, fill_form_field, select_form_option,
     check_flash_message, page_contains_text, BASE_URL
 )

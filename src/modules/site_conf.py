@@ -233,14 +233,14 @@ class Site_conf:
         self.m_enable_log_viewer = True
         if add_to_sidebar:
             self._ensure_system_title()
-            # Check if Tools section exists, create if not
-            has_tools = any(
-                item.get(ATTR_ENDPOINT) == ENDPOINT_TOOLS for item in self.m_sidebar
+            # Check if Monitoring section exists, create if not
+            has_monitoring = any(
+                item.get(ATTR_ENDPOINT) == ENDPOINT_MONITORING for item in self.m_sidebar
             )
-            if not has_tools:
-                self.add_sidebar_section(str(TEXT_SECTION_TOOLS), ICON_TOOLBOX, ENDPOINT_TOOLS)
-            self.add_sidebar_submenu(str(TEXT_LOG_VIEWER_SIDEBAR), "logging.logs", endpoint=ENDPOINT_TOOLS)
-            self.add_sidebar_submenu("Logger Configuration", "logging.config", endpoint=ENDPOINT_TOOLS)
+            if not has_monitoring:
+                self.add_sidebar_section(str(TEXT_SECTION_MONITORING), ICON_MONITOR_DASHBOARD, ENDPOINT_MONITORING)
+            self.add_sidebar_submenu(str(TEXT_LOG_VIEWER_SIDEBAR), "logging.logs", endpoint=ENDPOINT_MONITORING)
+            self.add_sidebar_submenu("Logger Configuration", "logging.config", endpoint=ENDPOINT_MONITORING)
     
     def enable_bug_tracker(self, add_to_sidebar: bool = True):
         """Enable bug tracker page.

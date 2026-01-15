@@ -64,8 +64,12 @@ class Displayer:
         """Initialize a new Displayer instance.
         
         Note: Resources are now request-scoped via Flask's g object.
-        No need to reset here - resources are automatically isolated per request.
+        In Flask context, resources are automatically isolated per request.
+        Outside Flask context (tests), reset is called to ensure clean state.
         """
+        # Reset resources to ensure clean state for each displayer
+        ResourceRegistry.reset()
+        
         self.m_modules: Dict[str, Dict[str, Any]] = {}
         self.m_modals: List[Dict[str, Any]] = []
         self.g_next_layout: int = 0
@@ -120,7 +124,18 @@ class Displayer:
             required_permission = default_name
             logger.info(f"[Displayer] No explicit permission, defaulting to module name: {required_permission}")
         
-        if auth_manager is not None and session is not None:
+        # Check if we're in a request context by trying to access session
+        has_session_context = False
+        if session is not None:
+            try:
+                # Try to access session - will raise RuntimeError if outside request context
+                _ = session.get('_test_key', None)
+                has_session_context = True
+            except RuntimeError:
+                # Outside request context (e.g., in tests)
+                has_session_context = False
+        
+        if auth_manager is not None and has_session_context:
             # Auth system is available, check permissions
             logger.info("[Displayer] Auth system is available, checking permissions...")
             current_username = session.get('user')

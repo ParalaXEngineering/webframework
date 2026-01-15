@@ -9,7 +9,7 @@ import pytest
 import time
 from playwright.sync_api import Page, expect
 
-from tests.frontend.conftest import (
+from .conftest import (
     navigate_to, page_contains_text, BASE_URL, login, logout,
     fill_form_field, click_button, select_form_option
 )

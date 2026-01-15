@@ -12,7 +12,7 @@ Uses "My Framework Settings" / "Mes paramètres du framework" as visible indicat
 import pytest
 from playwright.sync_api import Page
 
-from tests.frontend.conftest import (
+from .conftest import (
     navigate_to, click_button, 
     page_contains_text, select_form_option
 )

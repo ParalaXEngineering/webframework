@@ -32,13 +32,21 @@ Test Execution Order:
 - All other tests run in default order
 """
 
-# Import shared fixtures from fixtures package
-pytest_plugins = ['tests.unit.fixtures.file_manager_fixtures']
-
 from pathlib import Path
 import sys
 import os
 import pytest
+
+# Setup paths before importing fixtures
+test_dir = Path(__file__).parent
+framework_dir = test_dir.parent
+
+# Add tests directory to path to enable absolute imports
+if str(test_dir) not in sys.path:
+    sys.path.insert(0, str(test_dir))
+
+# Import shared fixtures from fixtures package
+pytest_plugins = ['unit.fixtures.file_manager_fixtures']
 
 # Configure test execution order
 def pytest_collection_modifyitems(config, items):

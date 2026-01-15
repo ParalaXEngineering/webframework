@@ -24,7 +24,7 @@ import pytest
 import time
 from playwright.sync_api import Page, expect
 
-from tests.frontend.conftest import (
+from .conftest import (
     navigate_to, fill_form_field, click_button,
     check_flash_message, page_contains_text, BASE_URL, HUMAN_MODE,
     select_multi_list_values, fill_tinymce_field
@@ -416,9 +416,8 @@ class TestContextCRUD:
         submit_btn.click()
         logged_in_page.wait_for_load_state('networkidle')
         
-        # Should show error message (ValueError from manager uses "danger" but route catches it and uses "danger")
-        # However the actual message shows "secondary" - the error is coming from manager without category override
-        assert check_flash_message(logged_in_page, "alphanumeric", message_type="secondary")
+        # Should show error message (ValueError from manager is caught and flashed as "danger")
+        assert check_flash_message(logged_in_page, "alphanumeric", message_type="danger")
 
 
 class TestSystemProtection:
