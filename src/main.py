@@ -401,6 +401,26 @@ def setup_app(app):
         logger.info("Tooltip manager disabled (feature flag off)")
 
     # -------------------------------------------------------------------------
+    # Help System - Initialize help manager and register blueprint
+    # -------------------------------------------------------------------------
+    if getattr(site_config, 'm_enable_help', False):
+        from .modules.help_manager import HelpManager
+        from .pages import help as help_pages
+        
+        # Create HelpManager instance
+        help_manager_instance = HelpManager(app_path, settings_manager_instance)
+        help_manager_instance.set_site_conf(site_config)
+        help_manager_instance.discover_content()
+        
+        app_context.help_manager = help_manager_instance
+        app.register_blueprint(help_pages.bp)
+        
+        logger.info(f"Help system initialized with {len(help_manager_instance.sections)} sections")
+    else:
+        app_context.help_manager = None
+        logger.info("Help system disabled (feature flag off)")
+
+    # -------------------------------------------------------------------------
     # Plugin System - Load and register enabled plugins from submodules
     # -------------------------------------------------------------------------
     if hasattr(site_config, 'm_enabled_plugins') and site_config.m_enabled_plugins:
@@ -440,6 +460,11 @@ def setup_app(app):
                 
                 # Build sidebar items
                 plugin_instance.build_sidebar(site_config)
+                
+                # Register plugin help content if help system is enabled
+                if app_context.help_manager:
+                    help_content = plugin_instance.get_help_content()
+                    app_context.help_manager.register_plugin_help(plugin_name, help_content)
                 
                 logger.info(f"Plugin '{plugin_name}' loaded and registered successfully")
                 
