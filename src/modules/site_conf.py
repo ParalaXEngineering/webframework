@@ -147,6 +147,9 @@ class Site_conf:
         self.m_enable_tooltip_manager = False
         """Enable tooltip manager system"""
         
+        self.m_enable_help = False
+        """Enable help system with markdown documentation"""
+        
         # Plugin system
         self.m_enabled_plugins: list[str] = []
         """List of enabled plugin names (e.g., ['tracker'])"""
@@ -368,6 +371,35 @@ class Site_conf:
                 self.add_sidebar_section(str(TEXT_SECTION_TOOLS), ICON_TOOLBOX, ENDPOINT_TOOLS)
             self.add_sidebar_submenu(str(TEXT_TOOLTIP_MANAGER_SIDEBAR), "framework_tooltips.index", endpoint=ENDPOINT_TOOLS)
     
+    def enable_help(self, add_to_sidebar: bool = True, add_admin_to_sidebar: bool = True):
+        """Enable the help system.
+        
+        The help system provides:
+        - Public help pages rendered from markdown files in website/help/
+        - Plugin-contributed help content
+        - Admin interface to enable/disable help sections
+        
+        :param add_to_sidebar: If True, adds Help link to sidebar under Tools, defaults to True
+        :type add_to_sidebar: bool, optional
+        :param add_admin_to_sidebar: If True, adds Help Config link to admin sidebar, defaults to True  
+        :type add_admin_to_sidebar: bool, optional
+        """
+        self.m_enable_help = True
+        
+        if add_to_sidebar:
+            self._ensure_system_title()
+            # Check if Tools section exists, create if not
+            has_tools = any(
+                item.get(ATTR_ENDPOINT) == ENDPOINT_TOOLS for item in self.m_sidebar
+            )
+            if not has_tools:
+                self.add_sidebar_section(str(TEXT_SECTION_TOOLS), ICON_TOOLBOX, ENDPOINT_TOOLS)
+            self.add_sidebar_submenu("Help Center", "help.index", endpoint=ENDPOINT_TOOLS)
+        
+        if add_admin_to_sidebar and self.m_enable_authentication:
+            # Add help admin to Admin section
+            self.add_sidebar_submenu("Help Configuration", "help.admin", endpoint=ENDPOINT_ADMIN)
+    
     def enable_all_features(self, add_to_sidebar: bool = True, add_to_topbar: bool = True):
         """Enable all framework features (useful for demos and testing).
         
@@ -388,6 +420,7 @@ class Site_conf:
         self.enable_settings(add_to_sidebar)
         self.enable_updater(add_to_sidebar)
         self.enable_packager(add_to_sidebar)
+        self.enable_help(add_to_sidebar)
 
     
     def configure_easter_eggs(self) -> bool:

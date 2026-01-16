@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from .socketio_manager import SocketIOManager
     from .site_conf import Site_conf
     from .tooltip_manager.manager import TooltipManager
+    from .help_manager import HelpManager
     from flask_socketio import SocketIO
 
 
@@ -62,6 +63,7 @@ class AppContext:
     socketio_manager: Optional["SocketIOManager"] = None
     site_conf: Optional["Site_conf"] = None
     tooltip_manager: Optional["TooltipManager"] = None
+    help_manager: Optional["HelpManager"] = None
     
     # Paths
     app_path: Optional[str] = None

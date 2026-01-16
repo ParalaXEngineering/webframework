@@ -1,7 +1,7 @@
 {
   "name": "webframework",
   "type": "framework",
-  "python_version": "3.8",
+  "python_version": "3.12",
   
   "vendors": {
     "enabled": true,

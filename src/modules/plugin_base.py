@@ -130,3 +130,34 @@ class PluginBase(ABC):
             site_conf: The site configuration instance
         """
         pass
+    
+    def get_help_content(self) -> Dict[str, Any]:
+        """
+        Return help content configuration for this plugin.
+        
+        Override this method to contribute help documentation to the
+        help system. The plugin's help directory (submodules/{name}/help/)
+        is automatically scanned, but this method can provide additional
+        configuration.
+        
+        Returns:
+            Dict with optional keys:
+            - sections: List of section definitions, each with:
+                - id: Section identifier (default: plugin name)
+                - title: Display title
+                - icon: MDI icon name
+                - order: Sort order (lower = first)
+                - requires_feature: Feature flag that must be enabled
+            
+        Example:
+            def get_help_content(self):
+                return {
+                    "sections": [{
+                        "id": "tracker",
+                        "title": "Tracker Plugin",
+                        "icon": "clipboard-list",
+                        "order": 50,
+                    }]
+                }
+        """
+        return {}

@@ -300,8 +300,9 @@ def setup_app(app):
     pages_dir = os.path.dirname(os.path.abspath(pages_module.__file__))
     
     # Get all Python files in the pages directory
+    # Exclude 'help' since it's registered conditionally via m_enable_help feature flag
     framework_pages = [f[:-3] for f in os.listdir(pages_dir) 
-                       if f.endswith('.py') and f != '__init__.py']
+                       if f.endswith('.py') and f != '__init__.py' and f != 'help.py']
     
     # Import and register each framework page blueprint
     for page_name in framework_pages:
@@ -401,6 +402,28 @@ def setup_app(app):
         logger.info("Tooltip manager disabled (feature flag off)")
 
     # -------------------------------------------------------------------------
+    # Help System - Initialize help manager and register blueprint
+    # -------------------------------------------------------------------------
+    if getattr(site_config, 'm_enable_help', False):
+        from .modules.help_manager import HelpManager
+        from .pages import help as help_pages
+        
+        # Create HelpManager instance using app_context.app_path (project root)
+        # instead of local app_path (framework root) for correct path resolution
+        help_app_path = app_context.app_path if app_context.app_path else app_path
+        help_manager_instance = HelpManager(help_app_path, settings_manager_instance)
+        help_manager_instance.set_site_conf(site_config)
+        help_manager_instance.discover_content()
+        
+        app_context.help_manager = help_manager_instance
+        app.register_blueprint(help_pages.bp)
+        
+        logger.info(f"Help system initialized with {len(help_manager_instance.sections)} sections")
+    else:
+        app_context.help_manager = None
+        logger.info("Help system disabled (feature flag off)")
+
+    # -------------------------------------------------------------------------
     # Plugin System - Load and register enabled plugins from submodules
     # -------------------------------------------------------------------------
     if hasattr(site_config, 'm_enabled_plugins') and site_config.m_enabled_plugins:
@@ -440,6 +463,11 @@ def setup_app(app):
                 
                 # Build sidebar items
                 plugin_instance.build_sidebar(site_config)
+                
+                # Register plugin help content if help system is enabled
+                if app_context.help_manager:
+                    help_content = plugin_instance.get_help_content()
+                    app_context.help_manager.register_plugin_help(plugin_name, help_content)
                 
                 logger.info(f"Plugin '{plugin_name}' loaded and registered successfully")
                 
@@ -605,12 +633,18 @@ def setup_app(app):
                         target_position = thread_pos_override if thread_pos_override in ["left", "center", "right"] else "right"
                         topbar_items[target_position].append(thread_item)
         
-        # Filter sidebar items for guest users
+        # Filter sidebar items based on user permissions
         sidebar_items = app_context.site_conf.m_sidebar.copy()  # type: ignore
         is_guest = user and user.upper() == 'GUEST'
         
-        if is_guest and auth_manager is not None:
-            # Remove User Management title, Account and Admin sections for guest users
+        # Check if user is admin
+        is_admin = False
+        if auth_manager is not None and user and user.upper() != 'GUEST':
+            user_obj = auth_manager.get_user(user)
+            is_admin = user_obj and 'admin' in user_obj.groups
+        
+        if auth_manager is not None:
+            # Filter sidebar based on user type
             filtered_sidebar = []
             skip_until_next_title = False
             
@@ -618,15 +652,25 @@ def setup_app(app):
                 # Check if this is a title
                 if item.get('isTitle'):
                     # Skip "User Management" title for guests
-                    if item.get('name') == 'User Management':
+                    if item.get('name') == 'User Management' and is_guest:
                         skip_until_next_title = True
                         continue
                     skip_until_next_title = False
                     filtered_sidebar.append(item)
-                # Check if this is the Account or Admin section
-                elif item.get('name') in ['Account', 'Admin']:
-                    # Skip this section and all its submenus until next title/section
-                    skip_until_next_title = True
+                # Check if this is the Account section
+                elif item.get('name') == 'Account':
+                    # Skip Account section for guests
+                    if is_guest:
+                        skip_until_next_title = True
+                    else:
+                        filtered_sidebar.append(item)
+                # Check if this is the Admin section
+                elif item.get('name') == 'Admin':
+                    # Only show Admin section to admin users
+                    if is_admin:
+                        filtered_sidebar.append(item)
+                    else:
+                        skip_until_next_title = True
                 elif not skip_until_next_title:
                     filtered_sidebar.append(item)
             

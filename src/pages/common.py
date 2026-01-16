@@ -228,8 +228,8 @@ def login():
 
 
 @bp.route(ROUTE_HELP, methods=[METHOD_GET])
-def help():
-    """Display help documentation from Markdown files."""
+def help_legacy():
+    """Display help documentation from Markdown files (legacy system)."""
     data_in = request.args.to_dict()
     try:
         topic = data_in[PARAM_TOPIC]
