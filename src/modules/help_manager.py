@@ -143,12 +143,22 @@ class HelpManager:
         1. Scans website/help/ for site-specific help
         2. Loads section enabled/disabled state from settings
         """
+        logger.info("="*80)
+        logger.info("Starting help content discovery...")
+        logger.info(f"App path: {self.app_path}")
+        
         self.sections.clear()
         
         # Primary location: website/help/
         website_help_path = self.app_path / "website" / "help"
+        logger.info(f"Checking website help path: {website_help_path}")
+        logger.info(f"Website help path exists: {website_help_path.exists()}")
+        
         if website_help_path.exists():
+            logger.info(f"Scanning website help directory: {website_help_path}")
             self._scan_help_directory(website_help_path, source="website")
+        else:
+            logger.warning(f"Website help directory does not exist: {website_help_path}")
         
         # Load enabled/disabled state from settings
         self._load_section_config()
@@ -158,6 +168,8 @@ class HelpManager:
         
         logger.info(f"Discovered {len(self.sections)} help sections with "
                    f"{sum(len(s.pages) for s in self.sections.values())} total pages")
+        logger.info(f"Sections: {list(self.sections.keys())}")
+        logger.info("="*80)
     
     def register_plugin_help(self, plugin_name: str, help_content: Dict[str, Any]) -> None:
         """
@@ -172,17 +184,29 @@ class HelpManager:
             plugin_name: Name of the plugin providing content
             help_content: Dict with 'sections' and/or 'pages' keys
         """
-        if not help_content:
-            return
-            
-        # Also scan plugin's help directory if it exists
+        logger.info("="*80)
+        logger.info(f"Registering help content for plugin: {plugin_name}")
+        logger.info(f"Help content provided: {help_content}")
+        
+        # Scan plugin's help directory if it exists
         # Expected location: submodules/{plugin_name}/help/
         plugin_help_path = self.app_path / "submodules" / plugin_name / "help"
+        logger.info(f"Checking plugin help path: {plugin_help_path}")
+        logger.info(f"Plugin help path exists: {plugin_help_path.exists()}")
+        
         if plugin_help_path.exists():
+            logger.info(f"Scanning plugin help directory: {plugin_help_path}")
             self._scan_help_directory(plugin_help_path, source=plugin_name)
+        else:
+            logger.info(f"Plugin help directory does not exist: {plugin_help_path}")
+        
+        # Register any dynamically defined sections from help_content dict
+        if not help_content:
+            help_content = {}
             
-        # Register any dynamically defined sections
         sections = help_content.get("sections", [])
+        logger.info(f"Processing {len(sections)} dynamically defined sections")
+        
         for section_def in sections:
             section_id = section_def.get("id", plugin_name)
             if section_id not in self.sections:
@@ -215,12 +239,21 @@ class HelpManager:
             base_path: Directory to scan
             source: Source identifier for discovered content
         """
+        logger.info(f"  Scanning help directory: {base_path} (source: {source})")
+        
         if not base_path.exists():
+            logger.warning(f"  Base path does not exist: {base_path}")
             return
+        
+        items = list(base_path.iterdir())
+        logger.info(f"  Found {len(items)} items in directory")
+        
+        for item in items:
+            logger.info(f"  Checking item: {item.name} (is_dir: {item.is_dir()}, starts_with_: {item.name.startswith('_')})")
             
-        for item in base_path.iterdir():
             if item.is_dir() and not item.name.startswith('_'):
                 section_id = item.name
+                logger.info(f"  Processing section: {section_id}")
                 
                 # Load section metadata if available
                 section_meta_path = item / "_section.json"
@@ -242,11 +275,19 @@ class HelpManager:
                         source=source,
                         requires_feature=section_meta.get("requires_feature"),
                     )
+                    logger.info(f"  Created section: {section_id} (title: {self.sections[section_id].title})")
+                else:
+                    logger.info(f"  Section already exists: {section_id}")
                 
                 # Scan for markdown files
-                for md_file in item.glob("*.md"):
+                md_files = list(item.glob("*.md"))
+                logger.info(f"  Found {len(md_files)} markdown files in {section_id}")
+                
+                for md_file in md_files:
                     if md_file.name.startswith('_'):
+                        logger.info(f"    Skipping file (starts with _): {md_file.name}")
                         continue
+                    logger.info(f"    Processing markdown file: {md_file.name}")
                     page = self._parse_help_page(md_file, section_id, source)
                     if page:
                         self.sections[section_id].pages.append(page)

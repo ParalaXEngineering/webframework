@@ -10,7 +10,7 @@ Routes:
     /help/admin                - Admin configuration (requires admin)
 """
 
-from flask import Blueprint, request, flash, redirect, url_for, render_template
+from flask import Blueprint, request, flash, redirect, url_for, render_template, send_from_directory, abort
 
 from ..modules import displayer
 from ..modules.displayer import (
@@ -172,6 +172,35 @@ def index():
             ))
     
     return render_template("base_content.j2", content=disp.display())
+
+
+@bp.route('/<section_id>/images/<path:filename>')
+def serve_image(section_id: str, filename: str):
+    """Serve images from help section directories."""
+    help_manager = _get_help_manager()
+    if not help_manager:
+        abort(404)
+    
+    # Find the section to get its source
+    section = help_manager.sections.get(section_id)
+    if not section:
+        abort(404)
+    
+    # Determine the base path for this section's images
+    from pathlib import Path
+    app_path = Path(help_manager.app_path)
+    
+    # Check in website/help first
+    image_path = app_path / "website" / "help" / section_id / "images"
+    if image_path.exists() and (image_path / filename).exists():
+        return send_from_directory(str(image_path), filename)
+    
+    # Check in plugin help directories
+    plugin_path = app_path / "submodules" / section.source / "help" / section_id / "images"
+    if plugin_path.exists() and (plugin_path / filename).exists():
+        return send_from_directory(str(plugin_path), filename)
+    
+    abort(404)
 
 
 @bp.route('/<section_id>/<page_id>')

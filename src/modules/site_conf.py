@@ -385,6 +385,7 @@ class Site_conf:
         :type add_admin_to_sidebar: bool, optional
         """
         self.m_enable_help = True
+        
         if add_to_sidebar:
             self._ensure_system_title()
             # Check if Tools section exists, create if not
