@@ -136,17 +136,42 @@ def _get_logger_level(name: str) -> int:
         level_str = loggers[name].get("value", "INFO")
         return getattr(logging, level_str, logging.INFO)
     
-    # Check for prefix matches (framework.*, tracker.*, website.*)
-    for prefix in ["framework", "tracker", "trackerdb", "website"]:
-        if name.startswith(prefix):
-            logger_key = "tracker" if prefix == "trackerdb" else prefix
-            if logger_key in loggers:
-                level_str = loggers[logger_key].get("value", "INFO")
-                return getattr(logging, level_str, logging.INFO)
+    # Known framework logger names (standalone loggers from framework modules)
+    FRAMEWORK_LOGGERS = {
+        "bootstrap", "main", "db", "site_conf", "socketio_manager", 
+        "displayer", "security_utils", "user_profile", "help_manager",
+        "file_manager.manager", "file_manager.storage", "log.emitter",
+        "threaded_emitter", "threaded_manager", "transformers",
+        "capitalize_transformer", "minimize_transformer", "kinds"
+    }
+    
+    # Map logger name prefixes to config keys
+    config_key = None
+    
+    # Check for known framework loggers (standalone names)
+    if name in FRAMEWORK_LOGGERS:
+        config_key = "framework"
+    # Check for framework patterns (src.*, submodules.framework.*)
+    elif name.startswith("src.") or name.startswith("submodules.framework."):
+        config_key = "framework"
+    # Check for tracker patterns (submodules.tracker.*)
+    elif name.startswith("submodules.tracker."):
+        config_key = "tracker"
+    # Check for standard prefixes (framework.*, tracker.*, trackerdb.*, website.*)
+    elif name.startswith("framework"):
+        config_key = "framework"
+    elif name.startswith("tracker") or name.startswith("trackerdb"):
+        config_key = "tracker"
+    elif name.startswith("website"):
+        config_key = "website"
+    
+    if config_key and config_key in loggers:
+        level_str = loggers[config_key].get("value", "INFO")
+        return getattr(logging, level_str, logging.INFO)
     
     # Fall back to root logger level
-    level_str = loggers.get("root", {}).get("value", "DEBUG")
-    return getattr(logging, level_str, logging.DEBUG)
+    level_str = loggers.get("root", {}).get("value", "INFO")
+    return getattr(logging, level_str, logging.INFO)
 
 def get_logger(
     name: str,
@@ -194,9 +219,10 @@ def get_logger(
         
         logger.setLevel(level)
 
-        # Get log directory from config
+        # Get log directory - always use the global LOG_DIR which is set by bootstrap
+        # The config "log_dir" is ignored here since LOG_DIR is already configured
         global LOG_DIR
-        log_dir = config.get("log_dir", {}).get("value", LOG_DIR)
+        log_dir = LOG_DIR
         
         # Ensure log directory exists (lazy creation)
         Path(log_dir).mkdir(parents=True, exist_ok=True)
@@ -314,8 +340,31 @@ def initialize_logging(app_root: Path, config_file: Optional[Path] = None) -> No
     for logger_name in standard_loggers:
         get_logger(logger_name)
     
+    # Update all existing loggers with correct levels from config
+    # This fixes loggers that were created before config was loaded
+    _update_existing_loggers()
+    
     print(f"Logging configured from: {config_file}")
     print(f"Logs directory: {log_dir}")
+
+
+def _update_existing_loggers() -> None:
+    """Update all existing loggers with levels from the current config.
+    
+    This is called after config is loaded to fix loggers created before
+    the config file was set.
+    """
+    logger_dict = logging.Logger.manager.loggerDict
+    
+    for name in logger_dict.keys():
+        logger_obj = logger_dict[name]
+        if isinstance(logger_obj, logging.Logger):
+            # Get the correct level from config
+            new_level = _get_logger_level(name)
+            logger_obj.setLevel(new_level)
+            # Update handler levels too
+            for handler in logger_obj.handlers:
+                handler.setLevel(new_level)
 
 
 def get_all_loggers() -> List[Tuple[str, str, int]]:

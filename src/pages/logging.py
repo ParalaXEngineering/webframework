@@ -37,6 +37,9 @@ BLUEPRINT_PREFIX = "/logging"
 ROUTE_LOGS = "/logs"
 ROUTE_CONFIG = "/config"
 ROUTE_API = "/api/<log_file>"
+ROUTE_DELETE_LOG = "/delete/<log_file>"
+ROUTE_DELETE_ALL_LOGS = "/delete_all"
+ROUTE_CLEAR_LOG = "/clear/<log_file>"
 
 # Constants - Log levels and styling
 LOG_LEVELS = {
@@ -377,10 +380,8 @@ def config():
     # Level change form
     disp.add_display_item(displayer.DisplayerItemText("<h5>Change Logger Level</h5>"), 0)
     
-    form_layout = disp.add_slave_layout(
-        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 4, 4]),
-        column=0,
-        layout_id=0
+    form_layout = disp.add_master_layout(
+        displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 4, 4])
     )
     
     # Logger group selector
@@ -453,6 +454,108 @@ def config():
         
         disp.add_display_item(displayer.DisplayerItemText(str(logger_count)), 2, table_layout)
         disp.add_display_item(displayer.DisplayerItemText(str(handler_count)), 3, table_layout)
+    
+    # === LOG FILES MANAGEMENT SECTION ===
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemSeparator(), 0)
+    
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(displayer.DisplayerItemText("<h5>Log Files Management</h5>"), 0)
+    
+    # Get logs directory and files
+    app_path = app_context.app_path or os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    logs_dir = os.path.join(app_path, 'logs')
+    
+    log_files = []
+    if os.path.exists(logs_dir):
+        try:
+            for filename in sorted(os.listdir(logs_dir)):
+                if filename.endswith(LOG_FILE_EXTENSION):
+                    filepath = os.path.join(logs_dir, filename)
+                    log_files.append({
+                        'name': filename,
+                        'path': filepath,
+                        'size': os.path.getsize(filepath)
+                    })
+        except Exception:
+            pass
+    
+    # Delete all button
+    disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+    disp.add_display_item(
+        displayer.DisplayerItemText(f"<p>Log directory: <code>{logs_dir}</code> ({len(log_files)} files)</p>"),
+        0
+    )
+    
+    if log_files:
+        # Delete all button
+        from flask import url_for
+        delete_all_layout = disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(
+            displayer.DisplayerItemButton(
+                id="delete_all_logs",
+                text="Delete All Log Files",
+                icon="delete-sweep",
+                color=displayer.BSstyle.ERROR,
+                link=url_for(f"{BLUEPRINT_NAME}.delete_all_logs"),
+                tooltip=f"Delete all {len(log_files)} log files"
+            ),
+            0, delete_all_layout
+        )
+        
+        # Log files table
+        log_files_table = disp.add_master_layout(
+            displayer.DisplayerLayout(
+                displayer.Layouts.TABLE,
+                columns=["File Name", "Size (KB)", "Actions"]
+            )
+        )
+        
+        for log_file in log_files:
+            # File name
+            disp.add_display_item(
+                displayer.DisplayerItemText(f"<code>{log_file['name']}</code>"),
+                0, log_files_table
+            )
+            
+            # Size in KB
+            size_kb = log_file['size'] / 1024
+            disp.add_display_item(
+                displayer.DisplayerItemText(f"{size_kb:.2f}"),
+                1, log_files_table
+            )
+            
+            # Action buttons (clear and delete)
+            safe_name = log_file['name'].replace('.', '_')
+            disp.add_display_item(
+                displayer.DisplayerItemActionButtons(
+                    id=f"actions_{safe_name}",
+                    actions=[
+                        {
+                            "type": "form_submit",
+                            "url": url_for(f"{BLUEPRINT_NAME}.clear_log", log_file=log_file['name']),
+                            "icon": "mdi mdi-file-remove",
+                            "tooltip": "Clear log file (keep file, remove contents)",
+                            "style": "warning"
+                        },
+                        {
+                            "type": "form_submit",
+                            "url": url_for(f"{BLUEPRINT_NAME}.delete_log", log_file=log_file['name']),
+                            "icon": "mdi mdi-delete",
+                            "tooltip": "Delete log file",
+                            "style": "danger",
+                            "confirm": f"Delete {log_file['name']}?"
+                        }
+                    ]
+                ),
+                2, log_files_table
+            )
+    else:
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        disp.add_display_item(
+            displayer.DisplayerItemAlert("No log files found", displayer.BSstyle.INFO),
+            0
+        )
     
     # Render page
     content = disp.display()
@@ -705,5 +808,129 @@ def get_logs(log_file: str):
             API_RESPONSE_ERROR: str(e)
         }), 500
 
+
+def _close_log_handlers(log_path: str) -> None:
+    """Close all handlers for a specific log file.
+    
+    This is necessary on Windows to allow deleting/modifying the file.
+    
+    Args:
+        log_path: Absolute path to the log file
+    """
+    import logging
+    from pathlib import Path
+    from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
+    
+    # Normalize paths for comparison
+    target_path = Path(log_path).resolve()
+    
+    # Check all loggers
+    logger_dict = logging.Logger.manager.loggerDict
+    for logger_obj in logger_dict.values():
+        if isinstance(logger_obj, logging.Logger):
+            # Check each handler
+            for handler in logger_obj.handlers[:]:  # Copy list to allow removal
+                # Check if handler is a file handler pointing to our file
+                if isinstance(handler, (RotatingFileHandler, TimedRotatingFileHandler, logging.FileHandler)):
+                    handler_path = Path(handler.baseFilename).resolve()
+                    if handler_path == target_path:
+                        handler.close()
+                        logger_obj.removeHandler(handler)
+
+
+@bp.route(ROUTE_DELETE_LOG, methods=["GET", "POST"])
+@require_admin()
+def delete_log(log_file: str):
+    """Delete a specific log file."""
+    from flask import flash, redirect, url_for
+    
+    # Security: validate log_file name (no path traversal)
+    if any(char in log_file for char in INVALID_PATH_CHARS):
+        flash(f"✗ Invalid log file name: {log_file}", "danger")
+        return redirect(url_for(f"{BLUEPRINT_NAME}.config"))
+    
+    # Get logs directory
+    app_path = app_context.app_path or os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    logs_dir = os.path.join(app_path, 'logs')
+    log_path = os.path.join(logs_dir, log_file)
+    
+    try:
+        if os.path.exists(log_path):
+            # Close handlers first to release the file on Windows
+            _close_log_handlers(log_path)
+            os.remove(log_path)
+            flash(f"✓ Deleted log file: {log_file}", "success")
+        else:
+            flash(f"✗ Log file not found: {log_file}", "warning")
+    except Exception as e:
+        flash(f"✗ Error deleting log file: {str(e)}", "danger")
+    
+    return redirect(url_for(f"{BLUEPRINT_NAME}.config"))
+
+
+@bp.route(ROUTE_CLEAR_LOG, methods=["GET", "POST"])
+@require_admin()
+def clear_log(log_file: str):
+    """Clear (truncate) a specific log file."""
+    from flask import flash, redirect, url_for
+    
+    # Security: validate log_file name (no path traversal)
+    if any(char in log_file for char in INVALID_PATH_CHARS):
+        flash(f"✗ Invalid log file name: {log_file}", "danger")
+        return redirect(url_for(f"{BLUEPRINT_NAME}.config"))
+    
+    # Get logs directory
+    app_path = app_context.app_path or os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    logs_dir = os.path.join(app_path, 'logs')
+    log_path = os.path.join(logs_dir, log_file)
+    
+    try:
+        if os.path.exists(log_path):
+            # Close handlers first to release the file on Windows
+            _close_log_handlers(log_path)
+            # Truncate the file (clear contents but keep the file)
+            with open(log_path, 'w', encoding='utf-8') as f:
+                pass  # Write nothing - clears the file
+            flash(f"✓ Cleared log file: {log_file}", "success")
+        else:
+            flash(f"✗ Log file not found: {log_file}", "warning")
+    except Exception as e:
+        flash(f"✗ Error clearing log file: {str(e)}", "danger")
+    
+    return redirect(url_for(f"{BLUEPRINT_NAME}.config"))
+
+
+@bp.route(ROUTE_DELETE_ALL_LOGS, methods=["GET", "POST"])
+@require_admin()
+def delete_all_logs():
+    """Delete all log files."""
+    from flask import flash, redirect, url_for
+    
+    # Get logs directory
+    app_path = app_context.app_path or os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    logs_dir = os.path.join(app_path, 'logs')
+    
+    try:
+        deleted = 0
+        errors = 0
+        for filename in os.listdir(logs_dir):
+            if filename.endswith(LOG_FILE_EXTENSION):
+                try:
+                    log_path = os.path.join(logs_dir, filename)
+                    # Close handlers first to release the file on Windows
+                    _close_log_handlers(log_path)
+                    os.remove(log_path)
+                    deleted += 1
+                except Exception:
+                    errors += 1
+        
+        if errors > 0:
+            flash(f"⚠ Deleted {deleted} log files, {errors} errors", "warning")
+        else:
+            flash(f"✓ Deleted {deleted} log files", "success")
+    except Exception as e:
+        flash(f"✗ Error deleting log files: {str(e)}", "danger")
+    
+    return redirect(url_for(f"{BLUEPRINT_NAME}.config"))
 
 # set_log_level route removed - now handled directly in config() POST handler
