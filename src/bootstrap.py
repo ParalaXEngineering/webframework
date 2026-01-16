@@ -172,9 +172,7 @@ def bootstrap_app(
     site_conf_module.site_conf_app_path = str(project_root)
     
     # === SETUP APP ===
-    logger.info("Calling setup_app...")
     socketio = setup_app(app)
-    logger.info("Application bootstrap complete")
     
     return app, socketio
 
