@@ -300,8 +300,9 @@ def setup_app(app):
     pages_dir = os.path.dirname(os.path.abspath(pages_module.__file__))
     
     # Get all Python files in the pages directory
+    # Exclude 'help' since it's registered conditionally via m_enable_help feature flag
     framework_pages = [f[:-3] for f in os.listdir(pages_dir) 
-                       if f.endswith('.py') and f != '__init__.py']
+                       if f.endswith('.py') and f != '__init__.py' and f != 'help.py']
     
     # Import and register each framework page blueprint
     for page_name in framework_pages:

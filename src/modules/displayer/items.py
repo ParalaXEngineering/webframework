@@ -2131,20 +2131,22 @@ class DisplayerItemCalendar(DisplayerItem):
 @DisplayerCategory.DISPLAY
 class DisplayerItemCard(DisplayerItem):
     """
-    Card component with colored header, icon, title, and body content.
+    Modern card component with icon-box design, title, subtitle, and body content.
 
-    Creates a Bootstrap card with customizable header color, MDI icon,
-    and optional footer buttons.
+    Creates a Bootstrap card with an icon in a colored box, title, optional subtitle,
+    body content, and optional footer buttons. Uses the modern design pattern with
+    icon-box styling for better visual hierarchy.
 
     Example:
         >>> card = DisplayerItemCard(
         ...     id="demo_card",
         ...     title="Feature Demo",
-        ...     icon="mdi-play-circle",
+        ...     subtitle="3 articles",
+        ...     icon="rocket-launch",
         ...     header_color=BSstyle.PRIMARY,
-        ...     body="This demonstrates a cool feature.",
+        ...     body="<ul><li>Article 1</li><li>Article 2</li></ul>",
         ...     footer_buttons=[
-        ...         {"id": "run_btn", "text": "Run", "style": "primary"}
+        ...         {"id": "view_btn", "text": "View Section", "style": "outline-primary"}
         ...     ]
         ... )
     """
@@ -2155,6 +2157,7 @@ class DisplayerItemCard(DisplayerItem):
         title: str,
         body: str,
         icon: Optional[str] = None,
+        subtitle: Optional[str] = None,
         header_color: BSstyle = BSstyle.PRIMARY,
         footer_buttons: Optional[List[Dict[str, str]]] = None
     ) -> None:
@@ -2165,8 +2168,9 @@ class DisplayerItemCard(DisplayerItem):
             id: Unique identifier for the card
             title: Title text shown in the header
             body: Main content (HTML supported)
-            icon: MDI icon name (e.g., "mdi-information")
-            header_color: Bootstrap color for header (default: PRIMARY)
+            icon: MDI icon name (e.g., "rocket-launch", do NOT include "mdi-" prefix)
+            subtitle: Optional subtitle text shown below title (e.g., "5 items")
+            header_color: Bootstrap color for icon-box background (default: PRIMARY)
             footer_buttons: List of button dicts with keys: id, text, style, icon (optional)
         """
         super().__init__(DisplayerItems.CARD)
@@ -2174,6 +2178,7 @@ class DisplayerItemCard(DisplayerItem):
         self.m_text = title  # Title
         self.m_value = body  # Body content
         self.m_icon = icon
+        self.m_level = subtitle  # Using m_level for subtitle
         self.m_style = header_color.value if isinstance(header_color, BSstyle) else header_color
         self.m_data = footer_buttons or []
 
@@ -2187,7 +2192,8 @@ class DisplayerItemCard(DisplayerItem):
         return cls(
             id="test_card",
             title="Test Card",
-            icon="mdi mdi-shield",
+            subtitle="Sample subtitle",
+            icon="shield",
             header_color=BSstyle.PRIMARY,
             body="This is a test card with sample content.",
             footer_buttons=[

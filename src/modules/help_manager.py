@@ -97,8 +97,9 @@ class HelpManager:
         settings_manager: Reference to settings manager for persistence
     """
     
-    # Configuration file for section enabled/disabled state
-    CONFIG_KEY = "help_sections"
+    # Configuration keys for section enabled/disabled state
+    CONFIG_CATEGORY = "help"
+    CONFIG_KEY = "help.enabled_sections"
     
     # Metadata comment pattern for extracting page metadata
     # Example: <!-- help: order=10, requires=authentication -->
@@ -330,12 +331,13 @@ class HelpManager:
             return
             
         try:
-            all_settings = self.settings_manager.get_all_settings()
-            config = all_settings.get(self.CONFIG_KEY, {})
+            # Get the enabled_sections dict from help category
+            config = self.settings_manager.get_setting(self.CONFIG_KEY)
             
-            for section_id, section in self.sections.items():
-                if section_id in config:
-                    section.enabled = config[section_id].get("enabled", True)
+            if config:
+                for section_id, section in self.sections.items():
+                    if section_id in config:
+                        section.enabled = config[section_id]
         except Exception as e:
             logger.warning(f"Failed to load help section config: {e}")
     
@@ -344,7 +346,7 @@ class HelpManager:
         Save section enabled/disabled state to settings.
         
         Args:
-            section_states: Dict of section_id -> enabled
+            section_states: Dict of section_id -> enabled (boolean)
             
         Returns:
             True if saved successfully
@@ -354,11 +356,24 @@ class HelpManager:
             return False
             
         try:
-            config = {
-                section_id: {"enabled": enabled}
-                for section_id, enabled in section_states.items()
-            }
-            self.settings_manager.set_setting(self.CONFIG_KEY, config)
+            # Ensure the help category exists in settings
+            all_settings = self.settings_manager.get_all_settings()
+            if self.CONFIG_CATEGORY not in all_settings:
+                # Create the help category
+                all_settings[self.CONFIG_CATEGORY] = {
+                    "friendly": "Help System",
+                    "enabled_sections": {
+                        "friendly": "Enabled Sections",
+                        "type": "dict",
+                        "value": {},
+                        "persistent": True
+                    }
+                }
+                self.settings_manager.storage._settings = all_settings
+                self.settings_manager.save()
+            
+            # Now set the value
+            self.settings_manager.set_setting(self.CONFIG_KEY, section_states)
             
             # Update in-memory state
             for section_id, enabled in section_states.items():
