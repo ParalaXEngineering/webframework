@@ -128,6 +128,18 @@ def assets(asset_type):
             folder_path = asset_paths[asset_type]
             break
 
+    # Handle plugin asset types (e.g., "tracker_js", "tracker_css")
+    # Format: {plugin_name}_{asset_subtype} -> submodules/{plugin_name}/web/assets/{asset_subtype}/
+    if folder_path is None and '_' in asset_type:
+        plugin_name, asset_subtype = asset_type.rsplit('_', 1)
+        if hasattr(app_context, 'plugins') and plugin_name in app_context.plugins:
+            plugin = app_context.plugins[plugin_name]
+            if hasattr(plugin, 'get_assets_path'):
+                plugin_assets = plugin.get_assets_path()
+                if plugin_assets:
+                    folder_path = os.path.join(plugin_assets, asset_subtype)
+                    logger.debug(f"Plugin asset path for {asset_type}: {folder_path}")
+
     if folder_path is None:
         return ERROR_INVALID_FOLDER, STATUS_NOT_FOUND
 

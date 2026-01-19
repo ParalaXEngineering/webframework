@@ -461,6 +461,9 @@ def setup_app(app):
                 # Register the plugin
                 plugin_instance.on_register(app, app_context, plugin_config)
                 
+                # Store plugin instance in app_context for later access (e.g., assets)
+                app_context.plugins[plugin_name] = plugin_instance
+                
                 # Build sidebar items
                 plugin_instance.build_sidebar(site_config)
                 

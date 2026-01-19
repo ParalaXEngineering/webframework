@@ -367,7 +367,11 @@
         
     </div>
     {% for js in required_js %}
+    {% if js.startswith('/') or js.startswith('http') %}
+    <script src="{{ js }}"></script>
+    {% else %}
     <script src="{{ url_for('static', filename= js) }}"></script>
+    {% endif %}
     {% endfor %}
     
     <script src="{{ url_for('static', filename= 'vendors/jquery/jquery.min.js') }}"></script>

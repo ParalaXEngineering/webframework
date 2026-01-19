@@ -68,6 +68,9 @@ class ResourceRegistry:
         'tinymce': {
             'js': ['vendors/tinymce/tinymce.min.js', 'js/tinymce-init.js']
         },
+        'tracker_admin': {
+            'js_custom': ['/common/assets/tracker_js/?filename=tracker_admin.js']
+        },
         'fullcalendar': {
             'js': ['vendors/fullcalendar/fullcalendar.min.js']
         },
@@ -134,8 +137,11 @@ class ResourceRegistry:
         registry = cls._get_registry()
         js_files = []
         for vendor in registry:
-            if vendor in cls.RESOURCES and 'js' in cls.RESOURCES[vendor]:
-                js_files.extend(cls.RESOURCES[vendor]['js'])
+            if vendor in cls.RESOURCES:
+                if 'js' in cls.RESOURCES[vendor]:
+                    js_files.extend(cls.RESOURCES[vendor]['js'])
+                if 'js_custom' in cls.RESOURCES[vendor]:
+                    js_files.extend(cls.RESOURCES[vendor]['js_custom'])
         return list(set(js_files))
     
     @classmethod

@@ -18,7 +18,7 @@ Usage:
 """
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Optional, Any, Dict
 
 if TYPE_CHECKING:
     from .auth.auth_manager import AuthManager
@@ -65,6 +65,9 @@ class AppContext:
     tooltip_manager: Optional["TooltipManager"] = None
     help_manager: Optional["HelpManager"] = None
     
+    # Plugin instances (for accessing assets, etc.)
+    plugins: Dict[str, Any] = field(default_factory=dict)
+    
     # Paths
     app_path: Optional[str] = None
     framework_path: Optional[str] = None
@@ -90,6 +93,7 @@ class AppContext:
         self.socketio_manager = None
         self.site_conf = None
         self.tooltip_manager = None
+        self.plugins.clear()
         self.app_path = None
         self.framework_path = None
         self.is_initialized = False
