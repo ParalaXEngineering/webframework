@@ -34,11 +34,11 @@
     <select class="form-control" name="{{ name }}" id="{{ name }}" onchange="{{ js|replace('"', "'") }}">
         {% if options is integer %}
             {% for n in range(0, options + 1) %}
-                <option {% if n == selected %} selected {% endif %}>{{ n }}</option>
+                <option value="{{ n }}" {% if n == selected %} selected {% endif %}>{{ n }}</option>
             {% endfor %}
         {% else %}
         {% for option in options %}
-            <option {% if option == selected %} selected {% endif %}>{{ option }}</option>
+            <option value="{{ option }}" {% if option == selected %} selected {% endif %}>{{ option }}</option>
         {% endfor %}
         {% endif %}
     </select>
