@@ -723,7 +723,12 @@ document.addEventListener('DOMContentLoaded', function() {
             {% endfor %}
             {% if displayed.value == 0 %}
                 <div class="row" id="{{id}}.div">
-                    <div class="col-sm-6">{{common_input.inputstring(id + ".list0") }} </div>
+                    {# If we have choices (data), show empty select; otherwise fallback to text input #}
+                    {% if data and data | length > 0 %}
+                        <div class="col-sm-12">{{common_input.select(id + ".list0", data, None) }} </div>
+                    {% else %}
+                        <div class="col-sm-6">{{common_input.inputstring(id + ".list0") }} </div>
+                    {% endif %}
                 </div>
             {% endif %}
         {% endif %}
