@@ -449,8 +449,12 @@ def report_error():
     """
     Redirect to bugtracker with pre-filled error information from session.
     """
+    from submodules.framework.src.modules.log.logger_factory import get_logger
+    logger = get_logger(__name__)
+    
     # Get error info from session (stored by the error handler)
     error_data = session.get('last_error', {})
+    logger.info(f"Report error called. Error data found: {bool(error_data)}")
 
     if error_data:
         error_message = error_data.get('error', 'Application Error')
@@ -476,16 +480,19 @@ def report_error():
 
         # Pre-fill description with error details in Textile format
         context_section = '\n'.join(context_lines) if context_lines else ''
-        pre_filled_description = f"h2. Error Details\n\n{error_message}\n\n{context_section}\n\nh2. Steps to Reproduce\n\n(Please describe what you were doing when the error occurred)\n\nh2. Traceback\n\n<pre>\n{error_traceback}\n</pre>"
+        pre_filled_description = f"h2. Error Details\n\n{error_message}\n\n{context_section}\n\nh2. Steps to Reproduce\n\n(Please describe what you were doing when the error occurred)\n\nh2. Traceback\n\n<pre>{error_traceback.strip()}</pre>"
 
         # Convert to HTML for TinyMCE
         pre_filled_html = textile.textile(pre_filled_description)
+        
+        logger.info(f"Pre-filled HTML length: {len(pre_filled_html)}")
 
         # Store pre-filled data in session for bugtracker to use
         session['prefill_bug'] = {
             'subject': 'Application Error',
             'description': pre_filled_html
         }
+        logger.info(f"Stored prefill_bug in session: {session.get('prefill_bug', {}).get('subject', 'NONE')}")
 
     # Redirect to main bugtracker
     return redirect(url_for('bug.bugtracker'))
@@ -664,6 +671,10 @@ def bugtracker():
         prefill_data = session.pop('prefill_bug', {})
         prefill_subject = prefill_data.get('subject', '')
         prefill_description = prefill_data.get('description', '')
+        
+        from submodules.framework.src.modules.log.logger_factory import get_logger
+        logger = get_logger(__name__)
+        logger.info(f"Bugtracker loading. Prefill subject: {prefill_subject}, description length: {len(prefill_description)}")
 
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [4, 8], subtitle=TEXT_BUG_CREATE_DESCRIPTION)

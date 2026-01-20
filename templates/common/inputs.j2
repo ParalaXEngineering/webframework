@@ -72,7 +72,7 @@
 {% endmacro %}
 
 {% macro inputtext(name, default=None) %}
-    <textarea name="{{ name }}" id="{{ name }}" {% if default %} {% endif %} cols="50" rows="5">{{ default }}</textarea>
+    <textarea name="{{ name }}" id="{{ name }}" {% if default %} {% endif %} cols="50" rows="5">{{ default | safe }}</textarea>
 {% endmacro %}
 
 {% macro folder(name) %}

@@ -213,6 +213,31 @@ def setup_app(app):
 
     socketio_obj = SocketIO(app)  # type: ignore
     
+    # Set up automatic error session storage for bug reporting
+    # This ensures ANY render of error.j2 stores error data in session
+    from flask.signals import template_rendered
+    
+    @template_rendered.connect_via(app)
+    def store_error_in_session(sender, template, context, **extra):
+        """Automatically store error details in session when error.j2 is rendered."""
+        if template.name == 'error.j2':
+            error_text = context.get('error', '')
+            traceback_text = context.get('traceback', '')
+            
+            if error_text or traceback_text:
+                session['last_error'] = {
+                    'error': str(error_text),
+                    'traceback': str(traceback_text),
+                    'method': request.method if request else '',
+                    'url': request.url if request else '',
+                    'endpoint': request.endpoint if request else '',
+                    'remote_addr': request.remote_addr if request else '',
+                    'get_params': dict(request.args) if request and request.args else None,
+                    'post_params': None,
+                }
+                session.modified = True
+                logger.debug("Stored error in session for bug reporting: %s", str(error_text)[:100])
+    
     # Initialize Babel for i18n support
     from .modules.i18n import init_babel
     init_babel(app)
@@ -850,6 +875,8 @@ def setup_app(app):
             'get_params': dict(request.args) if request.args else None,
             'post_params': safe_form if request.method == 'POST' and request.form else None,
         }
+        session.modified = True  # Explicitly mark session as modified
+        logger.info(f"Error handler stored last_error in session. Error: {str(e)[:100]}")
         
         # Log as single-line HTML for log viewer
         logger.error("An error occurred: %s", format_exception_html(e))
