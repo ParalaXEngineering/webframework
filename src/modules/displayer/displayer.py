@@ -668,15 +668,12 @@ class Displayer:
         from src.modules.app_context import app_context
         if self._tooltip_contexts and hasattr(app_context, 'tooltip_manager') and app_context.tooltip_manager:
             tooltips = app_context.tooltip_manager.get_tooltips_for_contexts(self._tooltip_contexts)
-            logger.info(f"Loading tooltips for contexts {self._tooltip_contexts}: {len(tooltips)} tooltips")
-            logger.info(f"Tooltip data: {tooltips}")
             serve_modules["tooltips"] = tooltips
             
             # Add tooltip configuration (allowed elements)
             if hasattr(app_context, 'settings_manager') and app_context.settings_manager:
                 try:
                     allowed_elements = app_context.settings_manager.get_setting('tooltip_system.allowed_elements')
-                    logger.info(f"Tooltip allowed_elements from settings: {allowed_elements} (type: {type(allowed_elements)})")
                     if allowed_elements is not None:
                         serve_modules["tooltip_allowed_elements"] = allowed_elements
                     else:
