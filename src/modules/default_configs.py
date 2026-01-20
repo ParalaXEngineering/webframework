@@ -285,7 +285,7 @@ TOOLTIP_CONFIG = {
     "tooltip_system": {
         "db_path": {
             "type": "string",
-            "value": "resources/tooltip_data.db",
+            "value": "website/.tooltip_data.db",
             "description": "Path to tooltip database",
             "persistent": True
         },

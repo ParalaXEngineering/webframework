@@ -31,10 +31,10 @@ class TooltipManager:
         # Get DB path from settings or use default
         if settings_manager:
             try:
-                db_path = settings_manager.get_setting('tooltip_system.db_path') or 'resources/tooltip_data.db'
+                db_path = settings_manager.get_setting('tooltip_system.db_path') or 'website/.tooltip_data.db'
             except Exception as e:
                 logger.warning(f"Could not load db_path from settings: {e}")
-                db_path = 'resources/tooltip_data.db'
+                db_path = 'website/.tooltip_data.db'
             
             try:
                 self.cache_ttl = settings_manager.get_setting('tooltip_system.cache_ttl') or 300
@@ -60,7 +60,7 @@ class TooltipManager:
                 logger.warning(f"Could not load image_quality from settings: {e}")
                 self.image_quality = 85
         else:
-            db_path = 'resources/tooltip_data.db'
+            db_path = 'website/.tooltip_data.db'
             self.cache_ttl = 300
             self.image_max_width = 800
             self.image_max_height = 600
