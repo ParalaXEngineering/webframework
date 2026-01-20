@@ -34,10 +34,21 @@ function cascaded(data, ids, caller)
     
         // Handle both objects (get keys) and arrays (use array items directly)
         var data_to_option = Array.isArray(data_to_parse) ? data_to_parse : Object.keys(data_to_parse)
-        console.log(data_to_option)
+        console.log("data_to_option:", data_to_option)
+        console.log("data_to_parse:", data_to_parse)
         toUpdate.add(new Option("", ""))
         for (var element of data_to_option) {
-            toUpdate.add(new Option(element, element))
+            var option = new Option(element, element);
+            // Add tooltip/title if description is available
+            // Description stored as _desc key in nested objects
+            if (typeof data_to_parse === 'object' && !Array.isArray(data_to_parse) && 
+                data_to_parse[element] && data_to_parse[element]['_desc']) {
+                console.log("Adding title to option", element, ":", data_to_parse[element]['_desc']);
+                option.title = data_to_parse[element]['_desc'];
+            } else {
+                console.log("No description for", element, "- data_to_parse[element]:", data_to_parse[element]);
+            }
+            toUpdate.add(option);
         }
         toUpdate.value
         
