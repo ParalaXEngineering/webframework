@@ -69,6 +69,14 @@ class Access_manager:
             session['username'] = "GUEST"
         return session['username']
 
+    def get_current_user(self) -> str:
+        """Alias for get_user() - returns the currently logged user
+        
+        :return: The currently logged user
+        :rtype: str
+        """
+        return self.get_user()
+
     def use_login(self, login: bool):
         """Activate the login capabilities of the website
 
@@ -320,3 +328,21 @@ class Access_manager:
         except Exception as e:
             logger.error(f"CRITICAL: Exception during password verification for user '{username}': {e}")
             return (False, "Authentication error. Please contact administrator.")
+
+
+def get_current_operator() -> str:
+    """
+    Get the current user for use as an operator in tracker operations.
+    
+    Returns:
+        Username of the current authenticated user, or "admin" if not authenticated.
+    """
+    global auth_object
+    try:
+        if auth_object is not None:
+            current_user = auth_object.get_current_user()
+            return current_user if current_user else "admin"
+        return "admin"
+    except (AttributeError, RuntimeError):
+        # Fallback if auth_object not initialized
+        return "admin"
