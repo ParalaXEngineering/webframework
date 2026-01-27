@@ -465,16 +465,17 @@ class TestDataPersistence:
         assert basic_workflow.m_workflow_data["field1"] == "value1"
         assert basic_workflow.m_workflow_data["field2"] == "value2"
     
-    def test_display_uses_workflow_data(self, display_with_input):
+    def test_display_uses_workflow_data(self, display_with_input, app):
         """Test that display functions receive workflow data"""
         workflow = Workflow("Test")
         workflow.add_step(WorkflowStep("Step 1", display_with_input))
         workflow.m_workflow_data["test_input"] = "Preserved Value"
         workflow.prepare_workflow(None)
         
-        # Create displayer and generate display
-        disp = displayer.Displayer()
-        workflow.add_display(disp)
+        # Create displayer and generate display (needs request context for session access)
+        with app.test_request_context():
+            disp = displayer.Displayer()
+            workflow.add_display(disp)
         
         # The input should have the preserved value
         # This would require checking the displayer output
@@ -714,55 +715,59 @@ class TestThreadedActions:
 class TestDisplayGeneration:
     """Test display generation and UI components"""
     
-    def test_add_display_creates_displayer(self, basic_workflow):
+    def test_add_display_creates_displayer(self, basic_workflow, app):
         """Test that add_display works"""
         basic_workflow.prepare_workflow(None)
         
-        disp = displayer.Displayer()
-        result = basic_workflow.add_display(disp)
+        with app.test_request_context():
+            disp = displayer.Displayer()
+            result = basic_workflow.add_display(disp)
         
         assert result is not None
         assert isinstance(result, displayer.Displayer)
     
-    def test_breadcrumbs_added(self, basic_workflow):
+    def test_breadcrumbs_added(self, basic_workflow, app):
         """Test that breadcrumbs are added"""
         basic_workflow.prepare_workflow(None)
         
-        disp = displayer.Displayer()
-        basic_workflow.add_display(disp)
+        with app.test_request_context():
+            disp = displayer.Displayer()
+            basic_workflow.add_display(disp)
         
-        # Should have breadcrumbs for all visible steps
-        breadcrumbs = disp.m_breadcrumbs
-        assert len(breadcrumbs) == 3  # All 3 steps visible
+            # Should have breadcrumbs for all visible steps
+            breadcrumbs = disp.m_breadcrumbs
+            assert len(breadcrumbs) == 3  # All 3 steps visible
     
-    def test_hidden_fields_added(self, basic_workflow):
+    def test_hidden_fields_added(self, basic_workflow, app):
         """Test that hidden fields for state are added"""
         basic_workflow.prepare_workflow(None)
         basic_workflow.m_workflow_data["test_key"] = "test_value"
         
-        disp = displayer.Displayer()
-        basic_workflow.add_display(disp)
+        with app.test_request_context():
+            disp = displayer.Displayer()
+            basic_workflow.add_display(disp)
         
-        content = disp.display()
-        # The workflow uses its name when displaying
-        module_name = basic_workflow.m_name
+            content = disp.display()
+            # The workflow uses its name when displaying
+            module_name = basic_workflow.m_name
         
-        # Should have workflow module in content
-        assert module_name in content
+            # Should have workflow module in content
+            assert module_name in content
     
-    def test_navigation_buttons_present(self, basic_workflow):
+    def test_navigation_buttons_present(self, basic_workflow, app):
         """Test that navigation buttons are added"""
         basic_workflow.prepare_workflow(None)
         
-        disp = displayer.Displayer()
-        basic_workflow.add_display(disp)
+        with app.test_request_context():
+            disp = displayer.Displayer()
+            basic_workflow.add_display(disp)
         
-        content = disp.display()
-        # The workflow uses its name when displaying
-        module_name = basic_workflow.m_name
+            content = disp.display()
+            # The workflow uses its name when displaying
+            module_name = basic_workflow.m_name
         
-        # Should have workflow module
-        assert module_name in content
+            # Should have workflow module
+            assert module_name in content
 
 
 # ============================================================================

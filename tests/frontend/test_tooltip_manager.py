@@ -416,9 +416,8 @@ class TestContextCRUD:
         submit_btn.click()
         logged_in_page.wait_for_load_state('networkidle')
         
-        # Should show error message (ValueError from manager uses "danger" but route catches it and uses "danger")
-        # However the actual message shows "secondary" - the error is coming from manager without category override
-        assert check_flash_message(logged_in_page, "alphanumeric", message_type="secondary")
+        # Should show error message - route catches ValueError and flashes with "danger"
+        assert check_flash_message(logged_in_page, "alphanumeric", message_type="danger")
 
 
 class TestSystemProtection:

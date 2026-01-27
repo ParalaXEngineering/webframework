@@ -229,8 +229,10 @@ def test_resource_isolation():
         assert vendor in ResourceRegistry._required_vendors, \
             f"Expected {vendor} for {item_class_1[0].__name__}"
     
-    # Test item 2 (should reset and only have its resources)
-    disp2 = Displayer()  # This should reset the registry
+    # Test item 2 - explicitly reset registry (simulates new request)
+    # Outside Flask context, reset() clears the class-level _required_vendors
+    ResourceRegistry.reset()
+    disp2 = Displayer()
     disp2.add_generic("Test2")
     layout2 = DisplayerLayout(Layouts.VERTICAL, [12])
     disp2.add_master_layout(layout2)
