@@ -1,236 +1,198 @@
-# ParalaX Web Framework
+````instructions
+# ParalaX Web Framework - AI Agent Instructions
 
 ## Architecture
-**Submodule pattern**: Framework in `submodules/framework/`, user code in `website/`. Never mix.
+**Submodule pattern**: Framework in `submodules/framework/`, website code in `website/`. Never mix layers.
 
-**Core systems**:
-- `displayer/`: Programmatic UI via layouts+items (not raw HTML)
-- `site_conf.py`: Feature flags via `enable_*()`, auto-registers pages/nav
-- `threaded/`: Background tasks via `Threaded_action`, SocketIO progress
-- `auth/`: RBAC, decorator+module-level checks
-- `settings/`: JSON config, optional sections auto-merge via `default_configs.py`
+```
+website/
+├── main.py           # Entry point
+├── site_conf.py      # extends Site_conf, enables features
+├── config.json       # Runtime settings
+├── pages/            # Flask Blueprints
+└── modules/          # Custom logic
+submodules/framework/ # This codebase (git submodule)
+```
 
-**Flow**: Route→Displayer→Jinja2→SocketIO→Thread emitters (user-isolated rooms)
+## Core Systems
+| System | Location | Purpose |
+|--------|----------|---------|
+| Displayer | `src/modules/displayer/` | Programmatic UI (never raw HTML) |
+| Auth | `src/modules/auth/` | RBAC decorators + permission registry |
+| Settings | `src/modules/settings/` | JSON config with auto-merge |
+| Threaded | `src/modules/threaded/` | Background tasks with SocketIO progress |
+| i18n | `src/modules/i18n/` | TranslatableString pattern |
 
 ## Critical Patterns
 
-### Form Handling (MANDATORY)
+### 1. NO Custom HTML (STRICT RULE)
+**NEVER write raw HTML in routes.** Always use DisplayerItems.
 ```python
-from modules.utilities import util_post_to_json
+# ❌ WRONG - Raw HTML
+return "<h1>Title</h1><p>Content</p>"
+
+# ✅ CORRECT - DisplayerItems
+disp.add_display_item(DisplayerItemText("<h1>Title</h1>"), column=0)
+```
+
+### 2. Form Handling (MANDATORY)
+```python
+from src.modules.utilities import util_post_to_json
 data = util_post_to_json(request.form.to_dict())  # NOT request.form.get()
 ```
 
-### Page Structure
+### 3. Page Structure (Recommended Pattern)
 ```python
+from src.modules.displayer import Displayer, DisplayerLayout, Layouts, DisplayerItemText
+
 disp = Displayer()
-disp.add_generic("Title")
-layout = disp.add_master_layout(DisplayerLayout(Layouts.HORIZONTAL, [8,4]))
-disp.add_display_item(DisplayerItemText("x"), column=0)
-return disp.display()
+disp.add_generic("Page Title", display=False)  # display=False hides generic module title
+disp.set_title("Page Title")                   # Sets browser/page title
+layout_id = disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [8, 4]))
+disp.add_display_item(DisplayerItemText("Content"), column=0)
+return render_template("base_content.j2", content=disp.display())
 ```
 
-### Initialization Order (STRICT)
+### 4. Module Pattern (for permission-controlled pages)
 ```python
-# 1. BEFORE setup_app()
-site_conf.site_conf_obj = MySiteConf()
-site_conf.site_conf_app_path = framework_root
-os.chdir(framework_root)  # Required for templates
+from src.modules.action import Action
 
-# 2. Setup
-socketio = setup_app(app)
+class MyModule(Action):
+    m_default_name = "MyFeature"
+    m_required_permission = "AdminTools"  # Optional: defaults to module name
+    m_required_action = "execute"         # 'view', 'edit', 'execute'
+    
+    def start(self):
+        # User context auto-injected: _current_user, _user_permissions, _is_guest
+        if self.has_permission('execute'):
+            # Module logic here
+            pass
 
-# 3. AFTER setup_app()
-app.register_blueprint(my_bp)
+# In route:
+disp.add_module(MyModule, display=False)  # Automatic permission checking
 ```
 
-### Feature Flags (in website/site_conf.py)
+### 3. Initialization Order (STRICT)
 ```python
-class MySiteConf(Site_conf):
-    def __init__(self):
-        super().__init__()
-        self.enable_threads(add_to_sidebar=True)  # Auto-registers /threads page
-        self.enable_authentication()  # Auto-adds user mgmt sections
+# In main.py - ORDER MATTERS
+os.chdir(framework_root)                    # 1. Change to framework dir
+site_conf.site_conf_obj = MySiteConf()      # 2. Set site config BEFORE setup
+socketio = setup_app(app)                   # 3. Initialize framework
+app.register_blueprint(my_bp)               # 4. Register blueprints AFTER
 ```
 
-### Safe Config Access
-```python
-from modules.utilities import get_config_or_error
-configs, error = get_config_or_error(mgr, "path.key1.value", "path.key2.value")
-if error: return error  # Auto-renders error page
-```
-
-### Threaded Actions
-```python
-class MyAction(Threaded_action):
-    m_default_name = "Task"
-    m_required_permission = "Module_Name"
-    def action(self):
-        self.emit_console("msg")  # Real-time to user's SocketIO room
-```
-
-### Home Page Navigation (IMPORTANT)
-Override the default home endpoint in your website's `site_conf.py`:
+### 4. Feature Flags (in website/site_conf.py)
 ```python
 class MySiteConf(Site_conf):
     def __init__(self):
         super().__init__()
-        self.app_details("My App", "1.0", "home", 
-                        home_endpoint="my_module.home")  # Custom home page
-```
-Default is `framework_index` (the built-in empty home page).
-
-## Key Files
-- `src/main.py`: Initialization, feature→page mapping
-- `src/modules/site_conf.py`: `enable_*()` methods
-- `src/modules/displayer/__init__.py`: All UI exports
-- `src/modules/utilities.py`: `util_post_to_json()`, `get_config_or_error()`
-- `src/modules/default_configs.py`: Optional config sections
-
-## Workflows
-```bash
-.venv\Scripts\activate; python main.py  # Run (use venv for py3.7+)
-pytest tests/ -v  # Test (ordered: displayer→resource→others)
-python framework_manager.py vendors|docs|example  # Utilities
+        self.enable_authentication(add_to_sidebar=True)
+        self.enable_threads(add_to_sidebar=True)
+        self.enable_settings()
+        self.enable_file_manager()
+        self.enable_plugin("tracker")  # Load plugin from submodules/
 ```
 
-## Pitfalls
-1. `util_post_to_json()` mandatory (not `request.form.get()`)
-2. `os.chdir(framework_root)` before `setup_app()`
-3. Feature flags before `setup_app()`
-4. Check managers for None: `thread_manager_obj`, `scheduler_obj`, `auth_manager`
-5. Website structure: `website/{pages,modules}/`, `submodules/framework/`
-
-## SocketIO
-- Users in rooms by `session['user']`
-- Thread emitters→owner's room only
-- GUEST=shared, logged-in=isolated
-
-## Auth (FRAMEWORK-PROVIDED)
-**NEVER** implement your own `require_permission` decorator. Use the framework's:
-
+### 5. Auth Decorator (NEVER implement your own)
 ```python
 from src.modules.auth import require_permission
 
-@bp.route('/my-page')
-@require_permission("Module_Name", "view")
-def my_page():
-    return "Protected page"
+@bp.route('/page')
+@require_permission("ModuleName", "view")  # or "edit", "execute"
+def page():
+    ...
 ```
 
-- **Route-level**: `@require_permission('Module', 'action')` (framework decorator, auto-handles auth disabled)
-- **Class-level**: `m_required_permission = "Module_Name"` (for Threaded_action subclasses)
-- **Inline checks**: `auth_manager.has_permission(user, module, action)` (business logic within routes)
+### 6. Safe Config Access
+```python
+from src.modules.utilities import get_config_or_error
+configs, error = get_config_or_error(settings_mgr, "path.key.value")
+if error: return error  # Auto-renders error page
+```
 
-The framework's `require_permission` decorator automatically:
-- Works when auth is disabled (allows access)
-- Works when auth is enabled (checks permissions)
-- Shows proper access denied pages
-- Handles redirects to login
+### 7. Threaded Actions
+```python
+from src.modules.threaded.threaded_action import Threaded_action
 
-## Internationalization (i18n) - SOLUTION C PATTERN
+class MyTask(Threaded_action):
+    m_default_name = "Task Name"
+    m_required_permission = "Module_Name"
+    
+    def action(self):
+        for i in range(100):
+            if not self.m_running: return  # Check abort flag
+            self.m_running_state = i       # Update progress
+            self.console_write(f"Step {i}")
+```
 
-**Architecture**: Website extends framework messages via star import.
+### 8. i18n Messages
+```python
+# In website/i18n/messages.py
+from src.modules.i18n.messages import *  # Import ALL framework messages
+TEXT_MY_LABEL = TranslatableString("My Label")  # Add custom
 
-### Setup (One-Time per Website)
+# Usage
+from website.i18n.messages import TEXT_MY_LABEL, TEXT_SETTINGS  # Both work
+```
+
+## Layout Types (CRITICAL: Names are inverted!)
+| Layout | Effect | columns= |
+|--------|--------|----------|
+| `VERTICAL` | Side-by-side columns | Bootstrap widths `[8, 4]` |
+| `HORIZONTAL` | Stacked vertically | `[12]` for full width |
+| `TABLE` | Data table | Header strings `["Name", "Actions"]` |
+| `TABS` | Tabbed interface | Tab labels |
+
+## DisplayerItems (NO custom HTML - STRICT)
+Text, Alert, Button, ActionButtons, InputString, InputSelect, InputNumber, InputTextArea, InputCheckbox, InputFile, Table, Card, Badge, Icon, Image, Link, Console, Graph, GridEditor
+
+## App Context Access
+```python
+from src.modules.app_context import app_context
+auth = app_context.auth_manager
+settings = app_context.settings_manager
+threads = app_context.thread_manager
+```
+
+## SocketIO Rooms
+- Users isolated by `user_{username}_{session_id}`
+- Threads emit to owner's room only via `emit_to_user()`
+- GUEST users share a room
+
+## Common Pitfalls
+1. ❌ `request.form.get()` → ✅ `util_post_to_json()`
+2. ❌ Feature flags after `setup_app()` → ✅ Before
+3. ❌ Custom `@require_permission` → ✅ Use framework's
+4. ❌ Raw HTML strings → ✅ DisplayerItems only
+5. ❌ Bare `logging.getLogger()` → ✅ `from src.modules.log.logger_factory import get_logger`
+6. ❌ VERTICAL for stacking → ✅ HORIZONTAL (names inverted!)
+
+## Testing
+- **Structure**: tests/unit/ (pure logic), tests/integration/ (Flask), tests/frontend/ (Playwright E2E)
+- **Prerequisites**: `pip install -e .[dev]` then `playwright install`
+- **Frontend**: Requires Manual_Webapp running on port 5001
+- **Commands**:
+  - `pytest tests/ -v` (all tests)
+  - `pytest tests/unit/ -v` (unit only, no Flask)
+  - `pytest tests/frontend/ -v` (E2E, requires server)
+  - `pytest -m startup` (marked tests)
+- **Test Ordering**: Custom hook enforces displayer → resource_loading
+- **Human Mode**: Set `HUMAN_MODE=True` in tests/frontend/conftest.py for visible browser
+
+## Commands
 ```bash
-mkdir -p website/i18n
-touch website/i18n/{__init__.py,messages.py,messages.pyi}
-touch website/py.typed
+python main.py                        # Run website
+pytest tests/ -v                      # Test
+python framework_manager.py docs      # Build docs
+python framework_manager.py vendors   # Update JS/CSS libs
 ```
 
-### 1. website/i18n/__init__.py
-```python
-from .messages import *
-__all__ = ['messages']
-```
+## Reference Documentation
+For comprehensive API documentation and advanced patterns, see `.github/reference/`:
+- `displayer.md` - All DisplayerItems, layouts, forms
+- `auth.md` - Permission registry, security patterns
+- `threaded.md` - Process execution, logging, SocketIO
+- `utilities.md`, `settings.md`, `file_manager.md`, etc.
 
-### 2. website/i18n/messages.py
-```python
-"""Website-specific translatable messages."""
-
-# Import ALL framework messages (~800+ constants)
-from src.modules.i18n.messages import *  # noqa: F403
-
-# Add your custom translatable strings below
-TEXT_MY_DASHBOARD = TranslatableString("Dashboard")  # noqa: F405
-TEXT_ANALYTICS = TranslatableString("Analytics")  # noqa: F405
-MSG_CUSTOM_SUCCESS = TranslatableString("Success!")  # noqa: F405
-ERROR_MY_VALIDATION = TranslatableString("Validation failed")  # noqa: F405
-```
-
-### 3. website/i18n/messages.pyi (for VSCode)
-```python
-# Type stub - keep in sync with messages.py
-from src.modules.i18n.messages import *
-
-TEXT_MY_DASHBOARD: str
-TEXT_ANALYTICS: str
-MSG_CUSTOM_SUCCESS: str
-ERROR_MY_VALIDATION: str
-```
-
-### 4. Usage in Pages (Single Import)
-```python
-# Import from website.i18n.messages gets BOTH framework and custom
-from website.i18n.messages import (
-    TEXT_SETTINGS,        # Framework string
-    MSG_SETTINGS_SAVED,   # Framework string  
-    TEXT_MY_DASHBOARD,    # Your custom string
-    MSG_CUSTOM_SUCCESS    # Your custom string
-)
-
-@bp.route('/dashboard')
-def dashboard():
-    disp = Displayer()
-    disp.add_generic(TEXT_MY_DASHBOARD)      # Custom
-    disp.add_breadcrumb(TEXT_SETTINGS, "/")  # Framework
-    flash(MSG_CUSTOM_SUCCESS, "success")     # Custom
-```
-
-### Message Naming Conventions
-- `TEXT_*` - Labels, headings, navigation
-- `MSG_*` - Success/info messages
-- `ERROR_*` - Error messages
-- `BUTTON_*` - Button labels
-- `TOOLTIP_*` - Tooltips
-- `LABEL_*` - Form labels
-- `TABLE_HEADER_*` - Table columns
-
-### Translation Workflow
-```bash
-# After adding new strings
-python framework_manager.py babel extract  # Scan code for strings
-python framework_manager.py babel update   # Update .po files
-# Edit translations/fr/LC_MESSAGES/messages.po
-python framework_manager.py babel compile  # Generate .mo files
-# Restart app
-```
-
-### IMPORTANT: Never Hardcode User-Facing Strings
-❌ **Bad**: `disp.add_generic("Dashboard")`  
-✅ **Good**: `disp.add_generic(TEXT_MY_DASHBOARD)`
-
-❌ **Bad**: `flash("Settings saved!", "success")`  
-✅ **Good**: `flash(MSG_SETTINGS_SAVED, "success")`
-
-### VSCode Setup (.vscode/settings.json)
-```json
-{
-    "python.analysis.extraPaths": [
-        "${workspaceFolder}/your_webapp",
-        "${workspaceFolder}/src",
-        "${workspaceFolder}"
-    ]
-}
-```
-Replace `your_webapp` with actual webapp folder. Order matters (webapp before framework)!
-
-### Reference
-- Framework messages: `src/modules/i18n/messages.py` (~800+ constants)
-- Full docs: `docs/source/i18n.rst`
-- Example: `Manual_Webapp/website/i18n/messages.py`
-
-## Resources
-- Auto-registered by Displayer items via `ResourceRegistry`
-- Vendors: `webengine/assets/vendors/` (update: `framework_manager.py vendors`)
-- Docs: `python framework_manager.py docs` → `docs/build/html/`
+**When to read**: Implementing new features, troubleshooting edge cases, needing complete API coverage.
+````
