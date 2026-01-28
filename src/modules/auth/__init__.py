@@ -79,7 +79,7 @@ def require_permission(module: str, action: str = DEFAULT_ACTION):
                         Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, BSstyle
                     )
                 except ImportError:
-                    from submodules.framework.src.modules.displayer import (
+                    from src.modules.displayer import (
                         Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, BSstyle
                     )
                 disp = Displayer()
@@ -149,7 +149,7 @@ def require_admin():
                         Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, BSstyle
                     )
                 except ImportError:
-                    from submodules.framework.src.modules.displayer import (
+                    from src.modules.displayer import (
                         Displayer, DisplayerLayout, Layouts, DisplayerItemAlert, BSstyle
                     )
                 disp = Displayer()

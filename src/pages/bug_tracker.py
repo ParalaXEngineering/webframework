@@ -449,7 +449,7 @@ def report_error():
     """
     Redirect to bugtracker with pre-filled error information from session.
     """
-    from submodules.framework.src.modules.log.logger_factory import get_logger
+    from src.modules.log.logger_factory import get_logger
     logger = get_logger(__name__)
     
     # Get error info from session (stored by the error handler)
@@ -672,7 +672,7 @@ def bugtracker():
         prefill_subject = prefill_data.get('subject', '')
         prefill_description = prefill_data.get('description', '')
         
-        from submodules.framework.src.modules.log.logger_factory import get_logger
+        from src.modules.log.logger_factory import get_logger
         logger = get_logger(__name__)
         logger.info(f"Bugtracker loading. Prefill subject: {prefill_subject}, description length: {len(prefill_description)}")
 

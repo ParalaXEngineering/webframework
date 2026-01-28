@@ -99,7 +99,7 @@ def bootstrap_app(
         Tuple of (Flask app, SocketIO instance)
         
     Example:
-        from submodules.framework.src.bootstrap import bootstrap_app
+        from src.bootstrap import bootstrap_app
         from website.site_conf import MySiteConf
         
         app, socketio = bootstrap_app(MySiteConf)
