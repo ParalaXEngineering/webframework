@@ -786,6 +786,10 @@ def _view_settings(user_mode=False):
                 if key in [METADATA_FRIENDLY, METADATA_CATEGORY_DESCRIPTION] or not isinstance(setting, dict):
                     continue
                 
+                # Skip externally managed settings
+                if setting.get(METADATA_MANAGED_EXTERNALLY, False):
+                    continue
+                
                 # Check direct setting
                 if METADATA_TYPE in setting and setting.get(METADATA_OVERRIDABLE, False):
                     has_overridable_in_category = True
@@ -795,6 +799,9 @@ def _view_settings(user_mode=False):
                 if METADATA_TYPE not in setting and METADATA_FRIENDLY in setting:
                     for subkey, subsetting in setting.items():
                         if subkey in [METADATA_FRIENDLY, METADATA_DESCRIPTION] or not isinstance(subsetting, dict):
+                            continue
+                        # Skip externally managed settings
+                        if subsetting.get(METADATA_MANAGED_EXTERNALLY, False):
                             continue
                         if METADATA_TYPE in subsetting and subsetting.get(METADATA_OVERRIDABLE, False):
                             has_overridable_in_category = True
