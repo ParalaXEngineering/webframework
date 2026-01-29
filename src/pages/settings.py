@@ -131,6 +131,7 @@ METADATA_TYPE = "type"
 METADATA_VALUE = "value"
 METADATA_OPTIONS = "options"
 METADATA_OVERRIDABLE = "overridable_by_user"
+METADATA_MANAGED_EXTERNALLY = "managed_externally"
 METADATA_DESCRIPTION = "_description"
 METADATA_CATEGORY_DESCRIPTION = "_category_description"
 
@@ -180,10 +181,23 @@ def index():
     ))
     
     categories = manager.list_categories()
-    for line, category in enumerate(categories):
+    line = 0
+    for category in categories:
         friendly = manager.get_category_friendly(category)
         settings = manager.get_category(category)
-        count = len(settings)
+        
+        # Skip categories where all settings are managed externally
+        visible_count = 0
+        for key, setting in settings.items():
+            if key in [METADATA_FRIENDLY, METADATA_CATEGORY_DESCRIPTION] or not isinstance(setting, dict):
+                continue
+            if not setting.get(METADATA_MANAGED_EXTERNALLY, False):
+                visible_count += 1
+        
+        if visible_count == 0:
+            continue  # All settings in this category are managed externally
+        
+        count = visible_count
         
         # Category name with icon
         disp.add_display_item(
@@ -214,6 +228,7 @@ def index():
             ),
             column=3, line=line, layout_id=layout_id
         )
+        line += 1
     
     return render_template("base_content.j2", content=disp.display(bypass_auth=_bypass_AUTH), target="")
 
@@ -235,6 +250,11 @@ def user_view():
 def _render_setting_row(disp, layout_id, line, category, key, setting, user_mode, user_overrides):
     """Helper function to render a single setting row in a table."""
     is_overridable = setting.get(METADATA_OVERRIDABLE, False)
+    is_managed_externally = setting.get(METADATA_MANAGED_EXTERNALLY, False)
+    
+    # Skip externally managed settings (they have dedicated admin pages)
+    if is_managed_externally:
+        return False
     
     # In user mode, skip non-overridable settings
     if user_mode and not is_overridable:
