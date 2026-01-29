@@ -401,6 +401,7 @@ class DisplayerItems(Enum):
     GRIDEDITOR = "GRIDEDITOR"
     FILEUPLOAD = "FILEUPLOAD"
     FILEDISPLAY = "FILEDISPLAY"
+    TREE = "TREE"
 
 
 class BSstyle(Enum):

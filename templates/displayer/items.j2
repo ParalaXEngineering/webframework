@@ -129,6 +129,8 @@
         {{fileupload(item["id"], item["text"], item["category"], item["subcategory"], item["group_id"], item["tags"], item["accept_types"], item["multiple"], item["file_manager"], item["existing_groups"], item["existing_values"], item.get("simple", false), item.get("upload_path"), item.get("rename_to"))}}
     {% elif item["type"] == "FILEDISPLAY" %}
         {{filedisplay(item["file_id"], item["file_metadata"], item["actions"], item["compact"], item["file_manager"], item.get("version"))}}
+    {% elif item["type"] == "TREE" %}
+        {{tree(item["id"], item["svg_content"], item["title"])}}
     {% endif %}
 
     {% if "itemId" in item %}
@@ -1645,5 +1647,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% macro filedisplay(file_id, file_metadata, actions, compact, file_manager, version=None) %}
     {{ file_display.filedisplay(file_id, file_metadata, actions, compact, file_manager, version) }}
+{% endmacro %}
+
+
+{# Tree visualization macro for hierarchical relationships #}
+{% macro tree(id, svg_content, title) %}
+<div class="tree-container mb-3">
+    {% if title %}
+    <h5 class="mb-2">{{ title }}</h5>
+    {% endif %}
+    <div class="tree-svg-wrapper" style="overflow-x: auto;">
+        {{ svg_content | safe }}
+    </div>
+</div>
+<style>
+    .tree-container .tree-svg-wrapper {
+        padding: 10px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+    .tree-node rect {
+        transition: all 0.2s ease;
+    }
+    .tree-node:hover rect {
+        filter: brightness(0.95);
+    }
+    .tree-node-current rect {
+        filter: drop-shadow(0 2px 4px rgba(13, 110, 253, 0.3));
+    }
+    a .tree-node {
+        cursor: pointer;
+    }
+    a .tree-node:hover rect {
+        filter: brightness(0.9);
+        transform: translateY(-1px);
+    }
+</style>
 {% endmacro %}
 

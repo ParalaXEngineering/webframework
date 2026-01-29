@@ -2826,3 +2826,293 @@ class DisplayerItemGridEditor(DisplayerItem):
             },
             columns=12
         )
+
+
+@DisplayerCategory.DISPLAY
+class DisplayerItemTree(DisplayerItem):
+    """
+    Interactive SVG tree visualization for hierarchical relationships.
+    
+    Renders a tree diagram with nodes representing items and edges showing
+    parent-child relationships. Nodes are clickable (except the current node)
+    and styled with Bootstrap colors.
+    
+    Tree layout:
+    - Level 0 (top): Parent nodes
+    - Level 1 (middle): Current node + siblings  
+    - Level 2+ (below): Children, grandchildren, etc.
+    """
+
+    # Bootstrap color palette for node types
+    COLORS = {
+        'current': {'bg': '#0d6efd', 'border': '#0b5ed7', 'text': '#ffffff'},
+        'parent': {'bg': '#d1e7dd', 'border': '#198754', 'text': '#0f5132'},
+        'child': {'bg': '#cfe2ff', 'border': '#0d6efd', 'text': '#084298'},
+        'sibling': {'bg': '#fff3cd', 'border': '#ffc107', 'text': '#664d03'},
+    }
+    
+    # Layout constants
+    NODE_WIDTH = 140
+    NODE_HEIGHT = 50
+    NODE_SPACING_H = 30  # Horizontal spacing between nodes
+    NODE_SPACING_V = 80  # Vertical spacing between levels
+    PADDING = 40  # Canvas padding
+
+    def __init__(
+        self, 
+        id: str,
+        nodes: List[Dict[str, Any]],
+        edges: List[tuple],
+        current_node_id: int,
+        title: Optional[str] = None,
+    ) -> None:
+        """
+        Initialize a tree visualization.
+
+        Args:
+            id: Unique identifier for the SVG element
+            nodes: List of node dictionaries with keys:
+                   - id: Unique node ID (int)
+                   - name: Display name (str)
+                   - module_type: Type label, e.g., "Board" (str)
+                   - node_type: 'current' | 'parent' | 'child' | 'sibling'
+                   - url: Link URL for navigation (str, empty for current)
+                   - level: Tree level (0=parents, 1=current/siblings, 2+=children)
+            edges: List of (from_id, to_id) tuples representing connections
+            current_node_id: ID of the currently viewed node (highlighted)
+            title: Optional title displayed above the tree
+
+        Example:
+            >>> tree = DisplayerItemTree(
+            ...     id="relationship_tree",
+            ...     nodes=[
+            ...         {"id": 1, "name": "Parent", "module_type": "Product", 
+            ...          "node_type": "parent", "url": "/tracker/view/1", "level": 0},
+            ...         {"id": 2, "name": "Current", "module_type": "Board",
+            ...          "node_type": "current", "url": "", "level": 1},
+            ...     ],
+            ...     edges=[(1, 2)],
+            ...     current_node_id=2
+            ... )
+        """
+        super().__init__(DisplayerItems.TREE)
+        self.m_id = id
+        self.m_nodes = nodes
+        self.m_edges = edges
+        self.m_current = current_node_id
+        self.m_title = title
+        
+        # Generate SVG on initialization
+        self.m_svg = self._generate_svg()
+
+    def _layout_nodes(self) -> Dict[int, Dict[str, float]]:
+        """
+        Calculate x,y positions for each node based on tree level.
+        
+        Returns:
+            Dictionary mapping node ID to {x, y} coordinates
+        """
+        positions = {}
+        
+        # Group nodes by level
+        levels: Dict[int, List[Dict]] = {}
+        for node in self.m_nodes:
+            level = node.get('level', 1)
+            if level not in levels:
+                levels[level] = []
+            levels[level].append(node)
+        
+        if not levels:
+            return positions
+        
+        # Find width needed for widest level
+        max_nodes_in_level = max(len(nodes) for nodes in levels.values())
+        canvas_width = max(
+            max_nodes_in_level * (self.NODE_WIDTH + self.NODE_SPACING_H) + self.PADDING * 2,
+            400  # Minimum width
+        )
+        
+        # Position nodes by level
+        sorted_levels = sorted(levels.keys())
+        for level_idx, level in enumerate(sorted_levels):
+            level_nodes = levels[level]
+            num_nodes = len(level_nodes)
+            
+            # Calculate y position (top to bottom)
+            y = self.PADDING + level_idx * (self.NODE_HEIGHT + self.NODE_SPACING_V)
+            
+            # Calculate total width of this level
+            total_width = num_nodes * self.NODE_WIDTH + (num_nodes - 1) * self.NODE_SPACING_H
+            
+            # Center nodes horizontally
+            start_x = (canvas_width - total_width) / 2
+            
+            # Sort nodes: put 'current' in center for level 1
+            if level == 1:
+                # Current node in center, siblings on sides
+                current_nodes = [n for n in level_nodes if n['node_type'] == 'current']
+                sibling_nodes = [n for n in level_nodes if n['node_type'] == 'sibling']
+                level_nodes = sibling_nodes[:len(sibling_nodes)//2] + current_nodes + sibling_nodes[len(sibling_nodes)//2:]
+            
+            for i, node in enumerate(level_nodes):
+                x = start_x + i * (self.NODE_WIDTH + self.NODE_SPACING_H)
+                positions[node['id']] = {'x': x, 'y': y}
+        
+        return positions
+
+    def _generate_svg(self) -> str:
+        """
+        Generate complete SVG markup for the tree.
+        
+        Returns:
+            SVG string ready for embedding in HTML
+        """
+        if not self.m_nodes:
+            return self._generate_empty_svg()
+        
+        positions = self._layout_nodes()
+        
+        if not positions:
+            return self._generate_empty_svg()
+        
+        # Calculate canvas dimensions
+        max_x = max(p['x'] for p in positions.values()) + self.NODE_WIDTH + self.PADDING
+        max_y = max(p['y'] for p in positions.values()) + self.NODE_HEIGHT + self.PADDING
+        
+        svg_parts = [
+            f'<svg id="{self.m_id}" viewBox="0 0 {max_x} {max_y}" ',
+            f'xmlns="http://www.w3.org/2000/svg" ',
+            f'style="width: 100%; max-width: {max_x}px; height: auto; display: block; margin: 0 auto;">',
+            '',
+            '  <!-- Edges (connections) -->',
+        ]
+        
+        # Draw edges first (behind nodes)
+        for from_id, to_id in self.m_edges:
+            if from_id in positions and to_id in positions:
+                from_pos = positions[from_id]
+                to_pos = positions[to_id]
+                
+                # Line from bottom-center of parent to top-center of child
+                x1 = from_pos['x'] + self.NODE_WIDTH / 2
+                y1 = from_pos['y'] + self.NODE_HEIGHT
+                x2 = to_pos['x'] + self.NODE_WIDTH / 2
+                y2 = to_pos['y']
+                
+                # Use curved path for better aesthetics
+                mid_y = (y1 + y2) / 2
+                svg_parts.append(
+                    f'  <path d="M {x1} {y1} C {x1} {mid_y}, {x2} {mid_y}, {x2} {y2}" '
+                    f'fill="none" stroke="#adb5bd" stroke-width="2"/>'
+                )
+        
+        svg_parts.append('')
+        svg_parts.append('  <!-- Nodes -->')
+        
+        # Draw nodes
+        for node in self.m_nodes:
+            node_id = node['id']
+            if node_id not in positions:
+                continue
+                
+            pos = positions[node_id]
+            x, y = pos['x'], pos['y']
+            
+            node_type = node.get('node_type', 'child')
+            colors = self.COLORS.get(node_type, self.COLORS['child'])
+            
+            url = node.get('url', '')
+            name = node.get('name', 'Unknown')
+            module_type = node.get('module_type', '')
+            
+            # Truncate long names
+            display_name = name[:18] + '...' if len(name) > 18 else name
+            display_type = module_type[:15] + '...' if len(module_type) > 15 else module_type
+            
+            # Build node SVG
+            border_width = 3 if node_type == 'current' else 2
+            
+            node_svg = f'''
+  <g class="tree-node tree-node-{node_type}" transform="translate({x}, {y})">
+    <rect width="{self.NODE_WIDTH}" height="{self.NODE_HEIGHT}" rx="8" 
+          fill="{colors['bg']}" stroke="{colors['border']}" stroke-width="{border_width}"/>
+    <text x="{self.NODE_WIDTH/2}" y="20" text-anchor="middle" 
+          fill="{colors['text']}" font-size="12" font-weight="600" font-family="system-ui, sans-serif">
+      {self._escape_svg(display_name)}
+    </text>
+    <text x="{self.NODE_WIDTH/2}" y="38" text-anchor="middle" 
+          fill="{colors['text']}" font-size="10" font-family="system-ui, sans-serif" opacity="0.8">
+      {self._escape_svg(display_type)}
+    </text>
+  </g>'''
+            
+            # Wrap in link if not current node
+            if url and node_type != 'current':
+                node_svg = f'  <a href="{url}" style="cursor: pointer;">{node_svg}\n  </a>'
+            
+            svg_parts.append(node_svg)
+        
+        svg_parts.append('')
+        svg_parts.append('</svg>')
+        
+        return '\n'.join(svg_parts)
+
+    def _generate_empty_svg(self) -> str:
+        """Generate SVG for empty state (no relationships)."""
+        return f'''<svg id="{self.m_id}" viewBox="0 0 400 100" 
+     xmlns="http://www.w3.org/2000/svg" 
+     style="width: 100%; max-width: 400px; height: auto; display: block; margin: 0 auto;">
+  <rect x="0" y="0" width="400" height="100" rx="8" fill="#f8f9fa" stroke="#dee2e6"/>
+  <text x="200" y="55" text-anchor="middle" fill="#6c757d" font-size="14" font-family="system-ui, sans-serif">
+    No relationships found
+  </text>
+</svg>'''
+
+    def _escape_svg(self, text: str) -> str:
+        """Escape special characters for SVG text content."""
+        return (str(text)
+                .replace('&', '&amp;')
+                .replace('<', '&lt;')
+                .replace('>', '&gt;')
+                .replace('"', '&quot;')
+                .replace("'", '&#39;'))
+
+    def display(self, container: list, parent_id: Optional[str] = None) -> None:
+        """Add tree to container with SVG content.
+        
+        Args:
+            container: The container element to display in.
+            parent_id: The parent element ID.
+        """
+        super().display(container, parent_id)
+        container[-1]["svg_content"] = self.m_svg
+        container[-1]["title"] = self.m_title
+
+    @classmethod
+    def instantiate_test(cls):
+        """Create test instance with sample tree.
+        
+        Returns:
+            Instance of the class with test data.
+        """
+        return cls(
+            id="test_tree",
+            nodes=[
+                {"id": 1, "name": "Parent-A", "module_type": "Product", 
+                 "node_type": "parent", "url": "/test/1", "level": 0},
+                {"id": 2, "name": "Sibling-1", "module_type": "Board",
+                 "node_type": "sibling", "url": "/test/2", "level": 1},
+                {"id": 3, "name": "Current Node", "module_type": "Board",
+                 "node_type": "current", "url": "", "level": 1},
+                {"id": 4, "name": "Sibling-2", "module_type": "Board",
+                 "node_type": "sibling", "url": "/test/4", "level": 1},
+                {"id": 5, "name": "Child-A", "module_type": "Component",
+                 "node_type": "child", "url": "/test/5", "level": 2},
+                {"id": 6, "name": "Child-B", "module_type": "Component",
+                 "node_type": "child", "url": "/test/6", "level": 2},
+            ],
+            edges=[(1, 3), (3, 5), (3, 6)],
+            current_node_id=3,
+            title="Relationship Tree"
+        )
+
