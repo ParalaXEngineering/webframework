@@ -99,12 +99,15 @@ class PrefixMiddleware:
 
 
 # Create Flask app only if Flask is available
+# Get framework root directory (parent of src/)
+_framework_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 if FLASK_AVAILABLE:
     app = Flask(  # type: ignore
         __name__,
         instance_relative_config=True,
-        static_folder=os.path.join("..", "webengine", "assets"),
-        template_folder=os.path.join("..", "templates")
+        static_folder=os.path.join(_framework_root, "webengine", "assets"),
+        template_folder=os.path.join(_framework_root, "templates")
     )
     # Apply prefix middleware to handle reverse proxy URL prefixes
     app.wsgi_app = PrefixMiddleware(app.wsgi_app)  # type: ignore
