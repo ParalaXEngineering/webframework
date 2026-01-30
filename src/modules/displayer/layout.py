@@ -382,8 +382,13 @@ class DisplayerLayout:
                     # This is required for DataTables initialization
                     table_dict["ajax_columns"] = [{"data": col} for col in self.m_column]
                     
+                # Only set columns if searchable_columns is explicitly provided and not None
+                # None or omitted = default (all columns), [] = no panes, [1,2] = specific columns
                 if "searchable_columns" in config_to_use:
-                    table_dict["columns"] = config_to_use["searchable_columns"]
+                    searchable_cols = config_to_use["searchable_columns"]
+                    if searchable_cols is not None:
+                        # Set even if empty list - that's how user disables all panes
+                        table_dict["columns"] = searchable_cols
                 if "api_endpoint" in config_to_use:
                     table_dict["api"] = config_to_use["api_endpoint"]
                 if "api_params" in config_to_use:

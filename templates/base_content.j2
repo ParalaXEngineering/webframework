@@ -46,7 +46,14 @@
 
       (function initDT_{{ table_id }}() {
         {% set all_indices = range(0, addon['ajax_columns']|length) %}
-        {% set pane_indices = addon.get('columns') if addon.get('columns') is not none else all_indices|list %}
+        {# Logic: None or not present = all columns, [] = no panes, [1,2] = specific columns #}
+        {% if 'columns' in addon and addon.columns is not none %}
+          {% set pane_indices = addon.columns %}
+          {% set panes_disabled = (addon.columns|length == 0) %}
+        {% else %}
+          {% set pane_indices = all_indices|list %}
+          {% set panes_disabled = false %}
+        {% endif %}
         {% set non_pane_indices = [] %}
         {% for i in all_indices %}
           {% if i not in pane_indices %}
@@ -60,9 +67,11 @@
         console.log('Table: {{ table_id }}');
         console.log('  Total columns: {{ addon['ajax_columns']|length }}');
         console.log('  Pane indices (should show): {{ pane_indices|list }}');
+        console.log('  Panes disabled: {{ panes_disabled }}');
         console.log('  Non-pane indices (should hide): {{ non_pane_indices|list }}');
 
-        // Build SearchPanes config
+        {% if not panes_disabled %}
+        // Build SearchPanes config (only if panes are enabled)
         // CRITICAL: In DT2 with layout API, you MUST specify columns array to force show/hide
         const panesConfig_{{ table_id }} = {
           cascadePanes: true,
@@ -71,6 +80,7 @@
           viewTotal: true
           {% endif %}
         };
+        {% endif %}
 
         const opts_{{ table_id }} = {
           {% if addon.get('data') and not is_ssp %}
@@ -92,6 +102,7 @@
             {% endfor %}
           ],
 
+          {% if not panes_disabled %}
           columnDefs: [
             // Custom render function for SearchPanes with orthogonal data
             // This enables comma-separated values to be split into individual options
@@ -133,21 +144,25 @@
               }
             }
           ],
+          {% endif %}
 
           stateSave: true,
 
-          // DT2: explicitly place SearchPanes in the layout so it appears
-          // Use 'top' instead of 'topStart' to make SearchPanes use full width
+          // DT2: layout configuration
           layout: {
+            {% if not panes_disabled %}
             top: 'searchPanes',
+            {% endif %}
             topStart: 'pageLength',
             topEnd: 'search',
             bottomStart: 'info',
             bottomEnd: 'paging'
-          },
+          }
           
-          // SearchPanes configuration
-          searchPanes: panesConfig_{{ table_id }}
+          {% if not panes_disabled %}
+          // SearchPanes configuration (only if panes are enabled)
+          ,searchPanes: panesConfig_{{ table_id }}
+          {% endif %}
 
           {% if addon.get("order") %},
           order: {{ addon["order"] | tojson }}
