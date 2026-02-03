@@ -43,7 +43,14 @@ def authorize_refresh(f):
 
 
 def setup_app(app):
+    import socket
+    hostname = socket.gethostname()
+    on_target = "al70x" in hostname
+    
     app.config["SESSION_TYPE"] = "filesystem"
+    # Use /tmp for session files on target (read-only filesystem)
+    if on_target:
+        app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"
     app.config['TEMPLATES_AUTO_RELOAD'] = False
     app.config["SECRET_KEY"] = "super secret key"
     app.config["PROPAGATE_EXCEPTIONS"] = False

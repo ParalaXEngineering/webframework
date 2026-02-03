@@ -16,22 +16,19 @@ bp = Blueprint("common", __name__, url_prefix="/common")
 @bp.route("/download", methods=["GET"])
 def download():
     """Page that handle a download request by serving the file through flask"""
-    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-        base_path = os.path.join(
-            os.path.dirname(sys.executable),
-            "ressources",
-            "downloads",
-            request.args.to_dict()["file"],
-        )
-        send_path = base_path
-    else:
-        send_path = os.path.join("..", "..", "..", "ressources", "downloads", request.args.to_dict()["file"])
-        base_path = os.path.join("ressources", "downloads", request.args.to_dict()["file"])
+    filename = request.args.to_dict()["file"]
+    
+    # Use get_writable_path to find the file in the correct location
+    # (redirects to /tmp on target)
+    base_path = utilities.get_writable_path(
+        os.path.join("ressources", "downloads", filename),
+        create_dirs=False
+    )
 
     if not os.path.exists(base_path):
         return render_template("404.j2")
 
-    return send_file(send_path, as_attachment=True)
+    return send_file(base_path, as_attachment=True)
 
 
 @bp.route("/assets/<asset_type>/", methods=["GET"])

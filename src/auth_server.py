@@ -5,6 +5,7 @@ Runs on port 8080 and handles only the /auth route.
 from flask import Flask, render_template, request, redirect, session
 import os
 import sys
+import socket
 from datetime import datetime, timedelta
 
 def create_auth_app():
@@ -25,7 +26,14 @@ def create_auth_app():
         FileSystemLoader(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "templates"))
     ])
     
+    hostname = socket.gethostname()
+    on_target = "al70x" in hostname
+    
     auth_app.config["SESSION_TYPE"] = "filesystem"
+    # Use /tmp for session files on target (read-only filesystem)
+    # IMPORTANT: Must use the same session directory as main app for session sharing
+    if on_target:
+        auth_app.config["SESSION_FILE_DIR"] = "/tmp/flask_session"
     auth_app.config['TEMPLATES_AUTO_RELOAD'] = False
     auth_app.config["SECRET_KEY"] = "super secret key"
     auth_app.config["PROPAGATE_EXCEPTIONS"] = False

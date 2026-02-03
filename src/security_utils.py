@@ -5,13 +5,36 @@ Inclut: Stockage persistant des tentatives de connexion échouées
 
 import json
 import logging
+import socket
+import os
 from pathlib import Path
 from datetime import datetime, timedelta
 
 logger = logging.getLogger("website")
 
+
+def _get_lockout_file_path() -> Path:
+    """Get the lockout file path based on environment.
+    
+    On target (read-only filesystem), use ~/failed_logins.json for persistence.
+    Off target, use the current directory.
+    
+    :return: Path to the lockout file
+    :rtype: Path
+    """
+    hostname = socket.gethostname()
+    on_target = "al70x" in hostname
+    
+    if on_target:
+        # On target: use home directory for persistence
+        home_dir = os.path.expanduser("~")
+        return Path(home_dir) / "failed_logins.json"
+    else:
+        return Path("failed_logins.json")
+
+
 # Fichier de stockage persistant des tentatives échouées
-LOCKOUT_FILE = Path("failed_logins.json")
+LOCKOUT_FILE = _get_lockout_file_path()
 
 
 class FailedLoginManager:

@@ -8,6 +8,8 @@ import zlib
 import tarfile
 import time
 import re
+import socket
+import shutil
 
 from jinja2 import Environment, FileSystemLoader
 from flask import session
@@ -15,6 +17,77 @@ from submodules.framework.src import displayer
 
 CONFIG_GLOBAL = {}
 LAST_ACCESS_CONFIG = None
+CONFIG_FILE_PATH = None  # Cached config file path
+
+# Global on_target detection (cached)
+_ON_TARGET = None
+
+
+def is_on_target() -> bool:
+    """Check if running on target (read-only filesystem).
+    
+    :return: True if on target, False otherwise
+    :rtype: bool
+    """
+    global _ON_TARGET
+    if _ON_TARGET is None:
+        hostname = socket.gethostname()
+        _ON_TARGET = "al70x" in hostname
+    return _ON_TARGET
+
+
+def get_writable_path(relative_path: str, create_dirs: bool = True) -> str:
+    """Get a writable path for file operations.
+    
+    On target (read-only filesystem), paths are redirected to /tmp.
+    Off target, paths are used as-is.
+    
+    :param relative_path: The relative path (e.g., "ressources/downloads/file.json")
+    :param create_dirs: Whether to create parent directories if they don't exist
+    :return: The actual path to use for read/write operations
+    :rtype: str
+    """
+    if is_on_target():
+        # On target: redirect to /tmp, preserving directory structure
+        writable_path = os.path.join("/tmp/oufnis_data", relative_path)
+    else:
+        writable_path = relative_path
+    
+    if create_dirs:
+        parent_dir = os.path.dirname(writable_path)
+        if parent_dir:
+            os.makedirs(parent_dir, exist_ok=True)
+    
+    return writable_path
+
+
+def _get_config_file_path() -> str:
+    """Get the config file path, copying to /tmp on target if needed.
+    
+    On target (read-only filesystem), the config.json is copied to /tmp
+    on first access and that copy is used for read/write operations.
+    
+    :return: The path to the config file
+    :rtype: str
+    """
+    global CONFIG_FILE_PATH
+    
+    if CONFIG_FILE_PATH is not None:
+        return CONFIG_FILE_PATH
+    
+    source_path = "website/config.json"
+    
+    if is_on_target():
+        # On target: copy config to /tmp if not already done
+        tmp_path = "/tmp/config.json"
+        if not os.path.exists(tmp_path):
+            shutil.copy2(source_path, tmp_path)
+        CONFIG_FILE_PATH = tmp_path
+    else:
+        CONFIG_FILE_PATH = source_path
+    
+    return CONFIG_FILE_PATH
+
 
 def get_breadcrumbs():
     """
@@ -329,7 +402,7 @@ def util_read_parameters() -> dict:
     """
     global CONFIG_GLOBAL
     global LAST_ACCESS_CONFIG
-    config_file_path = "website/config.json"
+    config_file_path = _get_config_file_path()
     reload_interval = 10  # seconds
 
     # If it's the first access or more than 10 seconds have passed, reload the config
@@ -360,7 +433,8 @@ def util_write_parameters(data: dict):
     global CONFIG_GLOBAL
     global LAST_ACCESS_CONFIG
     
-    f = open("website/config.json", "w", encoding="utf-8")
+    config_file_path = _get_config_file_path()
+    f = open(config_file_path, "w", encoding="utf-8")
     json.dump(data, f, indent=4)
     f.close()
     
