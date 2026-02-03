@@ -129,18 +129,19 @@ def create_auth_app():
                 attempts_remaining = 5
 
         # Get app info for display
+        # Always on_target when using auth server on port 8080
+        on_target = True
+        app_name = "Web MNT App" if on_target else "OuFNis DFDIG"
+        
         app_info = {
-            "name": "OuFNis_DFDIG",
+            "name": app_name,
             "version": site_conf.Site_conf.m_globals.get("version", "1.0.0.0"),
             "icon": "ufo-outline"
         }
         
-        # Always on_target when using auth server on port 8080
-        on_target = True
-        
         return render_template("login.j2", target="auth", users=users, message=error_message, 
                              app=app_info, on_target=on_target, cooldown_remaining=cooldown_remaining,
-                             attempts_remaining=attempts_remaining, title="OuFNis_DFDIG", web_title="Auth")
+                             attempts_remaining=attempts_remaining, title=app_name, web_title="Auth")
     
     @common_bp.route("/assets/<asset_type>/", methods=["GET"])
     def assets(asset_type):
