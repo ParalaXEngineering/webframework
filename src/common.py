@@ -70,10 +70,10 @@ def login():
 
     error_message = None
 
-    # Sort users
+    # Sort users and remove GUEST if present
     users.sort()
-    if "GUEST" not in users:
-        users = ["GUEST"] + users
+    if "GUEST" in users:
+        users.remove("GUEST")
 
     if request.method == "POST":
         data_in = utilities.util_post_to_json(request.form.to_dict())

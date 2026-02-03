@@ -46,7 +46,7 @@
                             </div>
                         </div>
                         <div class="form-group position-relative has-icon-left mb-4">
-                            <input type="password" class="form-control form-control-xl" placeholder="Password" name="password" id="password" onkeypress="if(event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); document.getElementById('loginForm').submit(); }">
+                            <input type="password" class="form-control form-control-xl" placeholder="Password" name="password" id="password" onkeypress="if(event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); document.getElementById('loginForm').submit(); }" {% if on_target and cooldown_remaining and cooldown_remaining > 0 %}disabled{% endif %}>
                             <div class="form-control-icon">
                                 <i class="bi bi-shield-lock"></i>
                             </div>
@@ -54,11 +54,21 @@
                         {% if message %}
                         <div class="alert alert-danger" role="alert">
                             {{ message }}
+                            {% if on_target and cooldown_remaining and cooldown_remaining > 0 %}
+                                <div id="cooldown-timer" class="mt-2">
+                                    <strong>Time remaining: <span id="cooldown-seconds">{{ cooldown_remaining }}</span>s</strong>
+                                </div>
+                            {% endif %}
+                            {% if on_target and attempts_remaining is defined %}
+                                <div class="mt-2">
+                                    <strong>Attempts remaining: {{ attempts_remaining }}/5</strong>
+                                </div>
+                            {% endif %}
                         </div>
                         {% endif %}
                                 
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-5">Log in</button>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-5" id="login-button" {% if on_target and cooldown_remaining and cooldown_remaining > 0 %}disabled{% endif %}>Log in</button>
                     </form>
                 </div>
             </div>
@@ -82,6 +92,31 @@
     <script>
         // Variable globale injectée depuis Jinja
         var onTarget = {{ 'true' if on_target else 'false' }};
+        var cooldownRemaining = {{ cooldown_remaining if cooldown_remaining else 0 }};
+
+        // Cooldown timer for OnTarget mode
+        if (onTarget && cooldownRemaining > 0) {
+            var countdownInterval = setInterval(function() {
+                cooldownRemaining--;
+                var timerElement = document.getElementById('cooldown-seconds');
+                if (timerElement) {
+                    timerElement.textContent = cooldownRemaining;
+                }
+                
+                if (cooldownRemaining <= 0) {
+                    clearInterval(countdownInterval);
+                    // Re-enable the password field and button
+                    document.getElementById('password').disabled = false;
+                    document.getElementById('password').value = '';
+                    document.getElementById('login-button').disabled = false;
+                    // Remove the error message
+                    var alertDiv = document.querySelector('.alert-danger');
+                    if (alertDiv) {
+                        alertDiv.style.display = 'none';
+                    }
+                }
+            }, 1000);
+        }
 
         function updateImage() {
             var selectElement = document.getElementById("user");
@@ -117,7 +152,7 @@
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
     {% for script in javascript %}
-        <script src="{{ url_for('static', filename= 'js/' + script) }}"></script>
+        <script src="{{ url_for('common.assets', asset_type="js", filename= script) }}"></script>
     {% endfor %}
     {% block js %}{% endblock %}
     

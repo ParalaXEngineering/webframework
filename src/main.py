@@ -1,4 +1,4 @@
-from flask import Flask, render_template, session, request, g
+from flask import Flask, render_template, session, request, g, redirect, url_for
 from flask_session import Session
 
 from submodules.framework.src import utilities
@@ -51,6 +51,8 @@ def setup_app(app):
     Session(app)
 
     socketio_obj = SocketIO(app)
+    # Stocker socketio_obj dans app pour y accéder depuis d'autres modules
+    app.socketio = socketio_obj
     
     # Configure logging with appropriate paths
     log_utils.setup_logging()
@@ -100,6 +102,8 @@ def setup_app(app):
     app.register_blueprint(updater.bp)
     app.register_blueprint(packager.bp)
     app.register_blueprint(bug_tracker.bp)
+    
+    # Note: auth.bp is NOT registered here - it's only available on the auth server (port 8080 in OnTarget mode)
 
     # Register access manager
     access_manager.auth_object = access_manager.Access_manager()
@@ -132,8 +136,12 @@ def setup_app(app):
     site_conf.site_conf_obj.register_scheduler_lt_functions()
 
     @socketio_obj.on("user_connected")
-    def connect():
+    def connect(data=None):
         scheduler.scheduler_obj.m_user_connected = True
+
+    @socketio_obj.on("disconnect")
+    def disconnect():
+        scheduler.scheduler_obj.m_user_connected = False
 
     @socketio_obj.server.on("*")
     def catch_all(event, sid, *args):
@@ -161,8 +169,21 @@ def setup_app(app):
             user = access_manager.auth_object.get_user()
         else:
             user = None
+        
+        # Helper function to get login URL based on mode
+        def get_login_url():
+            if site_conf.site_conf_obj and site_conf.site_conf_obj.m_globals.get("on_target", False):
+                # OnTarget mode: use port 8080 for auth
+                return f"http://{request.host.split(':')[0]}:8080/auth"
+            else:
+                # Normal mode: use common.login
+                return url_for('common.login')
+        
         return dict(
-            endpoint=request.endpoint, page_info=session["page_info"], user=user
+            endpoint=request.endpoint, 
+            page_info=session["page_info"], 
+            user=user,
+            get_login_url=get_login_url
         )
 
     
@@ -198,7 +219,7 @@ def setup_app(app):
     def before_request():            
         g.start_time = time.time()
 
-        scheduler.scheduler_obj.m_user_connected = False
+        # Ne pas désactiver m_user_connected ici - géré par socketio
         if request.endpoint == "static":
             return
 
@@ -206,9 +227,30 @@ def setup_app(app):
         session["config"] = utilities.util_read_parameters()
 
         inject_bar()
+        
+        # Restrict GUEST access: only allow access to login page and static assets
+        if access_manager.auth_object.get_login():
+            current_user = access_manager.auth_object.get_user()
+            
+            # List of endpoints that GUEST users can access
+            allowed_endpoints_for_guest = [
+                'common.login',
+                'auth.auth',
+                'common.assets',
+                'static'
+            ]
+            
+            # If user is GUEST and trying to access a restricted page, redirect to login
+            if current_user == "GUEST" and request.endpoint not in allowed_endpoints_for_guest:
+                # Use /auth in OnTarget mode, otherwise /common/login
+                if site_conf.site_conf_obj and site_conf.site_conf_obj.m_globals.get("on_target", False):
+                    # Redirect to auth server on port 8080 (external redirect since auth blueprint is not registered here)
+                    return redirect(f"http://{request.host.split(':')[0]}:8080/auth")
+                else:
+                    return redirect(url_for('common.login'))
 
-    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-        webbrowser.open("http://127.0.0.1:5000/common/login")
+    # Browser opening is now handled by gui_wrapper.py with PyWebView
+    # No need to open browser automatically
 
 
 setup_app(app)

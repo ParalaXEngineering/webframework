@@ -18,6 +18,7 @@ import shutil
 import traceback
 import subprocess
 import copy
+import json
 
 
 class SETUP_Updater(threaded_action.Threaded_action):
@@ -71,6 +72,32 @@ class SETUP_Updater(threaded_action.Threaded_action):
             self.m_scheduler.emit_status(self.get_name(), "Applying update", 103)
             current_param = utilities.util_read_parameters() or {}
 
+            # --- Get list of files in archive before extraction ---
+            files_in_archive = set()
+            if platform.system().lower() == "windows":
+                with zipfile.ZipFile(os.path.join(self.m_file), mode="r") as zf:
+                    files_in_archive = {os.path.normpath(name) for name in zf.namelist()}
+            else:
+                with tarfile.open(os.path.join(self.m_file), mode="r:gz") as tf:
+                    files_in_archive = {os.path.normpath(member.name) for member in tf.getmembers() if member.isfile()}
+
+            # --- Clean obsolete files ---
+            # Remove files that exist in the installation but not in the new archive
+            base_path = "../"
+            obsolete_files = [".beta"]  # List of specific files to remove if not in archive
+            
+            for file_name in obsolete_files:
+                # Check in website directory
+                file_path = os.path.join(base_path, "core", "website", file_name)
+                normalized_path = os.path.normpath(os.path.join("core", "website", file_name))
+                
+                if os.path.exists(file_path) and normalized_path not in files_in_archive:
+                    try:
+                        os.remove(file_path)
+                        self.m_logger.info(f"Removed obsolete file: {file_path}")
+                    except Exception as e:
+                        self.m_logger.warning(f"Failed to remove obsolete file {file_path}: {e}")
+
             # --- Unzip / Untar ---
             if platform.system().lower() == "windows":
                 with zipfile.ZipFile(os.path.join(self.m_file), mode="r") as zf:
@@ -91,7 +118,9 @@ class SETUP_Updater(threaded_action.Threaded_action):
                     tf.extractall(path=dest)
 
             # Recharger le nouveau config.json (qui vient d'être écrasé par l'archive)
-            new_param = utilities.util_read_parameters() or {}
+            # IMPORTANT: Lire directement le fichier pour éviter le cache de util_read_parameters
+            with open("website/config.json", 'r', encoding="utf-8") as f:
+                new_param = json.load(f)
 
             # --- MERGE new_param -> current_param ---
             for topic, topic_data in new_param.items():
@@ -131,8 +160,13 @@ class SETUP_Updater(threaded_action.Threaded_action):
                         cur_topic[key] = copy.deepcopy(new_item)
 
                 # Supprimer les anciennes clés absentes du nouveau topic
+                # SAUF si elles ont persistent=true (on veut les garder)
                 for key in list(cur_topic.keys()):
                     if key not in topic_data:
+                        # Vérifier si c'est un paramètre persistent
+                        if isinstance(cur_topic[key], dict) and cur_topic[key].get('persistent'):
+                            # Ne pas supprimer les paramètres persistants
+                            continue
                         cur_topic.pop(key)
 
             # Supprimer les anciens topics absents du nouveau fichier
@@ -469,7 +503,7 @@ def update():
         )
 
         disp.add_display_item(displayer.DisplayerItemText("Create a new update with installer"), 0)
-        disp.add_display_item(displayer.DisplayerItemInputSelect("distrib", None, None, ["Windows", "Linux"]), 1)
+        disp.add_display_item(displayer.DisplayerItemInputSelect("distrib", None, None, ["Windows", "Linux", "4Target"]), 1)
         disp.add_display_item(displayer.DisplayerItemInputBox("is_beta", "Beta Version", False), 2)
         disp.add_display_item(displayer.DisplayerItemButton("create", "Create"), 3)
 

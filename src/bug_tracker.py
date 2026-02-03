@@ -47,6 +47,17 @@ def bugtracker():
             for version in versions:
                 if version.name == version_name:
                     version_redmine = version.id
+            
+            # Create version if it doesn't exist
+            if version_redmine == 0:
+                try:
+                    new_version = redmine.version.create(
+                        project_id=project_id,
+                        name=version_name
+                    )
+                    version_redmine = new_version.id
+                except Exception as e:
+                    return render_template("failure.j2", message=f"Version creation failed with the following message: {e}")
 
             # Determine log path based on on_target status
             hostname = socket.gethostname()

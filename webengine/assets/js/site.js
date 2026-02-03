@@ -342,28 +342,39 @@ function scrollToBottom() {
 
 function send_terminal() {
     var socket = io.connect('http://' + document.domain + ':' + location.port);
-    var inputElement = document.getElementById('terminal_input'); // C'est l'élément d'input lui-même
-    var command = inputElement.value; // C'est la valeur de l'input
-    socket.emit('terminal_cmd', command);
-    inputElement.value = ""; // Réinitialisez l'élément d'input ici
+    var inputElement = document.getElementById('terminal_input');
+    var command = inputElement.value;
     
-    // Créez une instance de MutationObserver pour surveiller les changements dans le terminal
-    var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.addedNodes.length) {
-                scrollToBottom();
-            }
-        });
-    });
+    if (!command.trim()) {
+        return; // Ne rien envoyer si la commande est vide
+    }
+    
+    // Afficher la commande dans le terminal avec un prompt
+    var terminalContent = document.getElementById('terminal-user-content');
+    var promptLine = document.createElement('div');
+    promptLine.style.color = '#4ec9b0';
+    promptLine.innerHTML = '<span style="color: #4ec9b0; font-weight: bold;">user@host:~$</span> <span style="color: #d4d4d4;">' + escapeHtml(command) + '</span>';
+    terminalContent.appendChild(promptLine);
+    
+    socket.emit('terminal_cmd', command);
+    inputElement.value = "";
+    
+    // Auto-scroll si activé
+    if (typeof autoScroll !== 'undefined' && autoScroll) {
+        scrollToBottom();
+    }
+}
 
-    // Configuration de l'observer :
-    var config = { childList: true };
-
-    // Ciblez l'élément à observer :
-    var target = document.getElementById('terminal-user-content');
-
-    // Commencez à observer le target pour les mutations configurées
-    observer.observe(target, config);
+// Fonction pour échapper les caractères HTML
+function escapeHtml(text) {
+    var map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 function saveScrollPosition() {
@@ -373,10 +384,83 @@ function saveScrollPosition() {
     document.getElementById('your-form-id').submit();
 }
 
-$(document).ready(function() {    
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
-    setTimeout(test_connect, 1000)
-    function test_connect(){socket.emit("user_connected") }
+$(document).ready(function() {
+    // Vérifier si on est dans une iframe
+    const isInIframe = window.self !== window.top;
+    
+    let socket;
+    
+    if (isInIframe) {
+        // Dans une iframe : créer un faux objet socket qui utilise postMessage
+        socket = {
+            emit: function(eventName, data) {
+                // Envoyer au parent pour qu'il émette via le vrai socket
+                window.parent.postMessage({
+                    action: 'socket_emit',
+                    eventName: eventName,
+                    data: data
+                }, '*');
+            },
+            on: function(eventName, callback) {
+                // Les événements arrivent via postMessage depuis le parent
+                window.addEventListener('message', function(event) {
+                    if (event.data && event.data.action === 'socket_event' && event.data.eventName === eventName) {
+                        callback(event.data.data);
+                    }
+                });
+            },
+            onAny: function(callback) {
+                // Écouter tous les événements socket relayés
+                window.addEventListener('message', function(event) {
+                    if (event.data && event.data.action === 'socket_event') {
+                        callback(event.data.eventName, event.data.data);
+                    }
+                });
+            }
+        };
+        
+        console.log('Running in iframe - using postMessage bridge');
+    } else {
+        // Hors iframe : connexion socket.io normale
+        socket = io.connect('http://' + document.domain + ':' + location.port, {
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionAttempts: Infinity
+        });
+        
+        console.log('Running in parent window - direct socket connection');
+    }
+    
+    // Émettre user_connected immédiatement et régulièrement
+    function test_connect(){
+        socket.emit("user_connected");
+    }
+    
+    // Connexion initiale - immédiate dans iframe, avec délai sinon
+    if (isInIframe) {
+        // Dans iframe : connexion immédiate pour récupérer les status en queue
+        test_connect();
+        // Puis à nouveau après 100ms pour être sûr
+        setTimeout(test_connect, 100);
+    } else {
+        // Hors iframe : délai normal
+        setTimeout(test_connect, 100);
+    }
+    
+    // Heartbeat toutes les 5 secondes pour maintenir m_user_connected à True
+    setInterval(test_connect, 5000);
+    
+    // Réémettre user_connected lors de la reconnexion (seulement si socket réel)
+    if (!isInIframe && socket.on) {
+        socket.on('connect', function() {
+            console.log('Socket connected');
+            test_connect();
+        });
+        
+        socket.on('disconnect', function() {
+            console.log('Socket disconnected');
+        });
+    }
 
     // Append overlay to body
     $('body').append(`
@@ -542,7 +626,7 @@ $(document).ready(function() {
             let div = document.getElementById(id)
             if(div)
                 // div.outerHTML = '<button class="mx-1 btn btn-' + msg[id][2] + '" id="' + id + '"><h2><i class="mdi mdi-' + msg[id][0] + ' text-light mx-1"></i></h2>' + msg[id][1] + '</button>'
-                if (id == "ppu_stat" || id == "hmi_stat")
+                if (id == "ppu_stat" || id == "hmi_stat" || id == "ppu_stat2" || id == "hmi_stat2")
                     div.outerHTML = '<button class="mx-1 btn btn-' + msg[id][2] + '" id="' + id + '"><h2><i class="mdi mdi-' + msg[id][0] + ' text-light mx-1"></i></h2>' + msg[id][1] + '</button>'
                 else
                 div.outerHTML = '<button class="mx-1 btn btn-' + msg[id][2] + '" id="' + id + '" style="font-size: 0.7em; margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0;"><i class="mdi mdi-' + msg[id][0] + ' text-light mx-1" style="font-size: 2em; margin: 0; padding: 0;"><br></i>' + msg[id][1] + '</button>'
