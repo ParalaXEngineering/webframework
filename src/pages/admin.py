@@ -310,6 +310,9 @@ def manage_permissions():
                 
                 # Get all modules and groups to rebuild permissions
                 all_modules = permission_registry.get_all_modules()
+                # Filter out module-specific Tracker permissions (Tracker:123 etc.)
+                # These are managed per-module in the module edit page
+                all_modules = [m for m in all_modules if not (m.startswith("Tracker:") and ":" in m)]
                 all_groups = app_context.auth_manager.get_all_groups()
                 
                 # Build new permissions from form data
@@ -343,6 +346,9 @@ def manage_permissions():
     
     # Get all modules and groups (excluding admin)
     all_modules = permission_registry.get_all_modules()
+    # Filter out module-specific Tracker permissions (Tracker:123 etc.)
+    # These are managed per-module in the module edit page
+    all_modules = [m for m in all_modules if not (m.startswith("Tracker:") and ":" in m)]
     all_groups = [g for g in app_context.auth_manager.get_all_groups() if g != SYSTEM_ADMIN_GROUP]  # type: ignore
     
     if not all_modules:

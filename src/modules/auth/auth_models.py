@@ -58,19 +58,22 @@ class ModulePermission:
     """Permission definition for a module."""
     module_name: str
     groups: Dict[str, List[str]] = field(default_factory=dict)  # {group: [actions]}
+    overwrite: bool = False  # If True, use specific permissions; if False, inherit from parent
     
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
-        return {
-            "groups": self.groups
-        }
+        result = {"groups": self.groups}
+        if self.overwrite:  # Only include if True to keep JSON clean
+            result["overwrite"] = True
+        return result
     
     @classmethod
     def from_dict(cls, module_name: str, data: dict) -> 'ModulePermission':
         """Create ModulePermission from dictionary."""
         return cls(
             module_name=module_name,
-            groups=data.get("groups", {})
+            groups=data.get("groups", {}),
+            overwrite=data.get("overwrite", False)
         )
 
 

@@ -620,6 +620,96 @@ class AuthManager:
         """
         return sorted(self._permissions.keys())
     
+    def has_overwrite(self, module_name: str) -> bool:
+        """
+        Check if a module has the overwrite flag set.
+        
+        When overwrite is True, the module uses its own specific permissions.
+        When overwrite is False or the module doesn't exist, it should inherit
+        from its parent module (e.g., "Tracker:123" inherits from "Tracker").
+        
+        Args:
+            module_name: Module name (e.g., "Tracker:123")
+            
+        Returns:
+            True if module exists in permissions AND has overwrite=True
+        """
+        module_perm = self._permissions.get(module_name)
+        if not module_perm:
+            return False
+        return module_perm.overwrite
+    
+    def set_module_overwrite(self, module_name: str, overwrite: bool,
+                             inherit_from: Optional[str] = None) -> None:
+        """
+        Set the overwrite flag for a module.
+        
+        Args:
+            module_name: Module name
+            overwrite: Whether to use custom permissions (True) or inherit (False)
+            inherit_from: If enabling overwrite, optionally copy permissions from this module
+        """
+        if overwrite:
+            # Enabling override
+            if module_name not in self._permissions:
+                self._permissions[module_name] = ModulePermission(module_name)
+            
+            # Optionally copy from parent
+            if inherit_from and inherit_from in self._permissions:
+                parent_perm = self._permissions[inherit_from]
+                self._permissions[module_name].groups = {
+                    group: list(actions) for group, actions in parent_perm.groups.items()
+                }
+            
+            self._permissions[module_name].overwrite = True
+        else:
+            # Disabling override - remove entry entirely (will inherit from parent)
+            if module_name in self._permissions:
+                del self._permissions[module_name]
+        
+        self._save_permissions()
+    
+    def get_effective_permissions(self, module_name: str) -> Dict[str, List[str]]:
+        """
+        Get the effective permissions for a module, considering inheritance.
+        
+        If the module has overwrite=True, returns its specific permissions.
+        Otherwise, returns the parent module's permissions.
+        
+        Args:
+            module_name: Module name (e.g., "Tracker:123")
+            
+        Returns:
+            Dictionary of {group: [actions]} that will actually apply
+        """
+        # Check if module has overwrite
+        if self.has_overwrite(module_name):
+            module_perm = self._permissions.get(module_name)
+            return module_perm.groups.copy() if module_perm else {}
+        
+        # No overwrite - find parent by removing the :ID suffix
+        if ":" in module_name:
+            parent_name = module_name.split(":")[0]  # "Tracker:123" -> "Tracker"
+            parent_perm = self._permissions.get(parent_name)
+            return parent_perm.groups.copy() if parent_perm else {}
+        
+        # No parent (this IS the parent)
+        module_perm = self._permissions.get(module_name)
+        return module_perm.groups.copy() if module_perm else {}
+    
+    def remove_module_permissions(self, module_name: str) -> None:
+        """
+        Remove a module's permissions entirely.
+        
+        After removal, the module will inherit permissions from its parent.
+        
+        Args:
+            module_name: Module name to remove
+        """
+        if module_name in self._permissions:
+            del self._permissions[module_name]
+            self._save_permissions()
+    
     # ==================== User Preferences ====================
     
     def get_user_prefs(self, username: str) -> dict:
