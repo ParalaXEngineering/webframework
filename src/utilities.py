@@ -66,6 +66,7 @@ def _get_config_file_path() -> str:
     
     On target (read-only filesystem), the config.json is copied to /tmp
     on first access and that copy is used for read/write operations.
+    If source file is newer, it replaces the tmp copy.
     
     :return: The path to the config file
     :rtype: str
@@ -78,10 +79,22 @@ def _get_config_file_path() -> str:
     source_path = "website/config.json"
     
     if is_on_target():
-        # On target: copy config to /tmp if not already done
+        # On target: copy config to /tmp if not already done or if source is newer
         tmp_path = "/tmp/config.json"
+        should_copy = False
+        
         if not os.path.exists(tmp_path):
+            should_copy = True
+        elif os.path.exists(source_path):
+            # Re-copy if source is newer (e.g., after update)
+            source_mtime = os.path.getmtime(source_path)
+            tmp_mtime = os.path.getmtime(tmp_path)
+            if source_mtime > tmp_mtime:
+                should_copy = True
+        
+        if should_copy:
             shutil.copy2(source_path, tmp_path)
+        
         CONFIG_FILE_PATH = tmp_path
     else:
         CONFIG_FILE_PATH = source_path

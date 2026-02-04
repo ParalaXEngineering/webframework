@@ -8,8 +8,6 @@ from submodules.framework.src import displayer
 from submodules.framework.src import site_conf
 from submodules.framework.src import User_defined_module
 
-from redminelib import Redmine
-
 bp = Blueprint("bug", __name__, url_prefix="/bug")
 
 
@@ -23,6 +21,7 @@ def bugtracker():
 
     if not site_conf.Site_conf.m_globals["on_target"]:
         import urllib3
+        from redminelib import Redmine
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
         try:

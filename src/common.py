@@ -8,7 +8,6 @@ from submodules.framework.src import User_defined_module
 
 import os
 import sys
-import markdown
 
 bp = Blueprint("common", __name__, url_prefix="/common")
 
@@ -96,6 +95,12 @@ def login():
 
 @bp.route("/help", methods=["GET"])
 def help():
+    # Help is not available on target (no markdown files and no markdown module)
+    if site_conf.Site_conf.m_globals.get("on_target", False):
+        return "Help not available on target", 404
+    
+    import markdown
+    
     data_in = request.args.to_dict()
     try:
         topic = data_in["topic"]

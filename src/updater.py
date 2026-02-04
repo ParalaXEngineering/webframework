@@ -42,9 +42,10 @@ class SETUP_Updater(threaded_action.Threaded_action):
         """
         self.m_file = file
 
-    def set_distribution(self, distribution: str, is_beta: bool = False) -> None:
+    def set_distribution(self, distribution: str, is_beta: bool = False, server_port: str = "0") -> None:
         self.m_distribution = distribution
         self.m_is_beta = is_beta
+        self.m_server_port = server_port
 
     def set_action(self, action: str) -> None:
         """Set the action to perform
@@ -316,7 +317,7 @@ class SETUP_Updater(threaded_action.Threaded_action):
             )
 
             try:
-                site_conf_obj.create_distribuate(self.m_distribution, self.m_is_beta)
+                site_conf_obj.create_distribuate(self.m_distribution, self.m_is_beta, self.m_server_port)
             except Exception as e:
                 traceback_str = traceback.format_exc()
                 self.m_logger.warning("Update creation failed: " + str(e))
@@ -451,7 +452,7 @@ def update():
         if "create" in data_in:
             packager = SETUP_Updater()
             packager.set_action("create")
-            packager.set_distribution(data_in["distrib"], data_in.get("is_beta", False))
+            packager.set_distribution(data_in["distrib"], data_in.get("is_beta", False), data_in.get("server_port", "0"))
             packager.start()
         elif "upload" in data_in:
             packager = SETUP_Updater()
@@ -491,9 +492,10 @@ def update():
         disp.add_master_layout(
             displayer.DisplayerLayout(
                 displayer.Layouts.VERTICAL,
-                [3, 3, 3, 3],
+                [3, 3, 2, 1, 3],
                 subtitle="Update Creation",
                 alignment=[
+                    displayer.BSalign.L,
                     displayer.BSalign.L,
                     displayer.BSalign.L,
                     displayer.BSalign.L,
@@ -505,7 +507,8 @@ def update():
         disp.add_display_item(displayer.DisplayerItemText("Create a new update with installer"), 0)
         disp.add_display_item(displayer.DisplayerItemInputSelect("distrib", None, None, ["Windows", "Linux", "4Target"]), 1)
         disp.add_display_item(displayer.DisplayerItemInputBox("is_beta", "Beta Version", False), 2)
-        disp.add_display_item(displayer.DisplayerItemButton("create", "Create"), 3)
+        disp.add_display_item(displayer.DisplayerItemInputNumeric("server_port", "Port", "0"), 3)
+        disp.add_display_item(displayer.DisplayerItemButton("create", "Create"), 4)
 
         disp.add_master_layout(
             displayer.DisplayerLayout(

@@ -110,7 +110,10 @@ def setup_app(app):
     app.register_blueprint(packager.bp)
     app.register_blueprint(bug_tracker.bp)
     
-    # Note: auth.bp is NOT registered here - it's only available on the auth server (port 8080 in OnTarget mode)
+    # Register auth blueprint on target (single server mode - same Flask session)
+    if on_target:
+        from submodules.framework.src import auth
+        app.register_blueprint(auth.bp)
 
     # Register access manager
     access_manager.auth_object = access_manager.Access_manager()
@@ -249,10 +252,9 @@ def setup_app(app):
             
             # If user is GUEST and trying to access a restricted page, redirect to login
             if current_user == "GUEST" and request.endpoint not in allowed_endpoints_for_guest:
-                # Use /auth in OnTarget mode, otherwise /common/login
+                # Use /auth in OnTarget mode (same server), otherwise /common/login
                 if site_conf.site_conf_obj and site_conf.site_conf_obj.m_globals.get("on_target", False):
-                    # Redirect to auth server on port 8080 (external redirect since auth blueprint is not registered here)
-                    return redirect(f"http://{request.host.split(':')[0]}:8080/auth")
+                    return redirect(url_for('auth.auth'))
                 else:
                     return redirect(url_for('common.login'))
 
