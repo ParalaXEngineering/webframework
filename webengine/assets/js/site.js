@@ -600,6 +600,12 @@ $(document).ready(function() {
     })
 
     socket.on( 'popup', function( msg ) {
+        // Ne pas afficher les popups dans le parent quand le système d'onglets est actif
+        // (le popup sera affiché dans l'iframe via postMessage)
+        if (!isInIframe && document.getElementById('tab-bar')) {
+            return;
+        }
+        
         for(let level of Object.keys(msg))
         {
             if(level != 4)
