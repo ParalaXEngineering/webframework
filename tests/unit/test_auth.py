@@ -421,3 +421,106 @@ class TestAuthManagerLoginAttempts:
         # Still locked after reload
         is_locked_after, _ = manager.failed_login_manager.is_locked("testuser")
         assert is_locked_after
+
+
+class TestCaseInsensitiveUsernames:
+    """Test case-insensitive username handling in AuthManager."""
+    
+    def test_get_user_case_insensitive(self, auth_manager_instance):
+        """get_user finds users regardless of case."""
+        manager = auth_manager_instance
+        manager.create_user("MixedCase", "pass", ["users"], "Mixed")
+        
+        assert manager.get_user("MixedCase") is not None
+        assert manager.get_user("mixedcase") is not None
+        assert manager.get_user("MIXEDCASE") is not None
+    
+    def test_create_user_normalizes_username(self, auth_manager_instance):
+        """Username stored in lowercase internally."""
+        manager = auth_manager_instance
+        manager.create_user("UPPER", "pass", ["users"])
+        
+        user = manager.get_user("upper")
+        assert user is not None
+        assert user.username == "upper"
+    
+    def test_duplicate_detection_case_insensitive(self, auth_manager_instance):
+        """Cannot create users that differ only in case."""
+        manager = auth_manager_instance
+        assert manager.create_user("alice", "pass", ["users"])
+        assert not manager.create_user("Alice", "pass", ["users"])
+        assert not manager.create_user("ALICE", "pass", ["users"])
+    
+    def test_has_permission_case_insensitive(self, auth_manager_instance):
+        """Permission checks work with any username case."""
+        manager = auth_manager_instance
+        manager.create_user("TestUser", "pass", ["testers"])
+        manager.set_module_permissions("App", "testers", ["view", "edit"])
+        
+        assert manager.has_permission("testuser", "App", "view")
+        assert manager.has_permission("TESTUSER", "App", "view")
+        assert manager.has_permission("TestUser", "App", "edit")
+    
+    def test_verify_login_case_insensitive(self, auth_manager_instance):
+        """Login works with any username case."""
+        manager = auth_manager_instance
+        manager.create_user("Alice", "secret", ["users"])
+        
+        assert manager.verify_login("alice", "secret")
+        assert manager.verify_login("ALICE", "secret")
+        assert manager.verify_login("Alice", "secret")
+    
+    def test_persistence_after_reload(self, auth_manager_instance):
+        """Case normalization persists across reload."""
+        manager = auth_manager_instance
+        manager.create_user("MixedCase", "pass", ["users"])
+        
+        manager.reload()
+        
+        user = manager.get_user("MIXEDCASE")
+        assert user is not None
+        assert user.username == "mixedcase"
+    
+    def test_default_users_case_insensitive(self, auth_manager_instance):
+        """Default admin/guest users accessible with any case."""
+        manager = auth_manager_instance
+        # AuthManager creates 'admin' and 'guest' by default
+        assert manager.get_user("ADMIN") is not None
+        assert manager.get_user("Admin") is not None
+        assert manager.get_user("GUEST") is not None
+        assert manager.get_user("Guest") is not None
+    
+    def test_update_password_case_insensitive(self, auth_manager_instance):
+        """Password update works with different case."""
+        manager = auth_manager_instance
+        manager.create_user("alice", "old", ["users"])
+        
+        assert manager.update_user_password("ALICE", "new")
+        assert manager.verify_login("alice", "new")
+    
+    def test_delete_user_case_insensitive(self, auth_manager_instance):
+        """Delete works with different case."""
+        manager = auth_manager_instance
+        manager.create_user("alice", "pass", ["users"])
+        
+        assert manager.delete_user("ALICE")
+        assert manager.get_user("alice") is None
+    
+    def test_update_groups_case_insensitive(self, auth_manager_instance):
+        """Group update works with different case."""
+        manager = auth_manager_instance
+        manager.create_user("alice", "pass", ["users"])
+        
+        manager.update_user_groups("ALICE", ["admin", "users"])
+        user = manager.get_user("alice")
+        assert "admin" in user.groups
+    
+    def test_get_user_permissions_case_insensitive(self, auth_manager_instance):
+        """get_user_permissions works with any username case."""
+        manager = auth_manager_instance
+        manager.create_user("alice", "pass", ["users"])
+        manager.set_module_permissions("App", "users", ["read", "write"])
+        
+        perms = manager.get_user_permissions("ALICE", "App")
+        assert "read" in perms
+        assert "write" in perms

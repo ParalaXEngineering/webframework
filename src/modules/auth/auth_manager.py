@@ -93,6 +93,21 @@ class AuthManager:
         # Load data
         self.reload()
     
+    @staticmethod
+    def _normalize_username(username: str) -> str:
+        """Normalize username to lowercase for case-insensitive lookups.
+
+        All usernames are stored and looked up in lowercase to prevent
+        case-sensitivity issues (e.g., 'GUEST' vs 'guest').
+
+        Args:
+            username: Raw username string
+
+        Returns:
+            Lowercased username
+        """
+        return username.lower() if username else username
+
     def _initialize_defaults(self):
         """Create default users and permissions if files don't exist."""
         if not self.users_file.exists():
@@ -146,12 +161,16 @@ class AuthManager:
         self._load_groups()
     
     def _load_users(self):
-        """Load users from JSON file."""
+        """Load users from JSON file.
+
+        Usernames are normalized to lowercase for case-insensitive lookups.
+        """
         self._users.clear()
         if self.users_file.exists():
             data = self._load_json(self.users_file)
             for username, user_data in data.items():
-                self._users[username] = User.from_dict(username, user_data)
+                normalized = self._normalize_username(username)
+                self._users[normalized] = User.from_dict(normalized, user_data)
     
     def _load_permissions(self):
         """Load permissions from JSON file."""
@@ -217,7 +236,7 @@ class AuthManager:
     
     def get_user(self, username: str) -> Optional[User]:
         """
-        Get user by username.
+        Get user by username (case-insensitive).
         
         Args:
             username: The username to look up
@@ -225,7 +244,7 @@ class AuthManager:
         Returns:
             User object if found, None otherwise
         """
-        return self._users.get(username)
+        return self._users.get(self._normalize_username(username))
     
     def get_all_users(self) -> List[User]:
         """
@@ -251,11 +270,12 @@ class AuthManager:
         Returns:
             True if created, False if user already exists
         """
-        if username in self._users:
+        normalized = self._normalize_username(username)
+        if normalized in self._users:
             return False
         
         user = User(
-            username=username,
+            username=normalized,
             password_hash=hash_password(password) if password else "",
             groups=groups,
             display_name=display_name or username,
@@ -265,11 +285,11 @@ class AuthManager:
             last_login=None
         )
         
-        self._users[username] = user
+        self._users[normalized] = user
         self._save_users()
         
         # Create default preferences
-        prefs_file = self.user_prefs_dir / f"{username}.json"
+        prefs_file = self.user_prefs_dir / f"{normalized}.json"
         self._save_json(prefs_file, get_default_user_prefs())
         
         return True
@@ -284,14 +304,15 @@ class AuthManager:
         Returns:
             True if deleted, False if user not found
         """
-        if username not in self._users:
+        normalized = self._normalize_username(username)
+        if normalized not in self._users:
             return False
         
-        del self._users[username]
+        del self._users[normalized]
         self._save_users()
         
         # Delete user preferences
-        prefs_file = self.user_prefs_dir / f"{username}.json"
+        prefs_file = self.user_prefs_dir / f"{normalized}.json"
         if prefs_file.exists():
             prefs_file.unlink()
         
@@ -308,7 +329,7 @@ class AuthManager:
         Returns:
             True if updated, False if user not found
         """
-        user = self._users.get(username)
+        user = self._users.get(self._normalize_username(username))
         if not user:
             return False
         
@@ -327,7 +348,7 @@ class AuthManager:
         Returns:
             True if updated, False if user not found
         """
-        user = self._users.get(username)
+        user = self._users.get(self._normalize_username(username))
         if not user:
             return False
         
@@ -348,7 +369,7 @@ class AuthManager:
         Returns:
             True if updated, False if user not found
         """
-        user = self._users.get(username)
+        user = self._users.get(self._normalize_username(username))
         if not user:
             return False
         
@@ -371,7 +392,7 @@ class AuthManager:
         Returns:
             True if updated, False if user not found
         """
-        user = self._users.get(username)
+        user = self._users.get(self._normalize_username(username))
         if not user:
             return False
         
@@ -386,7 +407,7 @@ class AuthManager:
         Args:
             username: Username to update
         """
-        user = self._users.get(username)
+        user = self._users.get(self._normalize_username(username))
         if user:
             user.last_login = datetime.now().isoformat()
             self._save_users()
@@ -395,7 +416,7 @@ class AuthManager:
     
     def verify_login(self, username: str, password: str) -> bool:
         """
-        Verify login credentials.
+        Verify login credentials (case-insensitive username).
         
         Args:
             username: Username
@@ -404,7 +425,7 @@ class AuthManager:
         Returns:
             True if credentials valid
         """
-        user = self._users.get(username)
+        user = self._users.get(self._normalize_username(username))
         if not user:
             return False
         
@@ -454,8 +475,8 @@ class AuthManager:
             error_message = ERROR_AUTH_ACCOUNT_LOCKED.format(minutes=minutes, seconds=seconds)
             return (False, error_message)
         
-        # Check if user exists
-        user = self._users.get(username)
+        # Check if user exists (case-insensitive)
+        user = self._users.get(self._normalize_username(username))
         if not user:
             error_message = str(ERROR_AUTH_USER_DOES_NOT_EXIST)
             return (False, error_message)
@@ -502,7 +523,7 @@ class AuthManager:
             username: Username to set as current user
         """
         session.permanent = True
-        session['user'] = username
+        session['user'] = self._normalize_username(username)
     
     def logout_current_user(self):
         """Logout current user."""
@@ -513,6 +534,8 @@ class AuthManager:
     def has_permission(self, username: str, module_name: str, action: str) -> bool:
         """
         Check if user has permission to perform action on module.
+
+        Username lookup is case-insensitive.
         
         Args:
             username: Username
@@ -522,7 +545,7 @@ class AuthManager:
         Returns:
             True if user has permission
         """
-        user = self._users.get(username)
+        user = self._users.get(self._normalize_username(username))
         if not user:
             return False
         
@@ -546,6 +569,8 @@ class AuthManager:
     def get_user_permissions(self, username: str, module_name: str) -> List[str]:
         """
         Get all permissions user has for a module.
+
+        Username lookup is case-insensitive.
         
         Args:
             username: Username
@@ -554,7 +579,7 @@ class AuthManager:
         Returns:
             List of action names user can perform
         """
-        user = self._users.get(username)
+        user = self._users.get(self._normalize_username(username))
         if not user:
             return []
         
@@ -722,7 +747,7 @@ class AuthManager:
         Returns:
             User preferences dictionary
         """
-        prefs_file = self.user_prefs_dir / f"{username}.json"
+        prefs_file = self.user_prefs_dir / f"{self._normalize_username(username)}.json"
         if prefs_file.exists():
             return self._load_json(prefs_file)
         return get_default_user_prefs()
@@ -738,7 +763,7 @@ class AuthManager:
         Returns:
             True if saved successfully
         """
-        prefs_file = self.user_prefs_dir / f"{username}.json"
+        prefs_file = self.user_prefs_dir / f"{self._normalize_username(username)}.json"
         self._save_json(prefs_file, prefs)
         return True
     
@@ -753,7 +778,7 @@ class AuthManager:
         Returns:
             Module-specific preferences dictionary
         """
-        prefs = self.get_user_prefs(username)
+        prefs = self.get_user_prefs(self._normalize_username(username))
         return prefs.get("module_settings", {}).get(module_name, {})
     
     def save_user_module_prefs(self, username: str, module_name: str, module_prefs: dict) -> bool:
@@ -768,7 +793,8 @@ class AuthManager:
         Returns:
             True if saved successfully
         """
-        prefs = self.get_user_prefs(username)
+        normalized = self._normalize_username(username)
+        prefs = self.get_user_prefs(normalized)
         if "module_settings" not in prefs:
             prefs["module_settings"] = {}
         prefs["module_settings"][module_name] = module_prefs
@@ -785,7 +811,7 @@ class AuthManager:
         Returns:
             Override value or None if not set
         """
-        prefs = self.get_user_prefs(username)
+        prefs = self.get_user_prefs(self._normalize_username(username))
         return prefs.get("framework_overrides", {}).get(setting_key)
     
     def set_user_framework_override(self, username: str, setting_key: str, value) -> bool:
@@ -800,7 +826,7 @@ class AuthManager:
         Returns:
             True if saved successfully
         """
-        prefs = self.get_user_prefs(username)
+        prefs = self.get_user_prefs(self._normalize_username(username))
         if "framework_overrides" not in prefs:
             prefs["framework_overrides"] = {}
         prefs["framework_overrides"][setting_key] = value
@@ -817,7 +843,7 @@ class AuthManager:
         Returns:
             True if saved successfully
         """
-        prefs = self.get_user_prefs(username)
+        prefs = self.get_user_prefs(self._normalize_username(username))
         if "framework_overrides" in prefs and setting_key in prefs["framework_overrides"]:
             del prefs["framework_overrides"][setting_key]
             return self.save_user_prefs(username, prefs)
