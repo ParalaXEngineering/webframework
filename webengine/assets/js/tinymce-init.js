@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Plugins and features
         plugins: 'lists link image table code help wordcount',
-        toolbar: 'undo redo | blocks fontsize | bold italic underline | alignleft aligncenter alignright | bullist numlist | link image | code',
+        toolbar: 'undo redo | blocks fontsize | bold italic underline | forecolor backcolor | alignleft aligncenter alignright | bullist numlist | link image | code',
         
         // Editor settings
         height: 250,
