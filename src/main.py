@@ -41,9 +41,9 @@ from .modules.constants import USER_GUEST_NAME
 
 # Domain-specific constants for main application setup
 COOKIE_SAMESITE = "Lax"
-SESSION_TYPE = "filesystem"
-SESSION_FILE_DIR = "flask_session"
-SESSION_FILE_THRESHOLD = 100  # Max sessions before cleanup
+SESSION_TYPE = "cachelib"
+SESSION_CACHE_DIR = "flask_session"
+SESSION_CACHE_THRESHOLD = 100  # Max sessions before cleanup
 SESSION_PERMANENT_LIFETIME_HOURS = 24  # Session expiry in hours
 DEFAULT_HOST = "0.0.0.0"
 DEFAULT_PORT = 5000
@@ -203,9 +203,13 @@ def setup_app(app):
     
     # Session configuration with expiration and cleanup
     from datetime import timedelta
+    from cachelib.file import FileSystemCache
+
     app.config["SESSION_TYPE"] = SESSION_TYPE  # type: ignore
-    app.config["SESSION_FILE_DIR"] = SESSION_FILE_DIR  # type: ignore
-    app.config["SESSION_FILE_THRESHOLD"] = SESSION_FILE_THRESHOLD  # type: ignore
+    app.config["SESSION_CACHELIB"] = FileSystemCache(  # type: ignore
+        cache_dir=SESSION_CACHE_DIR,
+        threshold=SESSION_CACHE_THRESHOLD,
+    )
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=SESSION_PERMANENT_LIFETIME_HOURS)  # type: ignore
     app.config['TEMPLATES_AUTO_RELOAD'] = False  # type: ignore
     app.config["PROPAGATE_EXCEPTIONS"] = False  # type: ignore
