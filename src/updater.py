@@ -406,12 +406,15 @@ class SETUP_Updater(threaded_action.Threaded_action):
             # FTP mode
             elif config["updates"]["source"]["value"] == "FTP":
                 try:
-                    # Définition du dossier distant
+                    # Définition du dossier distant de base
                     remote_dir = os.path.join(
                         config["updates"]["path"]["value"],
                         "updates",
                         site_conf_obj.m_app["name"]
                     ).replace("\\", "/")  # Compatibilité Windows/Linux
+
+                    # Dossier pour les packages 4Target
+                    remote_dir_4target = os.path.join(remote_dir, "4Target").replace("\\", "/")
 
                     # Vérification et création du dossier distant si nécessaire
                     try:
@@ -419,9 +422,22 @@ class SETUP_Updater(threaded_action.Threaded_action):
                     except FileNotFoundError:
                         sftp_conn.mkdir(remote_dir)
 
+                    # Création du sous-dossier 4Target si nécessaire
+                    try:
+                        sftp_conn.listdir(remote_dir_4target)
+                    except FileNotFoundError:
+                        sftp_conn.mkdir(remote_dir_4target)
+
                     # Envoi des fichiers
                     for file in files_to_upload:
-                        remote_file_path = os.path.join(remote_dir, os.path.basename(file)).replace("\\", "/")
+                        filename = os.path.basename(file)
+                        # Les packages 4Target vont dans le sous-dossier 4Target
+                        if "4Target" in filename:
+                            target_dir = remote_dir_4target
+                        else:
+                            # Windows/Linux packages restent dans le dossier principal
+                            target_dir = remote_dir
+                        remote_file_path = os.path.join(target_dir, filename).replace("\\", "/")
                         sftp_conn.upload_file(file, remote_file_path)  # Upload du fichier
 
                 except Exception as e:
