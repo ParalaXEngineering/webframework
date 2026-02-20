@@ -164,7 +164,15 @@ def _get_logger_level(name: str) -> int:
         config_key = "tracker"
     elif name.startswith("website"):
         config_key = "website"
-    
+    # Check for third-party library child loggers (e.g. engineio.server, socketio.server,
+    # werkzeug.serving) whose exact names are not in the config but whose parent entry is.
+    elif name.startswith("engineio"):
+        config_key = "engineio"
+    elif name.startswith("socketio"):
+        config_key = "socketio"
+    elif name.startswith("werkzeug"):
+        config_key = "werkzeug"
+
     if config_key and config_key in loggers:
         level_str = loggers[config_key].get("value", "INFO")
         return getattr(logging, level_str, logging.INFO)
