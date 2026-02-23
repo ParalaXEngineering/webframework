@@ -57,7 +57,10 @@ def setup_app(app):
     app.config.from_object(__name__)
     Session(app)
 
-    socketio_obj = SocketIO(app)
+    # manage_session=False prevents Flask-SocketIO from trying to modify
+    # Flask's session in SocketIO event handlers (fixes compatibility issue
+    # with Flask 2.3+ where session property is read-only in certain contexts)
+    socketio_obj = SocketIO(app, manage_session=False)
     # Stocker socketio_obj dans app pour y accéder depuis d'autres modules
     app.socketio = socketio_obj
     

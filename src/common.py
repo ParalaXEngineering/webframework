@@ -90,7 +90,17 @@ def login():
         else:
             error_message = "User does not exist"
 
-    return render_template("login.j2", target="common.login", users=users, message=error_message)
+    # App info for display (PC mode - no 2FA)
+    app_name = "OuFNis DFDIG"
+    app_info = {
+        "name": app_name,
+        "version": site_conf.Site_conf.m_globals.get("version", "1.0.0.0"),
+        "icon": "ufo-outline"
+    }
+    
+    return render_template("login.j2", target="common.login", users=users, message=error_message,
+                         app=app_info, on_target=False, otp_required=False,
+                         title=app_name, web_title="Login")
 
 
 @bp.route("/help", methods=["GET"])
