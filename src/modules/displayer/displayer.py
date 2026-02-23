@@ -462,11 +462,17 @@ class Displayer:
             return -1
 
         if layout.m_type == Layouts.VERTICAL.value or layout.m_type == Layouts.HORIZONTAL.value:
-            # Check that there are enough columns
-            if "header" in master_layout and column >= len(master_layout["header"]):
-                return -1 
-            if "containers" in master_layout and column >= len(master_layout["containers"]):
-                return -1
+            if master_layout["type"] == Layouts.GRID.value:
+                # GRID parent: column is a string field_id, containers is a dict
+                field_id = str(column) if isinstance(column, int) else column
+                if field_id not in master_layout.get("containers", {}):
+                    return -1
+            else:
+                # VERTICAL/HORIZONTAL/TABLE parent: column is an int index
+                if "header" in master_layout and column >= len(master_layout["header"]):
+                    return -1 
+                if "containers" in master_layout and column >= len(master_layout["containers"]):
+                    return -1
         
         elif layout.m_type == Layouts.GRID.value:
             # GRID layouts can be added as slaves to VERTICAL/HORIZONTAL layouts
@@ -475,7 +481,11 @@ class Displayer:
             
         # Add the display item
         if layout.m_type == Layouts.VERTICAL.value or layout.m_type == Layouts.HORIZONTAL.value:
-            if "lines" in master_layout:
+            if master_layout["type"] == Layouts.GRID.value:
+                # GRID parent: use string field_id key
+                field_id = str(column) if isinstance(column, int) else column
+                layout.display(master_layout["containers"][field_id], self.g_next_layout)
+            elif "lines" in master_layout:
                 # Do we have at least a line?
                 if not master_layout["lines"]:
                     master_layout["lines"] = [[[] for _ in range(len(master_layout["header"]))]]

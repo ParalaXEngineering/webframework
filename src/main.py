@@ -13,6 +13,7 @@ import time
 import traceback
 import uuid
 import webbrowser
+from pathlib import Path
 
 try:
     from flask import Flask, g, render_template, request, session
@@ -269,6 +270,11 @@ def setup_app(app):
     # Use app_path from app_context if set (instance path), otherwise use local app_path
     instance_path = app_context.app_path if app_context.app_path else app_path
     _ensure_default_assets(instance_path, app_path, logger)
+
+    # Initialize logging from the instance's config file so that level changes
+    # saved via /logging/config are re-applied on every startup.
+    from .modules.log.logger_factory import initialize_logging as _init_logging
+    _init_logging(Path(instance_path))
 
     # Get all Python files in the website pages directory (if it exists)
     website_pages_path = os.path.join(app_path, WEBSITE_PAGES_PATH)
