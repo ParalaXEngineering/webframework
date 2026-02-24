@@ -71,6 +71,9 @@ class ResourceRegistry:
         'tracker_admin': {
             'js_custom': ['/common/assets/tracker_js/?filename=tracker_admin.js']
         },
+        'import_preview': {
+            'js_custom': ['/common/assets/tracker_js/?filename=import-preview.js']
+        },
         'fullcalendar': {
             'js': ['vendors/fullcalendar/fullcalendar.min.js']
         },
