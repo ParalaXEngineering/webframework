@@ -541,25 +541,69 @@ $(document).ready(function() {
         }
     })
 
+    // Store previous threads data to avoid unnecessary DOM updates
+    let previousThreadsKey = ""
+    
     socket.on('threads', function(msg) 
     {
+        // Create a key from the data to detect real changes
+        let currentKey = JSON.stringify(msg)
+        if(currentKey === previousThreadsKey) return
+        previousThreadsKey = currentKey
+        
         let content = ""
+        let button = document.getElementById("thread_status")
+        
         if(msg.length == 0)
         {
             content = "No running task"
+            // Style for idle state
+            if(button)
+            {
+                button.classList.remove('btn-info')
+                button.classList.add('btn-secondary')
+            }
         }
         else
         {
+            // Group processes by base name (remove #n suffix)
+            let grouped = {}
             for(var i = 0; i < msg.length; i++)
             {
-                if(msg[i]["state"] == -1)
+                let name = msg[i]["name"].replace(" ", "_")
+                // Remove #n suffix if present
+                let baseName = name.replace(/_#\d+$/, '')
+                if(!grouped[baseName])
                 {
-                    content += '<div class="row"><div class="col-6">' + msg[i]["name"].replace(" ", "_") + '</div><div class="col-6"><div class="spinner-border spinner-border-sm text-primary" role="status"></div></div></div>'
+                    grouped[baseName] = { count: 0, state: msg[i]["state"] }
+                }
+                grouped[baseName].count++
+                // Keep the most recent state (or -1 if any is running)
+                if(msg[i]["state"] == -1 || grouped[baseName].state != -1)
+                {
+                    grouped[baseName].state = msg[i]["state"]
+                }
+            }
+            
+            // Build content from grouped data - each process on its own line
+            for(let baseName in grouped)
+            {
+                let info = grouped[baseName]
+                let badge = '<span class="badge bg-light text-dark ms-1">' + info.count + '</span>'
+                if(info.state == -1)
+                {
+                    content += '<div class="text-start">' + baseName + badge + ' <div class="spinner-border spinner-border-sm text-light" role="status"></div></div>'
                 }
                 else
                 {
-                    content += '<div class="row">  <div class="col-6">' + msg[i]["name"].replace(" ", "_") + '</div> <div class="col-6">' + msg[i]["state"] + '%</div>  </div>'
+                    content += '<div class="text-start">' + baseName + badge + ' ' + info.state + '%</div>'
                 }
+            }
+            // Style for active state - blue info
+            if(button)
+            {
+                button.classList.remove('btn-secondary')
+                button.classList.add('btn-info')
             }
         }
 
