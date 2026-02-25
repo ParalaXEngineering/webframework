@@ -571,18 +571,14 @@ $(document).ready(function() {
             for(var i = 0; i < msg.length; i++)
             {
                 let name = msg[i]["name"].replace(" ", "_")
-                // Remove #n suffix if present
-                let baseName = name.replace(/_#\d+$/, '')
+                // Remove #n suffix if present (handles _#1, #1, _#12, etc.)
+                let baseName = name.replace(/[_\s]?#\d+$/, '')
                 if(!grouped[baseName])
                 {
-                    grouped[baseName] = { count: 0, state: msg[i]["state"] }
+                    grouped[baseName] = { count: 0, states: [] }
                 }
                 grouped[baseName].count++
-                // Keep the most recent state (or -1 if any is running)
-                if(msg[i]["state"] == -1 || grouped[baseName].state != -1)
-                {
-                    grouped[baseName].state = msg[i]["state"]
-                }
+                grouped[baseName].states.push(msg[i]["state"])
             }
             
             // Build content from grouped data - each process on its own line
@@ -590,14 +586,29 @@ $(document).ready(function() {
             {
                 let info = grouped[baseName]
                 let badge = '<span class="badge bg-light text-dark ms-1">' + info.count + '</span>'
-                if(info.state == -1)
+                
+                // Check if any process is in running state (-1)
+                let hasRunning = info.states.some(s => s == -1)
+                
+                // Build progress indicators for each process
+                let progressParts = []
+                for(let idx = 0; idx < info.states.length; idx++)
                 {
-                    content += '<div class="text-start">' + baseName + badge + ' <div class="spinner-border spinner-border-sm text-light" role="status"></div></div>'
+                    let state = info.states[idx]
+                    if(state == -1)
+                    {
+                        progressParts.push('<div class="spinner-border spinner-border-sm text-light" role="status"></div>')
+                    }
+                    else
+                    {
+                        progressParts.push(state + '%')
+                    }
                 }
-                else
-                {
-                    content += '<div class="text-start">' + baseName + badge + ' ' + info.state + '%</div>'
-                }
+                
+                // Join with separator if multiple
+                let progressDisplay = progressParts.join(' | ')
+                
+                content += '<div class="text-start" style="white-space: nowrap;">' + baseName + badge + ' ' + progressDisplay + '</div>'
             }
             // Style for active state - blue info
             if(button)
