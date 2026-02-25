@@ -1339,6 +1339,20 @@ document.addEventListener('DOMContentLoaded', function() {
         {% set btn_size = 'btn-' + size if size and size != 'md' else '' %}
         {% set btn_class = 'btn btn-' + (action.style if action.style else 'secondary') + ' ' + btn_size if display_style == 'buttons' else 'btn btn-link text-' + (action.style if action.style else 'secondary') + ' p-1' %}
         
+        {% if action.type == 'form_submit' %}
+        {# Render as a POST form instead of a GET link #}
+        <form method="POST" action="{{action.url}}" class="d-inline"
+              {% if action.confirm %}onsubmit="return confirm('{{action.confirm}}')"{% endif %}>
+            <button type="submit"
+                    class="{{btn_class}}"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="{{action.tooltip if action.tooltip else action.type|capitalize}}"
+                    {% if action.disabled %}disabled aria-disabled="true"{% endif %}>
+                <i class="{{action.icon}}"></i>
+            </button>
+        </form>
+        {% else %}
         <a href="{{action.url if action.url else '#'}}" 
            class="{{btn_class}}" 
            data-bs-toggle="tooltip" 
@@ -1347,6 +1361,7 @@ document.addEventListener('DOMContentLoaded', function() {
            {% if action.disabled %}disabled aria-disabled="true"{% endif %}>
             <i class="{{action.icon}}"></i>
         </a>
+        {% endif %}
     {% endfor %}
 </div>
 {% endmacro %}

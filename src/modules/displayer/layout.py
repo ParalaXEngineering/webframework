@@ -5,6 +5,7 @@ This module contains the DisplayerLayout class which defines how items
 are arranged on the page (vertical, horizontal, table, tabs, spacer).
 """
 
+import json
 import warnings
 from typing import Any, Dict, List, Optional, Union
 
@@ -374,7 +375,14 @@ class DisplayerLayout:
                 
                 # Copy configuration fields
                 if "data" in config_to_use:
-                    table_dict["data"] = config_to_use["data"]
+                    # JSON-serialize data to produce valid JavaScript literals.
+                    # Without this, Markup objects (from markupsafe.escape()) render
+                    # as Markup('...') in the template output, which is invalid JS.
+                    raw_data = config_to_use["data"]
+                    if isinstance(raw_data, (list, dict)):
+                        table_dict["data"] = json.dumps(raw_data, default=str)
+                    else:
+                        table_dict["data"] = raw_data
                 if "columns" in config_to_use:
                     table_dict["ajax_columns"] = config_to_use["columns"]
                 else:
