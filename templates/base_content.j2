@@ -104,8 +104,10 @@
 
           {% if not panes_disabled %}
           columnDefs: [
+            {% if not is_ssp %}
             // Custom render function for SearchPanes with orthogonal data
             // This enables comma-separated values to be split into individual options
+            // (Only for client-side modes; SSP gets options from the server response)
             {
               searchPanes: {
                 orthogonal: 'sp'  // Use 'sp' type for SearchPanes processing
@@ -143,6 +145,16 @@
                 return data;
               }
             }
+            {% else %}
+            // SSP mode: force panes to show for these columns.
+            // The server returns searchPanes.options keyed by field name.
+            {
+              searchPanes: {
+                show: true
+              },
+              targets: {{ pane_indices|list }}
+            }
+            {% endif %}
           ],
           {% endif %}
 
