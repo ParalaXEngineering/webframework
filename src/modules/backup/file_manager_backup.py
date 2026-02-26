@@ -14,7 +14,7 @@ import os
 import shutil
 import zipfile
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Callable, Dict, Optional, Tuple
 
 try:
     from src.modules.log.logger_factory import get_logger
@@ -111,11 +111,20 @@ def count_uploaded_files() -> int:
 # Backup
 # ---------------------------------------------------------------------------
 
-def backup_file_manager(zip_file: zipfile.ZipFile) -> Dict[str, Any]:
+def backup_file_manager(
+    zip_file: zipfile.ZipFile,
+    progress_callback: Optional[Callable[[int, int], None]] = None,
+) -> Dict[str, Any]:
     """Add the File Manager database and HashFS store to *zip_file*.
 
     Returns a metadata dict with keys ``file_count`` and ``files_size_mb``
     suitable for merging into the backup's ``metadata.json``.
+
+    Args:
+        zip_file: The ZIP archive to write into.
+        progress_callback: Optional ``(current, total)`` callback invoked
+            after each file is added to the archive.  Useful for reporting
+            progress in long-running threaded operations.
     """
     fm = _get_file_manager()
     if fm is None:
@@ -135,16 +144,25 @@ def backup_file_manager(zip_file: zipfile.ZipFile) -> Dict[str, Any]:
 
     # 2. HashFS content store
     if hashfs_path.exists():
+        # Pre-scan to count total files for progress reporting
+        all_files = []
         for dirpath, _dirs, filenames in os.walk(hashfs_path):
             for fname in filenames:
-                full_path = os.path.join(dirpath, fname)
-                arc_name = os.path.join(
-                    "file_manager/hashfs",
-                    os.path.relpath(full_path, hashfs_path),
-                )
-                zip_file.write(full_path, arc_name)
-                files_size += os.path.getsize(full_path)
-                file_count += 1
+                all_files.append(os.path.join(dirpath, fname))
+
+        total_files = len(all_files)
+
+        for full_path in all_files:
+            arc_name = os.path.join(
+                "file_manager/hashfs",
+                os.path.relpath(full_path, hashfs_path),
+            )
+            zip_file.write(full_path, arc_name)
+            files_size += os.path.getsize(full_path)
+            file_count += 1
+
+            if progress_callback is not None:
+                progress_callback(file_count, total_files)
 
     files_size_mb = round(files_size / (1024 * 1024), 2)
     logger.info(
