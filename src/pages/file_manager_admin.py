@@ -150,239 +150,95 @@ file_manager: Optional[Any] = None
 @bp.route("/", methods=["GET"])
 @require_permission(PERMISSION_MODULE, PERMISSION_VIEW)
 def index():
-    """File manager main page - browse files, view statistics."""
+    """File manager main page - server-side DataTable (AJAX-loaded).
+
+    Only renders the empty table shell + column headers.  Data is fetched
+    asynchronously by DataTables from the ``/api/v1/files/dt`` SSP endpoint.
+    """
     if not file_manager:
         return ERROR_FILE_MANAGER_NOT_INITIALIZED, STATUS_SERVER_ERROR
-    
+
     disp = displayer.Displayer()
     disp.add_generic(TEXT_FILE_MANAGER, display=False)
     disp.set_title(TEXT_FILE_MANAGER_BROWSE)
     disp.add_breadcrumb(TEXT_BREADCRUMB_FILE_MANAGER, "file_manager_admin.index", [])
-    
-    # Check user permissions
-    current_user = session.get('user', 'GUEST')
-    can_upload = app_context.auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_UPLOAD) if app_context.auth_manager else True
-    can_delete = app_context.auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_DELETE) if app_context.auth_manager else True
-    can_edit = app_context.auth_manager.has_permission(current_user, PERMISSION_MODULE, PERMISSION_EDIT) if app_context.auth_manager else True
-    
-    try:
-        # Get file list from database (Phase 3 - includes versions, tags, group_id)
-        files = file_manager.list_files_from_db()
-                
-        # File list table with DataTables
-        if files:            
-            table_layout_id = disp.add_master_layout(displayer.DisplayerLayout(
-                displayer.Layouts.TABLE,
-                [TABLE_HEADER_SELECT, TABLE_HEADER_PREVIEW, TABLE_HEADER_FILENAME, TABLE_HEADER_GROUP_ID, TABLE_HEADER_TAGS, TABLE_HEADER_VERSION, TABLE_HEADER_SIZE, TABLE_HEADER_UPLOADED, TABLE_HEADER_INTEGRITY, TABLE_HEADER_ACTIONS],
-                datatable_config={
-                    "table_id": "file_list_table",
-                    "mode": displayer.TableMode.INTERACTIVE,
-                    "page_length": 25,
-                    "searchable": True,
-                    "ordering": [[2, "asc"]],  # Sort by filename by default
-                    "columnDefs": [
-                        {"orderable": False, "targets": [0, 1, 9]},  # Disable sorting for checkbox, preview, and actions
-                        {"className": "text-center", "targets": [0, 1, 5, 7, 8, 9]}  # Center align some columns
-                    ]
-                }
-            ))
-            
-            # Populate table rows
-            for idx, file_meta in enumerate(files):
-                # Checkbox column (using name="file_ids[]" for array submission)
-                file_id = file_meta.get('id', 0)
-                checkbox_html = f'<input type="checkbox" name="file_ids[]" value="{file_id}">'
-                disp.add_display_item(displayer.DisplayerItemAlert(checkbox_html, displayer.BSstyle.NONE), 
-                                    column=0, line=idx, layout_id=table_layout_id)
-                
-                # Preview column (thumbnail or icon)
-                preview_html = util_generate_preview_html(file_meta)
-                disp.add_display_item(displayer.DisplayerItemAlert(preview_html, displayer.BSstyle.NONE), 
-                                    column=1, line=idx, layout_id=table_layout_id)
-                
-                # Filename
-                disp.add_display_item(displayer.DisplayerItemText(file_meta['name']), 
-                                    column=2, line=idx, layout_id=table_layout_id)
-                
-                # Group ID (read-only display)
-                group_id_val = file_meta.get('group_id', '') or GROUP_NONE
-                disp.add_display_item(displayer.DisplayerItemText(group_id_val), 
-                                    column=3, line=idx, layout_id=table_layout_id)
-                
-                # Tags - formatted with commas and line breaks for better datatable display
-                # Handle both new format (list) and old format (tags with # separator)
-                tags_list = file_meta.get('tags', [])
-                if tags_list:
-                    # Split any tags that contain # (old format) and flatten the list
-                    expanded_tags = []
-                    for tag in tags_list:
-                        if '#' in tag:
-                            expanded_tags.extend(tag.split('#'))
-                        else:
-                            expanded_tags.append(tag)
-                    tags_display = ',<br>'.join(expanded_tags)
-                else:
-                    tags_display = GROUP_NONE
-                disp.add_display_item(displayer.DisplayerItemAlert(tags_display, displayer.BSstyle.NONE), 
-                                    column=4, line=idx, layout_id=table_layout_id)
-                
-                # Version info
-                try:
-                    # Get versions (group_id can be None/empty for files without a group)
-                    versions = file_manager.get_file_versions(file_meta.get('group_id'), file_meta['name'])
-                    if versions:
-                        current_ver = next((i+1 for i, v in enumerate(reversed(versions)) if v['is_current']), len(versions))
-                        version_display = f"v{current_ver}/{len(versions)}"
-                    else:
-                        version_display = "v1/1"
-                except Exception:
-                    version_display = "v1/1"
-                disp.add_display_item(displayer.DisplayerItemText(version_display), 
-                                    column=5, line=idx, layout_id=table_layout_id)
-                
-                # Size (human readable)
-                size_str = util_format_file_size(file_meta['size'])
-                disp.add_display_item(displayer.DisplayerItemText(size_str), 
-                                    column=6, line=idx, layout_id=table_layout_id)
-                
-                # Upload date
-                upload_date = util_format_date(file_meta['uploaded_at'])
-                disp.add_display_item(displayer.DisplayerItemText(upload_date), 
-                                    column=7, line=idx, layout_id=table_layout_id)
-            
-            # Bulk integrity check (single DB query + N file I/O operations)
-            # This is much more efficient than N individual verify_file_integrity() calls
-            file_ids = [f.get('id', 0) for f in files]
-            integrity_results = file_manager.verify_files_bulk(file_ids)
-            
-            # Display integrity status for each file
-            for idx, file_meta in enumerate(files):
-                file_id = file_meta.get('id', 0)
-                is_valid, status = integrity_results.get(file_id, (False, INTEGRITY_STATUS_UNKNOWN))
-                
-                if is_valid:
-                    disp.add_display_item(displayer.DisplayerItemBadge(INTEGRITY_STATUS_OK, BSstyle.SUCCESS), 
-                                        column=8, line=idx, layout_id=table_layout_id)
-                elif status == INTEGRITY_STATUS_MISSING:
-                    disp.add_display_item(displayer.DisplayerItemBadge(BADGE_MISSING, BSstyle.WARNING), 
-                                        column=8, line=idx, layout_id=table_layout_id)
-                elif status == INTEGRITY_STATUS_CHECKSUM_MISMATCH:
-                    disp.add_display_item(displayer.DisplayerItemBadge(BADGE_CORRUPTED, BSstyle.ERROR), 
-                                        column=8, line=idx, layout_id=table_layout_id)
-                elif status == INTEGRITY_STATUS_NOT_FOUND:
-                    disp.add_display_item(displayer.DisplayerItemBadge(BADGE_NOT_FOUND, BSstyle.SECONDARY), 
-                                        column=8, line=idx, layout_id=table_layout_id)
-                else:
-                    disp.add_display_item(displayer.DisplayerItemBadge(f"Error: {status}", BSstyle.ERROR), 
-                                        column=8, line=idx, layout_id=table_layout_id)
-                
-                # Actions (download, edit, history, delete buttons)
-                actions = []
-                
-                # Download
-                actions.append({
-                    "type": "download",
-                    "url": url_for('file_handler.download_by_id', file_id=file_meta.get('id', 0)),
-                    "icon": "mdi mdi-download",
-                    "style": "primary",
-                    "tooltip": str(TOOLTIP_DOWNLOAD)
-                })
-                
-                # Edit (only if user has edit permission)
-                if can_edit:
-                    actions.append({
-                        "type": "custom",
-                        "url": url_for('file_manager_admin.edit_file', file_id=file_meta.get('id', 0)),
-                        "icon": "mdi mdi-pencil",
-                        "style": "warning",
-                        "tooltip": str(TOOLTIP_EDIT_METADATA)
-                    })
-                
-                # History (show for all files that might have versions)
-                # Extract version info from the version_display we calculated earlier
-                try:
-                    versions = file_manager.get_file_versions(file_meta.get('group_id'), file_meta['name'])
-                    if versions and len(versions) > 0:
-                        # Show history button for files with versions
-                        # Use '(none)' as URL placeholder for files without a group
-                        group_param = file_meta.get('group_id') or GROUP_NONE
-                        actions.append({
-                            "type": "custom",
-                            "url": url_for('file_manager_admin.version_history', group_id=group_param, filename=file_meta['name']),
-                            "icon": "mdi mdi-history",
-                            "style": "info",
-                            "tooltip": str(TOOLTIP_VIEW_HISTORY)
-                        })
-                except Exception:
-                    pass  # Skip history button if we can't get versions
-                
-                # Delete (only if user has delete permission)
-                if can_delete:
-                    actions.append({
-                        "type": "custom",
-                        "url": url_for('file_manager_admin.confirm_delete', file_id=file_meta.get('id', 0)),
-                        "icon": "mdi mdi-delete",
-                        "style": "danger",
-                        "tooltip": str(TOOLTIP_DELETE)
-                    })
-                
-                disp.add_display_item(
-                    displayer.DisplayerItemActionButtons(
-                        id=f"file_actions_{idx}",
-                        actions=actions,
-                        size="sm"
-                    ),
-                    column=9, line=idx, layout_id=table_layout_id
-                )
 
-            # Add table layout with Phase 3 columns including integrity status
-            # Multi-delete button (submit button for form) - only show if user has delete permission
-            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            if can_delete:
-                disp.add_display_item(
-                    displayer.DisplayerItemButton(
-                        id="delete_selected_btn",
-                        text=str(BUTTON_DELETE_SELECTED),
-                        icon="trash",
-                        color=BSstyle.ERROR
-                    ),
-                    column=0
-                )
-            else:
-                disp.add_display_item(
-                    displayer.DisplayerItemAlert(
-                        f"<i class='mdi mdi-information'></i> {TEXT_NO_DELETE_PERMISSION}",
-                        BSstyle.INFO
-                    ),
-                    column=0
-                )
-        else:
-            disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
-            if can_upload:
-                disp.add_display_item(displayer.DisplayerItemAlert(
-                    str(TEXT_NO_FILES_UPLOAD),
-                    BSstyle.INFO
-                ), column=0)
-            else:
-                disp.add_display_item(displayer.DisplayerItemAlert(
-                    str(TEXT_NO_FILES_PERMISSION),
-                    BSstyle.WARNING
-                ), column=0)
-        
-        # Multi-delete form wraps the table automatically via form_action parameter
-        # Checkboxes use name="file_ids[]" for array submission
+    try:
+        # Column headers for the DataTable
+        table_columns = [
+            str(TABLE_HEADER_SELECT),    # 0 - checkbox
+            str(TABLE_HEADER_FILENAME),  # 1
+            str(TABLE_HEADER_GROUP_ID),  # 2
+            str(TABLE_HEADER_TAGS),      # 3
+            "MIME Type",                 # 4
+            str(TABLE_HEADER_VERSION),   # 5
+            str(TABLE_HEADER_SIZE),      # 6
+            str(TABLE_HEADER_UPLOADED),  # 7
+            "Uploaded By",               # 8
+            str(TABLE_HEADER_ACTIONS),   # 9
+        ]
+
+        # DataTables column definitions (must match keys returned by SSP endpoint)
+        datatable_columns = [
+            {"data": "Select"},
+            {"data": "Filename"},
+            {"data": "Group ID"},
+            {"data": "Tags"},
+            {"data": "MIME Type"},
+            {"data": "Version"},
+            {"data": "Size"},
+            {"data": "Uploaded"},
+            {"data": "Uploaded By"},
+            {"data": "Actions"},
+        ]
+
+        # SearchPanes indices: Group ID (2), Tags (3), MIME Type (4), Uploaded By (8)
+        searchable_indices = [2, 3, 4, 8]
+
+        disp.add_master_layout(displayer.DisplayerLayout(
+            displayer.Layouts.TABLE,
+            columns=table_columns,
+            datatable_config={
+                "table_id": "file_list_table",
+                "mode": displayer.TableMode.SERVER_SIDE,
+                "api_endpoint": "api_v1.list_files_dt",
+                "api_params": {},
+                "columns": datatable_columns,
+                "searchable_columns": searchable_indices,
+                "order": [[1, "asc"]],  # Sort by filename
+            },
+        ))
+
+        # Bulk-delete button below the table
+        current_user = session.get('user', 'GUEST')
+        can_delete = app_context.auth_manager.has_permission(
+            current_user, PERMISSION_MODULE, PERMISSION_DELETE
+        ) if app_context.auth_manager else True
+
+        disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
+        if can_delete:
+            disp.add_display_item(
+                displayer.DisplayerItemButton(
+                    id="delete_selected_btn",
+                    text=str(BUTTON_DELETE_SELECTED),
+                    icon="trash",
+                    color=BSstyle.ERROR
+                ),
+                column=0,
+            )
+
         form_action = url_for('file_manager_admin.delete_multiple')
         return render_template("base_content.j2", content=disp.display(), form_action=form_action)
-        
+
     except Exception as e:
         logger.error(f"File manager index error: {e}", exc_info=True)
-        
+
         disp.add_master_layout(displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12]))
         disp.add_display_item(displayer.DisplayerItemAlert(
             f"<h4>{ERROR_LOADING_FILES}</h4><p>{str(e)}</p>",
             BSstyle.ERROR
         ), column=0)
-        
+
         return render_template("base_content.j2", content=disp.display())
 
 
