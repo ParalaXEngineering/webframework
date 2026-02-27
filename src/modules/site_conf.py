@@ -485,7 +485,7 @@ class Site_conf:
         :param url: The url of the page
         :type url: str
         """
-        if any(item.get(ATTR_NAME) == name for item in self.m_sidebar):
+        if any(item.get(ATTR_NAME) == name and not item.get(ATTR_IS_TITLE) for item in self.m_sidebar):
             return
 
         self.m_sidebar.append(
