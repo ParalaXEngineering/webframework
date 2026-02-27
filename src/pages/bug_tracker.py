@@ -718,7 +718,7 @@ def bugtracker():
                 displayer.DisplayerItemActionButtons(
                     id=f"issue_{issue.id}_actions",
                     view_url=issue.url,
-                    edit_url=f"/bug/edit/{issue.id}"
+                    edit_url=url_for('bug.edit_issue', issue_id=issue.id)
                 ),
                 column=5,
                 line=index

@@ -367,8 +367,10 @@
         
     </div>
     {% for js in required_js %}
-    {% if js.startswith('/') or js.startswith('http') %}
+    {% if js.startswith('http') %}
     <script src="{{ js }}"></script>
+    {% elif js.startswith('/') %}
+    <script src="{{ request.script_root }}{{ js }}"></script>
     {% else %}
     <script src="{{ url_for('static', filename= js) }}"></script>
     {% endif %}
@@ -377,6 +379,7 @@
     <script src="{{ url_for('static', filename= 'vendors/jquery/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
+    <script>window.__SCRIPT_NAME__ = '{{ request.script_root }}';</script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
     

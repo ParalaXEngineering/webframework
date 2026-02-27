@@ -8,7 +8,7 @@ This module provides HTTP endpoints for secure file management operations.
 from io import BytesIO
 
 # Third-party
-from flask import Blueprint, request, send_file, jsonify, session, abort
+from flask import Blueprint, request, send_file, jsonify, session, abort, url_for
 
 # Framework modules - constants and i18n
 from ..modules.constants import (
@@ -306,7 +306,10 @@ def simple_upload():
         # Build relative path and URL
         relative_path = f"{upload_path}/{final_name}"
         # URL for serving the file
-        url = f"/common/assets/{upload_path.split(PATH_SEPARATOR)[0]}/?filename={PATH_SEPARATOR.join(upload_path.split(PATH_SEPARATOR)[1:])}/{final_name}" if PATH_SEPARATOR in upload_path else f"/common/assets/{upload_path}/?filename={final_name}"
+        if PATH_SEPARATOR in upload_path:
+            url = url_for('common.assets', asset_type=upload_path.split(PATH_SEPARATOR)[0], filename=f"{PATH_SEPARATOR.join(upload_path.split(PATH_SEPARATOR)[1:])}/{final_name}")
+        else:
+            url = url_for('common.assets', asset_type=upload_path, filename=final_name)
         
         current_user = session.get('user', USER_GUEST_NAME)
         logger.info(f"Simple file upload by {current_user}: {relative_path}")

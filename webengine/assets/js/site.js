@@ -352,7 +352,9 @@ function scrollToBottom() {
 
 
 function send_terminal() {
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var scriptName = window.__SCRIPT_NAME__ || '';
+    var socketPath = scriptName ? scriptName + '/socket.io/' : '/socket.io/';
+    var socket = io.connect(location.origin, { path: socketPath });
     var inputElement = document.getElementById('terminal_input'); // C'est l'élément d'input lui-même
     var command = inputElement.value; // C'est la valeur de l'input
     socket.emit('terminal_cmd', command);
@@ -391,7 +393,10 @@ function saveScrollPosition() {
 
 $(document).ready(function() {
     // Make socket globally accessible for other scripts
-    window.socket = io.connect('http://' + document.domain + ':' + location.port);
+    // Use prefix-aware path for Socket.IO when behind a reverse proxy
+    var scriptName = window.__SCRIPT_NAME__ || '';
+    var socketPath = scriptName ? scriptName + '/socket.io/' : '/socket.io/';
+    window.socket = io.connect(location.origin, { path: socketPath });
     var socket = window.socket;  // Keep local reference for compatibility
     
     setTimeout(test_connect, 1000)

@@ -98,7 +98,7 @@ AVATAR_RENAME_PATTERN = "{username}"
 AVATAR_ACCEPT_TYPES = ["image/*"]
 AVATAR_SIZE = (200, 200)
 AVATAR_MAX_QUALITY = IMAGE_QUALITY_HIGH
-DEFAULT_AVATAR_URL = "/common/assets/images/?filename=users/default.svg"
+DEFAULT_AVATAR_PATH = "users/default.svg"
 
 # HTTP routes (internal references)
 ROUTE_LOGIN = "common.login"
@@ -245,11 +245,12 @@ def profile():
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [4, 8]))
     # Create avatar display with default.svg fallback
+    default_avatar = url_for("common.assets", asset_type="images", filename=DEFAULT_AVATAR_PATH)
     avatar_html = f'''
     <img id="profile-avatar" src="{avatar_url}" 
          class="rounded-circle" 
          style="width: {AVATAR_SIZE[0]}px; height: {AVATAR_SIZE[1]}px; object-fit: cover;"
-         onerror="this.onerror=null; this.src='{DEFAULT_AVATAR_URL}';">
+         onerror="this.onerror=null; this.src='{default_avatar}'">
     '''
     disp.add_display_item(DisplayerItemText(avatar_html), column=0)
     

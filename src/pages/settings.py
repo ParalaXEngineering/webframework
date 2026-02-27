@@ -222,7 +222,7 @@ def index():
         disp.add_display_item(
             displayer.DisplayerItemActionButtons(
                 id=f"actions_{category}",
-                edit_url=f"/settings/view?category={category}",
+                edit_url=url_for('settings.view', category=category),
                 style="icons",
                 size="sm"
             ),

@@ -290,9 +290,10 @@ class ThreadEmitter:
 
         # Delete button - for running threads it stops them, for completed it removes from history
         right_col += 1
+        from flask import url_for as _url_for
         disp.add_display_item(DisplayerItemActionButtons(
             id=f"{thread_id}_actions",
-            delete_url=f"/threads/delete?thread_name={thread_name}",
+            delete_url=_url_for('threads.delete', thread_name=thread_name),
             style="icons"
         ), column=right_col, layout_id=header_layout_id)
 
