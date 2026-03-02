@@ -130,6 +130,18 @@ class PluginBase(ABC):
             site_conf: The site configuration instance
         """
         pass
+
+    def build_topbar(self, site_conf: "Site_conf") -> None:
+        """
+        Add plugin items to the topbar.
+        
+        Called after build_sidebar() if the plugin is enabled.
+        Override to add topbar buttons, text fields, etc.
+        
+        Args:
+            site_conf: The site configuration instance
+        """
+        pass
     
     def get_help_content(self) -> Dict[str, Any]:
         """

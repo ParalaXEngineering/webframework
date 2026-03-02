@@ -16,7 +16,7 @@ import webbrowser
 from pathlib import Path
 
 try:
-    from flask import Flask, g, render_template, request, session
+    from flask import Flask, g, redirect, render_template, request, session, url_for
     from flask_session import Session
     from flask_socketio import SocketIO
     FLASK_AVAILABLE = True
@@ -508,6 +508,9 @@ def setup_app(app):
                 # Build sidebar items
                 plugin_instance.build_sidebar(site_config)
                 
+                # Build topbar items
+                plugin_instance.build_topbar(site_config)
+                
                 # Register plugin help content if help system is enabled
                 if app_context.help_manager:
                     help_content = plugin_instance.get_help_content()
@@ -829,6 +832,9 @@ def setup_app(app):
     @app.route("/")  # type: ignore
     def framework_index():
         session["page_info"] = "index"  # type: ignore
+        home = app_context.site_conf.m_home_endpoint  # type: ignore
+        if home and home != "framework_index":
+            return redirect(url_for(home))  # type: ignore
         return render_template("index.j2", title=app_context.site_conf.m_app["name"], content=app_context.site_conf.m_index)  # type: ignore
 
     # Handle Chrome DevTools and browser-specific requests to avoid 404 logs

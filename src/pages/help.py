@@ -255,6 +255,12 @@ def page(section_id: str, page_id: str):
         .help-content table { width: 100%; margin: 1rem 0; border-collapse: collapse; }
         .help-content th, .help-content td { border: 1px solid var(--bs-gray-300); padding: 0.5rem; }
         .help-content th { background-color: var(--bs-gray-100); }
+        .help-content .admonition { padding: 0.75rem 1rem; border-radius: 0.375rem; margin: 1rem 0; border-left: 4px solid var(--bs-info); background-color: rgba(var(--bs-info-rgb), 0.1); }
+        .help-content .admonition.note { border-color: var(--bs-info); background-color: rgba(var(--bs-info-rgb), 0.1); }
+        .help-content .admonition.warning { border-color: var(--bs-warning); background-color: rgba(var(--bs-warning-rgb), 0.1); }
+        .help-content .admonition.danger, .help-content .admonition.error { border-color: var(--bs-danger); background-color: rgba(var(--bs-danger-rgb), 0.1); }
+        .help-content .admonition.tip, .help-content .admonition.hint { border-color: var(--bs-success); background-color: rgba(var(--bs-success-rgb), 0.1); }
+        .help-content .admonition-title { font-weight: 600; margin-bottom: 0.25rem; text-transform: capitalize; }
     </style>
     """
     

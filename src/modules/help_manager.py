@@ -129,6 +129,7 @@ class HelpManager:
             'toc',
             'attr_list',
             'md_in_html',
+            'admonition',
         ]
         
     def set_site_conf(self, site_conf: Any) -> None:
