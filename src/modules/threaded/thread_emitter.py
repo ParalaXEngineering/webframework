@@ -77,8 +77,7 @@ class ThreadEmitter:
             return
 
         self.running = True
-        self._thread = threading.Thread(target=self._emit_loop, daemon=True)
-        self._thread.start()
+        self._thread = self.socket.start_background_task(self._emit_loop)
         self.logger.debug("Thread emitter started (interval=%ss)", self.interval)
     
     def stop(self):
@@ -290,10 +289,17 @@ class ThreadEmitter:
 
         # Delete button - for running threads it stops them, for completed it removes from history
         right_col += 1
+        from ..app_context import app_context
         from flask import url_for as _url_for
+        _flask_app = app_context.flask_app
+        if _flask_app is not None:
+            with _flask_app.test_request_context():
+                _delete_url = _url_for('threads.delete_thread', thread_name=thread_name)
+        else:
+            _delete_url = f"/threads/delete?thread_name={thread_name}"
         disp.add_display_item(DisplayerItemActionButtons(
             id=f"{thread_id}_actions",
-            delete_url=_url_for('threads.delete', thread_name=thread_name),
+            delete_url=_delete_url,
             style="icons"
         ), column=right_col, layout_id=header_layout_id)
 

@@ -258,6 +258,9 @@ def setup_app(app):
     socketio_manager_obj = initialize_socketio_manager(socketio_obj)
     logger.info("SocketIO manager initialized for multi-user support")
 
+    # Store Flask app in app_context so background threads can push a context for url_for etc.
+    app_context.flask_app = app
+
     # Detect if we're running from exe
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         app_path = sys._MEIPASS  # type: ignore
@@ -577,7 +580,7 @@ def setup_app(app):
     # Conditionally initialize thread emitter for real-time thread updates
     if site_config.m_enable_threads:
         from .modules.threaded import thread_emitter
-        
+
         thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=THREAD_EMITTER_INTERVAL)
         thread_emitter.thread_emitter_obj.start()
         logger.debug("Thread emitter initialized")
