@@ -11,6 +11,7 @@ Routes:
 """
 
 from flask import Blueprint, request, flash, redirect, url_for, render_template, send_from_directory, abort
+from collections import OrderedDict
 
 from ..modules import displayer
 from ..modules.displayer import (
@@ -120,56 +121,69 @@ def index():
     # Welcome message
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
     disp.add_display_item(DisplayerItemText(TEXT_WELCOME_HELP))
-    
-    # Section cards - use a grid layout
-    cols_per_row = 3 if len(sections) >= 3 else len(sections)
-    col_width = 12 // cols_per_row if cols_per_row > 0 else 12
-    
-    layout_id = disp.add_master_layout(DisplayerLayout(
-        Layouts.VERTICAL, 
-        [col_width] * min(len(sections), cols_per_row)
-    ))
-    
-    for idx, section in enumerate(sections):
-        col = idx % cols_per_row
-        
-        # Build section card content
-        page_count = len(section.pages)
-        page_list = "<ul class='list-unstyled mb-0'>"
-        for page in section.pages[:3]:
-            page_url = url_for('help.page', section_id=section.id, page_id=page.id)
-            page_list += f"<li class='mb-1'><a href='{page_url}'><i class='mdi mdi-file-document-outline me-1'></i>{page.title}</a></li>"
-        
-        # Show all pages, not just first 3
-        for page in section.pages[3:]:
-            page_url = url_for('help.page', section_id=section.id, page_id=page.id)
-            page_list += f"<li class='mb-1'><a href='{page_url}'><i class='mdi mdi-file-document-outline me-1'></i>{page.title}</a></li>"
-        
-        if not section.pages:
-            page_list += "<li><em class='text-muted'>No articles yet</em></li>"
-        
-        page_list += "</ul>"
-        
-        # Use DisplayerItemCard for modern card design
-        card = DisplayerItemCard(
-            id=f"section_{section.id}",
-            title=section.title,
-            subtitle=f"{page_count} article{'s' if page_count != 1 else ''}",
-            icon=section.icon,
-            header_color=BSstyle.PRIMARY,
-            body=page_list
+
+    # Group sections by top-level group metadata
+    grouped_sections = OrderedDict()
+    sorted_sections = sorted(
+        sections,
+        key=lambda s: (getattr(s, 'group_order', 100), getattr(s, 'group', 'General'), s.order, s.title)
+    )
+    for section in sorted_sections:
+        group_name = getattr(section, 'group', 'General') or 'General'
+        grouped_sections.setdefault(group_name, []).append(section)
+
+    for group_name, group_sections in grouped_sections.items():
+        # Group title (section-like heading)
+        group_layout_id = disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
+        disp.add_display_item(
+            DisplayerItemAlert(
+                f"<h2 class='mb-3 mt-4'><i class='mdi mdi-folder-outline text-primary me-2'></i>{group_name}</h2>",
+                BSstyle.NONE
+            ),
+            column=0,
+            layout_id=group_layout_id
         )
-        
-        disp.add_display_item(card, column=col, layout_id=layout_id)
-        
-        # Start a new row if needed
-        if (idx + 1) % cols_per_row == 0 and idx + 1 < len(sections):
-            remaining = len(sections) - (idx + 1)
-            next_cols = min(remaining, cols_per_row)
-            layout_id = disp.add_master_layout(DisplayerLayout(
-                Layouts.VERTICAL,
-                [col_width] * next_cols
-            ))
+
+        cols_per_row = 3 if len(group_sections) >= 3 else len(group_sections)
+        col_width = 12 // cols_per_row if cols_per_row > 0 else 12
+
+        layout_id = disp.add_master_layout(DisplayerLayout(
+            Layouts.VERTICAL,
+            [col_width] * min(len(group_sections), cols_per_row)
+        ))
+
+        for idx, section in enumerate(group_sections):
+            col = idx % cols_per_row
+
+            page_count = len(section.pages)
+            page_list = "<ul class='list-unstyled mb-0'>"
+            for page in section.pages:
+                page_url = url_for('help.page', section_id=section.id, page_id=page.id)
+                page_list += f"<li class='mb-1'><a href='{page_url}'><i class='mdi mdi-file-document-outline text-primary me-1'></i>{page.title}</a></li>"
+
+            if not section.pages:
+                page_list += "<li><em class='text-muted'>No articles yet</em></li>"
+
+            page_list += "</ul>"
+
+            card = DisplayerItemCard(
+                id=f"section_{section.id}",
+                title=section.title,
+                subtitle=f"{page_count} article{'s' if page_count != 1 else ''}",
+                icon=section.icon,
+                header_color=BSstyle.PRIMARY,
+                body=page_list
+            )
+
+            disp.add_display_item(card, column=col, layout_id=layout_id)
+
+            if (idx + 1) % cols_per_row == 0 and idx + 1 < len(group_sections):
+                remaining = len(group_sections) - (idx + 1)
+                next_cols = min(remaining, cols_per_row)
+                layout_id = disp.add_master_layout(DisplayerLayout(
+                    Layouts.VERTICAL,
+                    [col_width] * next_cols
+                ))
     
     return render_template("base_content.j2", content=disp.display())
 
@@ -498,6 +512,8 @@ def admin():
             <pre class="small bg-light p-2 rounded"><code>{
   "title": "Getting Started",
   "icon": "rocket-launch",
+    "section_group": "Generic Usage",
+    "section_group_order": 1,
   "order": 10,
   "requires_feature": "authentication"
 }</code></pre>
