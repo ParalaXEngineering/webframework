@@ -258,6 +258,7 @@ def page(section_id: str, page_id: str):
     help_css = """
     <style>
         .help-content { line-height: 1.7; }
+        .help-content h1:first-of-type { display: none; }
         .help-content h1 { font-size: 2rem; margin-bottom: 1rem; border-bottom: 2px solid var(--bs-primary); padding-bottom: 0.5rem; }
         .help-content h2 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: var(--bs-primary); }
         .help-content h3 { font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.75rem; }
