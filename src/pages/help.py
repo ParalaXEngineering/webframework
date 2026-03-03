@@ -167,7 +167,7 @@ def index():
             remaining = len(sections) - (idx + 1)
             next_cols = min(remaining, cols_per_row)
             layout_id = disp.add_master_layout(DisplayerLayout(
-                Layouts.HORIZONTAL,
+                Layouts.VERTICAL,
                 [col_width] * next_cols
             ))
     
