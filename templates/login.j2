@@ -51,6 +51,10 @@
                                 <i class="bi bi-shield-lock"></i>
                             </div>
                         </div>
+                        <div id="capslock-warning" class="alert alert-warning d-flex align-items-center py-2 mb-3" role="alert" style="display: none !important;">
+                            <i class="mdi mdi-alert-circle-outline me-2" style="font-size: 1.2rem;"></i>
+                            <span>Caps Lock is ON</span>
+                        </div>
                         
                         {% if otp_required|default(false) %}
                         <div class="form-group position-relative has-icon-left mb-4">
@@ -208,6 +212,27 @@
 
         var selectElement = document.getElementById("user");
         selectElement.addEventListener("change", updateImage);
+
+        // Caps Lock detection
+        (function() {
+            var capsWarning = document.getElementById('capslock-warning');
+            function checkCapsLock(e) {
+                if (e.getModifierState && typeof e.getModifierState === 'function') {
+                    var capsOn = e.getModifierState('CapsLock');
+                    capsWarning.style.setProperty('display', capsOn ? 'flex' : 'none', 'important');
+                }
+            }
+            var pwdField = document.getElementById('password');
+            ['keydown', 'keyup', 'mousedown', 'focus'].forEach(function(evt) {
+                pwdField.addEventListener(evt, checkCapsLock);
+            });
+            var otpField = document.getElementById('otp_code');
+            if (otpField) {
+                ['keydown', 'keyup', 'mousedown', 'focus'].forEach(function(evt) {
+                    otpField.addEventListener(evt, checkCapsLock);
+                });
+            }
+        })();
     </script>
 
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>

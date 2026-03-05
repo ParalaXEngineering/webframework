@@ -178,6 +178,11 @@ def setup_app(app):
         if "page_info" not in session:
             session["page_info"] = ""
 
+        # Reset page_info each request so stale values from previous
+        # pages don't interfere with sidebar highlighting.
+        # Routes that need it (e.g. Help) set it before render_template.
+        page_info = session.pop("page_info", "")
+
         if access_manager.auth_object.get_login():
             user = access_manager.auth_object.get_user()
         else:
@@ -194,7 +199,7 @@ def setup_app(app):
         
         return dict(
             endpoint=request.endpoint, 
-            page_info=session["page_info"], 
+            page_info=page_info, 
             user=user,
             get_login_url=get_login_url
         )
