@@ -230,7 +230,7 @@ def manage_users():
         value=["guest"],
         choices=all_groups
     ), column=0)
-    disp.add_display_item(DisplayerItemButton(BTN_CREATE_USER, BUTTON_CREATE_USER, color=BSstyle.SUCCESS), column=1)
+    disp.add_display_item(DisplayerItemButton(BTN_CREATE_USER, BUTTON_CREATE_USER, icon="account-plus", color=BSstyle.SUCCESS), column=1)
     
     # Update User Groups
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -252,7 +252,7 @@ def manage_users():
         value=first_user_groups,
         choices=all_groups
     ), column=1)
-    disp.add_display_item(DisplayerItemButton(BTN_UPDATE_GROUPS, BUTTON_UPDATE, color=BSstyle.PRIMARY), column=2)
+    disp.add_display_item(DisplayerItemButton(BTN_UPDATE_GROUPS, BUTTON_UPDATE, icon="content-save", color=BSstyle.PRIMARY), column=2)
     
     # Reset Password
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -266,7 +266,7 @@ def manage_users():
         choices=usernames
     ), column=0)
     disp.add_display_item(DisplayerItemInputPassword("input_reset_password", LABEL_NEW_PASSWORD), column=1)
-    disp.add_display_item(DisplayerItemButton(BTN_RESET_PASSWORD, BUTTON_RESET, color=BSstyle.WARNING), column=2)
+    disp.add_display_item(DisplayerItemButton(BTN_RESET_PASSWORD, BUTTON_RESET, icon="lock-reset", color=BSstyle.WARNING), column=2)
     
     # Delete User
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -280,7 +280,7 @@ def manage_users():
         value=deletable_users[0] if deletable_users else None,
         choices=deletable_users if deletable_users else [TEXT_NO_DELETABLE_USERS]
     ), column=0)
-    disp.add_display_item(DisplayerItemButton(BTN_DELETE_USER, BUTTON_DELETE_USER, color=BSstyle.ERROR), column=1)
+    disp.add_display_item(DisplayerItemButton(BTN_DELETE_USER, BUTTON_DELETE_USER, icon="account-remove", color=BSstyle.ERROR), column=1)
     
     return render_template("base_content.j2", content=disp.display(), target="admin_auth.manage_users")
 
@@ -395,7 +395,8 @@ def manage_permissions():
     disp.add_display_item(DisplayerItemButton(
         BTN_SAVE_PERMISSIONS,
         BUTTON_SAVE_ALL_PERMISSIONS,
-        color=BSstyle.PRIMARY
+        icon="shield-check",
+        color=BSstyle.SUCCESS
     ), column=0)
     
     return render_template("base_content.j2", content=disp.display(), target="admin_auth.manage_permissions")
@@ -476,7 +477,7 @@ def manage_groups():
     
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [8, 4]))
     disp.add_display_item(DisplayerItemInputString("input_new_group", LABEL_GROUP_NAME), column=0)
-    disp.add_display_item(DisplayerItemButton(BTN_CREATE_GROUP, BUTTON_CREATE_GROUP, color=BSstyle.SUCCESS), column=1)
+    disp.add_display_item(DisplayerItemButton(BTN_CREATE_GROUP, BUTTON_CREATE_GROUP, icon="plus", color=BSstyle.SUCCESS), column=1)
     
     # Rename Group
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -491,7 +492,7 @@ def manage_groups():
         choices=renameable_groups if renameable_groups else [TEXT_NO_CUSTOM_GROUPS]
     ), column=0)
     disp.add_display_item(DisplayerItemInputString("input_new_group_name", LABEL_NEW_GROUP_NAME), column=1)
-    disp.add_display_item(DisplayerItemButton(BTN_RENAME_GROUP, BUTTON_RENAME, color=BSstyle.PRIMARY), column=2)
+    disp.add_display_item(DisplayerItemButton(BTN_RENAME_GROUP, BUTTON_RENAME, icon="rename-box", color=BSstyle.PRIMARY), column=2)
     
     # Delete Group
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
@@ -506,7 +507,7 @@ def manage_groups():
         value=deletable_groups[0] if deletable_groups else None,
         choices=deletable_groups if deletable_groups else [TEXT_NO_CUSTOM_GROUPS]
     ), column=0)
-    disp.add_display_item(DisplayerItemButton(BTN_DELETE_GROUP, BUTTON_DELETE_GROUP, color=BSstyle.ERROR), column=1)
+    disp.add_display_item(DisplayerItemButton(BTN_DELETE_GROUP, BUTTON_DELETE_GROUP, icon="delete", color=BSstyle.ERROR), column=1)
     
     # Info about creating groups
     disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
