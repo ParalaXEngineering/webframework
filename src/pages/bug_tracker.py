@@ -690,7 +690,7 @@ def bugtracker():
         disp.add_master_layout(
             displayer.DisplayerLayout(displayer.Layouts.VERTICAL, [12], subtitle="")
         )
-        disp.add_display_item(displayer.DisplayerItemButton(FORM_CREATE_ISSUE_BUTTON, BUTTON_BUG_SUBMIT))
+        disp.add_display_item(displayer.DisplayerItemButton(FORM_CREATE_ISSUE_BUTTON, BUTTON_BUG_SUBMIT, icon="send"))
 
         # Display current issues in a table
         disp.add_master_layout(

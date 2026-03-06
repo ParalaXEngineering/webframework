@@ -231,6 +231,7 @@ def profile():
     disp.add_display_item(DisplayerItemButton(
         BUTTON_UPDATE_INFO,
         TEXT_UPDATE_PROFILE,
+        icon="content-save",
         color=BSstyle.PRIMARY
     ), column=0)
     
@@ -292,6 +293,7 @@ def profile():
         disp.add_display_item(DisplayerItemButton(
             BUTTON_CHANGE_PASSWORD,
             TEXT_CHANGE_PASSWORD_BTN,
+            icon="lock-reset",
             color=BSstyle.WARNING
         ), column=0)
         disp.add_display_item(DisplayerItemText(

@@ -41,6 +41,7 @@ class AppContext:
     This makes testing easier and dependencies explicit.
     
     Attributes:
+        flask_app: The Flask application instance (needed for app/request context outside requests)
         auth_manager: Authentication and authorization manager
         settings_manager: Configuration settings manager
         thread_manager: Background thread manager
@@ -52,7 +53,10 @@ class AppContext:
         app_path: Base path for the application
         is_initialized: Whether the context has been fully initialized
     """
-    
+
+    # Flask app instance - needed to push contexts in background threads
+    flask_app: Optional[Any] = None
+
     # Core managers - None until initialized
     auth_manager: Optional["AuthManager"] = None
     settings_manager: Optional["SettingsManager"] = None
@@ -84,6 +88,7 @@ class AppContext:
         
         Useful for testing to ensure clean state between tests.
         """
+        self.flask_app = None
         self.auth_manager = None
         self.settings_manager = None
         self.thread_manager = None

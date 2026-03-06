@@ -16,7 +16,7 @@ import webbrowser
 from pathlib import Path
 
 try:
-    from flask import Flask, g, render_template, request, session
+    from flask import Flask, g, redirect, render_template, request, session, url_for
     from flask_session import Session
     from flask_socketio import SocketIO
     FLASK_AVAILABLE = True
@@ -257,6 +257,9 @@ def setup_app(app):
     # Initialize SocketIO manager for user isolation
     socketio_manager_obj = initialize_socketio_manager(socketio_obj)
     logger.info("SocketIO manager initialized for multi-user support")
+
+    # Store Flask app in app_context so background threads can push a context for url_for etc.
+    app_context.flask_app = app
 
     # Detect if we're running from exe
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
@@ -505,6 +508,9 @@ def setup_app(app):
                 # Build sidebar items
                 plugin_instance.build_sidebar(site_config)
                 
+                # Build topbar items
+                plugin_instance.build_topbar(site_config)
+                
                 # Register plugin help content if help system is enabled
                 if app_context.help_manager:
                     help_content = plugin_instance.get_help_content()
@@ -577,7 +583,7 @@ def setup_app(app):
     # Conditionally initialize thread emitter for real-time thread updates
     if site_config.m_enable_threads:
         from .modules.threaded import thread_emitter
-        
+
         thread_emitter.thread_emitter_obj = thread_emitter.ThreadEmitter(socketio_obj, interval=THREAD_EMITTER_INTERVAL)
         thread_emitter.thread_emitter_obj.start()
         logger.debug("Thread emitter initialized")
@@ -826,6 +832,9 @@ def setup_app(app):
     @app.route("/")  # type: ignore
     def framework_index():
         session["page_info"] = "index"  # type: ignore
+        home = app_context.site_conf.m_home_endpoint  # type: ignore
+        if home and home != "framework_index":
+            return redirect(url_for(home))  # type: ignore
         return render_template("index.j2", title=app_context.site_conf.m_app["name"], content=app_context.site_conf.m_index)  # type: ignore
 
     # Handle Chrome DevTools and browser-specific requests to avoid 404 logs

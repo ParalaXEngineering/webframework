@@ -83,6 +83,12 @@ class HelpSection:
     
     requires_feature: Optional[str] = None
     """Feature flag that must be enabled for this section to show."""
+
+    group: str = "General"
+    """Top-level group title used by the help index."""
+
+    group_order: int = 100
+    """Sort order of the top-level group (lower = first)."""
     
 
 class HelpManager:
@@ -129,6 +135,7 @@ class HelpManager:
             'toc',
             'attr_list',
             'md_in_html',
+            'admonition',
         ]
         
     def set_site_conf(self, site_conf: Any) -> None:
@@ -247,7 +254,13 @@ class HelpManager:
                         order=section_meta.get("order", 100),
                         source=source,
                         requires_feature=section_meta.get("requires_feature"),
+                        group=section_meta.get("section_group", "General"),
+                        group_order=section_meta.get("section_group_order", 100),
                     )
+                else:
+                    section = self.sections[section_id]
+                    section.group = section_meta.get("section_group", section.group)
+                    section.group_order = section_meta.get("section_group_order", section.group_order)
                 
                 # Scan for markdown files
                 md_files = list(item.glob("*.md"))
