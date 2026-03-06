@@ -65,7 +65,18 @@ class Workflow:
         if self.m_default_name in data_in:
             data_in = data_in[self.m_default_name]
             self.m_data_in = data_in
-            if "workflow_skip" in data_in:
+            if "workflow_goto" in data_in:
+                # Jump directly to the selected step
+                # goto_step value format: "N - Step Name"
+                goto_raw = data_in.get("goto_step", str(self.m_current_step))
+                try:
+                    target_step = int(str(goto_raw).split(" - ", 1)[0])
+                except (ValueError, IndexError):
+                    target_step = self.m_current_step
+                if 0 <= target_step < len(self.m_steps["display"]):
+                    self.m_current_step = target_step
+                return True
+            elif "workflow_skip" in data_in:
                 self.m_current_step = int(data_in["current_step"]) + 1
                 return True
             elif "workflow_prev" in data_in:
@@ -91,7 +102,10 @@ class Workflow:
         if len(self.m_steps["workers"]) < self.m_current_step:
             return
 
-        if "workflow_skip" in self.m_data_in or "workflow_prev" in self.m_data_in:
+        if "workflow_goto" in self.m_data_in:
+            # Jump navigation: no worker or skipper to run
+            return
+        elif "workflow_skip" in self.m_data_in or "workflow_prev" in self.m_data_in:
             try:
                 # Start the worker in a thread
                 self.m_thread_worker = threading.Thread(
@@ -175,6 +189,37 @@ class Workflow:
             disp.add_display_item(
                 displayer.DisplayerItemButton("workflow_skip", "Skip"),
                 0,
+                disabled=False,
+            )
+
+        # Step selector: jump directly to any step
+        if len(self.m_steps["submenus"]) > 1:
+            max_digits = len(str(len(self.m_steps["submenus"]) - 1))
+            step_choices = [
+                f"{str(i).zfill(max_digits)} - {name}"
+                for i, name in enumerate(self.m_steps["submenus"])
+                if i != self.m_current_step
+            ]
+            disp.add_master_layout(
+                displayer.DisplayerLayout(
+                    displayer.Layouts.VERTICAL,
+                    [6, 4, 2],
+                    subtitle="",
+                    alignment=[displayer.BSalign.R, displayer.BSalign.L, displayer.BSalign.L],
+                )
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemText("Jump to step"), 0
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemInputSelect(
+                    "goto_step", None, None, step_choices
+                ),
+                1,
+            )
+            disp.add_display_item(
+                displayer.DisplayerItemButton("workflow_goto", "Go"),
+                2,
                 disabled=False,
             )
 
