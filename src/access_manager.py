@@ -1,8 +1,11 @@
 from submodules.framework.src import utilities
 from submodules.framework.src.security_utils import failed_login_manager
-from flask import session
+from flask import session, current_app
 import bcrypt
 import logging
+import os
+import pickle
+import struct
 
 logger = logging.getLogger("website")
 auth_object = None
@@ -86,8 +89,68 @@ class Access_manager:
         self.m_login = login
 
     def unlog(self):
-        if 'username' in session:
-            session['username'] = "GUEST"
+        """Unlog the current user and invalidate all other sessions for the same user.
+
+        This ensures that when a user logs out from one client (e.g. webview),
+        all other clients sharing the same Flask server (e.g. browser) are also
+        logged out, even though they have separate session cookies.
+        """
+        username = session.get('username', 'GUEST')
+        session['username'] = "GUEST"
+
+        if username and username != "GUEST":
+            self._invalidate_all_sessions_for_user(username)
+
+    def _invalidate_all_sessions_for_user(self, username: str):
+        """Scan all filesystem session files and set username to GUEST
+        for every session that belongs to the given user.
+
+        :param username: The username whose sessions should be invalidated
+        :type username: str
+        """
+        try:
+            session_dir = current_app.config.get("SESSION_FILE_DIR", "flask_session")
+            if not os.path.isdir(session_dir):
+                logger.warning(f"Session directory not found: {session_dir}")
+                return
+
+            invalidated = 0
+            current_sid = session.sid if hasattr(session, 'sid') else None
+
+            for filename in os.listdir(session_dir):
+                filepath = os.path.join(session_dir, filename)
+                if not os.path.isfile(filepath):
+                    continue
+
+                # Skip the current session (already handled above)
+                if current_sid and filename == current_sid:
+                    continue
+
+                try:
+                    with open(filepath, 'rb') as f:
+                        # Flask-Session filesystem format: 4-byte header + pickle payload
+                        header = f.read(4)
+                        if len(header) < 4:
+                            continue
+                        payload = f.read()
+
+                    data = pickle.loads(payload)
+                    if isinstance(data, dict) and data.get('username') == username:
+                        data['username'] = "GUEST"
+                        new_payload = pickle.dumps(data)
+                        with open(filepath, 'wb') as f:
+                            f.write(header)
+                            f.write(new_payload)
+                        invalidated += 1
+
+                except Exception:
+                    # Skip corrupt or locked session files silently
+                    continue
+
+            if invalidated > 0:
+                logger.info(f"Invalidated {invalidated} other session(s) for user '{username}'")
+        except Exception as e:
+            logger.error(f"Error during session invalidation for user '{username}': {e}")
 
     # def set_user(self, user: str, password: str):
     #     """Set the current user

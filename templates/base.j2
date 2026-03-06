@@ -92,7 +92,7 @@
                                     <ul class="submenu {{ 'active' if (endpoint and (endpoint == sidebarItem.endpoint or endpoint.startswith(sidebarItem.endpoint + '.')) and (not page_info or sidebarItem.cat in page_info)) }}">
                                     {% set qs = request.query_string.decode('utf-8') %}
                                     {% for sub in sidebarItem.submenu %}
-                                        <li class="submenu-item {% if "subsubmenu" in sub %} has-sub {% endif %} {{ 'active' if (endpoint and ((page_info and sub.url in endpoint and sub.name in page_info) or (not page_info and endpoint == sub.url and sub.param|default('') == qs) or ('subsubmenu' in sub and (sub.subsubmenu|selectattr('url','equalto',endpoint)|rejectattr('param','defined')|list or sub.subsubmenu|selectattr('url','equalto',endpoint)|selectattr('param','defined')|selectattr('param','equalto',qs)|list)))) }}">
+                                        <li class="submenu-item {% if "subsubmenu" in sub %} has-sub {% endif %} {{ 'active' if (endpoint and ((page_info and sub.url in endpoint and sub.name in page_info) or (not page_info and endpoint == sub.url and (sub.param is not defined or sub.param == qs)) or ('subsubmenu' in sub and (sub.subsubmenu|selectattr('url','equalto',endpoint)|rejectattr('param','defined')|list or sub.subsubmenu|selectattr('url','equalto',endpoint)|selectattr('param','defined')|selectattr('param','equalto',qs)|list)))) }}">
                                             {% if "." in sub.url%}
                                                 <a href="{{ url_for(sub.url) }}?{{ sub.param }}">{{ sub.name }}</a>
                                             {% else %}
@@ -102,7 +102,7 @@
                                             {% if "subsubmenu" in sub %}
                                                 <ul class="submenu submenu-level-2">
                                                 {% for subsub in sub.subsubmenu %}
-                                                    <li class="submenu-item {{ 'active' if (endpoint and ((page_info and subsub.url in endpoint and subsub.name in page_info) or (not page_info and endpoint == subsub.url and subsub.param|default('') == qs))) }}">
+                                                    <li class="submenu-item {{ 'active' if (endpoint and ((page_info and subsub.url in endpoint and subsub.name in page_info) or (not page_info and endpoint == subsub.url and (subsub.param is not defined or subsub.param == qs)))) }}">
                                                         <a href="{{ url_for(subsub.url) }}?{{ subsub.param }}">{{ subsub.name }}</a>
                                                     </li>
                                                 {% endfor %}
