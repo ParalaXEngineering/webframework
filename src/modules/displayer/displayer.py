@@ -75,6 +75,14 @@ class Displayer:
         self.m_active_module: Optional[str] = None
         self.m_last_layout: Optional[DisplayerLayout] = None
         self._tooltip_contexts: List[str] = []  # Tooltip contexts for this page
+        # Layout cache: maps layout ID → layout dict for O(1) lookup in find_layout().
+        # Populated proactively by add_master_layout / add_slave_layout / duplicate_master_layout
+        # when they create a layout, and lazily by find_layout() on cache miss.
+        # This is critical for pages that add many items to many layouts (e.g. collection
+        # views with hundreds of trackers), where the recursive tree search in find_layout()
+        # would otherwise dominate rendering time (measured: 19M recursive calls → 0 with cache).
+        # The cache is per-Displayer instance, so it is naturally scoped to a single request.
+        self._layout_cache: Dict[int, Dict[str, Any]] = {}
 
     def add_module(self, module: Any, name_override: Optional[str] = None, display: bool = True) -> None:
         """
@@ -234,7 +242,11 @@ class Displayer:
         layout_id: int = -1
     ) -> Optional[Dict[str, Any]]:
         """
-        Find a layout recursively by its ID.
+        Find a layout by its ID.
+
+        Uses an internal O(1) cache (_layout_cache) populated when layouts are
+        created.  Falls back to a recursive tree search on cache miss and caches
+        the result for subsequent lookups.
 
         Args:
             searchable_layout: A list of items that can contain layouts. 
@@ -252,6 +264,11 @@ class Displayer:
         # Handle default value and invalid ID
         if layout_id == -1:
             return None
+
+        # Fast path: check cache
+        cached = self._layout_cache.get(layout_id)
+        if cached is not None:
+            return cached
             
         if searchable_layout is None:
             if not self.m_active_module or "layouts" not in self.m_modules[self.m_active_module]:
@@ -265,11 +282,13 @@ class Displayer:
                     
                 # Found the layout
                 if potential_layout.get("id") == layout_id:
+                    self._layout_cache[layout_id] = potential_layout
                     return potential_layout
             
                 # Search recursively in children
                 found = self._search_layout_children(potential_layout, layout_id)
                 if found is not None:
+                    self._layout_cache[layout_id] = found
                     return found
 
         return None
@@ -484,7 +503,7 @@ class Displayer:
             if master_layout["type"] == Layouts.GRID.value:
                 # GRID parent: use string field_id key
                 field_id = str(column) if isinstance(column, int) else column
-                layout.display(master_layout["containers"][field_id], self.g_next_layout)
+                _created = layout.display(master_layout["containers"][field_id], self.g_next_layout)
             elif "lines" in master_layout:
                 # Do we have at least a line?
                 if not master_layout["lines"]:
@@ -503,9 +522,10 @@ class Displayer:
                     if len(master_layout["lines"]) <= line:
                         for i in range(len(master_layout["lines"]), line + 1):
                             master_layout["lines"].append([[] for _ in range(len(master_layout["header"]))])
-                layout.display(master_layout["lines"][line][column], self.g_next_layout)
+                _created = layout.display(master_layout["lines"][line][column], self.g_next_layout)
             else:
-                layout.display(master_layout["containers"][column], self.g_next_layout)
+                _created = layout.display(master_layout["containers"][column], self.g_next_layout)
+            self._layout_cache[self.g_next_layout] = _created
             self.g_next_layout += 1
 
             # Setup the all layout variable (merge responsive_addon to preserve all tables)
@@ -519,7 +539,7 @@ class Displayer:
             return self.g_next_layout - 1
         elif master_layout["type"] == Layouts.TABS.value:
             # Only one row for tabs
-            layout.display(master_layout["lines"][0][column], self.g_next_layout)
+            self._layout_cache[self.g_next_layout] = layout.display(master_layout["lines"][0][column], self.g_next_layout)
             self.g_next_layout += 1
             # Merge responsive_addon to preserve all tables
             for item in layout.m_all_layout:
@@ -533,7 +553,7 @@ class Displayer:
             # Adding a TABS layout as a child to a VERTICAL/HORIZONTAL parent
             if "containers" in master_layout:
                 # Add to containers (VERTICAL/HORIZONTAL layouts use containers)
-                layout.display(master_layout["containers"][column], self.g_next_layout)
+                self._layout_cache[self.g_next_layout] = layout.display(master_layout["containers"][column], self.g_next_layout)
                 self.g_next_layout += 1
                 # Merge responsive_addon to preserve all tables
                 for item in layout.m_all_layout:
@@ -546,7 +566,7 @@ class Displayer:
                 # Add to lines (TABLE layouts use lines)
                 if not master_layout["lines"]:
                     master_layout["lines"] = [[[] for _ in range(len(master_layout["header"]))]]
-                layout.display(master_layout["lines"][line][column], self.g_next_layout)
+                self._layout_cache[self.g_next_layout] = layout.display(master_layout["lines"][line][column], self.g_next_layout)
                 self.g_next_layout += 1
                 for item in layout.m_all_layout:
                     if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
@@ -557,7 +577,7 @@ class Displayer:
         elif layout.m_type == Layouts.TABLE.value:
             # Adding a TABLE layout as a child (similar logic)
             if "containers" in master_layout:
-                layout.display(master_layout["containers"][column], self.g_next_layout)
+                self._layout_cache[self.g_next_layout] = layout.display(master_layout["containers"][column], self.g_next_layout)
                 self.g_next_layout += 1
                 for item in layout.m_all_layout:
                     if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
@@ -570,7 +590,7 @@ class Displayer:
             # Adding a GRID layout as a child to VERTICAL/HORIZONTAL/TABLE parent
             if "containers" in master_layout:
                 # Add to containers (VERTICAL/HORIZONTAL layouts use containers)
-                layout.display(master_layout["containers"][column], self.g_next_layout)
+                self._layout_cache[self.g_next_layout] = layout.display(master_layout["containers"][column], self.g_next_layout)
                 self.g_next_layout += 1
                 # Merge responsive_addon to preserve all tables
                 for item in layout.m_all_layout:
@@ -583,7 +603,7 @@ class Displayer:
                 # Add to lines (TABLE layouts use lines)
                 if not master_layout["lines"]:
                     master_layout["lines"] = [[[] for _ in range(len(master_layout["header"]))]]
-                layout.display(master_layout["lines"][line][column], self.g_next_layout)
+                self._layout_cache[self.g_next_layout] = layout.display(master_layout["lines"][line][column], self.g_next_layout)
                 self.g_next_layout += 1
                 for item in layout.m_all_layout:
                     if item == _RESPONSIVE_ADDON_KEY and item in self.m_all_layout:
@@ -611,7 +631,9 @@ class Displayer:
             self.m_modules[self.m_active_module]["layouts"] = []
 
         self.m_last_layout = layout
-        layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
+        layouts_list = self.m_modules[self.m_active_module]["layouts"]
+        created = layout.display(layouts_list, self.g_next_layout)
+        self._layout_cache[self.g_next_layout] = created
         self.g_next_layout += 1
 
         # Setup the all layout variable (merge responsive_addon to preserve all tables)
@@ -632,7 +654,7 @@ class Displayer:
             The new layout ID, or None if no previous layout exists
         """
         if self.m_last_layout and self.m_active_module:
-            self.m_last_layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
+            self._layout_cache[self.g_next_layout] = self.m_last_layout.display(self.m_modules[self.m_active_module]["layouts"], self.g_next_layout)
             self.g_next_layout += 1
             return self.g_next_layout - 1
 

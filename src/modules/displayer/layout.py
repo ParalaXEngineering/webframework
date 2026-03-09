@@ -267,7 +267,7 @@ class DisplayerLayout:
         
         return new_config
 
-    def display(self, container: List[Dict[str, Any]], id: int) -> None:
+    def display(self, container: List[Dict[str, Any]], id: int) -> Dict[str, Any]:
         """
         Add this layout to a container view.
         
@@ -279,13 +279,13 @@ class DisplayerLayout:
             id: The layout ID
             
         Returns:
-            None (modifies container in place)
+            The created layout dictionary (also appended to container).
             
         Example:
             >>> layouts = []
             >>> layout = DisplayerLayout(Layouts.HORIZONTAL, columns=[6, 6])
-            >>> layout.display(layouts, id=1)
-            >>> print(layouts[0]['type'])  # 'HORIZ'
+            >>> created = layout.display(layouts, id=1)
+            >>> print(created['type'])  # 'HORIZ'
         """
         current_layout = {
             "object": "layout",
@@ -306,7 +306,7 @@ class DisplayerLayout:
                     containers[item["field_id"]] = []
             current_layout["containers"] = containers
             container.append(current_layout)
-            return
+            return current_layout
 
         # Table and Tabs layouts have special structure
         if self.m_type == Layouts.TABLE.value or self.m_type == Layouts.TABS.value:
@@ -455,3 +455,4 @@ class DisplayerLayout:
             current_layout["style"] = self.m_style.value if self.m_style else None
 
         container.append(current_layout)
+        return current_layout
