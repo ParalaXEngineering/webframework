@@ -474,6 +474,57 @@ class FileManager:
         
         return tag
     
+    def regenerate_thumbnail(self, thumb_relative_path: str) -> Optional[Path]:
+        """Try to regenerate a missing thumbnail from the original stored file.
+
+        Args:
+            thumb_relative_path: Relative path like ".thumbs/150x150/ab/c1/abc123_thumb.jpg"
+
+        Returns:
+            Absolute Path to the regenerated thumbnail, or None if regeneration failed
+        """
+        from .models import THUMB_DIR, THUMB_SUFFIX
+        try:
+            # Parse: .thumbs/SIZE/hash_dirs/hash_thumb.jpg
+            if not thumb_relative_path.startswith(THUMB_DIR + '/'):
+                return None
+            without_thumbdir = thumb_relative_path[len(THUMB_DIR) + 1:]  # e.g. "150x150/ab/c1/hash_thumb.jpg"
+            slash_pos = without_thumbdir.find('/')
+            if slash_pos < 0:
+                return None
+            rest = without_thumbdir[slash_pos + 1:]  # e.g. "ab/c1/hash_thumb.jpg"
+
+            if not rest.endswith(THUMB_SUFFIX):
+                return None
+            storage_path = rest[:-len(THUMB_SUFFIX)]  # e.g. "ab/c1/hash"
+
+            # Look up file version in DB to get original filename (for extension)
+            file_version = self.db_session.query(FileVersion).filter_by(storage_path=storage_path).first()
+            if not file_version:
+                logger.debug("Thumbnail regen: no file version for storage_path=%s", storage_path)
+                return None
+
+            # Get original file from HashFS
+            try:
+                actual_file_path = self.storage.get(storage_path)
+            except IOError:
+                logger.debug("Thumbnail regen: original file not found in storage: %s", storage_path)
+                return None
+
+            # Regenerate thumbnails
+            thumbnails = self._generate_thumbnails(actual_file_path, storage_path, file_version.filename)
+
+            if thumbnails:
+                thumb_abs = self.hashfs_path.parent / thumb_relative_path
+                if thumb_abs.exists():
+                    logger.info("Thumbnail regenerated for: %s", thumb_relative_path)
+                    return thumb_abs
+
+        except Exception as e:
+            logger.debug("Thumbnail regeneration failed for %s: %s", thumb_relative_path, e)
+
+        return None
+
     def _calculate_checksum(self, file_path: Path) -> str:
         """Calculate SHA256 checksum for a file.
         
