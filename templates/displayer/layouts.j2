@@ -8,7 +8,7 @@
     {% elif layout["type"] == "TABLE" %}
         {{ display_table_layout(layout["header"], layout["lines"], layout["responsive"], layout["responsive_type"], layout["user_id"], layout["background"], layout["style"], layout["spacing"], layout.get("reorder_callback")) }}
     {% elif layout["type"] == "TABS" %}
-        {{ display_tabs_layout(layout["header"], layout["lines"], layout["user_id"], layout["subtitle"], layout["background"], layout["style"], layout["spacing"]) }}
+        {{ display_tabs_layout(layout["header"], layout["lines"], layout["user_id"], layout["subtitle"], layout["background"], layout["style"], layout["spacing"], layout.get("tab_config", {})) }}
     {% elif layout["type"] == "SPACER" %}
         <div><p style="margin-bottom:1cm;"></p></div>
     {% elif layout["type"] == "GRID" %}
@@ -118,15 +118,22 @@
     </div>
 {% endmacro %}
 
-{% macro display_tabs_layout(header=[], lines=[], user_id=none, subtitle=none, background=none, style=none, spacing=0) %}
+{% macro display_tabs_layout(header=[], lines=[], user_id=none, subtitle=none, background=none, style=none, spacing=0, tab_config={}) %}
     {% set tab_id = user_id if user_id else 'myTab' %}
+    {% set sortable = tab_config.get('sortable', false) if tab_config else false %}
+    {% set deletable = tab_config.get('deletable', false) if tab_config else false %}
+    {% set add_button_name = tab_config.get('add_button_name', none) if tab_config else none %}
+    {% set delete_button_name = tab_config.get('delete_button_name', none) if tab_config else none %}
+    {% set reorder_name = tab_config.get('reorder_name', none) if tab_config else none %}
     <div class="{{spacing}} {% if background %}bg-{{background}}{% endif %} {% if style %}{{style}}{% endif %}">
         {% if subtitle %}
         <h6 class="mb-2">{{ subtitle }}</h6>
         {% endif %}
-        <ul class="nav nav-tabs" id="{{ tab_id }}" role="tablist">
+        <ul class="nav nav-tabs{% if sortable %} sortable-tabs{% endif %}" id="{{ tab_id }}" role="tablist"
+            {% if sortable %}data-sortable-tabs="true"{% endif %}
+            {% if reorder_name %}data-reorder-name="{{ reorder_name }}"{% endif %}>
         {% for head in header %}
-        <li class="nav-item" role="presentation">
+        <li class="nav-item{% if sortable %} sortable-tab-item{% endif %}" role="presentation" data-tab-index="{{ loop.index0 }}">
             <a class="nav-link {% if loop.first %}active{% endif %}" 
             id="{{ tab_id }}_tab{{ loop.index }}" 
             data-bs-toggle="tab" 
@@ -134,10 +141,24 @@
             role="tab" 
             aria-controls="{{ tab_id }}_pane{{ loop.index }}" 
             aria-selected="{{ 'true' if loop.first else 'false' }}">
-            {{ head }}
+            {% if sortable %}<span class="tab-drag-handle" title="Drag to reorder"><i class="mdi mdi-drag-vertical"></i></span>{% endif %}
+            <span class="tab-label">{{ head }}</span>
+            {% if deletable %}
+            <button type="button" class="btn-close btn-close-tab ms-2" aria-label="Delete"
+                    data-tab-index="{{ loop.index0 }}"
+                    {% if delete_button_name %}data-delete-name="{{ delete_button_name }}[{{ loop.index0 }}]"{% endif %}>
+            </button>
+            {% endif %}
             </a>
         </li>
         {% endfor %}
+        {% if add_button_name %}
+        <li class="nav-item tab-add-item" role="presentation">
+            <button type="submit" class="nav-link tab-add-btn" name="{{ add_button_name }}" value="1" title="Add new item">
+                <i class="mdi mdi-plus"></i>
+            </button>
+        </li>
+        {% endif %}
         </ul>
 
         <div class="tab-content" id="{{ tab_id }}_content">
@@ -145,7 +166,8 @@
             <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
                 id="{{ tab_id }}_pane{{ loop.index }}" 
                 role="tabpanel" 
-                aria-labelledby="{{ tab_id }}_tab{{ loop.index }}">
+                aria-labelledby="{{ tab_id }}_tab{{ loop.index }}"
+                data-tab-index="{{ loop.index0 }}">
                 {% for element in items %}
                     {% if element["object"] == "item" %}
                         {{ disp_item.display_item(element) }}

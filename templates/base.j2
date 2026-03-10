@@ -16,6 +16,7 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app-dark.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'css/theme-aware.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/tab-sort.css') }}">
     {% for css in required_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename= css) }}">
     {% endfor %}
@@ -382,6 +383,8 @@
     <script>window.__SCRIPT_NAME__ = '{{ request.script_root }}';</script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'vendors/sortablejs/Sortable.min.js') }}"></script>
+    <script src="{{ url_for('static', filename= 'js/tab_sort.js') }}"></script>
     
     {# Inject user's theme preference before dark.js loads #}
     <script>

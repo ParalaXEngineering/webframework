@@ -73,7 +73,8 @@ class DisplayerLayout:
         grid_config: Optional[Dict[str, Any]] = None,
         userid: Optional[str] = None,
         style: Optional[MAZERStyles] = None,
-        reorder_callback: Optional[str] = None
+        reorder_callback: Optional[str] = None,
+        tab_config: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         Initialize a layout.
@@ -144,6 +145,7 @@ class DisplayerLayout:
         self.m_style = style
         self.m_grid_config = grid_config
         self.m_reorder_callback = reorder_callback
+        self.m_tab_config = tab_config or {}
         
         # Instance-specific layout metadata storage (replaces class variable g_all_layout)
         self.m_all_layout = {}
@@ -417,6 +419,7 @@ class DisplayerLayout:
             # For TABS, lines is a single row of cells (one per tab)
             if self.m_type == Layouts.TABS.value:
                 current_layout["lines"] = [[[] for _ in range(len(self.m_column))]]
+                current_layout["tab_config"] = self.m_tab_config
             else:
                 current_layout["lines"] = None
 
