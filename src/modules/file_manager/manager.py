@@ -24,7 +24,7 @@ import hashlib
 # Database imports
 from sqlalchemy import create_engine, and_
 from sqlalchemy.orm import sessionmaker, Session
-from .models import Base, FileGroup, FileVersion, FileTag
+from .models import Base, FileGroup, FileVersion, FileTag, file_version_tags
 from .storage import ContentAddressableStorage
 
 # Framework i18n
@@ -1298,4 +1298,215 @@ class FileManager:
         except Exception as e:
             logger.error("File integrity check error for file %s: %s", file_id, e)
             return False, f"Error: {str(e)}"
+
+    # ── DataTables server-side processing helpers ──────────────────────────
+
+    def count_current_files(self) -> int:
+        """Count all current (non-superseded) file versions."""
+        return self.db_session.query(FileVersion).filter(
+            FileVersion.is_current.is_(True)
+        ).count()
+
+    def count_filtered_files(
+        self,
+        search: str = "",
+        group_ids: Optional[List[str]] = None,
+        mime_types: Optional[List[str]] = None,
+        uploaders: Optional[List[str]] = None,
+        tag_names: Optional[List[str]] = None,
+    ) -> int:
+        """Count current files matching the given search/filter criteria."""
+        query = self._build_filtered_query(search, group_ids, mime_types, uploaders, tag_names)
+        return query.count()
+
+    def list_files_paginated(
+        self,
+        offset: int = 0,
+        limit: int = 50,
+        search: str = "",
+        group_ids: Optional[List[str]] = None,
+        mime_types: Optional[List[str]] = None,
+        uploaders: Optional[List[str]] = None,
+        tag_names: Optional[List[str]] = None,
+    ) -> List[FileVersion]:
+        """Return a page of current file versions matching filters.
+
+        Results are ordered by ``uploaded_at DESC``.
+        """
+        query = self._build_filtered_query(search, group_ids, mime_types, uploaders, tag_names)
+        return (
+            query
+            .order_by(FileVersion.uploaded_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+    def get_version_number(self, file_version: "FileVersion") -> int:
+        """Return the 1-based version number for *file_version* within its group."""
+        query = self.db_session.query(FileVersion.id).filter(
+            FileVersion.filename == file_version.filename
+        )
+        if file_version.group_id:
+            query = query.filter(FileVersion.group_id == file_version.group_id)
+        else:
+            query = query.filter(FileVersion.group_id.is_(None))
+        ordered_ids = [
+            row[0] for row in query.order_by(FileVersion.uploaded_at).all()
+        ]
+        try:
+            return ordered_ids.index(file_version.id) + 1
+        except ValueError:
+            return 1
+
+    def get_searchpane_options(
+        self,
+        column: str,
+        search: str = "",
+        exclude_filters: Optional[Dict[str, List[str]]] = None,
+        max_options: int = 500,
+    ) -> List[Dict[str, Any]]:
+        """Return SearchPanes option list for a paneable column.
+
+        Each item is ``{label, value, total, count}`` where *total* is the
+        number with only cross-pane filters applied and *count* additionally
+        applies the global search.
+
+        Supported columns: ``"group_id"``, ``"mime_type"``, ``"uploaded_by"``, ``"tags"``.
+        """
+        from sqlalchemy import func, case, literal_column
+
+        if exclude_filters is None:
+            exclude_filters = {}
+
+        def _base_query():
+            """Base query with is_current + cross-pane filters (excluding *column*)."""
+            q = self.db_session.query(FileVersion).filter(FileVersion.is_current.is_(True))
+            for col, vals in exclude_filters.items():
+                if col == column or not vals:
+                    continue
+                q = self._apply_pane_filter(q, col, vals)
+            return q
+
+        def _search_case():
+            """CASE expression: 1 when row matches global search, else 0."""
+            if not search:
+                return literal_column("1")
+            pattern = f"%{search}%"
+            return case(
+                (
+                    (FileVersion.filename.ilike(pattern))
+                    | (FileVersion.group_id.ilike(pattern))
+                    | (FileVersion.mime_type.ilike(pattern))
+                    | (FileVersion.uploaded_by.ilike(pattern)),
+                    1,
+                ),
+                else_=0,
+            )
+
+        results: List[Dict[str, Any]] = []
+
+        if column == "tags":
+            base_q = _base_query().subquery()
+            rows = (
+                self.db_session.query(
+                    FileTag.tag_name.label("label"),
+                    func.count(func.distinct(base_q.c.id)).label("total"),
+                    func.sum(_search_case()).label("cnt"),
+                )
+                .select_from(FileTag)
+                .join(file_version_tags, FileTag.id == file_version_tags.c.tag_id)
+                .join(base_q, file_version_tags.c.version_id == base_q.c.id)
+                .group_by(FileTag.tag_name)
+                .order_by(func.count(func.distinct(base_q.c.id)).desc())
+                .limit(max_options)
+                .all()
+            )
+            for r in rows:
+                results.append({"label": r.label, "value": r.label,
+                                "total": r.total, "count": r.cnt or 0})
+        else:
+            col_attr = {
+                "group_id": FileVersion.group_id,
+                "mime_type": FileVersion.mime_type,
+                "uploaded_by": FileVersion.uploaded_by,
+            }.get(column)
+            if col_attr is None:
+                return results
+
+            base_q = _base_query()
+            if column != "group_id":
+                base_q = base_q.filter(col_attr.isnot(None), col_attr != "")
+
+            label_expr = func.coalesce(col_attr, "")
+            rows = (
+                base_q
+                .with_entities(
+                    label_expr.label("label"),
+                    func.count().label("total"),
+                    func.sum(_search_case()).label("cnt"),
+                )
+                .group_by(label_expr)
+                .order_by(func.count().desc())
+                .limit(max_options)
+                .all()
+            )
+            for r in rows:
+                display = r.label if r.label else "(none)"
+                results.append({"label": display, "value": r.label,
+                                "total": r.total, "count": r.cnt or 0})
+
+        return results
+
+    # ── Private helpers for DataTables queries ─────────────────────────────
+
+    def _build_filtered_query(
+        self,
+        search: str = "",
+        group_ids: Optional[List[str]] = None,
+        mime_types: Optional[List[str]] = None,
+        uploaders: Optional[List[str]] = None,
+        tag_names: Optional[List[str]] = None,
+    ):
+        """Build a SQLAlchemy query for current file versions with filters."""
+        query = self.db_session.query(FileVersion).filter(FileVersion.is_current.is_(True))
+
+        if search:
+            pattern = f"%{search}%"
+            query = query.filter(
+                (FileVersion.filename.ilike(pattern))
+                | (FileVersion.group_id.ilike(pattern))
+                | (FileVersion.mime_type.ilike(pattern))
+                | (FileVersion.uploaded_by.ilike(pattern))
+            )
+
+        if group_ids is not None:
+            query = self._apply_pane_filter(query, "group_id", group_ids)
+        if mime_types is not None:
+            query = self._apply_pane_filter(query, "mime_type", mime_types)
+        if uploaders is not None:
+            query = self._apply_pane_filter(query, "uploaded_by", uploaders)
+        if tag_names is not None:
+            query = self._apply_pane_filter(query, "tags", tag_names)
+
+        return query
+
+    @staticmethod
+    def _apply_pane_filter(query, column: str, values: List[str]):
+        """Apply a SearchPanes filter to *query*."""
+        if column == "tags":
+            query = query.filter(
+                FileVersion.id.in_(
+                    query.session.query(file_version_tags.c.version_id)
+                    .join(FileTag, FileTag.id == file_version_tags.c.tag_id)
+                    .filter(FileTag.tag_name.in_(values))
+                )
+            )
+        elif column == "group_id":
+            query = query.filter(FileVersion.group_id.in_(values))
+        elif column == "mime_type":
+            query = query.filter(FileVersion.mime_type.in_(values))
+        elif column == "uploaded_by":
+            query = query.filter(FileVersion.uploaded_by.in_(values))
+        return query
 

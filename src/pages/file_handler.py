@@ -5,8 +5,10 @@ This module provides HTTP endpoints for secure file management operations.
 """
 
 # Standard library
+import re
+from datetime import datetime
 from io import BytesIO
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 # Third-party
 from flask import Blueprint, request, send_file, jsonify, session, abort, url_for
@@ -595,6 +597,212 @@ def get_versions(group_id: str, filename: str):
     except Exception as e:
         logger.error(f"Error getting file versions: {e}")
         abort(500, ERROR_INTERNAL_SERVER)
+
+
+# ── DataTables Server-Side Processing endpoint ────────────────────────────────
+
+def _format_file_size(size_bytes) -> str:
+    """Convert bytes to human-readable string."""
+    if size_bytes is None:
+        return ""
+    size_bytes = float(size_bytes)
+    for unit in ("B", "KB", "MB", "GB"):
+        if abs(size_bytes) < 1024.0:
+            return f"{size_bytes:.1f} {unit}" if unit != "B" else f"{int(size_bytes)} {unit}"
+        size_bytes /= 1024.0
+    return f"{size_bytes:.1f} TB"
+
+
+def _format_dt(value) -> str:
+    """Format a datetime string for display."""
+    if not value:
+        return ""
+    try:
+        if isinstance(value, datetime):
+            return value.strftime("%Y-%m-%d %H:%M")
+        return datetime.fromisoformat(str(value)).strftime("%Y-%m-%d %H:%M")
+    except (TypeError, ValueError):
+        return str(value) if value else ""
+
+
+def _parse_searchpanes_selections(args) -> Dict[str, List[str]]:
+    """Parse ``searchPanes[field][i]`` request parameters."""
+    selections: Dict[str, List[str]] = {}
+    for key in args:
+        m = re.match(r"searchPanes\[(.+?)\]\[(\d+)\]", key)
+        if m:
+            field_name = m.group(1)
+            selections.setdefault(field_name, []).append(args[key])
+    return selections
+
+
+# Map DataTable column names to FileManager pane column names
+_DT_TO_FM_PANE = {
+    "Group ID": "group_id",
+    "MIME Type": "mime_type",
+    "Uploaded By": "uploaded_by",
+    "Tags": "tags",
+}
+
+
+def _build_action_buttons(file_id: int, perms: Dict[str, bool],
+                           url_patterns: Dict[str, str]) -> str:
+    """Build HTML action buttons using cached URL patterns."""
+    parts: list = []
+
+    href = url_patterns["download"].format(fid=file_id)
+    parts.append(
+        f'<a href="{href}" class="btn btn-sm btn-primary" title="Download">'
+        f'<i class="mdi mdi-download"></i></a>'
+    )
+
+    if perms.get("edit"):
+        href = url_patterns["edit"].format(fid=file_id)
+        parts.append(
+            f'<a href="{href}" class="btn btn-sm btn-warning" title="Edit metadata">'
+            f'<i class="mdi mdi-pencil"></i></a>'
+        )
+
+    if perms.get("delete"):
+        href = url_patterns["delete"].format(fid=file_id)
+        parts.append(
+            f'<a href="{href}" class="btn btn-sm btn-danger" title="Delete">'
+            f'<i class="mdi mdi-delete"></i></a>'
+        )
+
+    return " ".join(parts)
+
+
+def _build_url_patterns() -> Dict[str, str]:
+    """Build URL pattern templates once (avoids url_for per-row)."""
+    dummy = 0
+    download_url = url_for("file_handler.download_by_id", file_id=dummy)
+    edit_url = url_for("file_manager_admin.edit_file", file_id=dummy)
+    delete_url = url_for("file_manager_admin.confirm_delete", file_id=dummy)
+
+    def _pattern(u: str) -> str:
+        return u.replace(f"/{dummy}", "/{fid}", 1)
+
+    return {
+        "download": _pattern(download_url),
+        "edit": _pattern(edit_url),
+        "delete": _pattern(delete_url),
+    }
+
+
+@bp.route("/dt", methods=["GET"])
+def list_files_dt():
+    """DataTables SSP endpoint for file manager.
+
+    Returns ``{draw, recordsTotal, recordsFiltered, data, searchPanes}``.
+    """
+    user = session.get("user")
+    if not user:
+        return jsonify({"error": "unauthorized", "message": "Authentication required"}), 401
+
+    if not file_manager:
+        return jsonify({"error": "File manager is not enabled"}), 500
+
+    if not _require_permission(PERMISSION_MODULE, PERMISSION_VIEW):
+        return jsonify({"error": "forbidden", "message": "Permission denied"}), 403
+
+    draw = request.args.get("draw", 1, type=int)
+    start = request.args.get("start", 0, type=int)
+    length = request.args.get("length", 50, type=int)
+    search_value = request.args.get("search[value]", "").strip()
+
+    pane_selections = _parse_searchpanes_selections(request.args)
+
+    # Translate DT column names to FileManager column names
+    fm_group_ids = pane_selections.get("Group ID")
+    fm_mime_types = pane_selections.get("MIME Type")
+    fm_uploaders = pane_selections.get("Uploaded By")
+    fm_tag_names = pane_selections.get("Tags")
+
+    try:
+        total = file_manager.count_current_files()
+
+        filtered_total = file_manager.count_filtered_files(
+            search=search_value,
+            group_ids=fm_group_ids,
+            mime_types=fm_mime_types,
+            uploaders=fm_uploaders,
+            tag_names=fm_tag_names,
+        )
+
+        rows = file_manager.list_files_paginated(
+            offset=start,
+            limit=length,
+            search=search_value,
+            group_ids=fm_group_ids,
+            mime_types=fm_mime_types,
+            uploaders=fm_uploaders,
+            tag_names=fm_tag_names,
+        )
+
+        # Permissions + URL patterns
+        can_edit = can_delete = True
+        if app_context.auth_manager:
+            can_edit = app_context.auth_manager.has_permission(user, PERMISSION_MODULE, "edit")
+            can_delete = app_context.auth_manager.has_permission(user, PERMISSION_MODULE, "delete")
+        perms = {"edit": can_edit, "delete": can_delete}
+        url_patterns = _build_url_patterns()
+
+        # Format rows
+        data: List[Dict[str, Any]] = []
+        for fv in rows:
+            fid = fv.id
+            tags = [t.tag_name for t in fv.tags]
+            ver = file_manager.get_version_number(fv)
+
+            data.append({
+                "Select": f'<input type="checkbox" name="file_ids[]" value="{fid}">',
+                "Filename": fv.filename,
+                "Group ID": fv.group_id or "",
+                "Tags": ", ".join(tags) if tags else "",
+                "MIME Type": fv.mime_type or "",
+                "Version": f"v{ver}",
+                "Size": _format_file_size(fv.file_size),
+                "Uploaded": _format_dt(fv.uploaded_at),
+                "Uploaded By": fv.uploaded_by or "",
+                "Actions": _build_action_buttons(fid, perms, url_patterns),
+            })
+
+        # SearchPanes options
+        # Build exclude_filters dict (DT names → FM names)
+        exclude_filters: Dict[str, List[str]] = {}
+        for dt_name, fm_name in _DT_TO_FM_PANE.items():
+            if dt_name in pane_selections:
+                exclude_filters[fm_name] = pane_selections[dt_name]
+
+        sp_options: Dict[str, List[Dict[str, Any]]] = {}
+        for dt_name, fm_name in _DT_TO_FM_PANE.items():
+            opts = file_manager.get_searchpane_options(
+                column=fm_name,
+                search=search_value,
+                exclude_filters=exclude_filters,
+                max_options=500,
+            )
+            if opts:
+                sp_options[dt_name] = opts
+
+        return jsonify({
+            "draw": draw,
+            "recordsTotal": total,
+            "recordsFiltered": filtered_total,
+            "data": data,
+            "searchPanes": {"options": sp_options},
+        }), 200
+
+    except Exception as e:
+        logger.error("DataTables SSP error: %s", e, exc_info=True)
+        return jsonify({
+            "draw": draw,
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+            "data": [],
+            "error": str(e),
+        }), 500
 
 
 @bp.route("/restore", methods=["POST"])

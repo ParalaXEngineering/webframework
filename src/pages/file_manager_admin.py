@@ -153,7 +153,7 @@ def index():
     """File manager main page - server-side DataTable (AJAX-loaded).
 
     Only renders the empty table shell + column headers.  Data is fetched
-    asynchronously by DataTables from the ``/api/v1/files/dt`` SSP endpoint.
+    asynchronously by DataTables from the ``/files/dt`` SSP endpoint.
     """
     if not file_manager:
         return ERROR_FILE_MANAGER_NOT_INITIALIZED, STATUS_SERVER_ERROR
@@ -201,7 +201,7 @@ def index():
             datatable_config={
                 "table_id": "file_list_table",
                 "mode": displayer.TableMode.SERVER_SIDE,
-                "api_endpoint": "api_v1.list_files_dt",
+                "api_endpoint": "file_handler.list_files_dt",
                 "api_params": {},
                 "columns": datatable_columns,
                 "searchable_columns": searchable_indices,
