@@ -294,7 +294,7 @@ def manage_permissions():
         return ERROR_AUTH_NOT_INIT, STATUS_SERVER_ERROR
     
     disp = Displayer()
-    disp.add_generic(TEXT_PERMISSION_MANAGEMENT)
+    disp.add_generic(TEXT_PERMISSION_MANAGEMENT, display=False)
     disp.set_title(TEXT_MODULE_PERMISSIONS)
     disp.add_breadcrumb(TEXT_BREADCRUMB_ADMIN, "admin_auth.manage_users", [])
     disp.add_breadcrumb(TEXT_BREADCRUMB_PERMISSIONS, "admin_auth.manage_permissions", [])
@@ -411,7 +411,7 @@ def manage_groups():
         return ERROR_AUTH_NOT_INIT, STATUS_SERVER_ERROR
     
     disp = Displayer()
-    disp.add_generic(TEXT_GROUP_MANAGEMENT)
+    disp.add_generic(TEXT_GROUP_MANAGEMENT, display=False)
     disp.set_title(TEXT_GROUP_MANAGEMENT)
     disp.add_breadcrumb(TEXT_BREADCRUMB_ADMIN, "admin_auth.manage_users", [])
     disp.add_breadcrumb(TEXT_BREADCRUMB_GROUPS, "admin_auth.manage_groups", [])

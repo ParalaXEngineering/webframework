@@ -292,7 +292,7 @@ def edit_file(file_id):
         return ERROR_FILE_MANAGER_NOT_INITIALIZED, STATUS_SERVER_ERROR
     
     disp = displayer.Displayer()
-    disp.add_generic(TEXT_EDIT_FILE_METADATA)
+    disp.add_generic(TEXT_EDIT_FILE_METADATA, display=False)
     disp.set_title(TEXT_EDIT_FILE_METADATA)
     
     disp.add_breadcrumb(TEXT_BREADCRUMB_FILE_MANAGER, "file_manager_admin.index", [])
@@ -672,7 +672,7 @@ def confirm_delete():
             failed_files.append(fid)
     
     # Show result page
-    disp.add_generic(TEXT_DELETION_COMPLETE)
+    disp.add_generic(TEXT_DELETION_COMPLETE, display=False)
     disp.set_title(TEXT_DELETION_COMPLETE)
     
     disp.add_breadcrumb(TEXT_BREADCRUMB_FILE_MANAGER, "file_manager_admin.index", [])
@@ -861,7 +861,7 @@ def version_history(group_id, filename):
         logger.error(f"Failed to display version history: {e}", exc_info=True)
         
         disp = displayer.Displayer()
-        disp.add_generic(ERROR_LOADING_VERSION_HISTORY)
+        disp.add_generic(ERROR_LOADING_VERSION_HISTORY, display=False)
         disp.set_title(ERROR_LOADING_VERSION_HISTORY)
         disp.add_breadcrumb(TEXT_BREADCRUMB_FILE_MANAGER, "file_manager_admin.index", [])
         

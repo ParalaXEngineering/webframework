@@ -23,7 +23,7 @@ demo_bp = Blueprint('demo', __name__)
 def simple_form_demo():
     """Simple form demo - basic text input and display."""
     disp = displayer.Displayer()
-    disp.add_generic("TEXT_SIMPLE_FORM_DEMO")
+    disp.add_generic("TEXT_SIMPLE_FORM_DEMO", display=False)
     disp.set_title("TEXT_SIMPLE_FORM_EXAMPLE")
     
     disp.add_breadcrumb("Simple Form", "demo.simple_form_demo", [])
@@ -638,7 +638,7 @@ def workflow_demo():
 def tooltips_demo():
     """Tooltip system demo - showcases tooltip functionality on various HTML elements."""
     disp = displayer.Displayer()
-    disp.add_generic("Tooltip System Demo")
+    disp.add_generic("Tooltip System Demo", display=False)
     disp.set_title("Tooltip Demo")
     disp.add_breadcrumb("Tooltips Demo", "demo.tooltips_demo", [])
     

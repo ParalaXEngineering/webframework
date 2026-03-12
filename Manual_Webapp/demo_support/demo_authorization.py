@@ -25,7 +25,7 @@ def index():
     current_user = session.get('user', 'GUEST')
     
     disp = displayer.Displayer()
-    disp.add_generic("Authorization Showcase")
+    disp.add_generic("Authorization Showcase", display=False)
     disp.set_title("Authorization System Demo")
     
     disp.add_breadcrumb("Authorization Showcase", "demo_auth.index", [])

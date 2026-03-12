@@ -166,7 +166,7 @@ def logs():
     from ..modules.log.logger_factory import get_all_loggers
     
     disp = displayer.Displayer()
-    disp.add_generic(TEXT_LOG_VIEWER)
+    disp.add_generic(TEXT_LOG_VIEWER, display=False)
     disp.set_title(TEXT_LOG_VIEWER)
     
     disp.add_breadcrumb(TEXT_LOGS, f"{BLUEPRINT_NAME}.logs", [])
@@ -334,7 +334,7 @@ def config():
         return redirect(url_for(f"{BLUEPRINT_NAME}.config"))
     
     disp = displayer.Displayer()
-    disp.add_generic("Logger Configuration")
+    disp.add_generic("Logger Configuration", display=False)
     disp.set_title("Logger Configuration")
     
     disp.add_breadcrumb(TEXT_LOGS, f"{BLUEPRINT_NAME}.logs", [])

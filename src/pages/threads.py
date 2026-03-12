@@ -85,7 +85,7 @@ def threads():
     """
 
     disp = displayer.Displayer()
-    disp.add_generic(TEXT_THREAD_MONITOR)
+    disp.add_generic(TEXT_THREAD_MONITOR, display=False)
     disp.set_title(TEXT_THREAD_MONITOR)
     
     disp.add_breadcrumb(TEXT_BREADCRUMB_THREADS, f"{BP_NAME}.{threads.__name__}", [])

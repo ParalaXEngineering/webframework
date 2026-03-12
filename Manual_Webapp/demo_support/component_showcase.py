@@ -49,7 +49,7 @@ def get_category_friendly_name(category: str) -> str:
 def index():
     """Component showcase index - shows all categories."""
     disp = displayer.Displayer()
-    disp.add_generic("Component Showcase")
+    disp.add_generic("Component Showcase", display=False)
     disp.set_title("DisplayerItem Component Showcase")
     
     disp.add_breadcrumb("Components", "showcase.index", [])
@@ -129,7 +129,7 @@ def category(category: str = ""):
     
     disp = displayer.Displayer()
     category_name = get_category_friendly_name(category)
-    disp.add_generic(category_name)
+    disp.add_generic(category_name, display=False)
     disp.set_title(category_name)
     
     disp.add_breadcrumb("Components", "showcase.index", [])
@@ -207,7 +207,7 @@ def component(category: str = "", component: str = ""):
         component = request.args.get('component', '')
     
     disp = displayer.Displayer()
-    disp.add_generic(component)
+    disp.add_generic(component, display=False)
     disp.set_title(f"{component} Demo")
     
     disp.add_breadcrumb("Components", "showcase.index", [])

@@ -141,7 +141,7 @@ def profile():
     # Check if user is guest - redirect with message
     if current_user.upper() == USER_GUEST_NAME:
         disp = Displayer()
-        disp.add_generic(TEXT_ACCESS_RESTRICTED)
+        disp.add_generic(TEXT_ACCESS_RESTRICTED, display=False)
         disp.set_title(TEXT_GUEST_ACCESS)
         disp.add_master_layout(DisplayerLayout(Layouts.VERTICAL, [12]))
         disp.add_display_item(DisplayerItemAlert(

@@ -31,7 +31,7 @@ def require_login(f):
 def index():
     """Single-page demo: Grid editor + live preview + code example."""
     disp = displayer.Displayer()
-    disp.add_generic("Grid Layout Editor")
+    disp.add_generic("Grid Layout Editor", display=False)
     disp.set_title("GRID Layout - Interactive Editor")
     
     disp.add_breadcrumb("Layouts", "layouts.index", [])

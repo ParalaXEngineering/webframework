@@ -39,7 +39,7 @@ def get_all_layouts():
 def index():
     """Layout showcase index - shows all layout types."""
     disp = displayer.Displayer()
-    disp.add_generic("Layout Showcase")
+    disp.add_generic("Layout Showcase", display=False)
     disp.set_title("DisplayerLayout Showcase")
     
     disp.add_breadcrumb("Layouts", "layouts.index", [])
@@ -137,7 +137,7 @@ def layout_detail(layout: str = ""):
 def show_vertical_layout():
     """Show vertical layout examples."""
     disp = displayer.Displayer()
-    disp.add_generic("Vertical Layout")
+    disp.add_generic("Vertical Layout", display=False)
     disp.set_title("Vertical Layout - Column-Based Grid")
     
     disp.add_breadcrumb("Layouts", "layouts.index", [])
@@ -237,7 +237,7 @@ disp.add_display_item(displayer.DisplayerItemText("Full width content"), 0)'''
 def show_horizontal_layout():
     """Show horizontal layout examples."""
     disp = displayer.Displayer()
-    disp.add_generic("Horizontal Layout")
+    disp.add_generic("Horizontal Layout", display=False)
     disp.set_title("Horizontal Layout - Force Vertical Stacking")
     
     disp.add_breadcrumb("Layouts", "layouts.index", [])
@@ -407,7 +407,7 @@ disp.add_display_item(displayer.DisplayerItemBadge("Badge", BSstyle.INFO), colum
 def show_table_layout():
     """Show table layout examples with all table modes."""
     disp = displayer.Displayer()
-    disp.add_generic("Table Layout")
+    disp.add_generic("Table Layout", display=False)
     disp.set_title("Table Layout - All Table Modes")
     
     disp.add_breadcrumb("Layouts", "layouts.index", [])
@@ -693,7 +693,7 @@ def get_users():
 def show_tabs_layout():
     """Show tabs layout examples."""
     disp = displayer.Displayer()
-    disp.add_generic("Tabs Layout")
+    disp.add_generic("Tabs Layout", display=False)
     disp.set_title("Tabs Layout - Tabbed Interface")
     
     disp.add_breadcrumb("Layouts", "layouts.index", [])
@@ -766,7 +766,7 @@ disp.add_display_item(displayer.DisplayerItemText("Settings content"), column=2,
 def show_spacer_layout():
     """Show spacer layout examples."""
     disp = displayer.Displayer()
-    disp.add_generic("Spacer Layout")
+    disp.add_generic("Spacer Layout", display=False)
     disp.set_title("Spacer Layout - Visual Separation")
     
     disp.add_breadcrumb("Layouts", "layouts.index", [])
