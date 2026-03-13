@@ -74,6 +74,9 @@ class ResourceRegistry:
         'import_preview': {
             'js_custom': ['/common/assets/tracker_js/?filename=import-preview.js']
         },
+        'mass_edit_selection': {
+            'js_custom': ['/common/assets/tracker_js/?filename=mass-edit-selection.js']
+        },
         'fullcalendar': {
             'js': ['vendors/fullcalendar/fullcalendar.min.js']
         },
