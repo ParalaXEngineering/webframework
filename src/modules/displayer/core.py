@@ -77,6 +77,9 @@ class ResourceRegistry:
         'mass_edit_selection': {
             'js_custom': ['/common/assets/tracker_js/?filename=mass-edit-selection.js']
         },
+        'scanner': {
+            'js_custom': ['/common/assets/tracker_js/?filename=scanner.js']
+        },
         'fullcalendar': {
             'js': ['vendors/fullcalendar/fullcalendar.min.js']
         },
