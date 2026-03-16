@@ -1,0 +1,20 @@
+{#
+  Displayer Fragment Template
+  
+  Renders Displayer content (from disp.display()) as a standalone HTML
+  fragment — no page shell, no base.j2.  Suitable for AJAX responses.
+
+  Expected context variable:
+    content  — the dict returned by Displayer.display()
+#}
+{% import 'displayer/layouts.j2' as disp_layouts %}
+
+{% for module in content %}
+    {% if module != "modals" and module != "all_layout" and module != "breadcrumbs" and module != "title" and module != "required_css" and module != "required_js" and module != "required_cdn" and module != "required_css_cdn" and module != "tooltips" and module != "tooltip_allowed_elements" %}
+        {% if content[module].get("layouts") %}
+            {% for layout in content[module]["layouts"] %}
+                {{ disp_layouts.display_layout(layout) }}
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+{% endfor %}
