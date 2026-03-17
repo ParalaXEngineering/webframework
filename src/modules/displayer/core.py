@@ -80,6 +80,9 @@ class ResourceRegistry:
         'scanner': {
             'js_custom': ['/common/assets/tracker_js/?filename=scanner.js']
         },
+        'workflow_writes': {
+            'js_custom': ['/common/assets/tracker_js/?filename=workflow-writes.js']
+        },
         'fullcalendar': {
             'js': ['vendors/fullcalendar/fullcalendar.min.js']
         },
