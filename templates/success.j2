@@ -1,14 +1,17 @@
 {% extends 'base.j2' %}
 
 {% block title %}
-Success of the operation
+Opération réussie
 {% endblock %}
 
 {% block main_page %}
     <div class="card bg-success text-white shadow">
         <div class="card-body">
-            <p>Success</p>
-            <div class="text-white-50 small">{{ message }}</div>
+            <h4><i class="mdi mdi-check-circle"></i> Opération réussie</h4>
+            <p class="mb-3">{{ message }}</p>
+            <a href="javascript:history.back()" class="btn btn-outline-light">
+                <i class="mdi mdi-arrow-left"></i> Retour
+            </a>
         </div>
     </div>
 {% endblock %}

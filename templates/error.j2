@@ -1,20 +1,20 @@
 {% extends 'base.j2' %}
 
 {% block title %}
-Internal server error
+Erreur interne du serveur
 {% endblock %}
 
 {% block main_page %}
     <div class="card bg-danger text-white shadow">
         <div class="card-body">
-            <div class="text-white-50 small">The server encountered an error. Please go to the error reporting page, and describe what you did while the error occured. Log files have been completed and will be sent with your bug entry.</div>
+            <p>Le serveur a rencontré une erreur. Veuillez accéder à la page de signalement d'erreurs et décrire vos actions au moment de l'incident. Les fichiers journaux ont été complétés et seront envoyés avec votre rapport.</p>
 
-            <div class="text-white-50 small"><pre>Traceback: {{traceback}} </pre></div>
+            <pre class="mt-2">Traceback : {{traceback}}</pre>
         </div>
     </div>
 
     <div class="d-flex align-items-center justify-content-center">
-        <img src="{{ url_for('static', filename= 'images/site/500.jpg')}}" width="500vw">
+        <img src="{{ url_for('static', filename= 'images/site/500.jpg')}}" width="500vw" alt="Erreur 500 — erreur interne du serveur">
     </div>
     
 {% endblock %}

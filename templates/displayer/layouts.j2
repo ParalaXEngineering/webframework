@@ -6,7 +6,7 @@
     {% elif layout["type"] == "HORIZ" %}
         {{ display_horizontal_layout(layout["columns"], layout["containers"], layout["align"], layout["spacing"], layout["user_id"]) }}
     {% elif layout["type"] == "TABLE" %}
-        {{ display_table_layout(layout["header"], layout["lines"], layout.get("responsive"), layout.get("responsive_type"), layout.get("user_id"), layout.get("editable")) }}
+        {{ display_table_layout(layout["header"], layout["lines"], layout.get("responsive"), layout.get("responsive_type"), layout.get("user_id"), layout.get("editable"), layout.get("subtitle")) }}
     {% elif layout["type"] == "TABS" %}
         {{ display_tabs_layout(layout["header"], layout["lines"]) }}
     {% elif layout["type"] == "SPACER" %}
@@ -51,7 +51,7 @@
 
 {% endmacro %}
 
-{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None, user_id = none, editable = None) %}
+{% macro display_table_layout(header=[], lines = [], responsive = None, responsive_type = None, user_id = none, editable = None, subtitle = None) %}
     {# Generate unique table ID if editable and no user_id provided #}
     {% set table_id = user_id or (responsive_type ~ '_' ~ responsive) if responsive else ('editable_table_' ~ range(0, 999999) | random | string) %}
     
@@ -71,8 +71,8 @@
         </div>
     {% endif %}
     
-    <div class="table-responsive">
-        <table class="table table-striped mb-0" 
+    <div class="table-responsive{% if not responsive and not (editable and editable.enabled) %} d-flex justify-content-center{% endif %}">
+        <table class="table table-striped mb-0{% if not responsive and not (editable and editable.enabled) %} w-auto{% endif %}" 
                    {% if responsive %}
                         id="{{ responsive_type }}_{{ responsive }}"                       
                    {% elif editable and editable.enabled %}
@@ -84,10 +84,11 @@
                         data-min-rows="{{ editable.min_rows or 0 }}"
                         data-max-rows="{{ editable.max_rows or '' }}"
                    {% endif %}>
+            {% if subtitle %}<caption>{{ subtitle }}</caption>{% endif %}
             <thead>
                 <tr>
                     {% for head in header %}
-                        <th>{{ head }}</th>
+                        <th scope="col" class="text-start">{{ head }}</th>
                     {% endfor %}
                 </tr>
             </thead>
@@ -96,7 +97,7 @@
                 {% for line in lines %}
                     <tr>
                     {% for item in line %}
-                        <td>
+                        <td class="text-start">
                             {% for element in item %}
                                 {% if element["object"] == "item" %}
                                     {{ disp_item.display_item(element) }}

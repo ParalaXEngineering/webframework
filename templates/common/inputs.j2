@@ -1,8 +1,8 @@
 
-{% macro select(name, options, selected="", generic=false, tooltips=false) %}
+{% macro select(name, options, selected="", generic=false, tooltips=false, required=false) %}
   {% set sel_norm = (selected|string)|replace('\t',' ')|trim %}
   {% if options %}
-  <select class="form-control" name="{{ name }}" id="{{ name }}">
+  <select class="form-control" name="{{ name }}" id="{{ name }}"{% if required %} required aria-required="true"{% endif %}>
     {# Cas: options = entier → 0..N #}
     {% if options is integer %}
       {% for n in range(0, options + 1) %}
@@ -26,7 +26,7 @@
     {% endif %}
   </select>
   {% else %}
-  <select class="form-control" name="{{ name }}" id="{{ name }}"></select>
+  <select class="form-control" name="{{ name }}" id="{{ name }}"{% if required %} required aria-required="true"{% endif %}></select>
   {% endif %}
 {% endmacro %}
 
@@ -65,12 +65,12 @@
     <input type="range" class="form-range col-sm-2" min="{{ min }}" max="{{ max }}" id="{{ name }}" name="{{ name }}" value="{{ default }}">
 {% endmacro %}
 
-{% macro inputstring(name, default=None, focus=False) %}
-    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control {% if focus %}focusable{% endif %}" {% if focus %} autofocus {% endif %}>
+{% macro inputstring(name, default=None, focus=False, required=false) %}
+    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control {% if focus %}focusable{% endif %}" {% if focus %} autofocus {% endif %}{% if required %} required aria-required="true"{% endif %}>
 {% endmacro %}
 
-{% macro inputtext(name, default=None) %}
-    <textarea name="{{ name }}" id="{{ name }}" {% if default %} {% endif %} cols="50" rows="5">{{ default }}</textarea>
+{% macro inputtext(name, default=None, required=false) %}
+    <textarea name="{{ name }}" id="{{ name }}" {% if default %} {% endif %} cols="50" rows="5"{% if required %} required aria-required="true"{% endif %}>{{ default }}</textarea>
 {% endmacro %}
 
 {% macro file(name) %}
@@ -85,22 +85,22 @@
     <input type="file" class="image-preview-filepond", id="{{name}}", name="{{name}}">    
 {% endmacro %}
 
-{% macro date(name, default=None) %}
+{% macro date(name, default=None, required=false) %}
     {% if default and 'T' in default %}
-        <input type="datetime-local" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+        <input type="datetime-local" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control"{% if required %} required aria-required="true"{% endif %}>
     {% else %}
-        <input type="date" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control">
+        <input type="date" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control"{% if required %} required aria-required="true"{% endif %}>
     {% endif %}
 {% endmacro %}
 
-{% macro input_js(name, js, default=None, focus=False) %}
-    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control {% if focus %}focusable{% endif %}" onchange="{{ js }}">
+{% macro input_js(name, js, default=None, focus=False, required=false) %}
+    <input type="text" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control {% if focus %}focusable{% endif %}" onchange="{{ js }}"{% if required %} required aria-required="true"{% endif %}>
 {% endmacro %}
 
 {% macro path(name, path_variable, default=None) %}
     <div class="row" id="{{ name }}_div">
         <select class="form-control path-select" id="{{ name }}_level0" source="{{ path_variable }}" class="path" onchange="path_add_level('{{ name }}', '{{path_variable}}', 0)">
-            <option>Veillez sélectionner</option>
+            <option>Veuillez sélectionner</option>
         </select>
         <input class="path_result" type="hidden" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control"> 
     </div>
@@ -110,8 +110,8 @@
     <input type="hidden" name="{{ name }}" id="{{ name }}" value="{{ value }}">
 {% endmacro %}
 
-{% macro number(name, default=None) %}
-    <input type="number" step=".01" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% else %} value="0" {% endif %} class="form-control">
+{% macro number(name, default=None, required=false) %}
+    <input type="number" step=".01" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% else %} value="0" {% endif %} class="form-control"{% if required %} required aria-required="true"{% endif %}>
 {% endmacro %}
 
 {% macro files_level(name, level, levelNb, class) %}

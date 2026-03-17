@@ -1,18 +1,22 @@
 {% extends 'base.j2' %}
 
 {% block title %}
-No refresh is allowed after this action
+Actualisation non autorisée
 {% endblock %}
 
 {% block main_page %}
-    <div class="card bg-danger text-white shadow">
+    <div class="card bg-warning text-dark shadow">
         <div class="card-body">
-            <div class="text-white-50 small">Refresh is not allowed on this part of the website, as it could re-execute an unwanted action</div>
+            <h4><i class="mdi mdi-refresh-circle"></i> Actualisation non autorisée</h4>
+            <p class="mb-3">Le rafraîchissement de cette page est bloqué pour éviter de ré-exécuter une action involontairement.</p>
+            <a href="/" class="btn btn-outline-dark">
+                <i class="mdi mdi-home"></i> Retour à l'accueil
+            </a>
         </div>
     </div>
 
-    <div class="d-flex align-items-center justify-content-center">
-        <img src="{{ url_for('static', filename= 'images/site/norefresh.jpg')}}" width="500vw">
+    <div class="d-flex align-items-center justify-content-center mt-3">
+        <img src="{{ url_for('static', filename= 'images/site/norefresh.jpg')}}" width="500vw" alt="Actualisation non autorisée">
     </div>
     
 {% endblock %}

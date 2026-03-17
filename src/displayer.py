@@ -278,6 +278,8 @@ class DisplayerItem:
             item["endpoint"] = self.m_endpoint
         if hasattr(self, "m_focus"):
             item["focus"] = self.m_focus
+        if hasattr(self, "m_required"):
+            item["required"] = self.m_required
         if hasattr(self, "m_date"):
             item["date"] = self.m_date
         if hasattr(self, "m_ids"):
@@ -898,12 +900,13 @@ class DisplayerItemInputListText(DisplayerItem):
 class DisplayerItemInputNumeric(DisplayerItem):
     """Specialized display to display an input number"""
 
-    def __init__(self, id: str, text: str = None, value: float = None, focus: bool =  False) -> None:
+    def __init__(self, id: str, text: str = None, value: float = None, focus: bool =  False, required: bool = False) -> None:
         super().__init__(DisplayerItems.INNUM)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_focus = focus
+        self.m_required = required
         return
 
 
@@ -911,11 +914,12 @@ class DisplayerItemInputDate(DisplayerItem):
     """Specialized display to display an input date.
     Date shall be in format YYYY-MM-DD or YYYY-MM-DDT000:00 if the minute and hour is also needed"""
 
-    def __init__(self, id: str, text: str = None, value: str = None) -> None:
+    def __init__(self, id: str, text: str = None, value: str = None, required: bool = False) -> None:
         super().__init__(DisplayerItems.INDATE)
         self.m_text = text
         self.m_value = value
         self.m_id = id
+        self.m_required = required
         return
 
 
@@ -944,12 +948,13 @@ class DisplayerItemInputTextJS(DisplayerItem):
 class DisplayerItemInputString(DisplayerItem):
     """Specialized display to display an input number"""
 
-    def __init__(self, id: str, text: str = None, value: str = None, focus: bool =  False) -> None:
+    def __init__(self, id: str, text: str = None, value: str = None, focus: bool =  False, required: bool = False) -> None:
         super().__init__(DisplayerItems.INSTRING)
         self.m_text = text
         self.m_value = value
         self.m_id = id
         self.m_focus = focus
+        self.m_required = required
         return
     
 class DisplayerItemInputStringIcon(DisplayerItem):

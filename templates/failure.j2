@@ -1,14 +1,17 @@
 {% extends 'base.j2' %}
 
 {% block title %}
-Echec de l'opération
+Échec de l'opération
 {% endblock %}
 
 {% block main_page %}
     <div class="card bg-danger text-white shadow">
         <div class="card-body">
-            <p>Echec</p>
-            <div class="text-white-50 small">{{ message }}</div>
+            <h4><i class="mdi mdi-alert-circle"></i> Échec de l'opération</h4>
+            <p class="mb-3">{{ message }}</p>
+            <a href="javascript:history.back()" class="btn btn-outline-light">
+                <i class="mdi mdi-arrow-left"></i> Retour
+            </a>
         </div>
     </div>
 {% endblock %}

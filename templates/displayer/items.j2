@@ -30,17 +30,17 @@
     {% elif item["type"] == "IMAGE" %}
         {{image(item["id"], item["value"], item["data"], item["endpoint"], item["path"])}}
     {% elif item["type"] == "INBOX" %}
-        {{inbox(item["id"], item["value"], item["text"])}}
+        {{inbox(item["id"], item["value"], item["text"], item.get("required", false))}}
     {% elif item["type"] == "INDATE" %}
-        {{indate(item["id"], item["value"], item["text"])}}
+        {{indate(item["id"], item["value"], item["text"], item.get("required", false))}}
     {% elif item["type"] == "INNUM" %}
-        {{innum(item["id"], item["value"], item["text"])}}
+        {{innum(item["id"], item["value"], item["text"], item.get("required", false))}}
     {% elif item["type"] == "INSTRING" %}
-        {{instring(item["id"], item["value"], item["text"], item["focus"])}}
+        {{instring(item["id"], item["value"], item["text"], item["focus"], item.get("required", false))}}
     {% elif item["type"] == "INTEXT" %}
-        {{intext(item["id"], item["value"], item["text"])}}
+        {{intext(item["id"], item["value"], item["text"], item.get("required", false))}}
     {% elif item["type"] == "INTEXTJS" %}
-        {{intextjs(item["id"], item["value"], item["text"], item["data"], item["focus"])}}
+        {{intextjs(item["id"], item["value"], item["text"], item["data"], item["focus"], item.get("required", false))}}
     {% elif item["type"] == "INMULTITEXT" %}
         {{inmultitext(item["id"], item["value"], item["text"])}}
     {% elif item["type"] == "INTEXTICON" %}
@@ -54,7 +54,7 @@
     {% elif item["type"] == "INIMAGE" %}
         {{inimage(item["id"], item["text"])}}
     {% elif item["type"] == "SELECT" %}
-        {{inselect(item["id"], item["data"], item["value"], item["text"], item["tooltips"])}}
+        {{inselect(item["id"], item["data"], item["value"], item["text"], item["tooltips"], item.get("required", false))}}
     {% elif item["type"] == "INCASCADED" %}
         {{incascaded(item["id"], item["data"], item["value"], item["text"], item["level"])}}
     {% elif item["type"] == "INLISTTEXT" %}
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% macro path_internal(id, path_variable, default=None) %}
     <div class="row" id="{{ id }}_div">
         <select class="form-control path-select" id="{{ id }}_level0" source="{{ path_variable }}" class="path" onchange="path_add_level('{{ id }}', '{{path_variable}}', 0)">
-            <option>Veillez sélectionner</option>
+            <option>Veuillez sélectionner</option>
         </select>
         <input class="path_result" type="hidden" name="{{ id }}" id="{{ id }}" {% if default %} value="{{ default }}" {% endif %} class="form-control"> 
     
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endmacro %}
 
 {% macro button(id, text, disabled = false, focus = false) %}
-    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn btn-primary {%if disabled %} disabled {%endif%} {%if focus %} focusable {%endif%}" </button>
+    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn btn-primary {%if disabled %} disabled {%endif%} {%if focus %} focusable {%endif%}" {%if disabled %} disabled aria-disabled="true" {%endif%}>
         {{text}}
     </button>
 {% endmacro %}
@@ -417,7 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 {% endmacro %}
 
-{% macro inbox(id, value, text) %}
+{% macro inbox(id, value, text, required=false) %}
     {% if value %}
         {{ common_input.check(id, value)}}
     {% else %}
@@ -425,19 +425,19 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 
     {% if text %}
-        {{ text }}
+        <label for="{{ id }}">{{ text }}{% if required %} <span class="text-danger">*</span>{% endif %}</label>
     {% endif %}
 {% endmacro %}
 
-{% macro indate(id, value, text) %}
+{% macro indate(id, value, text, required=false) %}
     {% if text %}
-        {{ text }}
+        <label for="{{ id }}">{{ text }}{% if required %} <span class="text-danger">*</span>{% endif %}</label>
     {% endif %}
 
     {% if value %}
-        {{ common_input.date(id, value)}}
+        {{ common_input.date(id, value, required)}}
     {% else %}
-        {{ common_input.date(id, history[id] if history is defined else None)}}
+        {{ common_input.date(id, history[id] if history is defined else None, required)}}
     {% endif %}
 {% endmacro %}
 
@@ -454,26 +454,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
 {% endmacro %}
 
-{% macro innum(id, value, text) %}
+{% macro innum(id, value, text, required=false) %}
     {% if text %}
-        {{ text }}
+        <label for="{{ id }}">{{ text }}{% if required %} <span class="text-danger">*</span>{% endif %}</label>
     {% endif %}
 
     {% if value %}
-        {{ common_input.number(id, value)}}
+        {{ common_input.number(id, value, required)}}
     {% else %}
-        {{ common_input.number(id, history[id] if history is defined else None)}}
+        {{ common_input.number(id, history[id] if history is defined else None, required)}}
     {% endif %}
 {% endmacro %}
 
-{% macro inselect(id, data, value, text, tooltips) %}
+{% macro inselect(id, data, value, text, tooltips, required=false) %}
     {% if text %}
-        {{ text }}
+        <label for="{{ id }}">{{ text }}{% if required %} <span class="text-danger">*</span>{% endif %}</label>
     {% endif %}
     {% if value %}
-        {{ common_input.select(id, data, value, false, tooltips)}}
+        {{ common_input.select(id, data, value, false, tooltips, required)}}
     {% else %}
-        {{ common_input.select(id, data, history[id] if history is defined else None, false, tooltips)}}
+        {{ common_input.select(id, data, history[id] if history is defined else None, false, tooltips, required)}}
     {% endif %}
 {% endmacro %}
 
@@ -814,39 +814,39 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 {% endmacro %}
 
-{% macro instring(id, value, text, focus) %}
+{% macro instring(id, value, text, focus, required=false) %}
     {% if text %}
-        <span>{{ text }}</span>
+        <label for="{{ id }}">{{ text }}{% if required %} <span class="text-danger">*</span>{% endif %}</label>
     {% endif %}
 
     {% if value %}
-        {{ common_input.inputstring(id, value, focus)}}
+        {{ common_input.inputstring(id, value, focus, required)}}
     {% else %}
-        {{ common_input.inputstring(id, history[id] if history is defined else None, focus)}}
+        {{ common_input.inputstring(id, history[id] if history is defined else None, focus, required)}}
     {% endif %}
 {% endmacro %}
 
-{% macro intext(id, value, text) %}
+{% macro intext(id, value, text, required=false) %}
     {% if text %}
-        {{ text }}
+        <label for="{{ id }}">{{ text }}{% if required %} <span class="text-danger">*</span>{% endif %}</label>
     {% endif %}
 
     {% if value %}
-        {{ common_input.inputtext(id, value)}}
+        {{ common_input.inputtext(id, value, required)}}
     {% else %}
-        {{ common_input.inputtext(id, history[id] if history is defined else None)}}
+        {{ common_input.inputtext(id, history[id] if history is defined else None, required)}}
     {% endif %}
 {% endmacro %}
 
-{% macro intextjs(id, value, text, data, focus) %}
+{% macro intextjs(id, value, text, data, focus, required=false) %}
     {% if text %}
-        {{ text }}
+        <label for="{{ id }}">{{ text }}{% if required %} <span class="text-danger">*</span>{% endif %}</label>
     {% endif %}
 
     {% if value %}
-        {{ common_input.input_js(id, data, value, focus)}}
+        {{ common_input.input_js(id, data, value, focus, required)}}
     {% else %}
-        {{ common_input.input_js(id, data, history[id] if history is defined else None, focus)}}
+        {{ common_input.input_js(id, data, history[id] if history is defined else None, focus, required)}}
     {% endif %}
 {% endmacro %}
 

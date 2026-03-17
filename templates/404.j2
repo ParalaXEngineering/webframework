@@ -1,18 +1,18 @@
 {% extends 'base.j2' %}
 
 {% block title %}
-404 Error
+Page introuvable
 {% endblock %}
 
 {% block main_page %}
     <div class="card bg-danger text-white shadow">
         <div class="card-body">
-            <div class="text-white-50 small">Page {{requested}} doesn't exists. Are you lost? Well, you can still go back to the main page :) <a href="/">Link</a></div>
+            <p>La page <strong>{{requested}}</strong> n'existe pas. Vous pouvez revenir à la <a href="/">page d'accueil</a>.</p>
         </div>
     </div>
 
     <div class="d-flex align-items-center justify-content-center">
-        <img src="{{ url_for('static', filename= 'images/site/404.jpg')}}" width="500vw">
+        <img src="{{ url_for('static', filename= 'images/site/404.jpg')}}" width="500vw" alt="Erreur 404 — page introuvable">
     </div>
     
 {% endblock %}

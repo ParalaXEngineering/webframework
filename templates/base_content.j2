@@ -275,8 +275,12 @@ html[data-bs-theme="dark"] {
 {% endwith %}
 
 <script>
-  document.querySelectorAll('.alert').forEach(a=>{
-    setTimeout(()=>{ a.classList.remove('show'); a.addEventListener('transitionend',()=>a.remove()); }, 3500);
+  document.querySelectorAll('.alert').forEach(function(a) {
+    // Ne pas auto-masquer les alertes danger et warning
+    if (a.classList.contains('alert-danger') || a.classList.contains('alert-warning')) {
+      return;
+    }
+    setTimeout(function() { a.classList.remove('show'); a.addEventListener('transitionend', function() { a.remove(); }); }, 5000);
   });
 </script>
 

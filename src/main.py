@@ -237,9 +237,25 @@ def setup_app(app):
     def before_request():            
         g.start_time = time.time()
 
-        # Ne pas désactiver m_user_connected ici - géré par socketio
+        # Let static files through immediately — no session access needed
         if request.endpoint == "static":
             return
+
+        # --- Webview-only access guard ---
+        # When the app runs in webview mode, a secret token is set in config.
+        # Only the embedded webview browser knows this token. Regular browsers
+        # trying to access 127.0.0.1:port will be blocked.
+        webview_token = app.config.get('WEBVIEW_TOKEN')
+        if webview_token:
+            # Check if this session has already been validated
+            if not session.get('_wv_validated'):
+                # Check if the token is provided in the query string
+                if request.args.get('_wv') == webview_token:
+                    session['_wv_validated'] = True
+                    session.permanent = True
+                else:
+                    # Not a webview request — block access
+                    return "Access denied. This application is only accessible through the desktop window.", 403
 
         # Read the parameters
         session["config"] = utilities.util_read_parameters()
