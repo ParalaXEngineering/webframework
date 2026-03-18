@@ -68,21 +68,6 @@ class ResourceRegistry:
         'tinymce': {
             'js': ['vendors/tinymce/tinymce.min.js', 'js/tinymce-init.js']
         },
-        'tracker_admin': {
-            'js_custom': ['/common/assets/tracker_js/?filename=tracker_admin.js']
-        },
-        'import_preview': {
-            'js_custom': ['/common/assets/tracker_js/?filename=import-preview.js']
-        },
-        'mass_edit_selection': {
-            'js_custom': ['/common/assets/tracker_js/?filename=mass-edit-selection.js']
-        },
-        'scanner': {
-            'js_custom': ['/common/assets/tracker_js/?filename=scanner.js']
-        },
-        'workflow_writes': {
-            'js_custom': ['/common/assets/tracker_js/?filename=workflow-writes.js']
-        },
         'fullcalendar': {
             'js': ['vendors/fullcalendar/fullcalendar.min.js']
         },
@@ -107,6 +92,25 @@ class ResourceRegistry:
             # Outside Flask context (e.g., tests) - use class-level
             return cls._required_vendors
     
+    @classmethod
+    def register(cls, name: str, resource: Dict[str, List[str]]) -> None:
+        """
+        Register a new named resource (e.g. from a plugin).
+
+        Plugins should call this during their ``on_register()`` phase so the
+        framework never needs to know about plugin-specific assets.
+
+        Args:
+            name: Unique resource key used in ``require()`` calls.
+            resource: Dict with optional keys ``css``, ``js``, ``js_custom``,
+                      ``css_cdn``, ``js_cdn`` — same structure as ``RESOURCES``.
+
+        Example:
+            >>> ResourceRegistry.register('my_plugin', {'js_custom': ['/assets/my.js']})
+            >>> ResourceRegistry.require('my_plugin')
+        """
+        cls.RESOURCES[name] = resource
+
     @classmethod
     def require(cls, *resource_names):
         """
