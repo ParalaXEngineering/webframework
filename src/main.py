@@ -255,7 +255,7 @@ def setup_app(app):
                     session.permanent = True
                 else:
                     # Not a webview request — block access
-                    return "Access denied. This application is only accessible through the desktop window.", 403
+                    return render_template("403_webview.j2"), 403
 
         # Read the parameters
         session["config"] = utilities.util_read_parameters()

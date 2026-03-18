@@ -14,7 +14,11 @@ Erreur interne du serveur
     </div>
 
     <div class="d-flex align-items-center justify-content-center">
+        {% if on_target %}
+        <img src="{{ url_for('static', filename= 'images/site/500_4target.png')}}" width="500vw" alt="Erreur 500 — erreur interne du serveur">
+        {% else %}
         <img src="{{ url_for('static', filename= 'images/site/500.jpg')}}" width="500vw" alt="Erreur 500 — erreur interne du serveur">
+        {% endif %}
     </div>
     
 {% endblock %}
