@@ -435,7 +435,17 @@
     </script>
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
-    <script>window.i18n = { noRunningTask: "{{ t('thread.no_task') }}" };</script>
+    <script>window.i18n = {
+        noRunningTask: "{{ t('thread.no_task') }}",
+        statusDone: "{{ t('status.done') }}",
+        statusFailed: "{{ t('status.failed') }}",
+        statusReadme: "{{ t('status.readme') }}",
+        statusInProgress: "{{ t('status.in_progress') }}",
+        statusNotNeeded: "{{ t('status.not_needed') }}",
+        statusPending: "{{ t('status.pending') }}",
+        statusUnknown: "{{ t('status.unknown') }}",
+        msg: {{ emit_status_json() }}
+    };</script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/dark.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/sidebar.js') }}"></script>

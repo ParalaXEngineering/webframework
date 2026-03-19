@@ -714,9 +714,26 @@ $(document).ready(function() {
     })
 
     socket.on( 'action_status', function( msg ) {
+        // Translate emit_status message text using i18n dictionary
+        function tr(text) {
+            if (window.i18n && window.i18n.msg) {
+                // Try exact match first
+                if (window.i18n.msg[text]) return window.i18n.msg[text];
+                // Partial match: sort by key length (longest first) to avoid substring conflicts
+                var entries = Object.entries(window.i18n.msg).sort(function(a, b) { return b[0].length - a[0].length; });
+                for (var i = 0; i < entries.length; i++) {
+                    if (text.includes(entries[i][0])) {
+                        return text.replace(entries[i][0], entries[i][1]);
+                    }
+                }
+            }
+            return text;
+        }
+
         for(let category of Object.keys(msg))
         {
             //Do we already have the status in the table
+            let statusText = tr(msg[category][0])
             let current_status = document.getElementById(msg[category][0])
             if(!current_status)
             {
@@ -729,13 +746,21 @@ $(document).ready(function() {
                 {
                     row = table.insertRow()
                     cell = row.insertCell(0)
-                    cell.innerHTML = msg[category][0]
+                    cell.innerHTML = statusText
                     cell = row.insertCell(1)
                     cell.innerHTML = status
 
                     current_status = document.getElementById(msg[category][0])
                 }
             }
+
+            let _done = (window.i18n && window.i18n.statusDone) || "Done";
+            let _failed = (window.i18n && window.i18n.statusFailed) || "Failed";
+            let _readme = (window.i18n && window.i18n.statusReadme) || "Readme";
+            let _inProgress = (window.i18n && window.i18n.statusInProgress) || "In progress";
+            let _notNeeded = (window.i18n && window.i18n.statusNotNeeded) || "Not needed";
+            let _pending = (window.i18n && window.i18n.statusPending) || "Pending";
+            let _unknown = (window.i18n && window.i18n.statusUnknown) || "Unknown";
 
             let status = '<div id="' + msg[category][0] + '"><div class="progress progress-info  mb-3"><div class="progress-bar " role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div></div>' + msg[category][2] 
                 if(msg[category][1] < 100)
@@ -744,19 +769,19 @@ $(document).ready(function() {
                 }
                 else if(msg[category][1] == 100)
                 {
-                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-check text-success mx-1"></i>Done</div>'  + msg[category][2] 
+                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-check text-success mx-1"></i>' + _done + '</div>'  + msg[category][2] 
                 }
                 else if(msg[category][1] == 101)
                 {
-                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-close text-danger mx-1"></i>Failed</div>' + msg[category][2] 
+                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-close text-danger mx-1"></i>' + _failed + '</div>' + msg[category][2] 
                 }
                 else if(msg[category][1] == 102)
                 {
-                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-information-outline text-info mx-1"></i>Readme</div>' + msg[category][2] 
+                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-information-outline text-info mx-1"></i>' + _readme + '</div>' + msg[category][2] 
                 }
                 else if(msg[category][1] == 103)
                 {
-                    status = '<div id="' + msg[category][0] + '"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> In progress</div>' + msg[category][2] 
+                    status = '<div id="' + msg[category][0] + '"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> ' + _inProgress + '</div>' + msg[category][2] 
                 }
                 else if(msg[category][1] == 104)
                 {
@@ -764,15 +789,15 @@ $(document).ready(function() {
                 }
                 else if(msg[category][1] == 105)
                 {
-                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-minus-circle-outline text-secondary mx-1"></i>Not needed</div>' + msg[category][2] 
+                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-minus-circle-outline text-secondary mx-1"></i>' + _notNeeded + '</div>' + msg[category][2] 
                 }
                 else if(msg[category][1] == 106)
                 {
-                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-timer-sand text-primary mx-1"></i> Pending</div>' + msg[category][2] 
+                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-timer-sand text-primary mx-1"></i> ' + _pending + '</div>' + msg[category][2] 
                 }
                 else
                 {
-                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-help text-primary mx-1"></i>Unknown</div>' + msg[category][2] 
+                    status = '<div id="' + msg[category][0] + '"><i class="mdi mdi-help text-primary mx-1"></i>' + _unknown + '</div>' + msg[category][2] 
                 }
                 if(current_status)
                     current_status.innerHTML = status

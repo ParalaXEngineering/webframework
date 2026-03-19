@@ -71,6 +71,12 @@ def login():
     if "GUEST" in users:
         users.remove("GUEST")
 
+    # Hide target-only users on desktop
+    if not site_conf.Site_conf.m_globals.get("on_target", False):
+        for hide_user in ("FNH_CUSTOMER", "FNH_CUSTOMER_ADVANCED"):
+            if hide_user in users:
+                users.remove(hide_user)
+
     if request.method == "POST":
         data_in = utilities.util_post_to_json(request.form.to_dict())
 
