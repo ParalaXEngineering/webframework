@@ -140,6 +140,10 @@ def setup_app(app):
 
     threaded_manager.thread_manager_obj = threaded_manager.Threaded_manager()
 
+    # Register i18n (EN/FR translation)
+    from website.i18n import init_i18n
+    init_i18n(app)
+
     # Import site_conf
     site_conf.site_conf_obj = importlib.import_module("website.site_conf").Site_conf()
     site_conf.site_conf_obj.m_scheduler_obj = scheduler_obj

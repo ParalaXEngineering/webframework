@@ -2,7 +2,7 @@
 {% import 'common/controls.j2' as common_controls %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_lang | default('en') }}">
 
 <head>
     <meta charset="UTF-8">
@@ -31,8 +31,8 @@
                         <h3><i class="mdi mdi-{{app["icon"]}}"></i>{{app["name"]}}</h3>
                         <h4><small>{{app["version"]}}</small></h4>
                     </div>
-                    <h1 class="auth-title">Log in.</h1>
-                    <p class="auth-subtitle mb-5">Please select a user</p>
+                    <h1 class="auth-title">{{ t('login.title') }}</h1>
+                    <p class="auth-subtitle mb-5">{{ t('login.subtitle') }}</p>
 
                     <form action="{{ url_for(target) }}" method="POST" id="loginForm">
                         <div class="form-group position-relative has-icon-left mb-4">
@@ -46,19 +46,19 @@
                             </div>
                         </div>
                         <div class="form-group position-relative has-icon-left mb-4">
-                            <input type="password" class="form-control form-control-xl" placeholder="Password" name="password" id="password" onkeypress="if(event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); {% if otp_required|default(false) %}document.getElementById('otp_code').focus();{% else %}document.getElementById('loginForm').submit();{% endif %} }" {% if on_target|default(false) and cooldown_remaining|default(0) > 0 %}disabled{% endif %}>
+                            <input type="password" class="form-control form-control-xl" placeholder="{{ t('login.password') }}" name="password" id="password" onkeypress="if(event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); {% if otp_required|default(false) %}document.getElementById('otp_code').focus();{% else %}document.getElementById('loginForm').submit();{% endif %} }" {% if on_target|default(false) and cooldown_remaining|default(0) > 0 %}disabled{% endif %}>
                             <div class="form-control-icon">
                                 <i class="bi bi-shield-lock"></i>
                             </div>
                         </div>
                         <div id="capslock-warning" class="alert alert-warning d-flex align-items-center py-2 mb-3" role="alert" style="display: none !important;">
                             <i class="mdi mdi-alert-circle-outline me-2" style="font-size: 1.2rem;"></i>
-                            <span>Caps Lock is ON</span>
+                            <span>{{ t('login.caps_lock') }}</span>
                         </div>
                         
                         {% if otp_required|default(false) %}
                         <div class="form-group position-relative has-icon-left mb-4">
-                            <input type="text" class="form-control form-control-xl" placeholder="2FA Code (6 digits)" name="otp_code" id="otp_code" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code" onkeypress="if(event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); document.getElementById('loginForm').submit(); }" {% if on_target|default(false) and cooldown_remaining|default(0) > 0 %}disabled{% endif %}>
+                            <input type="text" class="form-control form-control-xl" placeholder="{{ t('login.otp') }}" name="otp_code" id="otp_code" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" autocomplete="one-time-code" onkeypress="if(event.key === 'Enter' || event.keyCode === 13) { event.preventDefault(); document.getElementById('loginForm').submit(); }" {% if on_target|default(false) and cooldown_remaining|default(0) > 0 %}disabled{% endif %}>
                             <div class="form-control-icon">
                                 <i class="bi bi-key"></i>
                             </div>
@@ -70,18 +70,18 @@
                             {{ message }}
                             {% if on_target|default(false) and cooldown_remaining|default(0) > 0 %}
                                 <div id="cooldown-timer" class="mt-2">
-                                    <strong>Time remaining: <span id="cooldown-seconds">{{ cooldown_remaining }}</span>s</strong>
+                                    <strong>{{ t('login.time_remaining') }}: <span id="cooldown-seconds">{{ cooldown_remaining }}</span>s</strong>
                                 </div>
                             {% endif %}
                             {% if on_target|default(false) and attempts_remaining is defined %}
                                 <div class="mt-2">
-                                    <strong>Attempts remaining: {{ attempts_remaining }}/5</strong>
+                                    <strong>{{ t('login.attempts_remaining') }}: {{ attempts_remaining }}/5</strong>
                                 </div>
                             {% endif %}
                         </div>
                         {% endif %}
 
-                        <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-5" id="login-button" {% if on_target|default(false) and cooldown_remaining|default(0) > 0 %}disabled{% endif %}>Log in</button>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg shadow-lg mt-5" id="login-button" {% if on_target|default(false) and cooldown_remaining|default(0) > 0 %}disabled{% endif %}>{{ t('login.button') }}</button>
                     </form>
                 </div>
             </div>

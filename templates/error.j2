@@ -1,13 +1,13 @@
 {% extends 'base.j2' %}
 
 {% block title %}
-Erreur interne du serveur
+{{ t('error.internal_title') }}
 {% endblock %}
 
 {% block main_page %}
     <div class="card bg-danger text-white shadow">
         <div class="card-body">
-            <p>Le serveur a rencontré une erreur. Veuillez accéder à la page de signalement d'erreurs et décrire vos actions au moment de l'incident. Les fichiers journaux ont été complétés et seront envoyés avec votre rapport.</p>
+            <p>{{ t('error.internal_text') }}</p>
 
             <pre class="mt-2">Traceback : {{traceback}}</pre>
         </div>
@@ -15,9 +15,9 @@ Erreur interne du serveur
 
     <div class="d-flex align-items-center justify-content-center">
         {% if on_target %}
-        <img src="{{ url_for('static', filename= 'images/site/500_4target.png')}}" width="500vw" alt="Erreur 500 — erreur interne du serveur">
+        <img src="{{ url_for('static', filename= 'images/site/500_4target.png')}}" width="500vw" alt="{{ t('error.500_alt') }}">
         {% else %}
-        <img src="{{ url_for('static', filename= 'images/site/500.jpg')}}" width="500vw" alt="Erreur 500 — erreur interne du serveur">
+        <img src="{{ url_for('static', filename= 'images/site/500.jpg')}}" width="500vw" alt="{{ t('error.500_alt') }}">
         {% endif %}
     </div>
     

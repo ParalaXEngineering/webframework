@@ -109,27 +109,27 @@ html[data-bs-theme="dark"] {
     function getCommonButtons(checkAll, elementId) {
         return [
             {
-                text: checkAll ? 'Check All' : 'Check All',
+                text: checkAll ? '{{ t("table.check_all") }}' : '{{ t("table.check_all") }}',
                 action: function (e, dt, node, config) {
-                    const isChecked = $(node).text() === 'Check All';
+                    const isChecked = $(node).text() === '{{ t("table.check_all") }}';
                     const checkboxes = dt.table().node().querySelectorAll(`input[type="checkbox"]`);
                     checkboxes.forEach(checkbox => checkbox.checked = isChecked);
-                    $(node).text(isChecked ? 'Uncheck All' : 'Check All');
+                    $(node).text(isChecked ? '{{ t("table.uncheck_all") }}' : '{{ t("table.check_all") }}');
                 }
             },
             {
-                text: 'Export',
+                text: '{{ t("table.export") }}',
                 action: function () {},
                 split: ['pdf', 'excel', 'print', 'copy']
             },
             {
-                text: 'View',
+                text: '{{ t("table.view") }}',
                 action: function () {},
                 split: [
-                    { text: 'Show 10 items', action: (e, dt) => dt.page.len(10).draw() },
-                    { text: 'Show 25 items', action: (e, dt) => dt.page.len(25).draw() },
-                    { text: 'Show 50 items', action: (e, dt) => dt.page.len(50).draw() },
-                    { text: 'Show 100 items', action: (e, dt) => dt.page.len(100).draw() }
+                    { text: '{{ t("table.show_n_items", n=10) }}', action: (e, dt) => dt.page.len(10).draw() },
+                    { text: '{{ t("table.show_n_items", n=25) }}', action: (e, dt) => dt.page.len(25).draw() },
+                    { text: '{{ t("table.show_n_items", n=50) }}', action: (e, dt) => dt.page.len(50).draw() },
+                    { text: '{{ t("table.show_n_items", n=100) }}', action: (e, dt) => dt.page.len(100).draw() }
                 ]
             }
         ];
@@ -249,7 +249,7 @@ html[data-bs-theme="dark"] {
 
 {% block title %}
 {% if content["title"]%}
-    {{content["title"]}}
+    {{ t(content["title"]) }}
 {% endif %}
 {% endblock %}
 
@@ -288,8 +288,8 @@ html[data-bs-theme="dark"] {
     {# This is size of 1 because the modals are always here #}
     <div class="text-center">
         <img src="{{ url_for('static', filename= 'images/status/unauthorized.svg')}}" width="500vw">
-        <h1 class="error-title">Unauthorized</h1>
-        <p class="fs-5 text-gray-600">There is no tools that you are authorized to use in this section</p>
+        <h1 class="error-title">{{ t('unauthorized.title') }}</h1>
+         <p class="fs-5 text-gray-600">{{ t('unauthorized.text') }}</p>
     </div>
 {% else %}
     {# Start with the modals #}
@@ -311,7 +311,7 @@ html[data-bs-theme="dark"] {
 
                             {# Subtitle #}
                             {% if layout["subtitle"] and layout["type"] != "SPACER" %}
-                                <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
+                                <h3 class="text-primary mt-5">{{ t(layout["subtitle"]) }}</h3>
                             {% endif %}
 
                             {# Content #}
@@ -342,16 +342,16 @@ html[data-bs-theme="dark"] {
                 <div class="card-body">
                     {% if content[module]["display"] %}
                         {% if "name_override" in content[module] %}
-                        <h1>{{ content[module]["name_override"] }}</h1>
+                        <h1>{{ t(content[module]["name_override"]) }}</h1>
                         {% else %}
-                        <h1>{{ module }}</h1>
+                        <h1>{{ t(module) }}</h1>
                         {% endif %}
                     {% endif %}
 
                     {% if "error" in content[module] and content[module]["error"]%}
                         <div class="text-center">
                             <img src="{{ url_for('static', filename='images/status/error.svg')}}" style="width: 500px; max-width: 100%;">
-                            <h3 class="error-title mt-3">This page can't be displayed with the current configuration</h3>
+                            <h3 class="error-title mt-3">{{ t('error.page_config') }}</h3>
                             <p class="fs-5 text-gray-600">{{content[module]["error"]}}</p>
                         </div>
                     {% else %}
@@ -366,7 +366,7 @@ html[data-bs-theme="dark"] {
 
                             {# Subtitle #}
                             {% if layout["subtitle"] and layout["type"] != "SPACER" %}
-                                <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
+                                <h3 class="text-primary mt-5">{{ t(layout["subtitle"]) }}</h3>
                             {% endif %}
 
                             {# Content #}
@@ -382,13 +382,13 @@ html[data-bs-theme="dark"] {
                     {# Module footer #}
                     {% if content[module]["type"] == "threaded_action" or content[module]["type"] == "worfklow" %}
                         <div class="card-footer alert-light-secondary theme-aware">
-                            <h4 class="theme-text">Action progress</h4>
-                            <div class="table-responsive">
-                                <table class="table-light table-striped mb-0 theme-aware" id="{{module}}_result">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 50%;">Task</th> <!-- Largeur explicite pour équilibrer -->
-                                            <th style="width: 50%;">Status</th>
+                             <h4 class="theme-text">{{ t('action.progress') }}</h4>
+                             <div class="table-responsive">
+                                 <table class="table-light table-striped mb-0 theme-aware" id="{{module}}_result">
+                                     <thead>
+                                         <tr>
+                                             <th style="width: 50%;">{{ t('action.task') }}</th>
+                                             <th style="width: 50%;">{{ t('action.status') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>

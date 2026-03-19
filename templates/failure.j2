@@ -1,16 +1,16 @@
 {% extends 'base.j2' %}
 
 {% block title %}
-Échec de l'opération
+{{ t('operation.failure') }}
 {% endblock %}
 
 {% block main_page %}
     <div class="card bg-danger text-white shadow">
         <div class="card-body">
-            <h4><i class="mdi mdi-alert-circle"></i> Échec de l'opération</h4>
+            <h4><i class="mdi mdi-alert-circle"></i> {{ t('operation.failure') }}</h4>
             <p class="mb-3">{{ message }}</p>
             <a href="javascript:history.back()" class="btn btn-outline-light">
-                <i class="mdi mdi-arrow-left"></i> Retour
+                <i class="mdi mdi-arrow-left"></i> {{ t('button.back') }}
             </a>
         </div>
     </div>

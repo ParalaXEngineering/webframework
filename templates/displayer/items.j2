@@ -157,9 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% macro path_internal(id, path_variable, default=None) %}
     <div class="row" id="{{ id }}_div">
-        <select class="form-control path-select" id="{{ id }}_level0" source="{{ path_variable }}" class="path" onchange="path_add_level('{{ id }}', '{{path_variable}}', 0)">
-            <option>Veuillez sélectionner</option>
-        </select>
+        <select class=\"form-control path-select\" id=\"{{ id }}_level0\" source=\"{{ path_variable }}\" class=\"path\" onchange=\"path_add_level('{{ id }}', '{{path_variable}}', 0)\">\n            <option>{{ t('select.placeholder') }}</option>\n        </select>", "oldString": "        <select class=\"form-control path-select\" id=\"{{ id }}_level0\" source=\"{{ path_variable }}\" class=\"path\" onchange=\"path_add_level('{{ id }}', '{{path_variable}}', 0)\">\n            <option>Veuillez sélectionner</option>\n        </select>
         <input class="path_result" type="hidden" name="{{ id }}" id="{{ id }}" {% if default %} value="{{ default }}" {% endif %} class="form-control"> 
     
     </div>
@@ -256,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endmacro %}
 
 {% macro text(text) %}
-    {{text}}
+    {{ t(text) }}
 {% endmacro %}
 
 {% macro placeholder(id, data) %}
@@ -265,13 +263,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 {% macro button(id, text, disabled = false, focus = false) %}
     <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn btn-primary {%if disabled %} disabled {%endif%} {%if focus %} focusable {%endif%}" {%if disabled %} disabled aria-disabled="true" {%endif%}>
-        {{text}}
+        {{ t(text) }}
     </button>
 {% endmacro %}
 
 {% macro modalbutton(link, text, disabled = false) %}
     <button type="button" class="btn btn-warning mx-1" data-bs-toggle="modal" data-bs-target="#modal_{{link}}", id="{{link}}">
-        {{text}}
+        {{ t(text) }}
     </button>
 {% endmacro %}
 
@@ -324,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endmacro %}
 
 {% macro download(id, text, link) %}
-    <a class="btn btn-primary" href="{{url_for(link)}}"}>{{text}}</a>
+    <a class="btn btn-primary" href="{{url_for(link)}}"}>{{ t(text) }}</a>
 {% endmacro %}
 
 {% macro iconlink(id, text, link, icon, style, parameters) %}

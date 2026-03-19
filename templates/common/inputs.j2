@@ -11,7 +11,7 @@
       {% endfor %}
     {% else %}
       {% if generic %}
-        <option value="">{{ "Veuillez sélectionner" }}</option>
+        <option value="">{{ t('select.placeholder') }}</option>
       {% endif %}
       {% for option in options %}
         {% set opt_val  = option|string %}
@@ -100,7 +100,7 @@
 {% macro path(name, path_variable, default=None) %}
     <div class="row" id="{{ name }}_div">
         <select class="form-control path-select" id="{{ name }}_level0" source="{{ path_variable }}" class="path" onchange="path_add_level('{{ name }}', '{{path_variable}}', 0)">
-            <option>Veuillez sélectionner</option>
+            <option>{{ t('select.placeholder') }}</option>
         </select>
         <input class="path_result" type="hidden" name="{{ name }}" id="{{ name }}" {% if default %} value="{{ default }}" {% endif %} class="form-control"> 
     </div>
@@ -139,7 +139,7 @@
         <h5 class="p-2 text-primary">{{ title }}</h5>
         {% if hidden %}
         <button class="btn btn-primary collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collape{{name}}" aria-expanded="false" aria-controls="collape{{name}}">
-            Show file explorer
+            {{ t('file_explorer.show') }}
         </button>
 
         <div class="collapse" id="collape{{name}}">

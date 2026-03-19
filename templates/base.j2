@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ current_lang | default('en') }}">
 
 {% import 'common/inputs.j2' as common_input %}
 {% import 'common/controls.j2' as common_controls %}
-{% import 'displayer/layouts.j2' as disp_layouts %}
+{% import 'displayer/layouts.j2' as disp_layouts with context %}
 
 <head>
     <meta charset="UTF-8">
@@ -61,9 +61,21 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--system-uicons" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 21 21"><g fill="none" fill-rule="evenodd" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 14.5c2.219 0 4-1.763 4-3.982a4.003 4.003 0 0 0-4-4.018c-2.219 0-4 1.781-4 4c0 2.219 1.781 4 4 4zM4.136 4.136L5.55 5.55m9.9 9.9l1.414 1.414M1.5 10.5h2m14 0h2M4.135 16.863L5.55 15.45m9.899-9.9l1.414-1.415M10.5 19.5v-2m0-14v-2" opacity=".3"></path><g transform="translate(-210 -1)"><path d="M220.5 2.5v2m6.5.5l-1.5 1.5"></path><circle cx="220.5" cy="11.5" r="4"></circle><path d="m214 5l1.5 1.5m5 14v-2m6.5-.5l-1.5-1.5M214 18l1.5-1.5m-4-5h2m14 0h2"></path></g></g></svg>
                                 <div class="form-check form-switch fs-6">
                                     <input class="form-check-input  me-0" type="checkbox" id="toggle-dark" style="cursor: pointer">
-                                    <label class="form-check-label" for="toggle-dark"><span class="visually-hidden">Thème sombre</span></label>
+                                    <label class="form-check-label" for="toggle-dark"><span class="visually-hidden">{{ t('theme.dark') }}</span></label>
                                 </div>
                                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--mdi" width="20" height="20" preserveAspectRatio="xMidYMid meet" viewBox="0 0 24 24"><path fill="currentColor" d="m17.75 4.09l-2.53 1.94l.91 3.06l-2.63-1.81l-2.63 1.81l.91-3.06l-2.53-1.94L12.44 4l1.06-3l1.06 3l3.19.09m3.5 6.91l-1.64 1.25l.59 1.98l-1.7-1.17l-1.7 1.17l.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95l2.06.05m-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85c-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14c.4-.4.82-.76 1.27-1.08c.75-.53 1.93.36 1.85 1.19c-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82c-2.81 3.14-2.7 7.96.31 10.98c3.02 3.01 7.84 3.12 10.98.31Z"></path></svg>
+                            </div>
+                            <div class="lang-toggle d-flex gap-1 align-items-center mt-1">
+                                <span class="small {{ 'fw-bold' if current_lang == 'en' }}">EN</span>
+                                <div class="form-check form-switch fs-6">
+                                    <input class="form-check-input me-0" type="checkbox" id="toggle-lang"
+                                           style="cursor: pointer"
+                                           {{ 'checked' if current_lang == 'fr' }}>
+                                    <label class="form-check-label" for="toggle-lang">
+                                        <span class="visually-hidden">{{ t('lang.switch') }}</span>
+                                    </label>
+                                </div>
+                                <span class="small {{ 'fw-bold' if current_lang == 'fr' }}">FR</span>
                             </div>
 
                             <a href="/" style="text-decoration: none; color: inherit;">
@@ -72,7 +84,7 @@
                             <h6>v{{app["version"]}}</h6>
                         </div>
                         <div class="sidebar-toggler  x">
-                            <a href="#" class="sidebar-hide d-xl-none d-block" aria-label="Fermer le menu"><i class="bi bi-x bi-middle"></i></a>
+                            <a href="#" class="sidebar-hide d-xl-none d-block" aria-label="{{ t('menu.close') }}"><i class="bi bi-x bi-middle"></i></a>
                         </div>
                     </div>
                 </div>
@@ -81,12 +93,12 @@
                     <ul class="menu">
                     {% for sidebarItem in sidebarItems %}
                         {% if sidebarItem.isTitle %}
-                        <li class="sidebar-title">{{sidebarItem.name}}</li>
+                        <li class="sidebar-title">{{ t(sidebarItem.name) }}</li>
                         {% else %}
                             <li class="sidebar-item {{ 'active' if (endpoint and (endpoint == sidebarItem.endpoint or endpoint.startswith(sidebarItem.endpoint + '.')) and (not page_info or sidebarItem.cat in page_info)) }} {{'has-sub' if "submenu" in sidebarItem }}">
                                 <a href="{{ url_for(sidebarItem.url) if sidebarItem.url!=undefined else '#'}}" class='sidebar-link'>
                                     <i class="mdi {{ sidebarItem.icon }}"></i>
-                                    <span>{{sidebarItem.name}}</span>
+                                    <span>{{ t(sidebarItem.name) }}</span>
                                 </a>
                                 {% if "submenu" in sidebarItem %}
                                     <ul class="submenu {{ 'active' if (endpoint and (endpoint == sidebarItem.endpoint or endpoint.startswith(sidebarItem.endpoint + '.')) and (not page_info or sidebarItem.cat in page_info)) }}">
@@ -94,16 +106,16 @@
                                     {% for sub in sidebarItem.submenu %}
                                         <li class="submenu-item {% if "subsubmenu" in sub %} has-sub {% endif %} {{ 'active' if (endpoint and ((page_info and sub.url in endpoint and sub.name in page_info) or (not page_info and endpoint == sub.url and (sub.param is not defined or sub.param == qs)) or ('subsubmenu' in sub and (sub.subsubmenu|selectattr('url','equalto',endpoint)|rejectattr('param','defined')|list or sub.subsubmenu|selectattr('url','equalto',endpoint)|selectattr('param','defined')|selectattr('param','equalto',qs)|list)))) }}">
                                             {% if "." in sub.url%}
-                                                <a href="{{ url_for(sub.url) }}?{{ sub.param }}">{{ sub.name }}</a>
+                                                <a href="{{ url_for(sub.url) }}?{{ sub.param }}">{{ t(sub.name) }}</a>
                                             {% else %}
-                                                <a href="#" class="submenu-link">{{ sub.name }}</a>
+                                                <a href="#" class="submenu-link">{{ t(sub.name) }}</a>
                                             {% endif %}
 
                                             {% if "subsubmenu" in sub %}
                                                 <ul class="submenu submenu-level-2">
                                                 {% for subsub in sub.subsubmenu %}
                                                     <li class="submenu-item {{ 'active' if (endpoint and ((page_info and subsub.url in endpoint and subsub.name in page_info) or (not page_info and endpoint == subsub.url and (subsub.param is not defined or subsub.param == qs)))) }}">
-                                                        <a href="{{ url_for(subsub.url) }}?{{ subsub.param }}">{{ subsub.name }}</a>
+                                                        <a href="{{ url_for(subsub.url) }}?{{ subsub.param }}">{{ t(subsub.name) }}</a>
                                                     </li>
                                                 {% endfor %}
                                                 </ul>
@@ -132,7 +144,7 @@
             <header class="mb-3">
                 <nav class="navbar navbar-expand navbar-light navbar-top">
                     <div class="container-fluid">
-                        <a href="#" class="burger-btn d-block mx-1" aria-label="Ouvrir le menu">
+                        <a href="#" class="burger-btn d-block mx-1" aria-label="{{ t('menu.open') }}">
                             <i class="bi bi-justify fs-3"></i>
                         </a>
 
@@ -155,7 +167,7 @@
                                                 <button class="btn btn-{{item["color"]}} mx-1" id="thread_status" onclick="window.location.href='{{ url_for('singles.threads') }}'" style="cursor: pointer;">
                                                     <div class="row">
                                                         <div class="col-2 text-center"><h2><i class="mdi mdi-{{item["icon"]}} text-light mx-1"></i></h2></div>
-                                                        <div class="col-10 text-start ps-3" id="thread_run">No running task</div>
+                                                        <div class="col-10 text-start ps-3" id="thread_run">{{ t('thread.no_task') }}</div>
                                                     </div>
                                                 </button>                            
                                             {% endif %}
@@ -180,7 +192,7 @@
                                             {% set key, value = parts[1].split('=') %}
                                             <div class="input-group mx-1">
                                                 <!-- Text input field -->
-                                                <input type="text" class="form-control" id="{{ item["id"] }}_input" placeholder="Enter value">
+                                                <input type="text" class="form-control" id="{{ item["id"] }}_input" placeholder="{{ t('topbar.enter_value') }}">
                                                 <!-- Button as a link, including an icon -->
                                                 
                                                 <a href="{{ url_for(parts[0], **{ key: value }) }}"
@@ -226,7 +238,7 @@
                                             <button class="btn btn-{{item["color"]}} mx-1" id="thread_status" onclick="window.location.href='{{ url_for('singles.threads') }}'" style="cursor: pointer;">
                                                 <div class="row">
                                                     <div class="col-2 text-center"><h2><i class="mdi mdi-{{item["icon"]}} text-light mx-1"></i></h2></div>
-                                                    <div class="col-10 text-start ps-4" id="thread_run">No running task</div>
+                                                    <div class="col-10 text-start ps-4" id="thread_run">{{ t('thread.no_task') }}</div>
                                                 </div>
                                             </button>
                                         {% endif %}                        
@@ -249,7 +261,7 @@
                                             <button class="btn btn-{{item["color"]}} mx-1" id="thread_status" onclick="window.location.href='{{ url_for('singles.threads') }}'" style="cursor: pointer;">
                                                 <div class="row">
                                                     <div class="col-2 text-center"><h2><i class="mdi mdi-{{item["icon"]}} text-light mx-1"></i></h2></div>
-                                                    <div class="col-10 text-start ps-4" id="thread_run">No running task</div>
+                                                    <div class="col-10 text-start ps-4" id="thread_run">{{ t('thread.no_task') }}</div>
                                                 </div>
                                             </button>
                                         {% endif %}
@@ -349,7 +361,7 @@
             <footer>
                 <div class="footer clearfix p-5 text-muted float-end">
                     <div class="float-start">
-                        <p>{{footer}}<br>Framework by ESD<br>Template by Mazer</p>
+                        <p>{{footer}}<br>{{ t('footer.framework') }}<br>{{ t('footer.template') }}</p>
                     </div>
                 </div>
             </footer>
@@ -371,7 +383,7 @@
     const filePondImage = document.querySelectorAll(".image-preview-filepond");
     filePondImage.forEach(element => {
         FilePond.create(element, {
-            labelIdle: `Drag & Drop image <span class="filepond--label-action">Browse</span>`,
+            labelIdle: `{{ t('filepond.image') }}`,
             credits: null,
             allowImagePreview: true,
             allowImageFilter: false,
@@ -392,6 +404,7 @@
         FilePond.create(element, {
             credits: null,
             storeAsFile: true,
+            labelIdle: `{{ t('filepond.files') }}`,
         });
     });
 
@@ -401,7 +414,7 @@
         FilePond.create(element, {
             credits: null,
             storeAsFile: true,
-            labelIdle: `Drag & Drop a zip file <span class="filepond--label-action">Browse</span>`,
+            labelIdle: `{{ t('filepond.zip') }}`,
             acceptedFileTypes: ['application/x-zip-compressed']
         });
     });
@@ -422,6 +435,7 @@
     </script>
     <script src="{{ url_for('static', filename= 'js/socket.io.min.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/app.js') }}"></script>
+    <script>window.i18n = { noRunningTask: "{{ t('thread.no_task') }}" };</script>
     <script src="{{ url_for('static', filename= 'js/site.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/dark.js') }}"></script>
     <script src="{{ url_for('static', filename= 'js/sidebar.js') }}"></script>
@@ -471,6 +485,22 @@
     
     {# Allow apps to define their own easter eggs - try to include if exists #}
     {% include 'easter_egg_app.j2' ignore missing %}
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var langToggle = document.getElementById('toggle-lang');
+        if (langToggle) {
+            langToggle.addEventListener('change', function() {
+                var lang = this.checked ? 'fr' : 'en';
+                fetch('/set-lang', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'lang=' + lang
+                }).then(function() { window.location.reload(); });
+            });
+        }
+    });
+    </script>
 
 </body>
 

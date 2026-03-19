@@ -1,7 +1,7 @@
 {% extends 'base.j2' %}
 
 {% block title %}
-Running Tools
+{{ t('threads.title') }}
 {% endblock %}
 
 {% block main_page %}
@@ -18,7 +18,7 @@ Running Tools
             <form action="{{ url_for('singles.threads') }}" method="POST" id="kill-form-{{ loop.index }}">
                 {{common_input.hidden(thread, "")}}
                 <button type="button" class="btn btn-light-danger" onclick="confirmKillThread('{{ thread }}', document.getElementById('kill-form-{{ loop.index }}'))">
-                    <i class="mdi mdi-close-circle"></i> Arrêter le thread
+                    <i class="mdi mdi-close-circle"></i> {{ t('threads.stop') }}
                 </button>
             </form>
         </div>
@@ -29,14 +29,14 @@ Running Tools
 <script>
 function confirmKillThread(threadName, form) {
     Swal.fire({
-        title: 'Confirmer l\'arrêt ?',
-        text: 'Le thread "' + threadName + '" sera interrompu. Cette action est irréversible.',
+        title: '{{ t("threads.confirm_title") }}',
+        text: '{{ t("threads.confirm_text", name="") }}'.replace('""', '"' + threadName + '"'),
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Arrêter',
-        cancelButtonText: 'Annuler'
+        confirmButtonText: '{{ t("threads.confirm_btn") }}',
+        cancelButtonText: '{{ t("threads.cancel_btn") }}'
     }).then(function(result) {
         if (result.isConfirmed) {
             form.submit();

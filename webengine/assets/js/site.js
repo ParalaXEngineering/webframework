@@ -556,7 +556,7 @@ $(document).ready(function() {
         
         if(msg.length == 0)
         {
-            content = "No running task"
+            content = (window.i18n && window.i18n.noRunningTask) || "No running task"
             // Style for idle state
             if(button)
             {

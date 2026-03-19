@@ -1,4 +1,4 @@
-{% import 'displayer/items.j2' as disp_item %}
+{% import 'displayer/items.j2' as disp_item with context %}
 
 {% macro display_layout(layout = [])%}
     {% if layout["type"] == "VERT" %}
@@ -122,11 +122,11 @@
         <div class="d-flex justify-content-end mt-2">
             <button type="button" class="btn btn-sm btn-success me-2" 
                     onclick="addTableRow('{{ table_id }}')">
-                {{ editable.add_button_text or '➕ Add Row' }}
+                {{ editable.add_button_text or t('editable.add_row') }}
             </button>
             <button type="button" class="btn btn-sm btn-danger" 
                     onclick="removeTableRow('{{ table_id }}')">
-                {{ editable.remove_button_text or '➖ Remove Row' }}
+                {{ editable.remove_button_text or t('editable.remove_row') }}
             </button>
         </div>
     {% endif %}
@@ -178,7 +178,7 @@
                 
                 const currentRows = tbody.querySelectorAll('tr').length;
                 if (config.maxRows && currentRows >= config.maxRows) {
-                    alert('Maximum number of rows reached (' + config.maxRows + ')');
+                    alert('{{ t("editable.max_rows", n="__N__") }}'.replace('__N__', config.maxRows));
                     return;
                 }
                 
@@ -227,12 +227,12 @@
                 const currentRows = tbody.querySelectorAll('tr');
                 
                 if (currentRows.length <= config.minRows) {
-                    alert('Minimum number of rows reached (' + config.minRows + ')');
+                    alert('{{ t("editable.min_rows", n="__N__") }}'.replace('__N__', config.minRows));
                     return;
                 }
                 
                 if (currentRows.length === 0) {
-                    alert('No rows to remove');
+                    alert('{{ t("editable.no_rows") }}');
                     return;
                 }
                 
