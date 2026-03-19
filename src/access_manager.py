@@ -9,6 +9,8 @@ import struct
 
 logger = logging.getLogger("website")
 auth_object = None
+ATTEMPTS_BEFORE_LOCKOUT = 10  # Number of failed attempts before lockout
+LOCKOUT_DURATION = 300  # Lockout duration in seconds (5 minutes)
 
 
 class Access_manager:
@@ -253,10 +255,10 @@ class Access_manager:
                 count = failed_login_manager.increment_attempts(username)
                 attempts_left = failed_login_manager.get_remaining_attempts(username)
                 
-                if count >= 5:
+                if count >= ATTEMPTS_BEFORE_LOCKOUT:
                     status = failed_login_manager.get_user_status(username)
-                    error_message = "Too many failed attempts. Account locked for 5 minutes."
-                    logger.warning(f"Account '{username}' LOCKED for 5 minutes (until {status['locked_until'].strftime('%H:%M:%S')})")
+                    error_message = f"Too many failed attempts. Account locked for {LOCKOUT_DURATION // 60} minutes."
+                    logger.warning(f"Account '{username}' LOCKED for {LOCKOUT_DURATION // 60} minutes (until {status['locked_until'].strftime('%H:%M:%S')})")
                 else:
                     error_message = f"Bad Password for this user ({attempts_left} attempts remaining)"
                     logger.warning(f"Failed login attempt for user '{username}' ({attempts_left} attempts remaining)")
@@ -389,11 +391,11 @@ class Access_manager:
                 count = failed_login_manager.increment_attempts(username)
                 attempts_left = failed_login_manager.get_remaining_attempts(username)
                 
-                if count >= 5:
-                    # Account is now locked for 5 minutes
+                if count >= ATTEMPTS_BEFORE_LOCKOUT:
+                    # Account is now locked for LOCKOUT_DURATION seconds
                     status = failed_login_manager.get_user_status(username)
-                    error_message = "Too many failed attempts. Account locked for 5 minutes."
-                    logger.warning(f"Account '{username}' LOCKED for 5 minutes (until {status['locked_until'].strftime('%H:%M:%S')})")
+                    error_message = f"Too many failed attempts. Account locked for {LOCKOUT_DURATION // 60} minutes."
+                    logger.warning(f"Account '{username}' LOCKED for {LOCKOUT_DURATION // 60} minutes (until {status['locked_until'].strftime('%H:%M:%S')})")
                 else:
                     error_message = f"Bad Password for this user ({attempts_left} attempts remaining)"
                     logger.warning(f"Failed login attempt for user '{username}' ({attempts_left} attempts remaining)")
