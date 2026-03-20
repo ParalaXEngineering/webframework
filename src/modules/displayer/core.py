@@ -8,7 +8,7 @@ This module contains:
 """
 
 from enum import Enum
-from typing import Set, Dict, List
+from typing import Dict, List
 
 
 # ============================================================================
@@ -28,9 +28,10 @@ class ResourceRegistry:
     """
     
     # Class-level storage for backward compatibility (used outside Flask context)
-    _required_css: Set[str] = set()
-    _required_js: Set[str] = set()
-    _required_vendors: Set[str] = set()
+    # Uses dict (not set) to preserve insertion order (Python 3.7+)
+    _required_css: Dict[str, None] = {}
+    _required_js: Dict[str, None] = {}
+    _required_vendors: Dict[str, None] = {}
     
     # Define available resources
     RESOURCES: Dict[str, Dict[str, List[str]]] = {
@@ -81,12 +82,17 @@ class ResourceRegistry:
     }
     
     @classmethod
-    def _get_registry(cls) -> set:
-        """Get the request-scoped registry, or fallback to class-level."""
+    def _get_registry(cls) -> dict:
+        """Get the request-scoped registry, or fallback to class-level.
+
+        Returns a dict (used as an ordered set) so that insertion order
+        is preserved — scripts will be emitted in the order they were
+        first ``require()``-d.
+        """
         try:
             from flask import g
             if not hasattr(g, '_resource_registry'):
-                g._resource_registry = set()
+                g._resource_registry = {}
             return g._resource_registry
         except (ImportError, RuntimeError):
             # Outside Flask context (e.g., tests) - use class-level
@@ -125,7 +131,7 @@ class ResourceRegistry:
         registry = cls._get_registry()
         for name in resource_names:
             if name in cls.RESOURCES:
-                registry.add(name)
+                registry[name] = None
     
     @classmethod
     def get_required_css(cls):
@@ -137,10 +143,14 @@ class ResourceRegistry:
         """
         registry = cls._get_registry()
         css_files = []
+        seen = set()
         for vendor in registry:
             if vendor in cls.RESOURCES and 'css' in cls.RESOURCES[vendor]:
-                css_files.extend(cls.RESOURCES[vendor]['css'])
-        return list(set(css_files))
+                for f in cls.RESOURCES[vendor]['css']:
+                    if f not in seen:
+                        seen.add(f)
+                        css_files.append(f)
+        return css_files
     
     @classmethod
     def get_required_js(cls):
@@ -152,13 +162,16 @@ class ResourceRegistry:
         """
         registry = cls._get_registry()
         js_files = []
+        seen = set()
         for vendor in registry:
             if vendor in cls.RESOURCES:
-                if 'js' in cls.RESOURCES[vendor]:
-                    js_files.extend(cls.RESOURCES[vendor]['js'])
-                if 'js_custom' in cls.RESOURCES[vendor]:
-                    js_files.extend(cls.RESOURCES[vendor]['js_custom'])
-        return list(set(js_files))
+                for key in ('js', 'js_custom'):
+                    if key in cls.RESOURCES[vendor]:
+                        for f in cls.RESOURCES[vendor][key]:
+                            if f not in seen:
+                                seen.add(f)
+                                js_files.append(f)
+        return js_files
     
     @classmethod
     def get_required_js_cdn(cls):
@@ -170,10 +183,14 @@ class ResourceRegistry:
         """
         registry = cls._get_registry()
         js_cdn = []
+        seen = set()
         for vendor in registry:
             if vendor in cls.RESOURCES and 'js_cdn' in cls.RESOURCES[vendor]:
-                js_cdn.extend(cls.RESOURCES[vendor]['js_cdn'])
-        return list(set(js_cdn))
+                for f in cls.RESOURCES[vendor]['js_cdn']:
+                    if f not in seen:
+                        seen.add(f)
+                        js_cdn.append(f)
+        return js_cdn
     
     @classmethod
     def get_required_css_cdn(cls):
@@ -184,10 +201,14 @@ class ResourceRegistry:
         """
         registry = cls._get_registry()
         css_cdn = []
+        seen = set()
         for vendor in registry:
             if vendor in cls.RESOURCES and 'css_cdn' in cls.RESOURCES[vendor]:
-                css_cdn.extend(cls.RESOURCES[vendor]['css_cdn'])
-        return list(set(css_cdn))
+                for f in cls.RESOURCES[vendor]['css_cdn']:
+                    if f not in seen:
+                        seen.add(f)
+                        css_cdn.append(f)
+        return css_cdn
     
     @classmethod
     def reset(cls):
@@ -198,10 +219,10 @@ class ResourceRegistry:
         try:
             from flask import g
             if hasattr(g, '_resource_registry'):
-                g._resource_registry = set()
+                g._resource_registry = {}
         except (ImportError, RuntimeError):
             # Outside Flask context - reset class-level
-            cls._required_vendors = set()
+            cls._required_vendors = {}
 
 
 # ============================================================================
