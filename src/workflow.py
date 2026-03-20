@@ -1,3 +1,4 @@
+import logging
 import threading
 import traceback
 from submodules.framework.src import scheduler
@@ -28,6 +29,9 @@ class Workflow:
 
         # Internal thread
         self.m_thread_worker = None
+
+        # Logger
+        self.m_logger = logging.getLogger("website")
 
     def get_name(self) -> str:
         """Return the name of this instance workflow
