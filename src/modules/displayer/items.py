@@ -288,20 +288,27 @@ class DisplayerItemText(DisplayerItem):
     Specialized display item to display a simple line of text.
 
     Basic text display component for showing static or dynamic text content.
+    Supports optional CSS classes and heading levels for styled text.
     """
 
-    def __init__(self, text: str) -> None:
+    def __init__(self, text: str, css_class: Optional[str] = None, heading_level: Optional[int] = None) -> None:
         """
         Initialize a text display item.
 
         Args:
             text: The text content to display
+            css_class: Optional CSS classes (e.g., "fw-bold", "text-muted", "small")
+            heading_level: Optional heading level 1-6 to render as <h1>-<h6>
 
         Example:
             >>> text_item = DisplayerItemText(text="Hello, World!")
+            >>> bold_item = DisplayerItemText(text="Important", css_class="fw-bold")
+            >>> heading_item = DisplayerItemText(text="Section Title", heading_level=4)
         """
         super().__init__(DisplayerItems.TEXT)
         self.m_text = text
+        self.m_css_class = css_class
+        self.m_level = heading_level
 
     @classmethod
     def instantiate_test(cls):

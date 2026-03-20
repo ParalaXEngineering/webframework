@@ -12,7 +12,7 @@
     {% endif %}
 
     {% if item["type"] == "TEXT" %}
-        {{text(item["text"])}}
+        {{text(item["text"], item.get("css_class"), item.get("level"))}}
     {% elif item["type"] == "SEPARATOR" %}
         {{separator()}}
     {% elif item["type"] == "PLACEHOLDER" %}
@@ -324,8 +324,14 @@ document.addEventListener('DOMContentLoaded', function() {
     </script>
 {% endmacro %}
 
-{% macro text(text) %}
-    {{text}}
+{% macro text(text, css_class=None, level=None) %}
+    {% if level %}
+        <h{{ level }}{% if css_class %} class="{{ css_class }}"{% endif %}>{{ text }}</h{{ level }}>
+    {% elif css_class %}
+        <span class="{{ css_class }}">{{ text }}</span>
+    {% else %}
+        {{text}}
+    {% endif %}
 {% endmacro %}
 
 {% macro separator() %}
