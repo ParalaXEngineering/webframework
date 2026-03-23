@@ -271,8 +271,10 @@ class OTPManager:
             logger.warning("Invalid OTP attempt")
             return False, "Invalid OTP code"
         
-        # OTP is valid - do NOT regenerate here since it auto-expires after 30s
-        logger.info("OTP validated successfully")
+        # OTP is valid - immediately revoke and regenerate for security
+        # A used OTP code must never be reusable
+        logger.info("OTP validated successfully, revoking and regenerating")
+        self.regenerate()
         return True, "OTP validated"
     
     def get_current_otp(self) -> Optional[str]:
