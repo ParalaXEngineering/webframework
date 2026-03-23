@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ current_lang | default('en') }}">
+<html lang="{{ current_lang | default('fr' if is_camo_4target|default(false) else 'en') }}" {{ 'data-camo-4target' if is_camo_4target|default(false) }}>
 
 {% import 'common/inputs.j2' as common_input %}
 {% import 'common/controls.j2' as common_controls %}
@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/mdi/css/materialdesignicons.min.css') }}">
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app.css') }}">
 	<link rel="stylesheet" href="{{ url_for('static', filename= 'css/app-dark.css') }}">
+    {% if is_camo_4target|default(false) %}
+    <link rel="stylesheet" href="{{ url_for('common.assets', asset_type='css', filename='camo-4target-theme.css') }}">
+    {% endif %}
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/datatables.net/datatables.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/sweetalert/sweetalert2.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'vendors/filepond/filepond.min.css') }}">
