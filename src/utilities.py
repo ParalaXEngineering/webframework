@@ -468,6 +468,9 @@ def util_view_reload_displayer(id: str, disp: displayer) -> dict:
     """
     # And update display
     env = Environment(loader=FileSystemLoader("submodules/framework/templates/"))
+    # Provide a default 't' (translation) passthrough so templates that call
+    # t() still render when we are outside the Flask request context.
+    env.globals.setdefault("t", lambda key, **kwargs: key)
     template = env.get_template("base_content_reloader.j2")
     reloader = template.render(content=disp.display(True))  # Bypass authentification here
 
