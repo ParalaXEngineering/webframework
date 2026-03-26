@@ -465,5 +465,6 @@ class BSalign(Enum):
 class MAZERStyles(Enum):
     """MAZER template style options."""
     CARD = "rounded-3"
+    ALERT_CARD = "alert-card"
     HEADER = ""
     BODY = ""

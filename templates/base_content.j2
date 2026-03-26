@@ -473,7 +473,7 @@
                     {% if module != "modals" %}
                         {% for layout in modal["content"][module]["layouts"] %}
 
-                            {% if layout["subtitle"] and layout["type"] != "SPACER" %}
+                            {% if layout["subtitle"] and layout["type"] != "SPACER" and layout.get("style") != "alert-card" %}
                                 <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
                             {% endif %}
 
@@ -541,7 +541,7 @@
                         {% endif %}
 
                         {% for layout in content[module]["layouts"] %}
-                            {% if layout["subtitle"] and layout["type"] != "SPACER" %}
+                            {% if layout["subtitle"] and layout["type"] != "SPACER" and layout["style"] != "alert-card" %}
                                 <h3 class="text-primary mt-5">{{layout["subtitle"]}}</h3>
                             {% endif %}
                             {{ disp_layouts.display_layout(layout) }}
