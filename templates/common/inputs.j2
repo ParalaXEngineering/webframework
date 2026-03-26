@@ -1,8 +1,8 @@
 
-{% macro select(name, options, selected="", generic=false) %}
+{% macro select(name, options, selected="", generic=false, extra_class="", data_attrs=None) %}
   {% set sel_norm = "" if selected is none else (selected|string)|replace('\t',' ')|trim %}
   {% if options %}
-  <select class="form-control" name="{{ name }}" id="{{ name }}">
+  <select class="form-control{% if extra_class %} {{ extra_class }}{% endif %}" name="{{ name }}" id="{{ name }}"{% if data_attrs %}{% for key, val in data_attrs.items() %} data-{{ key }}="{{ val }}"{% endfor %}{% endif %}>
     {# Cas: options = entier → 0..N #}
     {% if options is integer %}
       {% for n in range(0, options + 1) %}
@@ -32,7 +32,7 @@
     {% endif %}
   </select>
   {% else %}
-  <select class="form-control" name="{{ name }}" id="{{ name }}"></select>
+  <select class="form-control{% if extra_class %} {{ extra_class }}{% endif %}" name="{{ name }}" id="{{ name }}"{% if data_attrs %}{% for key, val in data_attrs.items() %} data-{{ key }}="{{ val }}"{% endfor %}{% endif %}></select>
   {% endif %}
 {% endmacro %}
 

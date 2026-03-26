@@ -4,6 +4,8 @@
 {% import 'displayer/file_display.j2' as file_display %}
 {% set path_count = namespace(value=0) %}
 
+{% macro _render_data_attrs(data_attrs) %}{% if data_attrs %}{% for key, val in data_attrs.items() %} data-{{ key }}="{{ val }}"{% endfor %}{% endif %}{% endmacro %}
+
 {% macro display_item(item) %}
     {% if "itemId" in item %}
     <span id="{{item["itemId"]}}">
@@ -18,7 +20,7 @@
     {% elif item["type"] == "PLACEHOLDER" %}
         {{placeholder(item["id"], item["data"])}}
     {% elif item["type"] == "BUTTON" %}
-        {{button(item["id"], item["text"], item["disabled"], item["focus"], item["icon"] if "icon" in item else None, item["style"] if "style" in item else None, item["icon_style"] if "icon_style" in item else None)}}
+        {{button(item["id"], item["text"], item["disabled"], item["focus"], item["icon"] if "icon" in item else None, item["style"] if "style" in item else None, item["icon_style"] if "icon_style" in item else None, item.get("css_class"), item.get("data_attrs"))}}
     {% elif item["type"] == "MODALBUTTON" %}
         {{modalbutton(item["path"], item["text"], item["disabled"])}}
     {% elif item["type"] == "MODALLINK" %}
@@ -26,9 +28,9 @@
     {% elif item["type"] == "DOWNLOAD" %}
         {{download(item["id"], item["text"], item["data"])}}
     {% elif item["type"] == "ICONLINK" %}
-        {{iconlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"])}}
+        {{iconlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"], item.get("css_class"), item.get("data_attrs"))}}
     {% elif item["type"] == "BUTTONLINK" %}
-        {{buttonlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"], item["icon_style"] if "icon_style" in item else None)}}
+        {{buttonlink(item["id"], item["text"], item["data"], item["icon"], item["style"], item["parameters"], item["icon_style"] if "icon_style" in item else None, item.get("css_class"), item.get("data_attrs"))}}
     {% elif item["type"] == "FILE" %}
         {{file(item["id"], item["value"], item["text"], item["endpoint"], item["path"], item["date"])}}
     {% elif item["type"] == "IMAGE" %}
@@ -342,8 +344,8 @@ document.addEventListener('DOMContentLoaded', function() {
     <div id="{{id}}">{{data}}</div>
 {% endmacro %}
 
-{% macro button(id, text, disabled = false, focus = false, icon = None, style = None, icon_style = None) %}
-    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn {% if style %}btn-{{style}}{% else %}btn-primary{% endif %} {%if focus %} focusable {%endif%}" {% if disabled %}disabled{% endif %}>
+{% macro button(id, text, disabled = false, focus = false, icon = None, style = None, icon_style = None, css_class = None, data_attrs = None) %}
+    <button name="{{ id }}" id="{{ id }}" type="submit" onclick="saveScrollPosition()" class="btn {% if style %}btn-{{style}}{% else %}btn-primary{% endif %} {%if focus %} focusable {%endif%}{% if css_class %} {{css_class}}{% endif %}" {% if disabled %}disabled{% endif %}{{ _render_data_attrs(data_attrs) }}>
         {% if icon %}
             {% if icon_style == "top" %}
                 <h2><i class="mdi mdi-{{icon}}"></i></h2>
@@ -423,39 +425,39 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 {% endmacro %}
 
-{% macro iconlink(id, text, link, icon, style, parameters) %}
+{% macro iconlink(id, text, link, icon, style, parameters, css_class = None, data_attrs = None) %}
     {% if link %}
         {% if "http" in link%}
-        <a href="{{link}}">
+        <a href="{{link}}"{% if css_class %} class="{{css_class}}"{% endif %}{{ _render_data_attrs(data_attrs) }}>
         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
         {{text}}
         </a>
         {% elif "#" in link%}
-        <a id="{{id}}" href="{{link}}">
+        <a id="{{id}}" href="{{link}}"{% if css_class %} class="{{css_class}}"{% endif %}{{ _render_data_attrs(data_attrs) }}>
         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
         {{text}}
         </a>
         {% else %}
             {% if '/' in link %}
                 {% if parameters %}
-                    <a href="{{link}}?{{parameters | join('&')}}">
+                    <a href="{{link}}?{{parameters | join('&')}}"{% if css_class %} class="{{css_class}}"{% endif %}{{ _render_data_attrs(data_attrs) }}>
                         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
                         {{text}}
                     </a>
                 {% else %}
-                    <a href="{{link}}">
+                    <a href="{{link}}"{% if css_class %} class="{{css_class}}"{% endif %}{{ _render_data_attrs(data_attrs) }}>
                         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
                         {{text}}
                     </a>
                 {% endif %}
             {% else %}
                 {% if parameters %}
-                    <a href="{{url_for(link)}}?{{parameters | join('&')}}">
+                    <a href="{{url_for(link)}}?{{parameters | join('&')}}"{% if css_class %} class="{{css_class}}"{% endif %}{{ _render_data_attrs(data_attrs) }}>
                         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
                         {{text}}
                     </a>
                 {% else %}
-                    <a href="{{url_for(link)}}">
+                    <a href="{{url_for(link)}}"{% if css_class %} class="{{css_class}}"{% endif %}{{ _render_data_attrs(data_attrs) }}>
                         <i class="mdi mdi-{{icon}} text-{{style}}"></i>
                         {{text}}
                     </a>
@@ -468,10 +470,10 @@ document.addEventListener('DOMContentLoaded', function() {
     {% endif %}
 {% endmacro %}
 
-{% macro buttonlink(id, text, link, icon, style, parameters, icon_style = None) %}
+{% macro buttonlink(id, text, link, icon, style, parameters, icon_style = None, css_class = None, data_attrs = None) %}
     {% if link %}
         {% if "http" in link%}
-        <a href="{{link}}" class="btn btn-{{style}}">
+        <a href="{{link}}" class="btn btn-{{style}}{% if css_class %} {{css_class}}{% endif %}"{{ _render_data_attrs(data_attrs) }}>
             {% if icon %}
                 {% if icon_style == "top" %}
                     <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
@@ -482,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {{text}}
         </a>
         {% elif "#" in link%}
-        <a id="{{id}}" href="{{link}}" class="btn btn-{{style}}">
+        <a id="{{id}}" href="{{link}}" class="btn btn-{{style}}{% if css_class %} {{css_class}}{% endif %}"{{ _render_data_attrs(data_attrs) }}>
             {% if icon %}
                 {% if icon_style == "top" %}
                     <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
@@ -495,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {% else %}
             {% if '/' in link %}
                 {% if parameters %}
-                    <a href="{{link}}?{{parameters | join('&')}}" class="btn btn-{{style}}">
+                    <a href="{{link}}?{{parameters | join('&')}}" class="btn btn-{{style}}{% if css_class %} {{css_class}}{% endif %}"{{ _render_data_attrs(data_attrs) }}>
                         {% if icon %}
                             {% if icon_style == "top" %}
                                 <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
@@ -506,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {{text}}
                     </a>
                 {% else %}
-                    <a href="{{link}}" class="btn btn-{{style}}">
+                    <a href="{{link}}" class="btn btn-{{style}}{% if css_class %} {{css_class}}{% endif %}"{{ _render_data_attrs(data_attrs) }}>
                         {% if icon %}
                             {% if icon_style == "top" %}
                                 <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
@@ -519,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 {% endif %}
             {% else %}
                 {% if parameters %}
-                    <a href="{{url_for(link)}}?{{parameters | join('&')}}" class="btn btn-{{style}}">
+                    <a href="{{url_for(link)}}?{{parameters | join('&')}}" class="btn btn-{{style}}{% if css_class %} {{css_class}}{% endif %}"{{ _render_data_attrs(data_attrs) }}>
                         {% if icon %}
                             {% if icon_style == "top" %}
                                 <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>
@@ -530,7 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {{text}}
                     </a>
                 {% else %}
-                    <a href="{{url_for(link)}}" class="btn btn-{{style}}">
+                    <a href="{{url_for(link)}}" class="btn btn-{{style}}{% if css_class %} {{css_class}}{% endif %}"{{ _render_data_attrs(data_attrs) }}>
                         {% if icon %}
                             {% if icon_style == "top" %}
                                 <h2><i class="mdi mdi-{{icon}} text-light"></i></h2>

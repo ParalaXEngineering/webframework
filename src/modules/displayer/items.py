@@ -29,6 +29,7 @@ class DisplayerItem:
         'm_width': 'width',
         'm_icon_style': 'icon_style',
         'm_step': 'step',
+        'm_data_attrs': 'data_attrs',
     }
 
     def __init__(self, itemType: DisplayerItems) -> None:
@@ -355,13 +356,15 @@ class DisplayerItemHidden(DisplayerItem):
     Hidden fields are not visible to the user but their values are submitted with forms.
     """
 
-    def __init__(self, id: str, value: Optional[str] = None) -> None:
+    def __init__(self, id: str, value: Optional[str] = None,
+                 data_attrs: Optional[Dict[str, str]] = None) -> None:
         """
         Initialize a hidden input field.
 
         Args:
             id: Unique identifier for the hidden field
             value: The value to store in the hidden field (default: None)
+            data_attrs: Optional dict of data-* attributes (default: None)
 
         Example:
             >>> hidden = DisplayerItemHidden(id="user_id", value="12345")
@@ -369,6 +372,7 @@ class DisplayerItemHidden(DisplayerItem):
         super().__init__(DisplayerItems.INHIDDEN)
         self.m_value = value
         self.m_id = id
+        self.m_data_attrs = data_attrs
         return
 
     @classmethod
@@ -393,6 +397,8 @@ class DisplayerItemIconLink(DisplayerItem):
         link: str = "",
         parameters: Optional[list] = None,
         color: BSstyle = BSstyle.PRIMARY,
+        css_class: Optional[str] = None,
+        data_attrs: Optional[Dict[str, str]] = None,
     ) -> None:
         """
         Initialize an icon link item.
@@ -406,6 +412,8 @@ class DisplayerItemIconLink(DisplayerItem):
             parameters: GET parameters to append to the link (default: None)
                        List of strings like ["param1=value1", "param2=value2"]
             color: Bootstrap style for icon color (default: BSstyle.PRIMARY)
+            css_class: Optional extra CSS class(es) to add to the element (default: None)
+            data_attrs: Optional dict of data-* attributes (default: None)
 
         Example:
             >>> iconlink = DisplayerItemIconLink(
@@ -424,6 +432,8 @@ class DisplayerItemIconLink(DisplayerItem):
         self.m_icon = icon
         self.m_parameters = parameters
         self.m_style = color.value
+        self.m_css_class = css_class
+        self.m_data_attrs = data_attrs
         return
 
     @classmethod
@@ -467,6 +477,8 @@ class DisplayerItemButton(DisplayerItem):
         tooltip: Optional[str] = None,
         focus: bool = False,
         icon_style: Optional[str] = None,
+        css_class: Optional[str] = None,
+        data_attrs: Optional[Dict[str, str]] = None,
     ) -> None:
         """
         Initialize a unified button item supporting both regular and link buttons.
@@ -483,6 +495,8 @@ class DisplayerItemButton(DisplayerItem):
             icon_style: Layout style for icon. Options: "left" (inline, same size),
                        "top" (stacked, larger), "icon_only" (icon only).
                        Defaults to "left". (default: None)
+            css_class: Optional extra CSS class(es) to add to the element (default: None)
+            data_attrs: Optional dict of data-* attributes, e.g. {"index": "3"} → data-index="3" (default: None)
 
         Example:
             >>> # Link button with icon on the left
@@ -542,6 +556,9 @@ class DisplayerItemButton(DisplayerItem):
             self.m_icon_style = self.IconStyle.LEFT
         else:
             self.m_icon_style = icon_style
+
+        self.m_css_class = css_class
+        self.m_data_attrs = data_attrs
 
     def display(self, container: list, parent_id: Optional[str] = None) -> None:
         """Add button to container with icon and optional link/parameters.
@@ -821,7 +838,8 @@ class DisplayerItemFile(DisplayerItem):
 class DisplayerItemInputBox(DisplayerItem):
     """Specialized display to display an input checkbox."""
 
-    def __init__(self, id: str, text: Optional[str] = None, value: Optional[bool] = None) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[bool] = None,
+                 css_class: Optional[str] = None, data_attrs: Optional[Dict[str, str]] = None) -> None:
         """
         Initialize a checkbox input.
 
@@ -829,6 +847,8 @@ class DisplayerItemInputBox(DisplayerItem):
             id: Unique identifier for the checkbox
             text: Label text for the checkbox (default: None)
             value: Initial checked state (default: None)
+            css_class: Optional extra CSS class(es) to add to the element (default: None)
+            data_attrs: Optional dict of data-* attributes (default: None)
 
         Example:
             >>> checkbox = DisplayerItemInputBox(id="agree_terms", text="I agree to terms", value=False)
@@ -837,6 +857,8 @@ class DisplayerItemInputBox(DisplayerItem):
         self.m_text = text
         self.m_value = value
         self.m_id = id
+        self.m_css_class = css_class
+        self.m_data_attrs = data_attrs
         return
 
     @classmethod
@@ -1098,7 +1120,8 @@ class DisplayerItemInputSelect(DisplayerItem):
     """
 
     def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None,
-                 choices: list = [], sort: bool = True) -> None:
+                 choices: list = [], sort: bool = True,
+                 css_class: Optional[str] = None, data_attrs: Optional[Dict[str, str]] = None) -> None:
         """
         Initialize a select dropdown input.
 
@@ -1112,6 +1135,8 @@ class DisplayerItemInputSelect(DisplayerItem):
             sort: Sort choices alphabetically (default: True).  Set to
                   False when the ordering is meaningful (e.g. grouped
                   categories like Self / Children / Parent).
+            css_class: Optional extra CSS class(es) to add to the element (default: None).
+            data_attrs: Optional dict of data-* attributes (default: None).
 
         Example:
             >>> # Plain string choices (sorted)
@@ -1138,6 +1163,8 @@ class DisplayerItemInputSelect(DisplayerItem):
             choices = sorted(choices, key=lambda c: (c.get("text", c) if isinstance(c, dict) else c))
 
         self.m_data = choices
+        self.m_css_class = css_class
+        self.m_data_attrs = data_attrs
         return
 
     @classmethod
@@ -1715,7 +1742,8 @@ class DisplayerItemInputString(DisplayerItem):
     Standard single-line text input for collecting string data from users.
     """
 
-    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None, focus: bool = False) -> None:
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None, focus: bool = False,
+                 css_class: Optional[str] = None, data_attrs: Optional[Dict[str, str]] = None) -> None:
         """
         Initialize a string input field.
 
@@ -1724,6 +1752,8 @@ class DisplayerItemInputString(DisplayerItem):
             text: Label text displayed above the input (default: None)
             value: Pre-filled value in the input field (default: None)
             focus: Whether this field should receive focus on page load (default: False)
+            css_class: Optional extra CSS class(es) to add to the element (default: None)
+            data_attrs: Optional dict of data-* attributes (default: None)
 
         Example:
             >>> name_input = DisplayerItemInputString(
@@ -1738,6 +1768,8 @@ class DisplayerItemInputString(DisplayerItem):
         self.m_value = value
         self.m_id = id
         self.m_focus = focus
+        self.m_css_class = css_class
+        self.m_data_attrs = data_attrs
         return
 
     @classmethod
