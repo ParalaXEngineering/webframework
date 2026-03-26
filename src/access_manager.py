@@ -1,5 +1,5 @@
 from submodules.framework.src import utilities
-from submodules.framework.src.security_utils import failed_login_manager
+from submodules.framework.src.security_utils import failed_login_manager, ATTEMPTS_BEFORE_LOCKOUT, LOCKOUT_DURATION
 from flask import session, current_app
 import bcrypt
 import logging
@@ -9,8 +9,6 @@ import struct
 
 logger = logging.getLogger("website")
 auth_object = None
-ATTEMPTS_BEFORE_LOCKOUT = 10  # Number of failed attempts before lockout
-LOCKOUT_DURATION = 300  # Lockout duration in seconds (5 minutes)
 
 
 class Access_manager:
@@ -340,7 +338,7 @@ class Access_manager:
         
         :param username: The username to check
         :type username: str
-        :return: Number of remaining attempts (0-5)
+        :return: Number of remaining attempts (0-10)
         :rtype: int
         """
         from submodules.framework.src.security_utils import failed_login_manager

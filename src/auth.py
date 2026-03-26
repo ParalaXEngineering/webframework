@@ -16,7 +16,7 @@ from submodules.framework.src import utilities
 from submodules.framework.src import access_manager
 from submodules.framework.src import site_conf
 from submodules.framework.src.otp_manager import get_otp_manager, is_otp_enabled
-from submodules.framework.src.security_utils import failed_login_manager
+from submodules.framework.src.security_utils import failed_login_manager, ATTEMPTS_BEFORE_LOCKOUT, LOCKOUT_DURATION
 
 logger = logging.getLogger("website")
 bp = Blueprint("auth", __name__, url_prefix="")
@@ -58,7 +58,7 @@ def auth():
 
     error_message = None
     cooldown_remaining = 0
-    attempts_remaining = 5
+    attempts_remaining = ATTEMPTS_BEFORE_LOCKOUT
 
     # Sort users and remove GUEST if present
     users.sort()
@@ -97,7 +97,7 @@ def auth():
         otp_required = is_otp_enabled()
 
         if username in users:
-            # Use access_manager to check login attempt (handles 5 attempts + 5min lock)
+            # Use access_manager to check login attempt (handles lockout)
             success, error_message = access_manager.auth_object.check_login_attempt(username, password)
             
             if success:
@@ -122,8 +122,8 @@ def auth():
                             count = failed_login_manager.increment_attempts(username)
                             attempts_remaining = failed_login_manager.get_remaining_attempts(username)
                             
-                            if count >= 5:
-                                error_message = "Too many failed attempts. Account locked for 5 minutes."
+                            if count >= ATTEMPTS_BEFORE_LOCKOUT:
+                                error_message = f"Too many failed attempts. Account locked for {LOCKOUT_DURATION // 60} minutes."
                                 logger.warning(f"Account '{username}' LOCKED after failed 2FA attempts")
                             else:
                                 error_message = f"Invalid 2FA code: {otp_msg} ({attempts_remaining} attempts remaining)"
@@ -142,7 +142,7 @@ def auth():
                 # Failed login - get remaining attempts and set 20 second cooldown
                 attempts_remaining = access_manager.auth_object.get_remaining_attempts(username)
                 
-                # Only add 20s cooldown if not already locked for 5 minutes
+                # Only add 20s cooldown if not already locked for LOCKOUT_DURATION
                 if "locked" not in error_message.lower():
                     session['auth_cooldown_until'] = datetime.now() + timedelta(seconds=20)
                     cooldown_remaining = 20
@@ -151,14 +151,14 @@ def auth():
                     else:
                         error_message = f"{error_message} Please wait {cooldown_remaining} seconds."
                 else:
-                    # Already locked for 5 minutes, don't add 20s cooldown
+                    # Already locked for LOCKOUT_DURATION, don't add 20s cooldown
                     attempts_remaining = 0
         else:
             error_message = "User does not exist"
             # Also set cooldown for non-existent user
             session['auth_cooldown_until'] = datetime.now() + timedelta(seconds=20)
             cooldown_remaining = 20
-            attempts_remaining = 5
+            attempts_remaining = ATTEMPTS_BEFORE_LOCKOUT
 
     # Get app info for display
     hostname = socket.gethostname()
@@ -181,7 +181,8 @@ def auth():
     
     return render_template("login.j2", target="auth.auth", users=users, message=error_message, 
                          app=app_info, on_target=on_target, cooldown_remaining=cooldown_remaining,
-                         attempts_remaining=attempts_remaining, title=app_name, web_title="Auth",
+                         attempts_remaining=attempts_remaining, max_attempts=ATTEMPTS_BEFORE_LOCKOUT,
+                         title=app_name, web_title="Auth",
                          otp_required=otp_required)
 
 

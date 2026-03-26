@@ -45,6 +45,7 @@ def create_auth_app():
     from submodules.framework.src import utilities
     from submodules.framework.src import access_manager
     from submodules.framework.src import site_conf
+    from submodules.framework.src.security_utils import ATTEMPTS_BEFORE_LOCKOUT, LOCKOUT_DURATION
     
     # Initialize access manager
     if not access_manager.auth_object:
@@ -62,7 +63,7 @@ def create_auth_app():
 
         error_message = None
         cooldown_remaining = 0
-        attempts_remaining = 5
+        attempts_remaining = ATTEMPTS_BEFORE_LOCKOUT
 
         # Sort users and remove GUEST if present
         users.sort()
@@ -95,7 +96,7 @@ def create_auth_app():
             session['last_attempted_user'] = username
 
             if username in users:
-                # Use access_manager to check login attempt (handles 5 attempts + 5min lock)
+                # Use access_manager to check login attempt (handles lockout)
                 success, error_message = access_manager.auth_object.check_login_attempt(username, password)
                 
                 if success:
@@ -110,7 +111,7 @@ def create_auth_app():
                     # Failed login - get remaining attempts and set 20 second cooldown
                     attempts_remaining = access_manager.auth_object.get_remaining_attempts(username)
                     
-                    # Only add 20s cooldown if not already locked for 5 minutes
+                    # Only add 20s cooldown if not already locked for LOCKOUT_DURATION
                     if "locked" not in error_message.lower():
                         session['auth_cooldown_until'] = datetime.now() + timedelta(seconds=20)
                         cooldown_remaining = 20
@@ -119,14 +120,14 @@ def create_auth_app():
                         else:
                             error_message = f"{error_message} Please wait {cooldown_remaining} seconds."
                     else:
-                        # Already locked for 5 minutes, don't add 20s cooldown
+                        # Already locked for LOCKOUT_DURATION, don't add 20s cooldown
                         attempts_remaining = 0
             else:
                 error_message = "User does not exist"
                 # Also set cooldown for non-existent user
                 session['auth_cooldown_until'] = datetime.now() + timedelta(seconds=20)
                 cooldown_remaining = 20
-                attempts_remaining = 5
+                attempts_remaining = ATTEMPTS_BEFORE_LOCKOUT
 
         # Get app info for display
         # Always on_target when using auth server on port 8080
@@ -141,7 +142,8 @@ def create_auth_app():
         
         return render_template("login.j2", target="auth", users=users, message=error_message, 
                              app=app_info, on_target=on_target, cooldown_remaining=cooldown_remaining,
-                             attempts_remaining=attempts_remaining, title=app_name, web_title="Auth")
+                             attempts_remaining=attempts_remaining, max_attempts=ATTEMPTS_BEFORE_LOCKOUT,
+                             title=app_name, web_title="Auth")
     
     @common_bp.route("/assets/<asset_type>/", methods=["GET"])
     def assets(asset_type):

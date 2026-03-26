@@ -34,6 +34,9 @@ def _get_lockout_file_path() -> Path:
         return Path("failed_logins.json")
 
 
+ATTEMPTS_BEFORE_LOCKOUT = 10  # Number of failed attempts before lockout
+LOCKOUT_DURATION = 300  # Lockout duration in seconds (5 minutes)
+
 # Fichier de stockage persistant des tentatives échouées
 LOCKOUT_FILE = _get_lockout_file_path()
 
@@ -103,9 +106,8 @@ class FailedLoginManager:
         status = self.get_user_status(username)
         status['count'] += 1
         
-        if status['count'] >= 5:
-            # Verrouiller pour 5 minutes
-            status['locked_until'] = datetime.now() + timedelta(minutes=5)
+        if status['count'] >= ATTEMPTS_BEFORE_LOCKOUT:
+            status['locked_until'] = datetime.now() + timedelta(seconds=LOCKOUT_DURATION)
             logger.warning(f"Account '{username}' locked until {status['locked_until'].strftime('%Y-%m-%d %H:%M:%S')}")
         
         self._save_attempts()
@@ -119,7 +121,7 @@ class FailedLoginManager:
     def get_remaining_attempts(self, username):
         """Retourne le nombre de tentatives restantes"""
         status = self.get_user_status(username)
-        return max(0, 5 - status['count'])
+        return max(0, ATTEMPTS_BEFORE_LOCKOUT - status['count'])
     
     def get_lockout_time_remaining(self, username):
         """Retourne le temps restant avant déverrouillage (en secondes)"""

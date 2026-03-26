@@ -78,7 +78,7 @@
                             {% endif %}
                             {% if on_target|default(false) and attempts_remaining is defined %}
                                 <div class="mt-2">
-                                    <strong>{{ t('login.attempts_remaining') }}: {{ attempts_remaining }}/5</strong>
+                                    <strong>{{ t('login.attempts_remaining') }}: {{ attempts_remaining }}/{{ max_attempts }}</strong>
                                 </div>
                             {% endif %}
                         </div>
