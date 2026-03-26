@@ -16,12 +16,18 @@
         <option value="" selected></option>
       {% endif %}
       {% for option in options %}
-        {% set opt_val  = option|string %}
+        {% if option is mapping %}
+          {% set opt_val  = option.value|string %}
+          {% set opt_text = option.text|default(opt_val)|string %}
+        {% else %}
+          {% set opt_val  = option|string %}
+          {% set opt_text = opt_val %}
+        {% endif %}
         {% set opt_norm = opt_val|replace('\t',' ')|trim %}
         <option
           value="{{ opt_val }}"
           {% if opt_norm == sel_norm %} selected{% endif %}
-        >{{ opt_val }}</option>
+        >{{ opt_text }}</option>
       {% endfor %}
     {% endif %}
   </select>

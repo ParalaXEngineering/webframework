@@ -1090,34 +1090,52 @@ class DisplayerItemInputCascaded(DisplayerItem):
 
 @DisplayerCategory.INPUT
 class DisplayerItemInputSelect(DisplayerItem):
-    """Specialized display to display an input select box."""
+    """Specialized display to display an input select box.
 
-    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None, choices: list = []) -> None:
+    Choices can be plain strings or ``{"value": ..., "text": ...}`` dicts
+    for value/label pairs (e.g. when the display text differs from the
+    stored value).
+    """
+
+    def __init__(self, id: str, text: Optional[str] = None, value: Optional[str] = None,
+                 choices: list = [], sort: bool = True) -> None:
         """
         Initialize a select dropdown input.
 
         Args:
-            id: Unique identifier for the select element
-            text: Optional label text (default: None)
-            value: Currently selected value (default: None)
-            choices: List of selectable options (default: [])
-                    Automatically sorted alphabetically
+            id: Unique identifier for the select element.
+            text: Optional label text (default: None).
+            value: Currently selected value (default: None).
+            choices: Selectable options.  Each element is either a plain
+                     string **or** a dict ``{"value": str, "text": str}``.
+                     Plain strings are used as both value and display text.
+            sort: Sort choices alphabetically (default: True).  Set to
+                  False when the ordering is meaningful (e.g. grouped
+                  categories like Self / Children / Parent).
 
         Example:
+            >>> # Plain string choices (sorted)
             >>> select = DisplayerItemInputSelect(
-            ...     id="priority",
-            ...     text="Select Priority",
-            ...     value="medium",
-            ...     choices=["low", "medium", "high"]
+            ...     id="priority", value="medium",
+            ...     choices=["low", "medium", "high"],
+            ... )
+            >>> # Value/label pairs (unsorted)
+            >>> select = DisplayerItemInputSelect(
+            ...     id="target", value="children.Board",
+            ...     choices=[
+            ...         {"value": "self", "text": "Self"},
+            ...         {"value": "children.Board", "text": "Children: Board"},
+            ...     ],
+            ...     sort=False,
             ... )
         """
         super().__init__(DisplayerItems.SELECT)
         self.m_text = text
         self.m_value = value
         self.m_id = id
-        
-        if choices:
-            choices.sort()
+
+        if choices and sort:
+            choices = sorted(choices, key=lambda c: (c.get("text", c) if isinstance(c, dict) else c))
 
         self.m_data = choices
         return
@@ -1125,7 +1143,7 @@ class DisplayerItemInputSelect(DisplayerItem):
     @classmethod
     def instantiate_test(cls):
         """Create test instance with sample select.
-        
+
         Returns:
             Instance of the class with test data.
         """
